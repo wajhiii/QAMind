@@ -7,7 +7,7 @@ AI coding tool gets a thin generated adapter.
 core/                         single source of truth
   skills/qa-only/SKILL.md       the job description, with {{placeholders}}
   shared/*.md                   workflow, safety, surfaces, reporting, memory protocol, templates
-  knowledge/                    curated QA expertise (Phase 2)
+  knowledge/                    curated QA expertise: 27 topic files + INDEX.md + VERSION (docs/KNOWLEDGE-SOURCES.md credits every source)
   lib/*.ts                      deterministic runtime: store, config, URL policy, runs, API plan/runner, report, hooks
   scripts/                      browser launcher + guard proxy
 cli/src/                      the `qamind` command (JSON in/out) used by skills and hooks
@@ -39,6 +39,14 @@ run start ─► memory context ─► health ─► charters ─► test (API �
 template, blocked or ambiguous URLs, and a project with no usable credentials, and only then creates the run folder and
 the **run marker** `<store>/state/run-marker.json`. The marker carries the session id, the mode, whether the run is
 report-only, and the **policy** (allowed origins, blocked patterns). The hook and the guard proxy both read it.
+
+## Knowledge, loaded on demand
+
+The skill is short; expertise lives in `core/knowledge/` and is loaded only when relevant. The agent reads `INDEX.md` while planning (a
+situation-to-files table, plus a framework table keyed on `stack.frameworks` from `run start`), then loads a few matching files at a
+time, again when it moves to a new kind of feature. `shared/surfaces.md` names the files each section of the work draws on. The evaluation
+records how many knowledge files a run actually read. Files are never edited during a run; gaps become proposals in
+`.qa/suggested-improvements.md`.
 
 ## Safety enforcement
 

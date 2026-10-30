@@ -45,6 +45,25 @@ Releases are Git tags (`vX.Y.Z`); there is no npm package. Bump `version` in `pa
 
 Windows (the code avoids POSIX-only APIs where it can, but nothing has been run there), and Linux outside CI.
 
+## Updating the knowledge base
+
+`core/knowledge/` holds one topic per file (under 300 lines), written as checklist-style instructions to the agent, in our own words.
+
+1. **Source first.** Read the current primary or official source before changing a claim. Do not paste or closely paraphrase; no quote over
+   12 words. Share-alike sources (OWASP, MDN, Wikipedia, Rails Guides) are used for ideas only, in our own wording.
+2. **Record it.** Add or update the entry in `docs/KNOWLEDGE-SOURCES.md` (URL, publisher, license, `Accessed:` date, which files it informed, what
+   we used). Every knowledge file must have at least one source; the tests enforce it.
+3. **Keep it generic and safe.** No product names, no host/tool names, no demo-app details; every check must be non-destructive and runnable on
+   staging. Mention only tools that exist (the API runner, the browser tools, the page audit).
+4. **Index it.** New files go in `core/knowledge/INDEX.md` (by situation, and by `stack.frameworks` for framework notes).
+5. **Version it.** Bump `core/knowledge/VERSION` (patch for wording or a new section in an existing file, minor for new files) and add a line to `CHANGELOG.md`.
+6. `npm test` (the knowledge checks run there), `npm run build`, `npm run check:generated`.
+7. After a substantive change, run the scored evaluation (`docs/EVALUATION-LOG.md`) and compare with the recorded baseline.
+
+Known gaps (not yet covered): GraphQL, WebSocket and server-sent-event APIs; a JWT-specific file; time zones as their own topic; import/export and
+long-running or scheduled jobs; cross-browser testing beyond a list of differences to suspect; Nuxt, NestJS, Angular, Svelte, Flask and FastAPI
+notes; handling secrets and personal data found in evidence (arrives with Phase 7.6).
+
 ## Trying the agent end to end
 
 `docs/EVALUATION-LOG.md` has the exact procedure (a copy of the demo app without its answer key, a scratch `QAMIND_HOME`, a headless

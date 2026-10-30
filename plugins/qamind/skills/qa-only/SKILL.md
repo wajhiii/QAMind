@@ -20,7 +20,9 @@ Read these on demand (they are short and specific; do not load them all up front
 - `${CLAUDE_PLUGIN_ROOT}/core/shared/surfaces.md`: how to test the API, each web UI, cross-checks and business rules.
 - `${CLAUDE_PLUGIN_ROOT}/core/shared/reporting.md`: the data files, severity, and the end-of-run summary.
 - `${CLAUDE_PLUGIN_ROOT}/core/shared/memory-protocol.md`: what memory is and is not.
-- `${CLAUDE_PLUGIN_ROOT}/core/knowledge/INDEX.md`: curated QA knowledge, when it has entries relevant to what you are testing.
+- `${CLAUDE_PLUGIN_ROOT}/core/knowledge/INDEX.md`: the curated QA knowledge base. **Read it when you plan (Step 3)**, then load only the
+  files that match what you are about to test, a few at a time, plus the `framework-notes/` file for each framework in
+  `stack.frameworks`. Do not load files that do not apply.
 
 The `qamind` command (`qamind`) does the deterministic work and prints JSON. Run it exactly as written, one command per
 call (no `&&`, `||` or pipes around it). Only if the shell says `qamind: command not found`, run the same arguments as
@@ -63,12 +65,20 @@ first run). Record what you applied in `data/meta.json` → `memory_applied`.
 further and report no product findings.
 
 ## Step 3: plan
-Write `<run.dir>/data/charters.json` (see `reporting.md`): a charter for each surface and critical flow, prioritized by
+Read `${CLAUDE_PLUGIN_ROOT}/core/knowledge/INDEX.md` now and choose the knowledge files this run needs. Write `<run.dir>/data/charters.json` (see `reporting.md`): a charter for each surface and critical flow, prioritized by
 memory and, in `diff` mode, by `git.changed_files`. Then `qamind report build --run <id>` so the plan is on disk before you probe.
 Tell the user the plan in a few lines.
 
 ## Step 4: test
 Follow `workflow.md` Phase 3 and `surfaces.md`: API first, then each web UI per role, then cross-checks, then business rules.
+Load the knowledge for each pass **when you start it** (INDEX has the rest; framework notes per `stack.frameworks`):
+- API pass: `api-testing.md`, `test-design.md`; plus `permissions-and-data-isolation.md` for the role matrix and customer-to-customer
+  chains, `auth-and-sessions.md` for sign-in, sign-out and sessions, `search-filter-pagination.md` for list endpoints.
+- Each web UI pass: `browser-testing.md`, `ui-and-layout.md`, `accessibility.md`; plus `forms.md` on any page with a form,
+  `search-filter-pagination.md` on lists, `i18n-and-rtl.md` if any content is not left-to-right Latin text, `payments-and-money.md`,
+  `file-uploads.md` or `notifications-email.md` when those features exist.
+- Cross-checks: `permissions-and-data-isolation.md` and the "warm, change, re-read" sequence in `api-testing.md`.
+- Business rules: `test-design.md` (boundaries) and `payments-and-money.md` for amounts. Before writing findings: `bug-reporting.md`.
 Keep a running list for the data files: confirmed findings, unconfirmed leads, not-tested areas, coverage.
 Every finding needs at least two reproductions and evidence. Report only what you verified. Never mark an untested area as passing.
 Be proportionate: `quick` covers the critical flows and top risks, thoroughly, and lists everything else as Not tested with the true

@@ -1,0 +1,347 @@
+[
+  {
+    "title": "Clients can list all customer records through the admin API",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Admin API",
+    "type": "permissions",
+    "charter": "C3",
+    "summary": "GET /api/admin/customers returns 200 to client accounts from two different companies; the spec and business rules say only admins may see customers.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "GET /api/admin/customers (see evidence for the curl command)",
+      "Repeat as bright-1",
+      "Observe HTTP 200 both times"
+    ],
+    "expected": "HTTP 403 for any non-admin role",
+    "actual": "HTTP 200 with the customer list for acme-1 and bright-1 (and zain-1, acme-2 in the role matrix)",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-R002.json",
+      "evidence/api/rules-R003.json"
+    ],
+    "roles": [
+      "acme-1",
+      "bright-1"
+    ],
+    "suspected_cause": "Missing admin role check on the customers route (the sales report route has one)",
+    "regression_test": {
+      "description": "As a client, GET /api/admin/customers and expect 403",
+      "location": "test/permissions.test.js"
+    },
+    "id": "ISSUE-001"
+  },
+  {
+    "title": "A client can read another company's order by id",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Orders",
+    "type": "tenant-isolation",
+    "charter": "C3",
+    "summary": "GET /api/orders/{id} returns 200 for an order that belongs to a different company.",
+    "steps": [
+      "Sign in over the API as acme-1 and POST /api/orders (QA-rule-small), note the order id",
+      "Sign in as bright-1 (Bright Foods) and GET /api/orders/{that id}",
+      "Observe HTTP 200"
+    ],
+    "expected": "HTTP 403 or 404",
+    "actual": "HTTP 200 with the Acme order",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-R007.json"
+    ],
+    "roles": [
+      "acme-1",
+      "bright-1"
+    ],
+    "suspected_cause": "Order detail handler does not compare the order's client_id with the caller's company",
+    "regression_test": {
+      "description": "Client A creates an order; client B GETs it and expects 403/404",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-002"
+  },
+  {
+    "title": "Signing out does not revoke the session token",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Authentication",
+    "type": "session",
+    "charter": "C3",
+    "summary": "After POST /api/auth/logout the same token still works on GET /api/me.",
+    "steps": [
+      "Sign in over the API as zain-1",
+      "POST /api/auth/logout (204)",
+      "GET /api/me with the same token",
+      "Observe HTTP 200"
+    ],
+    "expected": "HTTP 401 after logout",
+    "actual": "HTTP 200",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-R015.json"
+    ],
+    "roles": [
+      "zain-1"
+    ],
+    "suspected_cause": "Logout does not add the token to a revoked list, or the check ignores it",
+    "regression_test": {
+      "description": "Login, logout, then GET /me expects 401",
+      "location": "test/auth.test.js"
+    },
+    "id": "ISSUE-003"
+  },
+  {
+    "title": "Tax is calculated on the undiscounted subtotal for orders of 1,000.00 or more",
+    "severity": "critical",
+    "surface": "business-rule",
+    "area": "Orders / totals",
+    "type": "business-rule",
+    "charter": "C2",
+    "summary": "The 5% discount is applied, but tax is 10% of the full subtotal instead of the discounted subtotal, so customers are overcharged. The confirmation page shows the same wrong total.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "POST /api/orders with product p-102 (12.50) quantity 80, subtotal 1,000.00",
+      "Observe tax_cents 10000 and total_cents 105000",
+      "Same in Client Portal: New order, Ballpoint Pens x80, Place order; confirmation says Total $1,050.00"
+    ],
+    "expected": "Discount 50.00, tax 95.00, total 1,045.00 (also p-102 x100: total 1,306.25; p-101 x1000: total 6,792.50)",
+    "actual": "Total 1,050.00 (x100: 1,312.50; p-101 x1000: 6,825.00). Discount itself is correct; orders just below 1,000.00 (x79) are correct.",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/totals-T80.json",
+      "evidence/api/totals-T100.json",
+      "evidence/api/totals-T1000.json",
+      "screenshots/order-confirmation-desktop.png"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "ui": "Client Portal",
+    "browser": "Chromium",
+    "viewport": "desktop",
+    "suspected_cause": "Tax computed from subtotal rather than subtotal minus discount",
+    "regression_test": {
+      "description": "Order of exactly 1,000.00 expects tax 95.00 and total 1,045.00",
+      "location": "test/pricing.test.js"
+    },
+    "id": "ISSUE-004"
+  },
+  {
+    "title": "Order creation accepts invalid quantities and an empty item list",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders",
+    "type": "validation",
+    "charter": "C1",
+    "summary": "POST /api/orders returns 201 for quantity 0, 1001, 1.5 and for an empty items array, though quantity must be a whole number 1-1000 and an order needs at least one item.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "POST /api/orders with items [] , then quantity 0, 1001, 1.5 (see evidence)",
+      "Observe HTTP 201 each time"
+    ],
+    "expected": "HTTP 400",
+    "actual": "HTTP 201, order created",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-base-P043.json",
+      "evidence/api/client-base-P044.json",
+      "evidence/api/client-base-P045.json",
+      "evidence/api/client-base-P046.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "No server-side validation of items or quantity",
+    "regression_test": {
+      "description": "POST orders with empty items and out-of-range quantities, expect 400",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-005"
+  },
+  {
+    "title": "Malformed JSON responses expose stack traces and server file paths",
+    "severity": "important",
+    "surface": "api",
+    "area": "Error handling",
+    "type": "security",
+    "charter": "C1",
+    "summary": "Sending broken JSON to POST /auth/login or POST /orders returns 400 with a trace field containing a stack trace and local file paths.",
+    "steps": [
+      "POST /api/auth/login with raw body {\"broken\":",
+      "Observe error.trace in the response",
+      "Repeat on POST /api/orders"
+    ],
+    "expected": "A short error message without internal detail",
+    "actual": "Body includes stack trace and absolute server file paths",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-base-P007.json",
+      "evidence/api/client-base-P048.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "Error handler serialises err.stack into the response",
+    "regression_test": {
+      "description": "Malformed JSON returns 400 with no trace field",
+      "location": "test/errors.test.js"
+    },
+    "id": "ISSUE-006"
+  },
+  {
+    "title": "GET /orders returns HTTP 500 for page_size=0 and for q=( or q=\\",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders list",
+    "type": "robustness",
+    "charter": "C1",
+    "summary": "Edge query values crash the orders list; also page_size=-1 is accepted with 200 although the spec minimum is 1.",
+    "steps": [
+      "Sign in over the API as acme-1 or admin",
+      "GET /api/orders?page_size=0",
+      "GET /api/orders?q=(",
+      "Observe HTTP 500 each time; page_size=-1 gives 200"
+    ],
+    "expected": "HTTP 400 for invalid page_size; search text treated literally",
+    "actual": "HTTP 500 (page_size=0, q=(, q=\\)",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-base-P019.json",
+      "evidence/api/client-base-P024.json",
+      "evidence/api/client-base-P028.json",
+      "evidence/api/client-base-P020.json"
+    ],
+    "roles": [
+      "acme-1",
+      "admin"
+    ],
+    "suspected_cause": "q is used as a raw regular expression; page_size is not range-checked (division by zero)",
+    "regression_test": {
+      "description": "GET orders with page_size=0 and q=( expects 400/200, never 500",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-007"
+  },
+  {
+    "title": "Order creation is not protected against double submission",
+    "severity": "minor",
+    "surface": "api",
+    "area": "Orders",
+    "type": "duplicate-submission",
+    "charter": "C1",
+    "summary": "Two identical simultaneous POST /orders were all accepted with 201. I did not confirm that duplicate orders are stored with different ids, and I do not know whether the product intends idempotency.",
+    "steps": [
+      "Sign in as acme-1",
+      "Send the same POST /api/orders twice in parallel",
+      "Observe 201 for every request"
+    ],
+    "expected": "One order, or a clear duplicate warning",
+    "actual": "All requests returned 201",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-base-P049.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "No idempotency key or duplicate check",
+    "regression_test": {
+      "description": "Two parallel identical orders create at most one",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-008"
+  },
+  {
+    "title": "Sales report endpoint takes about 4 seconds",
+    "severity": "minor",
+    "surface": "api",
+    "area": "Reports",
+    "type": "performance",
+    "charter": "C4",
+    "summary": "GET /api/admin/reports/sales consistently takes 4.0 s (limit 3 s); the Reports page waits equally long.",
+    "steps": [
+      "Sign in as admin",
+      "GET /api/admin/reports/sales",
+      "Observe about 4,000 ms"
+    ],
+    "expected": "Under 3 seconds",
+    "actual": "4,022 ms and 4,024 ms",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/admin-base-P061.json",
+      "evidence/api/admin-base-P093.json"
+    ],
+    "roles": [
+      "admin"
+    ],
+    "suspected_cause": "Slow aggregation or an artificial delay",
+    "regression_test": {
+      "description": "Sales report responds within 3000 ms",
+      "location": "test/reports.test.js"
+    },
+    "id": "ISSUE-009"
+  },
+  {
+    "title": "Product dropdown on New order has no accessible name",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "Client Portal / New order",
+    "type": "accessibility",
+    "charter": "C4",
+    "summary": "The product select has no label, so screen readers announce it only by its first option. The page audit flagged it and it was seen again after a page reload.",
+    "steps": [
+      "Sign in to the Client Portal as acme-1",
+      "Open New order",
+      "Run the page audit or read the accessibility snapshot: the product select has no name"
+    ],
+    "expected": "A label such as Product",
+    "actual": "Unnamed combobox",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/order-confirmation-desktop.png"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "ui": "Client Portal",
+    "browser": "Chromium",
+    "viewport": "desktop",
+    "suspected_cause": "Select rendered without label or aria-label",
+    "regression_test": {
+      "description": "Product select has an accessible name",
+      "location": "test/ui/new-order.test.js"
+    },
+    "id": "ISSUE-010"
+  }
+]

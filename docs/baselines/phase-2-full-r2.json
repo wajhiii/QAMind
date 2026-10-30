@@ -1,0 +1,293 @@
+{
+  "label": "phase-2",
+  "mode": "full",
+  "rep": 2,
+  "date": "2026-10-30T06:53:19.381Z",
+  "settings": {
+    "prompt": "/qamind:qa-only full",
+    "qamind": {
+      "git_commit": "c653f2d17bc9a624d81839936ee34f9dfd8c3c9a",
+      "plugin_tree_committed": "0119f3ef382ac9c03bc736bb6d804290a90184ec",
+      "plugin_content_sha256": "4551a86391b21d2bb033e6c662913eb71687830a9594e909ed89ff70a989b22b",
+      "uncommitted_in_built_plugin": [
+        "M plugins/qamind/core/knowledge/INDEX.md",
+        " M plugins/qamind/core/knowledge/VERSION",
+        " M plugins/qamind/core/shared/reporting.md",
+        " M plugins/qamind/core/shared/surfaces.md",
+        " M plugins/qamind/core/shared/workflow.md",
+        " M plugins/qamind/dist/qamind.mjs",
+        " M plugins/qamind/skills/qa-only/SKILL.md",
+        "?? plugins/qamind/core/knowledge/accessibility.md",
+        "?? plugins/qamind/core/knowledge/api-testing.md",
+        "?? plugins/qamind/core/knowledge/auth-and-sessions.md",
+        "?? plugins/qamind/core/knowledge/browser-testing.md",
+        "?? plugins/qamind/core/knowledge/bug-reporting.md",
+        "?? plugins/qamind/core/knowledge/debugging-and-root-cause.md",
+        "?? plugins/qamind/core/knowledge/exploratory-charters.md",
+        "?? plugins/qamind/core/knowledge/file-uploads.md",
+        "?? plugins/qamind/core/knowledge/fixing-safely.md",
+        "?? plugins/qamind/core/knowledge/flaky-tests.md",
+        "?? plugins/qamind/core/knowledge/forms.md",
+        "?? plugins/qamind/core/knowledge/framework-notes/",
+        "?? plugins/qamind/core/knowledge/i18n-and-rtl.md",
+        "?? plugins/qamind/core/knowledge/notifications-email.md",
+        "?? plugins/qamind/core/knowledge/payments-and-money.md",
+        "?? plugins/qamind/core/knowledge/permissions-and-data-isolation.md",
+        "?? plugins/qamind/core/knowledge/search-filter-pagination.md",
+        "?? plugins/qamind/core/knowledge/security-checks.md",
+        "?? plugins/qamind/core/knowledge/test-design.md",
+        "?? plugins/qamind/core/knowledge/ui-and-layout.md"
+      ],
+      "uncommitted_in_sources_not_in_plugin_unless_built": [
+        "M core/knowledge/INDEX.md",
+        " M core/knowledge/VERSION",
+        " M core/shared/reporting.md",
+        " M core/shared/surfaces.md",
+        " M core/shared/workflow.md",
+        " M core/skills/qa-only/SKILL.md",
+        "?? core/knowledge/accessibility.md",
+        "?? core/knowledge/api-testing.md",
+        "?? core/knowledge/auth-and-sessions.md",
+        "?? core/knowledge/browser-testing.md",
+        "?? core/knowledge/bug-reporting.md",
+        "?? core/knowledge/debugging-and-root-cause.md",
+        "?? core/knowledge/exploratory-charters.md",
+        "?? core/knowledge/file-uploads.md",
+        "?? core/knowledge/fixing-safely.md",
+        "?? core/knowledge/flaky-tests.md",
+        "?? core/knowledge/forms.md",
+        "?? core/knowledge/framework-notes/",
+        "?? core/knowledge/i18n-and-rtl.md",
+        "?? core/knowledge/notifications-email.md",
+        "?? core/knowledge/payments-and-money.md",
+        "?? core/knowledge/permissions-and-data-isolation.md",
+        "?? core/knowledge/search-filter-pagination.md",
+        "?? core/knowledge/security-checks.md",
+        "?? core/knowledge/test-design.md",
+        "?? core/knowledge/ui-and-layout.md"
+      ]
+    },
+    "claude": {
+      "version": "2.1.312 (Claude Code)",
+      "model_requested": "claude-sonnet-5-5",
+      "model_in_session": "claude-sonnet-5-5",
+      "setting_sources": "project,local",
+      "claudeai_connectors": "disabled (ENABLE_CLAUDEAI_MCP_SERVERS=false)",
+      "permission_mode": "default",
+      "allowed_tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash(qamind *)",
+        "Bash(curl *)",
+        "Bash(git status *)",
+        "Bash(git diff *)",
+        "Bash(git log *)",
+        "Bash(ls *)",
+        "mcp__plugin_qamind_browser"
+      ],
+      "max_budget_usd": 15
+    },
+    "demo": {
+      "tree": "a43a2e3b5ff65afbf582dcf183bdd29279f57ecb",
+      "ports": "4100/4101/4102",
+      "data": "reset before the run",
+      "fixture_config_sha256": "a1e7f86727b57f659f003820cf24a61ab125debe32f4e1fafa691804075c9b3b",
+      "fixture_env_sha256": "762d8cfa6079c664d7367eab9ca600c05938707c4841c2756b732db9deb953e0",
+      "answer_key_visible_to_agent": false
+    },
+    "machine": {
+      "platform": "darwin 27.2.0",
+      "node": "v24.2.0",
+      "chrome": "Google Chrome 156.0.8078.74"
+    }
+  },
+  "results": {
+    "exit_code": 0,
+    "outcome": "success",
+    "cost_usd": 1.1254803,
+    "turns": 93,
+    "wall_minutes": 4.5,
+    "findings": 13,
+    "severity": {
+      "critical": 5,
+      "important": 3,
+      "minor": 5
+    },
+    "lint_ok": true,
+    "lint_errors": [],
+    "tool_calls": {
+      "Read": 16,
+      "Bash": 19,
+      "Write": 7,
+      "Grep": 2,
+      "ToolSearch": 1,
+      "browser:browser_navigate": 11,
+      "browser:browser_snapshot": 6,
+      "browser:browser_type": 8,
+      "browser:browser_select_option": 1,
+      "browser:browser_click": 2,
+      "browser:browser_take_screenshot": 6,
+      "browser:browser_evaluate": 6,
+      "browser:browser_resize": 4,
+      "browser:browser_close": 2,
+      "browser:browser_wait_for": 1
+    },
+    "page_audit_calls": 6,
+    "knowledge_files_read": [
+      "INDEX.md",
+      "api-testing.md",
+      "payments-and-money.md",
+      "bug-reporting.md",
+      "browser-testing.md"
+    ],
+    "score": {
+      "run": "run-20261030T065323Z",
+      "scored_bugs": 14,
+      "found": 12,
+      "lead_only": 0,
+      "missed": [
+        "DB-05",
+        "DB-08"
+      ],
+      "recall": "12/14",
+      "findings": 13,
+      "depth": {
+        "db07_ui_double_submit_checked": false,
+        "db09_four_elements_named": false,
+        "db11_urdu_reversal_confirmed": true,
+        "db17_pii_exposure_reported": false
+      },
+      "depth_score": "1/4",
+      "decoy_hits": [
+        {
+          "decoy": "DC-07",
+          "finding": "ISSUE-011",
+          "title": "Client Portal (mobile 390px): My orders toolbar covers the first row and the Total column is cut off"
+        }
+      ],
+      "unmatched_findings_review_by_hand": [
+        {
+          "id": "ISSUE-007",
+          "severity": "minor",
+          "title": "Orders list: page_size=-1 is accepted instead of refused"
+        }
+      ],
+      "secrets_in_run_output": "none",
+      "per_bug": [
+        {
+          "id": "DB-01",
+          "name": "Order validation accepts bad quantities / empty items",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-005"
+          ]
+        },
+        {
+          "id": "DB-02",
+          "name": "Tax computed before discount",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-003"
+          ]
+        },
+        {
+          "id": "DB-03",
+          "name": "IDOR: another company's order readable",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-001",
+            "ISSUE-013"
+          ]
+        },
+        {
+          "id": "DB-04",
+          "name": "Client can read admin customer records",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-002"
+          ]
+        },
+        {
+          "id": "DB-05",
+          "name": "Admin status change not reflected for client",
+          "status": "MISSED",
+          "by": []
+        },
+        {
+          "id": "DB-06",
+          "name": "500 on search regex chars / page_size=0",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-006"
+          ]
+        },
+        {
+          "id": "DB-07",
+          "name": "Double submit creates duplicate orders",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-009"
+          ]
+        },
+        {
+          "id": "DB-08",
+          "name": "New Order unusable at mobile width",
+          "status": "MISSED",
+          "by": []
+        },
+        {
+          "id": "DB-09",
+          "name": "Missing accessible names",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-012"
+          ]
+        },
+        {
+          "id": "DB-10",
+          "name": "Stack trace / file paths leaked",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-008"
+          ]
+        },
+        {
+          "id": "DB-11",
+          "name": "Urdu / long text reversed or truncated",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-013"
+          ]
+        },
+        {
+          "id": "DB-12",
+          "name": "Sessions not revoked / never expire",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-004"
+          ]
+        },
+        {
+          "id": "DB-13",
+          "name": "Reports page very slow",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-010"
+          ]
+        },
+        {
+          "id": "DB-15",
+          "name": "My Orders first row covered at mobile width",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-011"
+          ]
+        }
+      ]
+    }
+  },
+  "note": "Single run. LLM runs vary; read differences smaller than a few bugs or about 30% cost with care."
+}

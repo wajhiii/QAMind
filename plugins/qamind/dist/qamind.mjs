@@ -9146,7 +9146,7 @@ function saveStack(memoryDir, stack) {
 
 // core/lib/version.ts
 var QAMIND_VERSION = true ? "0.1.0" : "dev";
-var KNOWLEDGE_VERSION = true ? "0.0.0" : "dev";
+var KNOWLEDGE_VERSION = true ? "0.1.1" : "dev";
 
 // core/lib/run.ts
 var MODES = ["full", "quick", "regression", "diff"];

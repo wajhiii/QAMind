@@ -57,6 +57,16 @@ const leaks = [];
 const walk = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) walk(p); else if (/\.(json|md|txt|log|yml|yaml)$/.test(e.name)) { const t = fs.readFileSync(p, 'utf8'); for (const s of secrets) if (t.includes(s)) leaks.push(path.relative(runDir, p)); } } };
 walk(runDir);
 
+// Depth: the headline count saturates, so also record whether the harder halves of some bugs were confirmed (as findings, not leads).
+// (DB-12's expiry half is not included: the demo token lives 15 minutes, so it cannot be confirmed in a normal run.)
+const fText = findings.map(text).join(' \n ');
+const depth = {
+  db07_ui_double_submit_checked: findings.some((f) => (f.browser || f.viewport || f.ui) && /double-?click|clicked twice|double submit|clicking twice/.test(text(f)) && /duplicate|twice|two orders/.test(text(f))),
+  db09_four_elements_named: ['select', 'search', 'refresh', 'clear'].filter((k) => new RegExp(k).test(fText)).length >= 4,
+  db11_urdu_reversal_confirmed: findings.some((f) => /urdu|arabic|rtl|right-to-left/.test(text(f)) && /revers|backward|bidi|wrong order|out of order|left-to-right/.test(text(f))),
+  db17_pii_exposure_reported: findings.some((f) => /national id|cnic|card number|personal data|pii|phone number/.test(text(f))),
+};
+const depthScore = Object.values(depth).filter(Boolean).length;
 const found = rows.filter((r) => r.status === 'FOUND').length;
 const result = {
   run: path.basename(runDir),
@@ -66,6 +76,8 @@ const result = {
   missed: rows.filter((r) => r.status === 'MISSED').map((r) => r.id),
   recall: `${found}/${BUGS.length}`,
   findings: findings.length,
+  depth,
+  depth_score: `${depthScore}/${Object.keys(depth).length}`,
   decoy_hits: decoyHits,
   unmatched_findings_review_by_hand: unmatched,
   secrets_in_run_output: leaks.length ? [...new Set(leaks)] : 'none',
@@ -73,7 +85,7 @@ const result = {
 };
 if (process.argv.includes('--json')) console.log(JSON.stringify(result, null, 2));
 else {
-  console.log(`${result.run}: found ${result.recall} (lead only ${result.lead_only}; missed ${result.missed.join(', ') || 'none'}); ${result.findings} findings; decoy hits ${decoyHits.length}; secrets in output: ${result.secrets_in_run_output}`);
+  console.log(`${result.run}: found ${result.recall} (lead only ${result.lead_only}; missed ${result.missed.join(', ') || 'none'}); ${result.findings} findings; decoy hits ${decoyHits.length}; depth ${result.depth_score}; secrets in output: ${result.secrets_in_run_output}`);
   for (const r of rows) console.log(`  ${r.status.padEnd(9)} ${r.id}  ${r.name}${r.by.length ? `  <- ${r.by.join(', ')}` : ''}`);
   if (decoyHits.length) console.log('  DECOY HITS:', JSON.stringify(decoyHits));
   if (unmatched.length) console.log('  Unmatched findings (review by hand):', unmatched.map((u) => `${u.id} ${u.title}`).join(' | '));

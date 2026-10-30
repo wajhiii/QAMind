@@ -1,0 +1,483 @@
+[
+  {
+    "title": "Any client can read any other company's order by id",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Orders",
+    "type": "tenant-isolation",
+    "charter": "C2",
+    "summary": "GET /api/orders/{id} returns 200 with full order data to a user from a different company; the Client Portal order page shows it too. The orders list is correctly scoped, only the detail lookup is not (OWASP API1:2023).",
+    "steps": [
+      "Sign in over the API as acme-1 (Acme Traders) and POST /api/orders with reference QA-iso-1 (probe I1); note the returned id",
+      "Sign in as bright-1 (Bright Foods) and GET /api/orders/{that id} (probe I3), then as zain-1 (probe I4); see evidence for the exact requests",
+      "Also, in the Client Portal as acme-1, open order.html?id=o-1009 (a Bright Foods order) and see it with company name and items",
+      "Repeat: same result on the second attempt of each probe"
+    ],
+    "expected": "HTTP 403 or 404 with no order data for a user of another company",
+    "actual": "HTTP 200 with the order, including the QA-iso-1 marker. The portal page 'Order BF-2216' for a Bright Foods order rendered for acme-1. A custom X-Client-Id header made no difference (probe I13).",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-I3.json",
+      "evidence/api/rules-I4.json",
+      "evidence/api/rules-I13.json",
+      "screenshots/client-other-company-order.png"
+    ],
+    "roles": [
+      "bright-1",
+      "zain-1",
+      "acme-1"
+    ],
+    "ui": "Client Portal",
+    "browser": "chromium",
+    "viewport": "desktop 1366x768",
+    "suspected_cause": "The detail handler looks the order up by id without comparing its client_id to the caller's",
+    "regression_test": {
+      "description": "Create an order as acme-1, GET it as bright-1 and expect 403/404; GET as acme-2 expects 200",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-001"
+  },
+  {
+    "title": "Client accounts can list all customers' personal and payment details",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Customers",
+    "type": "function-level-access",
+    "charter": "C2",
+    "summary": "GET /api/admin/customers is documented as admin-only (403 for others) but returns 200 for every client account, exposing every company's contact name, email, phone, national ID, address, card details and internal notes (OWASP API5:2023). The role matrix confirms 200 for acme-1, acme-2, bright-1 and zain-1.",
+    "steps": [
+      "Sign in over the API as bright-1",
+      "GET /api/admin/customers (probe I11) and again as zain-1 (probe I12)",
+      "Observe 200 with a record per company, including other companies' data",
+      "Fields exposed (names only): contact_name, email, phone, cnic, address, card_last4, notes (one note contains what looks like a full card number and expiry)"
+    ],
+    "expected": "HTTP 403 for any non-admin role (spec lists 403)",
+    "actual": "HTTP 200 with all customer records",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-I11.json",
+      "evidence/api/rules-I12.json",
+      "evidence/api/explore-E2.json"
+    ],
+    "roles": [
+      "acme-1",
+      "bright-1",
+      "zain-1"
+    ],
+    "suspected_cause": "Customers route is missing the admin role check that /admin/reports/sales has",
+    "regression_test": {
+      "description": "GET /admin/customers as each client role and expect 403; as admin expect 200",
+      "location": "test/admin.test.js"
+    },
+    "id": "ISSUE-002"
+  },
+  {
+    "title": "Signing out does not end the session: the token keeps working",
+    "severity": "critical",
+    "surface": "api",
+    "area": "Auth",
+    "type": "session",
+    "charter": "C3",
+    "summary": "After POST /api/auth/logout returns 204, the same bearer token still gets 200 on /api/me and /api/orders. The spec says logout revokes the token, and the business rule says signing out ends the session at once. The portal's Sign out only clears browser storage.",
+    "steps": [
+      "Sign in over the API as acme-2",
+      "POST /api/auth/logout (probe S1) and see 204",
+      "With the same token GET /api/me (probe S2) and GET /api/orders (probe S3)",
+      "Observe 200 on both, twice each"
+    ],
+    "expected": "HTTP 401 for every call with the signed-out token",
+    "actual": "HTTP 200 with the user's data",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-S2.json",
+      "evidence/api/rules-S3.json"
+    ],
+    "roles": [
+      "acme-2"
+    ],
+    "suspected_cause": "Logout does not add the token to a revocation list or the auth middleware does not check one",
+    "regression_test": {
+      "description": "Log out, then GET /me with the same token and expect 401",
+      "location": "test/auth.test.js"
+    },
+    "id": "ISSUE-003"
+  },
+  {
+    "title": "Tax is charged on the full subtotal instead of the discounted subtotal",
+    "severity": "critical",
+    "surface": "business-rule",
+    "area": "Order totals",
+    "type": "calculation",
+    "charter": "C1",
+    "summary": "For orders with a subtotal of 1,000.00 or more the 5% discount is applied, but tax is still 10% of the undiscounted subtotal. The rule is tax on the discounted subtotal, so every discounted order is overcharged by 0.5% of the subtotal (5.00 on a 1,000.00 order). Seeded orders show the same pattern.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "POST /api/orders with reference QA-b2 and items p-102 x 80 (subtotal 1,000.00; probe B2)",
+      "Expected discount 50.00, tax 95.00, total 1,045.00; observe tax 100.00, total 1,050.00",
+      "Same with p-101 x 156 (probe B3: expected total 1,059.63, got 1,064.70) and p-101 x 1000 (probe B4: expected 6,792.50, got 6,825.00)",
+      "In the Client Portal as acme-1 order 80 x Ballpoint Pens: confirmation says Total: $1,050.00; the Admin Portal order page shows Subtotal 1,000.00, Discount -50.00, Tax 100.00, Total 1,050.00"
+    ],
+    "expected": "Total 1,045.00 (1,000.00 - 50.00 + 95.00). Below the threshold (998.00, probe B1) the totals are correct.",
+    "actual": "Total 1,050.00, in the API, both portals and the CSV export; the discount is applied but tax is computed before it",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-B2.json",
+      "evidence/api/rules-B3.json",
+      "evidence/api/rules-B4.json",
+      "screenshots/client-confirmation-desktop.png",
+      "screenshots/admin-order-tax-on-undiscounted.png"
+    ],
+    "roles": [
+      "acme-1",
+      "admin"
+    ],
+    "ui": "Client Portal and Admin Portal",
+    "browser": "chromium",
+    "viewport": "desktop 1366x768",
+    "suspected_cause": "tax_cents is computed from subtotal_cents rather than subtotal_cents - discount_cents",
+    "regression_test": {
+      "description": "Order of exactly 100000 cents expects discount 5000, tax 9500, total 104500; 101400 cents expects total 105963",
+      "location": "test/pricing.test.js"
+    },
+    "id": "ISSUE-004"
+  },
+  {
+    "title": "Order quantity limits are not enforced: 0, 1001, 1.5 and an empty item list are accepted",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders",
+    "type": "validation",
+    "charter": "C1",
+    "summary": "POST /api/orders returns 201 for quantity 0, 1001 and 1.5 and for an empty items array, although the spec and rules say whole numbers 1 to 1,000 and at least one item. The Client Portal form accepts quantity 0 too and shows 'Order QA-ui-q0 placed. Total: $0.00.'",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "POST /api/orders with items [] (probe P043), then with items[0].quantity 0, 1001 and 1.5 (probes P044, P045, P046)",
+      "Observe 201 each time",
+      "In the Client Portal as acme-1 open New order, enter reference QA-ui-q0, choose A4 Copy Paper, quantity 0, click Place order, and see a $0.00 order created"
+    ],
+    "expected": "HTTP 400 naming the field; the form should refuse too",
+    "actual": "HTTP 201 and orders stored (zero-value orders, quantity 1001 and 1.5). Quantity 1000 and a string quantity '5' behave correctly.",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-P043.json",
+      "evidence/api/client-P044.json",
+      "evidence/api/client-P045.json",
+      "evidence/api/client-P046.json",
+      "screenshots/client-qty0-accepted.png"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "ui": "Client Portal",
+    "browser": "chromium",
+    "viewport": "desktop 1366x768",
+    "suspected_cause": "No range or integer check on quantity and no minimum on items in the order handler or the form",
+    "regression_test": {
+      "description": "POST orders with items [], quantity 0, 1001 and 1.5 and expect 400 each",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-005"
+  },
+  {
+    "title": "The same order submitted twice at once creates two orders",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders",
+    "type": "duplicate-submission",
+    "charter": "C1",
+    "summary": "Two identical POST /api/orders sent in parallel both return 201 and two orders with the same reference and items are stored. Nothing in the spec allows duplicates or offers an idempotency key. I am unsure the product intends one order per click, so severity follows user impact (double billing).",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "Send two identical POST /api/orders in parallel (probe P049)",
+      "Observe two 201 responses; GET /api/orders lists two QA-reference orders created in the same millisecond (o-1025 and o-1026)"
+    ],
+    "expected": "One order, or a clear duplicate refusal (409)",
+    "actual": "Two orders created",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-P049.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "No de-duplication or idempotency handling on order creation",
+    "regression_test": {
+      "description": "Send two identical parallel POST /orders and expect exactly one order created",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-006"
+  },
+  {
+    "title": "Order search with ( or \\ and page_size=0 crash the server (HTTP 500); negative page_size accepted",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders list",
+    "type": "validation",
+    "charter": "C4",
+    "summary": "GET /api/orders?q=( and q=\\ return 500, probably an unescaped regular expression. page_size=0 returns 500 and page_size=-1 returns 200 with page_size -1 although the spec minimum is 1 (400 expected). In the Admin Portal, typing ( in the search box shows 'Could not load orders (500).' and leaves the previous list on screen.",
+    "steps": [
+      "Sign in over the API as acme-1 (or admin) and GET /api/orders?q=( (probe P024), q=\\ (P028), page_size=0 (P019), page_size=-1 (P020)",
+      "Observe 500, 500, 500 and 200",
+      "In the Admin Portal as admin, open Orders, type ( in Search and press Enter: the page shows 'Could not load orders (500).' and the console shows the failed request"
+    ],
+    "expected": "Special characters are searched literally (200); invalid page_size gives 400",
+    "actual": "HTTP 500 for q=( , q=\\ and page_size=0; 200 with an invalid echoed page_size for -1",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-P024.json",
+      "evidence/api/client-P028.json",
+      "evidence/api/client-P019.json",
+      "evidence/api/client-P020.json",
+      "evidence/api/admin-P024.json"
+    ],
+    "roles": [
+      "acme-1",
+      "admin"
+    ],
+    "ui": "Admin Portal",
+    "browser": "chromium",
+    "viewport": "desktop 1366x768",
+    "suspected_cause": "The query string is passed to new RegExp without escaping and page_size is not range-checked",
+    "regression_test": {
+      "description": "GET /orders?q=( expects 200 with an empty list; page_size=0 and -1 expect 400",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-007"
+  },
+  {
+    "title": "Malformed JSON requests return a stack trace and server file paths",
+    "severity": "important",
+    "surface": "api",
+    "area": "Error handling",
+    "type": "error-leakage",
+    "charter": "C3",
+    "summary": "Sending invalid JSON to POST /api/auth/login (and POST /api/orders) gives a 400 whose body contains a stack trace, a stack field and server source file paths.",
+    "steps": [
+      "POST /api/auth/login with the raw body {bad json (probe P007), anonymous or any role",
+      "POST /api/orders with malformed JSON as acme-1 (probe P048)",
+      "Read the response body in the evidence: stack trace and file paths present both times"
+    ],
+    "expected": "A short 400 error naming the problem, no internals",
+    "actual": "400 with stack trace and absolute server paths",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-P007.json",
+      "evidence/api/client-P048.json",
+      "evidence/api/admin-P007.json"
+    ],
+    "roles": [
+      "anonymous",
+      "acme-1"
+    ],
+    "suspected_cause": "The default error handler returns the error stack to the client",
+    "regression_test": {
+      "description": "POST malformed JSON and expect a 400 body without 'stack' or file paths",
+      "location": "test/errors.test.js"
+    },
+    "id": "ISSUE-008"
+  },
+  {
+    "title": "Urdu order notes and company names display reversed on the order detail page",
+    "severity": "important",
+    "surface": "ui",
+    "area": "Client Portal / Order detail",
+    "type": "i18n-rtl",
+    "charter": "C5",
+    "summary": "On the order page the Company and Note values (class text-cell) use unicode-bidi: bidi-override with direction ltr, so Urdu letters are shown in reverse order and unconnected. The note 'ہنگامی آرڈر، آج ہی بھیجیں' reads as scrambled text, and the title 'Order زین-1044' shows the number before the dash. The header and order list show the same Urdu correctly.",
+    "steps": [
+      "Sign in to the Client Portal as zain-1 in a fresh profile",
+      "Open My orders and click View on the first order (زین-1044, order id o-1012)",
+      "Compare the Company and Note rows with the same text in the page header and the orders list",
+      "In the browser check the computed style of #o-note: unicode-bidi bidi-override, direction ltr",
+      "Reload the page and check again"
+    ],
+    "expected": "Urdu text right-to-left and readable (dir=auto or bdi, no bidi-override)",
+    "actual": "Letters reversed ('زرڈیرٹ نیز' for 'زین ٹریڈرز'); both reproduced after reload",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/zain-order-detail2.png",
+      "screenshots/zain-order-detail-mobile.png"
+    ],
+    "roles": [
+      "zain-1"
+    ],
+    "ui": "Client Portal",
+    "browser": "chromium",
+    "viewport": "desktop 1366x768 and mobile 390x844",
+    "suspected_cause": "CSS rule on .text-cell forces bidi-override and ltr",
+    "regression_test": {
+      "description": "Render order page for the Urdu order and assert #o-note computed unicode-bidi is not bidi-override",
+      "location": "test/ui/order-detail.test.js"
+    },
+    "id": "ISSUE-009"
+  },
+  {
+    "title": "On a phone the New order form runs off screen and the Place order button is out of view",
+    "severity": "important",
+    "surface": "ui",
+    "area": "Client Portal / New order",
+    "type": "layout",
+    "charter": "C5",
+    "summary": "At 390px wide the page is 555px wide: the reference and note fields, the quantity box, the Remove button and Place order start or end outside the screen. Place order begins at x=435 on a 390px screen, so a client must scroll sideways to place an order.",
+    "steps": [
+      "Sign in to the Client Portal (acme-1, then again bright-1 in a fresh profile)",
+      "Resize to 390x844",
+      "Open New order and run the page audit or look at the screenshot",
+      "The page scrolls sideways by 165px; input fields are cut off on the right and Place order is off screen"
+    ],
+    "expected": "All fields and Place order fit within the width",
+    "actual": "Controls pushed 45 to 165px outside the viewport",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/client-neworder-mobile.png"
+    ],
+    "roles": [
+      "acme-1",
+      "bright-1"
+    ],
+    "ui": "Client Portal",
+    "browser": "chromium",
+    "viewport": "mobile 390x844",
+    "suspected_cause": "Fixed-width form rows (item row with select, quantity and Remove) force the card wider than the screen",
+    "regression_test": {
+      "description": "At 390px width, assert the document scroll width equals the viewport width on new-order.html",
+      "location": "test/ui/layout.test.js"
+    },
+    "id": "ISSUE-010"
+  },
+  {
+    "title": "My orders on mobile: first row sits under the toolbar and Total and View are hidden in a scroll box",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "Client Portal / My orders",
+    "type": "layout",
+    "charter": "C5",
+    "summary": "At 390px the orders table (457px wide) scrolls inside a 359px box with no visible cue, so the Total is clipped and the View link is out of sight. The first row overlaps the toolbar (New order button) by about 22px.",
+    "steps": [
+      "Sign in to the Client Portal as acme-1, resize to 390x844",
+      "Open My orders, look at the first row and the right edge of the table",
+      "Reload and measure: the table's scrollWidth is 457 and its box is 359; first row top is 241px, toolbar bottom 263px"
+    ],
+    "expected": "Row clear of the toolbar; key columns reachable or a visible scroll cue",
+    "actual": "Overlap and clipped columns",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/client-orders-mobile.png"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "ui": "Client Portal",
+    "browser": "chromium",
+    "viewport": "mobile 390x844",
+    "suspected_cause": "Table wrapper with overflow auto and no spacing below the sticky or floated toolbar",
+    "regression_test": {
+      "description": "At 390px assert the first order row does not intersect the toolbar",
+      "location": "test/ui/layout.test.js"
+    },
+    "id": "ISSUE-011"
+  },
+  {
+    "title": "The product selector on the New order form has no accessible name",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "Client Portal / New order",
+    "type": "accessibility",
+    "charter": "C5",
+    "summary": "The product dropdown has no label, so a screen reader announces it only as a combobox and the page audit lists it as an unnamed control.",
+    "steps": [
+      "Sign in to the Client Portal and open New order",
+      "Read the page snapshot: combobox with no name next to the Quantity spinbutton (named)",
+      "Run the audit: unnamedControls lists select[name=product]; same result for bright-1 in a fresh profile"
+    ],
+    "expected": "A label such as 'Product' for each line",
+    "actual": "No accessible name",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/client-neworder-mobile.png"
+    ],
+    "roles": [
+      "acme-1",
+      "bright-1"
+    ],
+    "ui": "Client Portal",
+    "browser": "chromium",
+    "viewport": "desktop and mobile",
+    "suspected_cause": "Select rendered without label or aria-label",
+    "regression_test": {
+      "description": "Assert every select on new-order.html has an accessible name",
+      "location": "test/ui/a11y.test.js"
+    },
+    "id": "ISSUE-012"
+  },
+  {
+    "title": "Sales report takes about 4 seconds to answer",
+    "severity": "minor",
+    "surface": "api",
+    "area": "Reports",
+    "type": "performance",
+    "charter": "C6",
+    "summary": "GET /api/admin/reports/sales consistently takes 4.0 to 4.2 seconds while other calls take a few milliseconds. The Admin Portal Reports page shows only the heading until it arrives.",
+    "steps": [
+      "Sign in as admin over the API",
+      "GET /api/admin/reports/sales (probes P061, P093, E6)",
+      "Observe 4004 to 4226 ms each time"
+    ],
+    "expected": "A response in well under 3 seconds, or a loading indicator on the page",
+    "actual": "About 4 seconds on every call (6 of 6)",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/explore-E6.json",
+      "evidence/api/admin-P093.json",
+      "evidence/api/admin-P061.json"
+    ],
+    "roles": [
+      "admin"
+    ],
+    "suspected_cause": "A deliberate delay or an unindexed aggregation in the report handler",
+    "regression_test": {
+      "description": "Time GET /admin/reports/sales and expect under 1500 ms on the seeded data",
+      "location": "test/admin.test.js"
+    },
+    "id": "ISSUE-013"
+  }
+]

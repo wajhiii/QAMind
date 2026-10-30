@@ -1,0 +1,442 @@
+[
+  {
+    "title": "Orders: any signed-in user can read another company's order",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Orders / tenant isolation",
+    "type": "permissions",
+    "charter": "C3",
+    "summary": "A client from one company can open orders that belong to another company by id, in the API and in the Client Portal. This breaks the rule that different companies never see each other's data.",
+    "steps": [
+      "Sign in over the API as acme-1 and POST /api/orders with reference QA-iso and one line (p-101, quantity 2); note the returned id",
+      "Sign in as bright-1 and GET /api/orders/{id} for that id (see evidence rules-I03 for the exact request)",
+      "Repeat as zain-1 (rules-I04)",
+      "In the Client Portal, signed in as zain-1, open order.html?id=<an Acme order id> and read the page title and contents (screenshots/zain-views-acme-order.png)"
+    ],
+    "expected": "HTTP 403 or 404 for an order of another company",
+    "actual": "HTTP 200 with the full order for bright-1 and zain-1; the Client Portal shows the Acme order to a Zain user",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-I03.json",
+      "evidence/api/rules-I04.json",
+      "screenshots/zain-views-acme-order.png"
+    ],
+    "roles": [
+      "bright-1",
+      "zain-1"
+    ],
+    "suspected_cause": "GET /orders/{id} does not compare the order's client to the caller's company (the list endpoint does filter correctly)",
+    "regression_test": {
+      "description": "As a client of company B, GET an order of company A and expect 403/404",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-001"
+  },
+  {
+    "title": "Admin customers: any client can list every customer record with personal and payment details",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Admin API / customers",
+    "type": "permissions",
+    "charter": "C3",
+    "summary": "GET /api/admin/customers returns the full customer list to client accounts, not only admins. The records include contact details, an identity number, address, card digits and free-text notes for other companies.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "GET /api/admin/customers (evidence rules-R01)",
+      "Repeat as bright-1 (rules-R02)",
+      "Observe HTTP 200 with every company's record"
+    ],
+    "expected": "HTTP 403 for non-admin roles (config rule: only admins can see customers)",
+    "actual": "HTTP 200 with all customer records. The role matrix shows 200 for all four client accounts, while /admin/reports/sales correctly gives 403",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-R01.json",
+      "evidence/api/rules-R02.json"
+    ],
+    "roles": [
+      "acme-1",
+      "bright-1",
+      "acme-2",
+      "zain-1"
+    ],
+    "suspected_cause": "Missing admin role check on the customers route",
+    "regression_test": {
+      "description": "GET /admin/customers as a client expects 403",
+      "location": "test/admin.test.mjs"
+    },
+    "id": "ISSUE-002"
+  },
+  {
+    "title": "Orders: total is wrong on orders at or above 1,000.00 because tax ignores the discount",
+    "severity": "critical",
+    "surface": "business-rule",
+    "area": "Orders / pricing",
+    "type": "business-rule",
+    "charter": "C2",
+    "summary": "Tax is calculated on the full subtotal instead of the discounted subtotal, so every discounted order is overcharged. The wrong total appears in the API, the order confirmation, My Orders and the Admin Portal.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "POST /api/orders with p-102 x 80 (subtotal 1,000.00) (rules-T01); then p-104 x 1000 (subtotal 3,500.00) (rules-T04)",
+      "Compare the response with the rule: tax = 10% of (subtotal - discount)",
+      "In the Client Portal as acme-1, place an order of Ballpoint Pens x 80 with reference QA-ui-1 and read the confirmation banner"
+    ],
+    "expected": "1,000.00: discount 50.00, tax 95.00, total 1,045.00. 3,500.00: discount 175.00, tax 332.50, total 3,657.50",
+    "actual": "1,000.00: tax 100.00, total 1,050.00 (banner says $1,050.00). 3,500.00: tax 350.00, total 3,675.00. Orders below 1,000.00 are correct (989.89 gives 98.99 tax)",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-T01.json",
+      "evidence/api/rules-T04.json",
+      "screenshots/client-confirmation-desktop.png"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "src/pricing.mjs computes tax from subtotal rather than subtotal - discount",
+    "regression_test": {
+      "description": "Price a 1,000.00 order and expect tax 9500 and total 104500 cents",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-003"
+  },
+  {
+    "title": "Sign-out: the token still works after signing out",
+    "severity": "critical",
+    "surface": "api",
+    "area": "Auth / sessions",
+    "type": "auth",
+    "charter": "C4",
+    "summary": "After POST /auth/logout returns 204, the same token still reads /me and /orders. A stolen or left-behind session cannot be ended.",
+    "steps": [
+      "Sign in over the API as acme-2",
+      "POST /api/auth/logout (204)",
+      "GET /api/me with the same token, then GET /api/orders (evidence rules-L02, rules-L03)"
+    ],
+    "expected": "HTTP 401 immediately after sign-out (config rule: signing out ends the session at once)",
+    "actual": "HTTP 200 for both requests, 2 of 2 runs",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-L02.json",
+      "evidence/api/rules-L03.json"
+    ],
+    "roles": [
+      "acme-2"
+    ],
+    "suspected_cause": "Logout does not revoke the token, or the auth check does not consult the revocation list",
+    "regression_test": {
+      "description": "Log out, then GET /me with the same token and expect 401",
+      "location": "test/auth.test.mjs"
+    },
+    "id": "ISSUE-004"
+  },
+  {
+    "title": "Orders: zero, negative, fractional and oversized quantities and empty item lists are accepted",
+    "severity": "critical",
+    "surface": "api",
+    "area": "Orders / validation",
+    "type": "validation",
+    "charter": "C2",
+    "summary": "POST /orders accepts an empty items list and quantities of 0, -3, 1.5 and 1001, creating orders (one with a negative total of -21.45) that appear in both portals and in sales reporting.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "POST /api/orders with items = [] (client-baseline-P043)",
+      "POST with quantity 0, 1001 and 1.5 (P044, P045, P046)",
+      "POST with quantity -3 (rules-T07) and read the negative total"
+    ],
+    "expected": "HTTP 400 (rule: whole number 1 to 1,000, at least one item)",
+    "actual": "HTTP 201 each time; order created. The negative-quantity order shows -$21.45 in the Admin Portal list",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-baseline-P043.json",
+      "evidence/api/client-baseline-P044.json",
+      "evidence/api/client-baseline-P045.json",
+      "evidence/api/client-baseline-P046.json",
+      "evidence/api/rules-T07.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "No server-side validation of items in the order handler",
+    "regression_test": {
+      "description": "POST orders with empty items and quantities 0, -1, 1.5, 1001 and expect 400",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-005"
+  },
+  {
+    "title": "Orders list: page_size=0 and search text '(' or '\\' return HTTP 500",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders / list",
+    "type": "validation",
+    "charter": "C1",
+    "summary": "GET /orders crashes with a server error on page_size=0 and on searches containing an unbalanced bracket or backslash, so a client searching for such text gets an error. The spec says 400 for invalid input.",
+    "steps": [
+      "Sign in over the API as acme-1 (or admin)",
+      "GET /api/orders?page_size=0 (P019)",
+      "GET /api/orders?q=( (P024) and ?q=\\ (P028)"
+    ],
+    "expected": "200 with results (search) or 400 (page_size=0)",
+    "actual": "HTTP 500 each time, 2 of 2 runs, as both roles. The same probes ran as admin: admin-baseline-P019, P024, P028",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-baseline-P019.json",
+      "evidence/api/client-baseline-P024.json",
+      "evidence/api/client-baseline-P028.json"
+    ],
+    "roles": [
+      "acme-1",
+      "admin"
+    ],
+    "suspected_cause": "The search text is used as a regular expression without escaping, and page_size 0 is not rejected",
+    "regression_test": {
+      "description": "GET /orders?q=( and ?page_size=0 and expect non-5xx",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-006"
+  },
+  {
+    "title": "Orders list: page_size=-1 is accepted instead of refused",
+    "severity": "minor",
+    "surface": "api",
+    "area": "Orders / list",
+    "type": "validation",
+    "charter": "C1",
+    "summary": "GET /orders?page_size=-1 returns 200 and echoes page_size -1, which is outside the documented minimum of 1.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "GET /api/orders?page_size=-1 (client-baseline-P020)"
+    ],
+    "expected": "HTTP 400, or a clamp to a valid size",
+    "actual": "HTTP 200 and page_size -1 in the body",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-baseline-P020.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "regression_test": {
+      "description": "page_size=-1 expects 400",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-007"
+  },
+  {
+    "title": "API: malformed JSON returns a stack trace and server file paths",
+    "severity": "important",
+    "surface": "api",
+    "area": "Error handling",
+    "type": "error-leakage",
+    "charter": "C1",
+    "summary": "Sending invalid JSON to POST /auth/login or POST /orders returns a 400 whose body includes a stack trace and source paths on the server.",
+    "steps": [
+      "POST /api/auth/login with body {bad (client-baseline-P007)",
+      "As acme-1 POST /api/orders with malformed JSON (client-baseline-P048)"
+    ],
+    "expected": "A short 400 message without internal details",
+    "actual": "400 with stack and file paths in the body, 2 of 2 runs",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-baseline-P007.json",
+      "evidence/api/client-baseline-P048.json"
+    ],
+    "roles": [
+      "anonymous",
+      "acme-1"
+    ],
+    "suspected_cause": "The error handler returns the error stack to the client",
+    "regression_test": {
+      "description": "Malformed JSON expects 400 and a body without 'stack' or file paths",
+      "location": "test/auth.test.mjs"
+    },
+    "id": "ISSUE-008"
+  },
+  {
+    "title": "Orders: submitting the same order twice at once creates two orders",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders / duplicates",
+    "type": "duplicate-submission",
+    "charter": "C1",
+    "summary": "Two identical POST /orders sent in parallel both returned 201. The API has no duplicate protection, so a double click can place and bill two orders. The spec does not document duplicates as intended, so this is reported with that doubt.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "Send the same POST /api/orders twice in parallel (client-baseline-P049)"
+    ],
+    "expected": "One order, or a documented duplicate rule",
+    "actual": "201 for both requests in 2 of 2 runs",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-baseline-P049.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "regression_test": {
+      "description": "Two parallel identical order POSTs yield one order",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-009"
+  },
+  {
+    "title": "Sales report is slow: GET /admin/reports/sales takes about 4 seconds",
+    "severity": "minor",
+    "surface": "api",
+    "area": "Reports",
+    "type": "performance",
+    "charter": "C6",
+    "summary": "The sales summary takes 4.0 s every time, and the Admin Portal Reports page shows only a heading until it finishes.",
+    "steps": [
+      "Sign in over the API as admin",
+      "GET /api/admin/reports/sales (admin-baseline-P061, admin-baseline-P093, sums-U02)"
+    ],
+    "expected": "Under 3 s on a small data set",
+    "actual": "4002 to 4007 ms in 3 of 3 runs",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/admin-baseline-P061.json",
+      "evidence/api/sums-U02.json",
+      "screenshots/admin-reports-desktop.png"
+    ],
+    "roles": [
+      "admin"
+    ],
+    "regression_test": {
+      "description": "Sales report responds in under 3 s on the seed data",
+      "location": "test/admin.test.mjs"
+    },
+    "id": "ISSUE-010"
+  },
+  {
+    "title": "Client Portal (mobile 390px): My orders toolbar covers the first row and the Total column is cut off",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "My orders",
+    "type": "layout",
+    "charter": "C5",
+    "viewport": "390x844",
+    "browser": "Chromium",
+    "summary": "On a phone-width screen the Status filter and New order button overlap the top of the orders table, and the Total amounts are clipped inside a sideways-scrolling table.",
+    "steps": [
+      "Set the viewport to 390x844",
+      "Sign in to the Client Portal as acme-1",
+      "Open My orders and look at the first row and the Total column (screenshots/client-myorders-mobile.png)",
+      "Reload and run the page audit: coveredElements lists the first row and the reference link"
+    ],
+    "expected": "No overlap; amounts readable",
+    "actual": "The toolbar sits over the first row; totals such as $1,050.00 show truncated",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/client-myorders-mobile.png"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "regression_test": {
+      "description": "Layout check at 390px: toolbar does not cover the table",
+      "location": "test/ui (browser test)"
+    },
+    "id": "ISSUE-011"
+  },
+  {
+    "title": "Portals: some controls have no accessible name",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "Accessibility",
+    "type": "accessibility",
+    "charter": "C6",
+    "viewport": "1366x768 and 390x844",
+    "browser": "Chromium",
+    "summary": "Two icon buttons (refresh and clear filters) and the search box on the Admin Portal Orders page, and the product dropdown on the Client Portal New order page, have no label for screen readers.",
+    "steps": [
+      "Sign in to the Admin Portal as admin and open Orders",
+      "Read the page snapshot: two buttons with no name; run the page audit at 390px (admin-orders-mobile.png)",
+      "Sign in to the Client Portal as acme-1, open New order and run the audit: the product select is unnamed"
+    ],
+    "expected": "Every control has an accessible name",
+    "actual": "Unnamed controls as listed",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/admin-orders-mobile.png",
+      "screenshots/client-confirmation-desktop.png"
+    ],
+    "roles": [
+      "admin",
+      "acme-1"
+    ],
+    "regression_test": {
+      "description": "Audit the Orders and New order pages for unnamed controls",
+      "location": "test/ui (browser test)"
+    },
+    "id": "ISSUE-012"
+  },
+  {
+    "title": "Client Portal: Urdu order references show the hyphen on the wrong side",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "i18n / RTL",
+    "type": "rtl",
+    "charter": "C5",
+    "viewport": "1366x768",
+    "browser": "Chromium",
+    "summary": "For the Urdu company, references such as the Urdu word followed by a hyphen and 1044 appear with the hyphen at the left edge, because the text sits in a left-to-right cell. The audit reports 3 such cells. This may be a rendering preference; it reads oddly to an Urdu reader.",
+    "steps": [
+      "Sign in to the Client Portal as zain-1",
+      "Open My orders",
+      "Look at the Reference column (screenshots/zain-myorders-desktop.png)"
+    ],
+    "expected": "Mixed Urdu and number text in a sensible visual order",
+    "actual": "Hyphen displayed first, before the number, on 3 of 3 rows",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/zain-myorders-desktop.png"
+    ],
+    "roles": [
+      "zain-1"
+    ],
+    "regression_test": {
+      "description": "Render an Urdu reference with dir=auto and check order",
+      "location": "test/ui (browser test)"
+    },
+    "id": "ISSUE-013"
+  }
+]

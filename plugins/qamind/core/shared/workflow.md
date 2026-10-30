@@ -9,6 +9,19 @@ never values), detects the stack, creates the run folder under `.qa/reports/` an
 project memory into the private user store. Its JSON `status` tells you what to do. Never test with an
 unfilled template.
 
+## Using the knowledge base
+`${CLAUDE_PLUGIN_ROOT}/core/knowledge/INDEX.md` maps situations to expertise files (test design, forms, auth, permissions, API testing, security
+smoke checks, accessibility, layout, RTL, money, uploads, email, search and pagination, bug reporting, debugging, fixing, flaky
+checks, browser technique, and one note per framework). Read INDEX.md once when you plan, then load **only** the files that match
+what you are about to test. Load per pass, not all at once: keep about four open at a time and swap them as you move between passes
+(planning, API, each web UI, cross-checks, reporting), so a `full` run normally loads eight to twelve files over its course and a
+`quick` run fewer. Do not skip a pass's files because you know the topic: they hold checks and boundary values you will not recall
+in full, and the page and form files in particular are where most UI defects are found. When
+`run start` reports frameworks in `stack.frameworks`, load the matching `framework-notes/` file. Use what you load: pick checks
+and boundary values from it, and cite the file when it shaped a finding ("per forms.md: server-side validation parity").
+Knowledge is guidance, not proof: verify every claim against the product. Never edit knowledge files during a run; if one is
+wrong or missing something, append a proposal to `.qa/suggested-improvements.md`.
+
 ## Phase 1: load memory
 `qamind memory context --run <id>`. Memory is **leads, not proof**: re-verify current behaviour, and cite it
 when it shaped a decision ("Applied: last run found the order totals wrong above 1,000"). In this version memory
@@ -16,13 +29,18 @@ holds the detected stack and the last runs' summaries. State in one short paragr
 Record what you applied in `data/meta.json` → `memory_applied` (a list of short strings).
 
 ## Phase 2: plan with charters (before probing)
-For each surface and critical flow write a charter: goal, risk, entry point, expected results, exit condition.
+For each surface and critical flow write a charter: goal, risk, entry point, expected results, exit condition (the templates
+in `exploratory-charters.md` fit most product areas).
 Prioritize: flows and rules from the config first, then areas with past findings, then recently changed code
 (`git.changed_files` from `run start`). Save `data/charters.json`, then run `qamind report build --run <id>` so the
 plan is on disk before you probe.
 
 Modes:
-- `full`: every surface, every role, all critical flows, then the case types in `surfaces.md`.
+- `full`: complete coverage of what you can reach: every page of every web UI for every role that has credentials, every
+  critical flow end to end, every endpoint through the API plans, desktop and mobile on every page with the page audit, then
+  the case types in `surfaces.md` on every form and list. Leaving something out of a `full` run is only acceptable for a real
+  blocker (no credentials, needs something that is not configured, would cause a real-world side effect, the user stopped
+  you), never because it was "not covered in this pass".
 - `quick`: critical flows and the top-risk areas; a desktop pass plus a mobile pass over every page of the critical
   flows, with the page audit on each page (`surfaces.md`). Smaller scope, not lower rigour: every finding still needs
   two reproductions and evidence.

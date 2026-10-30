@@ -1,0 +1,449 @@
+[
+  {
+    "title": "Tax is charged on the undiscounted subtotal, so discounted orders are overcharged",
+    "severity": "critical",
+    "surface": "business-rule",
+    "area": "Orders / pricing",
+    "type": "calculation",
+    "charter": "C1",
+    "summary": "For orders at or above 1,000.00 the 10% tax is calculated on the full subtotal instead of the subtotal after the 5% discount, so every discounted order total is too high.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "POST /api/orders with 100 x p-101 and 100 x p-104 (subtotal 1,000.00, exactly at the threshold), see evidence for the exact request",
+      "Read tax_cents and total_cents",
+      "Repeat in Client Portal > New order with 12 x Printer Toner Cartridge: the confirmation shows $1,133.88"
+    ],
+    "expected": "Subtotal 100000, discount 5000, tax 9500 (10% of 95000), total 104500. For 12 toners: tax 10259, total 112848.",
+    "actual": "Tax 10000 and total 105000 at the threshold; tax 10799 and total 113388 ($1,133.88) for 12 toners. Order detail and admin Reports totals inherit the wrong figure.",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-R02.json",
+      "evidence/api/rules-R03.json",
+      "screenshots/client-order-confirm-desktop.png"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "src/pricing.mjs computes tax from subtotal rather than subtotal minus discount",
+    "regression_test": {
+      "description": "Price an order with subtotal 100000 and expect tax 9500 and total 104500",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-001"
+  },
+  {
+    "title": "Any signed-in client can read another company's order by id",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Orders",
+    "type": "tenant-isolation",
+    "charter": "C2",
+    "summary": "GET /api/orders/{id} does not check which company owns the order, so a client from one company can read another company's order.",
+    "steps": [
+      "Sign in as acme-1 and POST /api/orders (reference QA-T01), note the id",
+      "Sign in as bright-1 and GET /api/orders/{id}",
+      "Repeat as zain-1"
+    ],
+    "expected": "HTTP 403 or 404 for a different company",
+    "actual": "HTTP 200 with the full order (items, prices, totals) for both bright-1 and zain-1",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-T02.json",
+      "evidence/api/rules-T03.json"
+    ],
+    "roles": [
+      "bright-1",
+      "zain-1"
+    ],
+    "suspected_cause": "getOrder looks the order up by id only and never compares client_id to the caller",
+    "regression_test": {
+      "description": "Client B requests client A's order id and expects 404",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-002"
+  },
+  {
+    "title": "Clients can list all customers, including personal and payment details",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Admin / Customers",
+    "type": "permissions",
+    "charter": "C2",
+    "summary": "GET /api/admin/customers has no admin-only check: any signed-in client receives every company's customer records, which contain personal contact data and card details.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "GET /api/admin/customers",
+      "Repeat as bright-1"
+    ],
+    "expected": "HTTP 403 (only admins may see customers)",
+    "actual": "HTTP 200 with all customers from all companies (contact names, phone numbers, national IDs, addresses, card fragments and notes)",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-T07.json",
+      "evidence/api/rules-T08.json"
+    ],
+    "roles": [
+      "acme-1",
+      "bright-1"
+    ],
+    "suspected_cause": "Route is declared without roles: ['admin'] in src/api.mjs",
+    "regression_test": {
+      "description": "Client calls GET /admin/customers and expects 403",
+      "location": "test/admin.test.mjs"
+    },
+    "id": "ISSUE-003"
+  },
+  {
+    "title": "A session token keeps working after sign-out",
+    "severity": "critical",
+    "surface": "api",
+    "area": "Auth / sessions",
+    "type": "session",
+    "charter": "C3",
+    "summary": "POST /api/auth/logout returns 204 but the same token is still accepted afterwards.",
+    "steps": [
+      "Sign in over the API as zain-1",
+      "POST /api/auth/logout (204)",
+      "GET /api/me with the same token",
+      "GET /api/orders with the same token"
+    ],
+    "expected": "HTTP 401 immediately after sign-out",
+    "actual": "HTTP 200 on both calls; the data is still readable. The Client Portal Sign out button only returns to the sign-in page.",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-A02.json",
+      "evidence/api/rules-A03.json"
+    ],
+    "roles": [
+      "zain-1"
+    ],
+    "suspected_cause": "Logout only sets endedAt on the session; authenticate() never checks endedAt or expiresAt",
+    "regression_test": {
+      "description": "Logout, then GET /me with the same token and expect 401",
+      "location": "test/auth.test.mjs"
+    },
+    "id": "ISSUE-004"
+  },
+  {
+    "title": "Orders accept quantity 0, negative, above 1000 and fractional values, and orders with no items",
+    "severity": "critical",
+    "surface": "api",
+    "area": "Orders / validation",
+    "type": "validation",
+    "charter": "C1",
+    "summary": "The order endpoint only checks that quantity is a number; the documented 1 to 1,000 whole-number rule and the at-least-one-item rule are not enforced.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "POST /api/orders with quantity -3 (and separately 0, 1001, 2.5)",
+      "POST /api/orders with items: []"
+    ],
+    "expected": "HTTP 400 for each (quantity must be a whole number from 1 to 1000; at least one item)",
+    "actual": "HTTP 201 each time; a negative quantity creates a negative-value order, and an empty order is created",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-V01.json",
+      "evidence/api/rules-V02.json",
+      "evidence/api/rules-V03.json",
+      "evidence/api/rules-V04.json",
+      "evidence/api/rules-V05.json",
+      "evidence/api/client-baseline-P043.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "validateOrderInput in src/api.mjs checks typeof quantity only and does not check items.length",
+    "regression_test": {
+      "description": "POST orders with quantity -3, 0, 1001, 1.5 and empty items; expect 400 each",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-005"
+  },
+  {
+    "title": "Client order list shows stale status after an admin changes it",
+    "severity": "important",
+    "surface": "cross",
+    "area": "My Orders",
+    "type": "stale-data",
+    "charter": "C5",
+    "summary": "My Orders (and the status filter) is served from a 10-minute per-company cache, so a status change made by an admin is not shown in the list although the order detail shows it.",
+    "steps": [
+      "Sign in to the Client Portal as acme-1 and open My orders (warms the list)",
+      "In the Admin Portal open order QA-UI-1 and click Update status to Processing",
+      "Sign in to the Client Portal as acme-2 and open My orders",
+      "Open order QA-UI-1 detail, then reload My orders"
+    ],
+    "expected": "List and detail both show Processing",
+    "actual": "Detail shows Processing, list still shows Placed (and GET /api/orders?status=processing does not return the changed order)",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-K06.json",
+      "screenshots/client-stale-status-list.png"
+    ],
+    "roles": [
+      "acme-1",
+      "acme-2",
+      "admin"
+    ],
+    "suspected_cause": "listClientOrders caches copies of orders for 10 minutes and status updates do not invalidate them",
+    "regression_test": {
+      "description": "Warm client list, change status as admin, re-read list and expect new status",
+      "location": "test/admin.test.mjs"
+    },
+    "id": "ISSUE-006"
+  },
+  {
+    "title": "Double-clicking Place order creates duplicate orders",
+    "severity": "important",
+    "surface": "ui",
+    "area": "Client Portal / New order",
+    "type": "double-submit",
+    "charter": "C6",
+    "summary": "The Place order button is not disabled after the first click and the API has no duplicate protection, so a double click creates two identical orders. I am not sure the product intends to block duplicates, but a customer would be charged twice for one intent.",
+    "steps": [
+      "Sign in to the Client Portal as acme-1",
+      "Open New order: reference QA-UI-2, product Staples box of 5000, quantity 1",
+      "Double-click Place order",
+      "Open My orders"
+    ],
+    "expected": "One order",
+    "actual": "Two orders QA-UI-2 appear (two QA-UI-1 also appeared with the toner order); POST /api/orders sent twice at once returns 201 for both",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/client-order-confirm-desktop.png",
+      "evidence/api/client-baseline-P049.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "viewport": "desktop",
+    "browser": "chromium",
+    "suspected_cause": "No in-flight guard on the submit button and no idempotency key",
+    "regression_test": {
+      "description": "Double-click submit and expect a single order in the list",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-007"
+  },
+  {
+    "title": "Order list search with a regex character (for example '(') returns a server error",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders / search",
+    "type": "error-handling",
+    "charter": "C4",
+    "summary": "The q parameter is compiled as a regular expression, so invalid patterns crash with HTTP 500.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "GET /api/orders?q=(",
+      "GET /api/orders?q=\\"
+    ],
+    "expected": "Literal text search; HTTP 200 with no matches",
+    "actual": "HTTP 500",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-L03.json",
+      "evidence/api/client-baseline-P024.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "new RegExp(q) in listOrders; should escape the text or use includes()",
+    "regression_test": {
+      "description": "GET /orders?q=( expects 200 with no items",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-008"
+  },
+  {
+    "title": "page_size=0 causes HTTP 500 and negative page_size is accepted",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders / pagination",
+    "type": "validation",
+    "charter": "C4",
+    "summary": "page_size is only checked against the upper bound of 100. Zero crashes the request and negative values return 200 with a negative page_size.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "GET /api/orders?page_size=0",
+      "GET /api/orders?page_size=-5"
+    ],
+    "expected": "HTTP 400: page_size must be between 1 and 100",
+    "actual": "HTTP 500 for 0; HTTP 200 for -5",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-L01.json",
+      "evidence/api/rules-L02.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "parseListQuery lacks a pageSize < 1 check",
+    "regression_test": {
+      "description": "page_size 0 and -5 expect 400",
+      "location": "test/orders.test.mjs"
+    },
+    "id": "ISSUE-009"
+  },
+  {
+    "title": "Malformed JSON responses expose a stack trace and server file paths",
+    "severity": "important",
+    "surface": "api",
+    "area": "Error handling",
+    "type": "error-leakage",
+    "charter": "C1",
+    "summary": "Sending a malformed JSON body returns 400 with a stack trace and source paths in the body.",
+    "steps": [
+      "POST /api/auth/login with a body that is not valid JSON",
+      "POST /api/orders as acme-1 with a malformed body"
+    ],
+    "expected": "A short error message with no internals",
+    "actual": "Body contains a stack field with server file paths",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-baseline-P007.json",
+      "evidence/api/client-baseline-P048.json"
+    ],
+    "roles": [
+      "anonymous",
+      "acme-1"
+    ],
+    "suspected_cause": "The body parser error includes err.stack in the response",
+    "regression_test": {
+      "description": "Malformed JSON returns 400 with no stack field",
+      "location": "test/auth.test.mjs"
+    },
+    "id": "ISSUE-010"
+  },
+  {
+    "title": "On mobile, the My orders toolbar covers the top of the table and the Total and View columns are cut off",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "Client Portal / My orders",
+    "type": "layout",
+    "charter": "C6",
+    "summary": "At 390px wide the table starts underneath the status filter toolbar, hiding the column headers and the first row, and Total and View sit outside the visible width with no cue.",
+    "steps": [
+      "Sign in to the Client Portal as acme-1",
+      "Set the viewport to 390x844",
+      "Open My orders"
+    ],
+    "expected": "Table starts below the toolbar and key columns are reachable",
+    "actual": "Table top (199px) is behind the toolbar (bottom 263px); the table is 450px wide inside a 359px box",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/client-my-orders-mobile.png"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "viewport": "mobile 390x844",
+    "browser": "chromium",
+    "suspected_cause": "Toolbar overlaps .table-wrap at narrow widths",
+    "regression_test": {
+      "description": "Check toolbar bottom is at or above table top at 390px",
+      "location": "test/ (no UI tests exist yet)"
+    },
+    "id": "ISSUE-011"
+  },
+  {
+    "title": "Several controls have no accessible name",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "Both portals",
+    "type": "accessibility",
+    "charter": "C6",
+    "summary": "The product select on New order, the Admin Orders search box (placeholder only) and the two icon buttons beside the status filter (refresh, clear filters) have no accessible name.",
+    "steps": [
+      "Open Client Portal > New order and run the page audit",
+      "Open Admin Portal > Orders and run the page audit"
+    ],
+    "expected": "Every control has a label",
+    "actual": "Audit lists select[name=product], input#search, button#refresh and button#clear-filters as unnamed",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/admin-orders-mobile.png"
+    ],
+    "roles": [
+      "acme-1",
+      "admin"
+    ],
+    "viewport": "desktop",
+    "browser": "chromium",
+    "suspected_cause": "Missing label or aria-label",
+    "regression_test": {
+      "description": "Assert each form control has an accessible name",
+      "location": "test/ (no UI tests exist yet)"
+    },
+    "id": "ISSUE-012"
+  },
+  {
+    "title": "Sales report takes about 4 seconds and shows only a spinner",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "Admin Portal / Reports",
+    "type": "performance",
+    "charter": "C7",
+    "summary": "GET /api/admin/reports/sales took over 4 seconds in both runs; the page shows a spinner with no text meanwhile.",
+    "steps": [
+      "Sign in to the Admin Portal",
+      "Open Reports and watch the page for 4 seconds"
+    ],
+    "expected": "Report within about 3 seconds, or a loading message",
+    "actual": "4008 ms; spinner only",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-baseline-P093.json",
+      "screenshots/admin-reports-desktop.png"
+    ],
+    "roles": [
+      "admin"
+    ],
+    "viewport": "desktop",
+    "browser": "chromium",
+    "suspected_cause": "Deliberate latency or slow aggregation in salesReport",
+    "regression_test": {
+      "description": "Report responds within 3000 ms",
+      "location": "test/admin.test.mjs"
+    },
+    "id": "ISSUE-013"
+  }
+]

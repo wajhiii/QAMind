@@ -9,8 +9,9 @@ It tests your **API** (from its OpenAPI spec), each **web UI** per role, cross-s
 business rules, and writes a technical report with reproducible findings, evidence, and an explicit **Not tested** list.
 It works on staging or local environments only, never production.
 
-> **Status: Phase 1 of 8.** Working today: the `/qa-only` skill on **Claude Code**, API testing from OpenAPI, browser
-> testing of web UIs, safety guard, and the technical report. Not built yet: the curated knowledge base, the plain-language
+> **Status: Phase 2 of 8.** Working today: the `/qa-only` skill on **Claude Code**, API testing from OpenAPI, browser
+> testing of web UIs, safety guard, the technical report, and a built-in QA knowledge base (27 topic files, sourced in
+> [docs/KNOWLEDGE-SOURCES.md](docs/KNOWLEDGE-SOURCES.md)). Not built yet: the plain-language
 > admin report, project memory beyond run history, fix mode, auto-QA, Codex/Cursor, CI mode and the rest of the
 > [roadmap](#roadmap). Nothing below is claimed beyond what is built.
 
@@ -97,8 +98,8 @@ Screenshot masking of personal data is not built yet (Phase 7.6).
 
 | Phase | Adds |
 |-------|------|
-| 1 ✅ (this) | Core skeleton, Claude Code adapter, `/qa-only`, API + browser testing, technical report, demo app |
-| 2 | Curated QA knowledge base |
+| 1 ✅ | Core skeleton, Claude Code adapter, `/qa-only`, API + browser testing, technical report, demo app |
+| 2 ✅ (this) | Curated QA knowledge base, loaded on demand |
 | 3 | Plain-language admin report, consistency check, HTML export |
 | 4 | Project memory that improves each run |
 | 5 | `qa-memory` MCP server |
@@ -111,10 +112,6 @@ Screenshot masking of personal data is not built yet (Phase 7.6).
 See [MAINTAINING.md](MAINTAINING.md). Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). The `demo-app/` is a fixture
 with seeded bugs used to test QAMind itself; its answer key is private to evaluation runs.
 
-## Credits
+## License
 
-QAMind's methods draw on ideas from [gstack](https://github.com/garrytan/gstack) (MIT). The knowledge base (Phase 2) will
-credit every source in `docs/KNOWLEDGE-SOURCES.md`. Browser automation uses [Playwright MCP](https://github.com/microsoft/playwright-mcp)
-(Apache-2.0).
-
-License: MIT.
+MIT.

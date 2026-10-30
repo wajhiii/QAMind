@@ -1,0 +1,337 @@
+[
+  {
+    "title": "Any client can read another company's orders by id",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Orders",
+    "type": "tenant-isolation",
+    "summary": "GET /api/orders/{id} returns the full order to a user from a different company.",
+    "steps": [
+      "Sign in over the API as acme-1 (Acme Traders)",
+      "POST /api/orders with reference QA-at, 80 x p-102; note the id",
+      "Sign in as bright-1 (Bright Foods) and GET /api/orders/{id} (see evidence for the exact request)",
+      "Observe HTTP 200 with Acme's order"
+    ],
+    "expected": "403 or 404 for a different company's order",
+    "actual": "HTTP 200 with the full order body, twice",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/undefined-I1.json"
+    ],
+    "roles": [
+      "acme-1",
+      "bright-1"
+    ],
+    "suspected_cause": "Order detail lookup by id without filtering on the caller's client_id (the list endpoint is scoped correctly: the QA- search as bright-1 did not return it)",
+    "regression_test": {
+      "description": "Client B GETs client A's order id and expects 403/404",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-001"
+  },
+  {
+    "title": "Client accounts can list all customer records (admin endpoint unprotected)",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Admin customers",
+    "type": "function-level-access",
+    "summary": "GET /api/admin/customers returns 200 with data to client users; only admins should see customers.",
+    "steps": [
+      "Sign in over the API as acme-1, then as bright-1 and acme-2",
+      "GET /api/admin/customers",
+      "Observe HTTP 200 and the customer list; the sales report on the same prefix correctly returns 403"
+    ],
+    "expected": "403 for non-admin roles",
+    "actual": "HTTP 200 with customer records for every client role, twice each",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/undefined-A1.json",
+      "evidence/api/undefined-A2.json",
+      "evidence/api/undefined-R2.json"
+    ],
+    "roles": [
+      "acme-1",
+      "acme-2",
+      "bright-1"
+    ],
+    "suspected_cause": "Missing admin role check on the customers route",
+    "regression_test": {
+      "description": "Each client role GETs /admin/customers and expects 403",
+      "location": "test/admin.test.js"
+    },
+    "id": "ISSUE-002"
+  },
+  {
+    "title": "Order tax is calculated on the undiscounted subtotal, so discounted orders are overcharged",
+    "severity": "critical",
+    "surface": "business-rule",
+    "area": "Order totals",
+    "type": "money",
+    "summary": "For orders at or above 1,000.00 the 5% discount is applied but tax is still 10% of the full subtotal; the rule says tax applies to the discounted subtotal.",
+    "steps": [
+      "Sign in as acme-1 and POST /api/orders with 80 x p-102 (12.50 each): subtotal 1000.00",
+      "Expected discount 50.00, tax 95.00, total 1045.00",
+      "Observe tax_cents 10000 and total_cents 105000 (1050.00)",
+      "Repeat with 81 units: expected total 1058.06, got 1063.12",
+      "Same wrong total shown in the Client Portal confirmation (New order, 80 x Ballpoint Pens): 'Total: $1,050.00'"
+    ],
+    "expected": "total = subtotal - discount + 10% of discounted subtotal (1045.00)",
+    "actual": "total 1050.00 (tax on undiscounted subtotal); every order of 1000.00+ is overcharged by 5% of the discount's tax effect. Orders below 1000.00 are correct (987.50 -> 1086.25).",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/undefined-B2.json",
+      "evidence/api/undefined-B3.json",
+      "screenshots/client-confirmation-desktop.png"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "Tax computed from subtotal_cents instead of subtotal minus discount",
+    "regression_test": {
+      "description": "Order of 80 x 12.50 expects tax 9500 and total 104500; 81 x 12.50 expects total 105806",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-003"
+  },
+  {
+    "title": "Signing out does not revoke the session token",
+    "severity": "critical",
+    "surface": "api",
+    "area": "Auth",
+    "type": "session",
+    "summary": "After POST /auth/logout returns 204, the same token still works on GET /me.",
+    "steps": [
+      "Sign in over the API as zain-1",
+      "POST /api/auth/logout and observe 204",
+      "GET /api/me with the same token",
+      "Observe HTTP 200 with the user profile"
+    ],
+    "expected": "401 after logout (rule: signing out ends the session at once)",
+    "actual": "HTTP 200 with the profile, twice",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/undefined-X2.json"
+    ],
+    "roles": [
+      "zain-1"
+    ],
+    "suspected_cause": "Logout does not add the token to a revocation list or the check ignores it",
+    "regression_test": {
+      "description": "Logout then GET /me with the same token expects 401",
+      "location": "test/auth.test.js"
+    },
+    "id": "ISSUE-004"
+  },
+  {
+    "title": "Order validation is missing: zero/negative/over-limit/fractional quantities and empty orders are accepted",
+    "severity": "critical",
+    "surface": "api",
+    "area": "Orders",
+    "type": "validation",
+    "summary": "POST /api/orders accepts quantity 0, -3, 1001 and 1.5 and an empty items list, producing negative or meaningless totals.",
+    "steps": [
+      "Sign in as acme-1",
+      "POST /api/orders with items[0].quantity = -3 (and 0, 1001, 1.5), and separately with items: []",
+      "Observe HTTP 201 each time; the -3 order appears in My Orders with a negative total"
+    ],
+    "expected": "HTTP 400 naming the field (quantity must be a whole number 1..1000; at least one item)",
+    "actual": "HTTP 201 in every case, twice each",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/undefined-B5.json",
+      "evidence/api/baseline-client-P043.json",
+      "evidence/api/baseline-client-P044.json",
+      "evidence/api/baseline-client-P045.json",
+      "evidence/api/baseline-client-P046.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "No server-side range/integer/min-items check",
+    "regression_test": {
+      "description": "POST quantities 0,-3,1001,1.5 and empty items expect 400",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-005"
+  },
+  {
+    "title": "Double submit creates duplicate orders",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders",
+    "type": "duplicate-submission",
+    "summary": "Two identical simultaneous POST /orders calls both return 201; no duplicate protection. Unsure whether the product intends duplicates, so severity is by user impact.",
+    "steps": [
+      "Sign in as acme-1",
+      "Send the same valid POST /api/orders twice in parallel (see evidence)",
+      "Observe two 201 responses and two orders"
+    ],
+    "expected": "One order or an idempotency/duplicate refusal",
+    "actual": "Both accepted",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/baseline-client-P049.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "No idempotency key or duplicate-reference check",
+    "regression_test": {
+      "description": "Parallel identical POSTs yield one order or a 409",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-006"
+  },
+  {
+    "title": "Order list returns 500 for page_size=0 and for search q containing ( or \\; page_size=-1 is accepted",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders list",
+    "type": "server-error",
+    "summary": "GET /api/orders crashes on page_size=0 and on q=( / q=\\ (likely an unescaped regular expression), and accepts page_size=-1 against the spec minimum of 1.",
+    "steps": [
+      "Sign in as acme-1",
+      "GET /api/orders?page_size=0, then ?q=( , then ?q=\\",
+      "Observe HTTP 500 each time; ?page_size=-1 returns 200"
+    ],
+    "expected": "400 for invalid input; search treats the text literally",
+    "actual": "HTTP 500 (and 200 for -1), reproduced for client and admin",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/baseline-client-P019.json",
+      "evidence/api/baseline-client-P024.json",
+      "evidence/api/baseline-client-P028.json",
+      "evidence/api/baseline-client-P020.json"
+    ],
+    "roles": [
+      "acme-1",
+      "admin"
+    ],
+    "suspected_cause": "Search text compiled as a regex; page size used as a divisor without validation",
+    "regression_test": {
+      "description": "GET /orders with page_size=0 and q=( expect 400 / 200, never 500",
+      "location": "test/orders.test.js"
+    },
+    "id": "ISSUE-007"
+  },
+  {
+    "title": "Malformed JSON errors leak stack traces and server file paths",
+    "severity": "important",
+    "surface": "api",
+    "area": "Error handling",
+    "type": "error-leakage",
+    "summary": "Invalid JSON to /auth/login and /orders returns a 400 body containing a stack trace and source paths.",
+    "steps": [
+      "POST /api/auth/login with a malformed JSON body",
+      "POST /api/orders as acme-1 with a malformed JSON body",
+      "Observe a stack field and file paths in the error body"
+    ],
+    "expected": "A short error message without internals",
+    "actual": "Stack trace and server paths in the body, twice",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/baseline-client-P007.json",
+      "evidence/api/baseline-client-P048.json"
+    ],
+    "roles": [
+      "anonymous",
+      "acme-1"
+    ],
+    "suspected_cause": "Default error handler serializes the exception stack",
+    "regression_test": {
+      "description": "Malformed JSON returns 400 with no 'stack' field or file paths",
+      "location": "test/errors.test.js"
+    },
+    "id": "ISSUE-008"
+  },
+  {
+    "title": "My Orders table overflows and hides its first row on mobile (390px)",
+    "severity": "important",
+    "surface": "ui",
+    "area": "Client Portal / My Orders",
+    "type": "layout",
+    "summary": "At 390x844 the orders table is wider than the screen (right edge about 496px), the Total column is cut off, and the first order row sits under the toolbar.",
+    "steps": [
+      "Sign in to the Client Portal as acme-1",
+      "Resize to 390x844",
+      "Open My orders",
+      "Observe the Total column cut off and the newest order row covered by the Status / New order toolbar"
+    ],
+    "expected": "All columns reachable and no row hidden",
+    "actual": "Totals clipped, first row covered; audit reports covered elements on both loads",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/client-my-orders-mobile.png"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "ui": "Client Portal",
+    "browser": "Chromium",
+    "viewport": "390x844",
+    "suspected_cause": "Table not in a scroll container and toolbar overlapping its top",
+    "regression_test": {
+      "description": "At 390px the table has no hidden rows and totals visible",
+      "location": "test/ui/my-orders.test.js"
+    },
+    "id": "ISSUE-009"
+  },
+  {
+    "title": "Sales report endpoint is slow (about 4 seconds)",
+    "severity": "minor",
+    "surface": "api",
+    "area": "Reports",
+    "type": "performance",
+    "summary": "GET /api/admin/reports/sales consistently takes about 4 s, so the Admin report page shows an empty heading for several seconds.",
+    "steps": [
+      "Sign in as admin",
+      "GET /api/admin/reports/sales",
+      "Observe ~4000 ms response, repeated"
+    ],
+    "expected": "Under 3 s",
+    "actual": "4005-4010 ms every time",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/baseline-admin-P061.json"
+    ],
+    "roles": [
+      "admin"
+    ],
+    "suspected_cause": "Unindexed aggregation or deliberate delay",
+    "regression_test": {
+      "description": "Sales report responds in under 3000 ms",
+      "location": "test/reports.test.js"
+    },
+    "id": "ISSUE-010"
+  }
+]

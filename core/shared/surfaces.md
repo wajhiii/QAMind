@@ -1,8 +1,12 @@
 # Testing each surface
 
-Read the section you are about to work on. Safety rules (`safety.md`) apply to everything here.
+Read the section you are about to work on. Safety rules (`safety.md`) apply to everything here. Each section names the knowledge
+files (see `{{CORE_PATH}}/knowledge/INDEX.md`) that add depth for it: load them when you start that section, not before.
 
 ## API
+Knowledge: `api-testing.md` always; `permissions-and-data-isolation.md` for the role matrix and tenant probes; `auth-and-sessions.md`
+for sign-in, sign-out and session probes; `security-checks.md` for the staging-safe security smoke checks; `search-filter-pagination.md`
+for list endpoints; `test-design.md` for boundary values and the oracle.
 
 1. **Map the endpoints.** `{{CLI}} api inventory --run <id>` parses the OpenAPI spec named in the config (file or URL)
    and prints every operation with its auth requirement, parameters, body fields and documented responses. With no
@@ -53,6 +57,9 @@ nothing looks wrong, to read real prices or ids), `tags`, `needs`. Plans are val
 `api run --plan` accepts a file path or just the plan's name.
 
 ## Web UI (repeat per UI, per role)
+Knowledge: `browser-testing.md` always; `forms.md` for any form; `ui-and-layout.md` and `accessibility.md` for every page; `i18n-and-rtl.md`
+when any content is Arabic-script, Hebrew or mixed-language (or the product serves such users); `search-filter-pagination.md` for lists;
+`file-uploads.md`, `notifications-email.md`, `payments-and-money.md` when those features exist.
 
 Use {{BROWSER_TOOLS}}. Prefer `browser_snapshot` (an accessibility tree with element refs) over screenshots for finding
 and operating elements; take screenshots as evidence.
@@ -97,13 +104,17 @@ and operating elements; take screenshots as evidence.
   project folder.
 
 ## Cross-checks
+Knowledge: `permissions-and-data-isolation.md` (isolation chains), `api-testing.md` (state-changing sequences and **warm, change,
+re-read** to catch stale data), `test-design.md` (oracles).
 - A change made in one UI (for example an admin changing an order's status) shows correctly in the other UI and in the
-  API, after a reload. Stale data is a finding.
+  API, after a reload. Stale data is a finding. Read the record as the viewing role **first** (this warms any cache), then change
+  it from the other role, then re-read; a read taken only after the change usually looks right.
 - Role isolation: a client cannot reach admin pages or admin endpoints (by URL, and by calling the API directly).
 - Tenant isolation: client A cannot read or change client B's data by URL or by changing an id in an API call.
 - Totals and counts agree between list, detail, summary and API. Recompute arithmetic yourself.
 
 ## Business rules
+Knowledge: `test-design.md` (turning a rule into boundary cases), `payments-and-money.md` for anything involving amounts.
 Turn each rule in the config into an explicit expected result with concrete numbers, test it through the API and the
 UI, and include boundary values (just below, exactly at, just above a threshold). Do the arithmetic independently of
 the product.

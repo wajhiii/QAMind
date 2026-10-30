@@ -4,6 +4,8 @@ Everything you learn goes into JSON files in `<run.dir>/data/`. `{{CLI}} report 
 `TECHNICAL-REPORT.md` from them (and assigns stable `ISSUE-NNN` ids); `report lint` enforces the evidence rules.
 Write the files with the Write tool (they are inside `.qa/`, so a report-only run may write them).
 
+Before writing findings read `{{CORE_PATH}}/knowledge/bug-reporting.md` (what to verify first, how to word titles and steps, how to group).
+
 ## Severity
 - 🔴 **critical**: users blocked; data wrong, lost or exposed; money affected; security or permission breach.
 - 🟠 **important**: a feature works badly or confusingly; a workaround exists.
