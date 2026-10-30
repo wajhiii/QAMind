@@ -114,17 +114,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path22) {
-      const ctrl = callVisitor(key, node, visitor, path22);
+    function visit_(key, node, visitor, path25) {
+      const ctrl = callVisitor(key, node, visitor, path25);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path22, ctrl);
-        return visit_(key, ctrl, visitor, path22);
+        replaceNode(key, path25, ctrl);
+        return visit_(key, ctrl, visitor, path25);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path22 = Object.freeze(path22.concat(node));
+          path25 = Object.freeze(path25.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path22);
+            const ci = visit_(i, node.items[i], visitor, path25);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -135,13 +135,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path22 = Object.freeze(path22.concat(node));
-          const ck = visit_("key", node.key, visitor, path22);
+          path25 = Object.freeze(path25.concat(node));
+          const ck = visit_("key", node.key, visitor, path25);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path22);
+          const cv = visit_("value", node.value, visitor, path25);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -162,17 +162,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path22) {
-      const ctrl = await callVisitor(key, node, visitor, path22);
+    async function visitAsync_(key, node, visitor, path25) {
+      const ctrl = await callVisitor(key, node, visitor, path25);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path22, ctrl);
-        return visitAsync_(key, ctrl, visitor, path22);
+        replaceNode(key, path25, ctrl);
+        return visitAsync_(key, ctrl, visitor, path25);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path22 = Object.freeze(path22.concat(node));
+          path25 = Object.freeze(path25.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path22);
+            const ci = await visitAsync_(i, node.items[i], visitor, path25);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -183,13 +183,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path22 = Object.freeze(path22.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path22);
+          path25 = Object.freeze(path25.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path25);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path22);
+          const cv = await visitAsync_("value", node.value, visitor, path25);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -216,23 +216,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path22) {
+    function callVisitor(key, node, visitor, path25) {
       if (typeof visitor === "function")
-        return visitor(key, node, path22);
+        return visitor(key, node, path25);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path22);
+        return visitor.Map?.(key, node, path25);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path22);
+        return visitor.Seq?.(key, node, path25);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path22);
+        return visitor.Pair?.(key, node, path25);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path22);
+        return visitor.Scalar?.(key, node, path25);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path22);
+        return visitor.Alias?.(key, node, path25);
       return void 0;
     }
-    function replaceNode(key, path22, node) {
-      const parent = path22[path22.length - 1];
+    function replaceNode(key, path25, node) {
+      const parent = path25[path25.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -844,10 +844,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path22, value) {
+    function collectionFromPath(schema, path25, value) {
       let v = value;
-      for (let i = path22.length - 1; i >= 0; --i) {
-        const k = path22[i];
+      for (let i = path25.length - 1; i >= 0; --i) {
+        const k = path25[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -866,7 +866,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path22) => path22 == null || typeof path22 === "object" && !!path22[Symbol.iterator]().next().done;
+    var isEmptyPath = (path25) => path25 == null || typeof path25 === "object" && !!path25[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -896,11 +896,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path22, value) {
-        if (isEmptyPath(path22))
+      addIn(path25, value) {
+        if (isEmptyPath(path25))
           this.add(value);
         else {
-          const [key, ...rest] = path22;
+          const [key, ...rest] = path25;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -914,8 +914,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path22) {
-        const [key, ...rest] = path22;
+      deleteIn(path25) {
+        const [key, ...rest] = path25;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -929,8 +929,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path22, keepScalar) {
-        const [key, ...rest] = path22;
+      getIn(path25, keepScalar) {
+        const [key, ...rest] = path25;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -948,8 +948,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path22) {
-        const [key, ...rest] = path22;
+      hasIn(path25) {
+        const [key, ...rest] = path25;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -959,8 +959,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path22, value) {
-        const [key, ...rest] = path22;
+      setIn(path25, value) {
+        const [key, ...rest] = path25;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -3475,9 +3475,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path22, value) {
+      addIn(path25, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path22, value);
+          this.contents.addIn(path25, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3552,14 +3552,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path22) {
-        if (Collection.isEmptyPath(path22)) {
+      deleteIn(path25) {
+        if (Collection.isEmptyPath(path25)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path22) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path25) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3574,10 +3574,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path22, keepScalar) {
-        if (Collection.isEmptyPath(path22))
+      getIn(path25, keepScalar) {
+        if (Collection.isEmptyPath(path25))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path22, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path25, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3588,10 +3588,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path22) {
-        if (Collection.isEmptyPath(path22))
+      hasIn(path25) {
+        if (Collection.isEmptyPath(path25))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path22) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path25) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3608,13 +3608,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path22, value) {
-        if (Collection.isEmptyPath(path22)) {
+      setIn(path25, value) {
+        if (Collection.isEmptyPath(path25)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path22), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path25), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path22, value);
+          this.contents.setIn(path25, value);
         }
       }
       /**
@@ -3775,7 +3775,7 @@ ${pointer2}
 var require_resolve_props = __commonJS({
   "node_modules/yaml/dist/compose/resolve-props.js"(exports) {
     "use strict";
-    function resolveProps(tokens, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
+    function resolveProps(tokens2, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
       let spaceBefore = false;
       let atNewline = startOnNewline;
       let hasSpace = startOnNewline;
@@ -3790,7 +3790,7 @@ var require_resolve_props = __commonJS({
       let comma = null;
       let found = null;
       let start = null;
-      for (const token of tokens) {
+      for (const token of tokens2) {
         if (reqSpace) {
           if (token.type !== "space" && token.type !== "newline" && token.type !== "comma")
             onError(token.offset, "MISSING_CHAR", "Tags and anchors must be separated from the next token by white space");
@@ -3881,7 +3881,7 @@ var require_resolve_props = __commonJS({
             hasSpace = false;
         }
       }
-      const last = tokens[tokens.length - 1];
+      const last = tokens2[tokens2.length - 1];
       const end = last ? last.offset + last.source.length : offset;
       if (reqSpace && next && next.type !== "space" && next.type !== "newline" && next.type !== "comma" && (next.type !== "scalar" || next.source !== "")) {
         onError(next.offset, "MISSING_CHAR", "Tags and anchors must be separated from the next token by white space");
@@ -5221,8 +5221,8 @@ ${cb}` : comment;
        * @param forceDoc - If the stream contains no document, still emit a final document including any comments and directives that would be applied to a subsequent document.
        * @param endOffset - Should be set if `forceDoc` is also set, to set the document range end and to indicate errors correctly.
        */
-      *compose(tokens, forceDoc = false, endOffset = -1) {
-        for (const token of tokens)
+      *compose(tokens2, forceDoc = false, endOffset = -1) {
+        for (const token of tokens2)
           yield* this.next(token);
         yield* this.end(forceDoc, endOffset);
       }
@@ -5575,9 +5575,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path22) => {
+    visit.itemAtPath = (cst, path25) => {
       let item = cst;
-      for (const [field, index] of path22) {
+      for (const [field, index] of path25) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5586,23 +5586,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path22) => {
-      const parent = visit.itemAtPath(cst, path22.slice(0, -1));
-      const field = path22[path22.length - 1][0];
+    visit.parentCollection = (cst, path25) => {
+      const parent = visit.itemAtPath(cst, path25.slice(0, -1));
+      const field = path25[path25.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path22, item, visitor) {
-      let ctrl = visitor(item, path22);
+    function _visit(path25, item, visitor) {
+      let ctrl = visitor(item, path25);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path22.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path25.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5613,10 +5613,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path22);
+            ctrl = ctrl(item, path25);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path22) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path25) : ctrl;
     }
     exports.visit = visit;
   }
@@ -6918,14 +6918,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs18 = this.flowScalar(this.type);
+              const fs19 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map.items.push({ start, key: fs18, sep: [] });
+                map.items.push({ start, key: fs19, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs18);
+                this.stack.push(fs19);
               } else {
-                Object.assign(it, { key: fs18, sep: [] });
+                Object.assign(it, { key: fs19, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -7053,13 +7053,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs18 = this.flowScalar(this.type);
+              const fs19 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs18, sep: [] });
+                fc.items.push({ start: [], key: fs19, sep: [] });
               else if (it.sep)
-                this.stack.push(fs18);
+                this.stack.push(fs19);
               else
-                Object.assign(it, { key: fs18, sep: [] });
+                Object.assign(it, { key: fs19, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -7368,9 +7368,9 @@ var require_dist = __commonJS({
 });
 
 // cli/src/main.ts
-import fs17 from "node:fs";
+import fs18 from "node:fs";
 import os3 from "node:os";
-import path21 from "node:path";
+import path24 from "node:path";
 import { parseArgs } from "node:util";
 
 // core/lib/schema.ts
@@ -7559,7 +7559,7 @@ var notFoundValue = (p) => {
 };
 function fillPath(ep, mode, own = false) {
   const needs = [];
-  const path22 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
+  const path25 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
     const param = ep.parameters.find((p) => p.in === "path" && p.name === name) ?? { name, in: "path", required: true };
     if (mode === "not-found") return encodeURIComponent(String(notFoundValue(param)));
     const resource = lastSegment(ep.path.slice(0, offset));
@@ -7568,7 +7568,7 @@ function fillPath(ep, mode, own = false) {
     needs.push(variable);
     return `{{${variable}}}`;
   });
-  return { path: path22, needs };
+  return { path: path25, needs };
 }
 function withReferences(value, vars) {
   if (Array.isArray(value)) return value.map((v) => withReferences(v, vars));
@@ -7729,7 +7729,7 @@ function generatePlan(inv, opts2) {
   const isOwn = (v) => v.endsWith("IdOwn") || v.endsWith("Own");
   const stemOf = (v) => v.replace(/(Id)?Own$/, "").replace(/Id$/, "").toLowerCase();
   const names = (stem) => [stem, `${stem}s`, `${stem.replace(/y$/, "")}ies`];
-  const nextId = () => `S${String(setups.length + 1).padStart(3, "0")}`;
+  const nextId2 = () => `S${String(setups.length + 1).padStart(3, "0")}`;
   const creates = [];
   for (const variable of [...wantedVars].filter(isOwn)) {
     const stem = stemOf(variable);
@@ -7758,7 +7758,7 @@ function generatePlan(inv, opts2) {
       continue;
     }
     setups.push({
-      id: nextId(),
+      id: nextId2(),
       title: `Setup: capture an existing ${stem} id as ${variable}`,
       operation: source.operation,
       method: "GET",
@@ -7768,7 +7768,7 @@ function generatePlan(inv, opts2) {
       tags: ["setup"]
     });
   }
-  for (const c of creates) setups.push({ ...c, id: nextId() });
+  for (const c of creates) setups.push({ ...c, id: nextId2() });
   const capped = [...setups, ...probes].slice(0, opts2.maxTotal + setups.length);
   for (const p of capped) if (p.needs) p.needs = p.needs.filter((v) => unresolved.includes(v));
   return { plan: { version: 1, name: "baseline", probes: capped.map((p) => p.needs?.length === 0 ? (({ needs: _n, ...rest }) => rest)(p) : p) }, excluded };
@@ -7901,18 +7901,18 @@ import path from "node:path";
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
-function writeJson(file, value) {
-  ensureDir(path.dirname(file));
-  const tmp = `${file}.${process.pid}.tmp`;
+function writeJson(file2, value) {
+  ensureDir(path.dirname(file2));
+  const tmp = `${file2}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(value, null, 2) + "\n", "utf8");
-  fs.renameSync(tmp, file);
+  fs.renameSync(tmp, file2);
 }
-function readJson(file) {
+function readJson(file2) {
   try {
-    return JSON.parse(fs.readFileSync(file, "utf8"));
+    return JSON.parse(fs.readFileSync(file2, "utf8"));
   } catch (err) {
     if (err.code === "ENOENT") return void 0;
-    throw new Error(`Cannot read ${file}: ${err.message}`);
+    throw new Error(`Cannot read ${file2}: ${err.message}`);
   }
 }
 function exists(p) {
@@ -7933,8 +7933,8 @@ function parseSpecText(text, hint = "") {
   if (trimmed.startsWith("{") || hint.endsWith(".json")) return JSON.parse(trimmed);
   return (0, import_yaml.parse)(trimmed);
 }
-function loadSpecFile(file) {
-  return parseSpecText(fs2.readFileSync(file, "utf8"), file);
+function loadSpecFile(file2) {
+  return parseSpecText(fs2.readFileSync(file2, "utf8"), file2);
 }
 function pointer(root, ref) {
   if (!ref.startsWith("#/")) throw new Error(`Only local $ref values are supported (found "${ref}").`);
@@ -8330,11 +8330,11 @@ async function runPlan(plan, opts2) {
     let evidence;
     if (signals.length > 0 || failures.length > 0 || probe.keep_evidence === true) {
       ensureDir(evidenceDir);
-      const file = path3.join(evidenceDir, `${plan.name}-${raw.id}.json`);
+      const file2 = path3.join(evidenceDir, `${plan.name}-${raw.id}.json`);
       const reqBody = probe.raw_body !== void 0 ? redactor.text(probe.raw_body) : probe.body !== void 0 ? JSON.stringify(redactor.json(probe.body)) : void 0;
       const headerFlags = [probe.role !== "anonymous" ? `-H 'Authorization: Bearer $TOKEN'` : "", reqBody !== void 0 ? `-H 'Content-Type: application/json'` : ""].filter(Boolean).join(" ");
       const curl = `curl -sS -i -X ${probe.method} '${url}' ${headerFlags}${reqBody !== void 0 ? ` --data '${reqBody.replace(/'/g, "'\\''")}'` : ""}`.replace(/\s+/g, " ").trim();
-      writeJson(file, {
+      writeJson(file2, {
         probe: { id: raw.id, title: raw.title, operation: raw.operation, role: probe.role },
         curl,
         curl_note: probe.role === "anonymous" ? "No credentials are needed." : "Set TOKEN to a valid token for this role (log in first); the real token is never saved in evidence.",
@@ -8349,7 +8349,7 @@ async function runPlan(plan, opts2) {
         expectation_failures: failures,
         reproduced
       });
-      evidence = path3.relative(opts2.runDir, file).split(path3.sep).join("/");
+      evidence = path3.relative(opts2.runDir, file2).split(path3.sep).join("/");
     }
     for (const [name2, expr] of Object.entries(probe.capture ?? {})) {
       const last = attempts[attempts.length - 1];
@@ -8420,9 +8420,9 @@ function parseDotenv(text) {
   return out;
 }
 function loadQaEnv(projectRoot, processEnv = process.env, names) {
-  const file = path4.join(projectRoot, ".env.qa");
-  const fileFound = fs4.existsSync(file);
-  const fromFile = fileFound ? parseDotenv(fs4.readFileSync(file, "utf8")) : {};
+  const file2 = path4.join(projectRoot, ".env.qa");
+  const fileFound = fs4.existsSync(file2);
+  const fromFile = fileFound ? parseDotenv(fs4.readFileSync(file2, "utf8")) : {};
   const values = { ...fromFile };
   for (const name of names ?? Object.keys(fromFile)) {
     const v = processEnv[name];
@@ -8581,8 +8581,8 @@ function checkConfigText(text, opts2) {
   return result;
 }
 function checkConfigFile(projectRoot, env) {
-  const file = path5.join(projectRoot, ".qa", "config.md");
-  return checkConfigText(fs5.readFileSync(file, "utf8"), { projectRoot, ...env ? { env } : {} });
+  const file2 = path5.join(projectRoot, ".qa", "config.md");
+  return checkConfigText(fs5.readFileSync(file2, "utf8"), { projectRoot, ...env ? { env } : {} });
 }
 function policyFromConfig(c) {
   const origins = /* @__PURE__ */ new Set();
@@ -8608,12 +8608,12 @@ function parseCriticalFlows(body) {
 }
 
 // core/lib/guardpolicy.ts
-import fs13 from "node:fs";
-import path15 from "node:path";
+import fs14 from "node:fs";
+import path18 from "node:path";
 
 // core/lib/run.ts
-import fs12 from "node:fs";
-import path14 from "node:path";
+import fs13 from "node:fs";
+import path17 from "node:path";
 
 // core/lib/corepath.ts
 import path6 from "node:path";
@@ -8647,8 +8647,8 @@ function gitInfo(root) {
     for (const f of (git(root, ["diff", "--name-only", `${base}...HEAD`]) ?? "").split("\n")) if (f) changed.add(f);
   }
   for (const line of status.split("\n")) {
-    const file = line.slice(3).trim().replace(/^.* -> /, "");
-    if (file && !file.startsWith(".qa/")) changed.add(file);
+    const file2 = line.slice(3).trim().replace(/^.* -> /, "");
+    if (file2 && !file2.startsWith(".qa/")) changed.add(file2);
   }
   return {
     is_repo: true,
@@ -8670,8 +8670,8 @@ function isCovered(lines, entry) {
   return lines.some((l) => accepted.has(l.trim()));
 }
 function ensureGitignoreEntries(root, entries = QA_GITIGNORE_ENTRIES) {
-  const file = path7.join(root, ".gitignore");
-  const current = fs6.existsSync(file) ? fs6.readFileSync(file, "utf8") : "";
+  const file2 = path7.join(root, ".gitignore");
+  const current = fs6.existsSync(file2) ? fs6.readFileSync(file2, "utf8") : "";
   const lines = current.split(/\r?\n/);
   const missing = entries.filter((e) => !isCovered(lines, e));
   if (missing.length === 0) return [];
@@ -8680,7 +8680,7 @@ function ensureGitignoreEntries(root, entries = QA_GITIGNORE_ENTRIES) {
   if (next !== "" && !next.endsWith("\n")) next += eol;
   if (next !== "") next += eol;
   next += `# QAMind (private test credentials and reports)${eol}${missing.join(eol)}${eol}`;
-  fs6.writeFileSync(file, next, "utf8");
+  fs6.writeFileSync(file2, next, "utf8");
   return missing;
 }
 
@@ -8771,8 +8771,8 @@ function ensureProjectStore(home, info, now = /* @__PURE__ */ new Date()) {
   const store = storeDir(home, info.id);
   const dirs = storeSubdirs(store);
   for (const d of Object.values(dirs)) ensureDir(d);
-  const file = path9.join(store, "project.json");
-  const existing = readJson(file);
+  const file2 = path9.join(store, "project.json");
+  const existing = readJson(file2);
   if (existing && existing.schema_version > SCHEMA_VERSION) {
     throw new Error(
       `Memory for this project was written by a newer QAMind (schema ${existing.schema_version}, this is ${SCHEMA_VERSION}). Update QAMind before running.`
@@ -8791,7 +8791,7 @@ function ensureProjectStore(home, info, now = /* @__PURE__ */ new Date()) {
   };
   if (!project.paths_seen.includes(info.root)) project.paths_seen.push(info.root);
   project.last_seen = stamp;
-  writeJson(file, project);
+  writeJson(file2, project);
   return { store, project };
 }
 function listKnownProjects(home) {
@@ -8807,10 +8807,358 @@ function listKnownProjects(home) {
 }
 
 // core/lib/report.ts
+import fs9 from "node:fs";
+import path12 from "node:path";
+
+// core/lib/memory/productmap.ts
+import path11 from "node:path";
+
+// core/lib/memory/store.ts
 import fs8 from "node:fs";
 import path10 from "node:path";
+var MEMORY_SCHEMA = 1;
+function memoryPaths(store) {
+  const dir = storeSubdirs(store).memory;
+  return {
+    dir,
+    productMap: path10.join(dir, "product-map.json"),
+    riskAreas: path10.join(dir, "risk-areas.json"),
+    learnings: path10.join(dir, "learnings.jsonl"),
+    falseAlarms: path10.join(dir, "false-alarms.jsonl"),
+    archiveDir: path10.join(dir, "archive"),
+    runs: storeSubdirs(store).runs,
+    stack: path10.join(dir, "stack.json")
+  };
+}
+var MemoryTooNewError = class extends Error {
+  constructor(file2, found) {
+    super(`${path10.basename(file2)} was written by a newer QAMind (memory schema ${found}, this QAMind understands ${MEMORY_SCHEMA}). Update QAMind before it writes to this project's memory.`);
+  }
+};
+function readMemoryJson(file2) {
+  const v = readJson(file2);
+  if (v && typeof v.schema_version === "number" && v.schema_version > MEMORY_SCHEMA) throw new MemoryTooNewError(file2, v.schema_version);
+  return v;
+}
+function writeMemoryJson(file2, value) {
+  writeJson(file2, { schema_version: MEMORY_SCHEMA, ...value });
+}
+function readJsonl(file2) {
+  const out = { records: [], warnings: [], unparsed: [] };
+  if (!fs8.existsSync(file2)) return out;
+  const name = path10.basename(file2);
+  fs8.readFileSync(file2, "utf8").split(/\r?\n/).forEach((raw, i) => {
+    const line = raw.trim();
+    if (!line || line.startsWith("#")) return;
+    let parsed;
+    try {
+      parsed = JSON.parse(line);
+    } catch {
+      out.warnings.push(`${name} line ${i + 1} is not valid JSON and was ignored (it is kept in the file).`);
+      out.unparsed.push(raw);
+      return;
+    }
+    if (parsed && typeof parsed === "object" && "_meta" in parsed) {
+      const v = parsed._meta?.schema_version;
+      if (typeof v === "number" && v > MEMORY_SCHEMA) throw new MemoryTooNewError(file2, v);
+      return;
+    }
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) out.records.push(parsed);
+    else {
+      out.warnings.push(`${name} line ${i + 1} is not a JSON object and was ignored.`);
+      out.unparsed.push(raw);
+    }
+  });
+  return out;
+}
+function writeJsonl(file2, kind, records, preserve = []) {
+  ensureDir(path10.dirname(file2));
+  const lines = [JSON.stringify({ _meta: { schema_version: MEMORY_SCHEMA, kind } }), ...records.map((r) => JSON.stringify(r)), ...preserve];
+  const tmp = `${file2}.${process.pid}.tmp`;
+  fs8.writeFileSync(tmp, `${lines.join("\n")}
+`, "utf8");
+  fs8.renameSync(tmp, file2);
+}
+function appendArchive(store, name, records) {
+  if (records.length === 0) return;
+  const file2 = path10.join(memoryPaths(store).archiveDir, `${name}.jsonl`);
+  const prior = readJsonl(file2);
+  writeJsonl(file2, `archive-${name}`, [...prior.records, ...records], prior.unparsed);
+}
+var STOP = /* @__PURE__ */ new Set(["the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "is", "are", "was", "be", "it", "that", "this", "with", "as", "at", "by", "from", "not", "no", "but", "if", "then", "when", "than", "so", "can", "may", "will", "its", "into", "also"]);
+function tokens(text) {
+  return [
+    ...new Set(
+      text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").split(" ").filter((w) => w.length > 1 && !STOP.has(w)).map((w) => w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w)
+    )
+  ];
+}
+function similarity(a, b) {
+  const A = new Set(tokens(a));
+  const B = new Set(tokens(b));
+  if (A.size === 0 || B.size === 0) return 0;
+  let both = 0;
+  for (const t of A) if (B.has(t)) both++;
+  return both / (A.size + B.size - both);
+}
+function coverage(needle, haystack) {
+  const N = tokens(needle);
+  const H = new Set(tokens(haystack));
+  return N.length === 0 ? 0 : N.filter((t) => H.has(t)).length / N.length;
+}
+function nextId(prefix, existing) {
+  let max = 0;
+  for (const id of existing) {
+    const m = new RegExp(`^${prefix}-(\\d+)$`).exec(id);
+    if (m) max = Math.max(max, Number(m[1]));
+  }
+  return `${prefix}-${String(max + 1).padStart(3, "0")}`;
+}
+var RESERVED_MAIL = /(@|\.)(example\.(com|org|net)|[\w-]+\.(test|invalid|localhost|example))$/i;
+function luhn(digits) {
+  let sum = 0;
+  let alt = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let n = Number(digits[i]);
+    if (alt) {
+      n *= 2;
+      if (n > 9) n -= 9;
+    }
+    sum += n;
+    alt = !alt;
+  }
+  return sum % 10 === 0;
+}
+function screenForSecretsAndPii(text, knownSecrets = []) {
+  const problems = findSecretLeaks(text, knownSecrets).map((p) => `contains ${p}`);
+  for (const m of text.matchAll(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g)) if (!RESERVED_MAIL.test(m[0])) problems.push(`contains an email address (${m[0].replace(/^.{2}.*@/, "\u2022\u2022@")})`);
+  if (/\b\d{5}-\d{7}-\d\b/.test(text)) problems.push("contains a national-ID-like number");
+  for (const m of text.matchAll(/\b(?:\d[ -]?){13,19}\b/g)) {
+    const digits = m[0].replace(/\D/g, "");
+    if (digits.length >= 13 && digits.length <= 19 && luhn(digits)) problems.push("contains a card-number-like number");
+  }
+  if (/\+\d{1,3}[\s-]?\(?\d{2,4}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}\b|\b\d{3}[ -]\d{3}[ -]\d{4}\b/.test(text)) problems.push("contains a phone-number-like number");
+  return [...new Set(problems)];
+}
+var UnsafeMemoryTextError = class extends Error {
+  constructor(what, problems) {
+    super(`Refusing to save ${what}: it ${problems.join("; ")}. Memory never holds secrets or real people's data. Rewrite it without them (describe the behaviour, not the data).`);
+  }
+};
+function assertSafeText(what, text, knownSecrets = []) {
+  const problems = screenForSecretsAndPii(text, knownSecrets);
+  if (problems.length) throw new UnsafeMemoryTextError(what, problems);
+}
+var daysBetween = (from, to) => Math.max(0, (to.getTime() - new Date(from).getTime()) / 864e5);
+
+// core/lib/memory/productmap.ts
+var ID_SEGMENT = /^(?:\d+|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-z]{1,3}-\d+|[0-9a-f]{16,}|\d{4}-\d{2}-\d{2})$/i;
+function normalizePath(raw) {
+  let p = raw.trim();
+  try {
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(p)) p = new URL(p).pathname;
+  } catch {
+  }
+  p = p.split(/[?#]/)[0] ?? p;
+  if (!p.startsWith("/")) p = `/${p}`;
+  p = p.replace(/\/{2,}/g, "/");
+  const segs = p.split("/").map((s) => ID_SEGMENT.test(s) ? ":id" : s);
+  const out = segs.join("/").replace(/\/+$/, "");
+  return out === "" ? "/" : out;
+}
+function humanizePath(p) {
+  const last = p.split("/").filter((s) => s && s !== ":id").pop() ?? "home page";
+  const words = last.replace(/\.\w{1,5}$/, "").replace(/[-_]+/g, " ").trim();
+  return words ? words[0].toUpperCase() + words.slice(1) : "Home page";
+}
+var pageLabel = (p) => p.title?.trim() || humanizePath(p.path);
+function loadMap(store) {
+  return readMemoryJson(memoryPaths(store).productMap);
+}
+function readObserved(runDir, ctx) {
+  const dataDir = path11.join(runDir, "data");
+  const rawPages = readJson(path11.join(dataDir, "pages.json"));
+  const defaultUi = Object.keys(ctx.uiUrls)[0] ?? "Web screens";
+  const pages = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const p of Array.isArray(rawPages) ? rawPages : []) {
+    if (!p || typeof p !== "object") continue;
+    const o = p;
+    const raw = String(o["path"] ?? o["url"] ?? "");
+    if (!raw) continue;
+    const ui = String(o["ui"] ?? defaultUi);
+    const norm = normalizePath(raw);
+    if (seen.has(`${ui}|${norm}`)) continue;
+    seen.add(`${ui}|${norm}`);
+    pages.push({ ui, path: norm, ...typeof o["title"] === "string" && o["title"].trim() ? { title: String(o["title"]).trim() } : {}, ...Array.isArray(o["roles"]) ? { roles: o["roles"].map(String) } : {} });
+  }
+  let endpoints = [];
+  let endpointsSource = "none";
+  const inv = readJson(path11.join(dataDir, "api-inventory.json"));
+  if (inv?.endpoints?.length) {
+    endpoints = inv.endpoints.map((e) => ({ op: e.operation, ...e.summary ? { summary: e.summary } : {}, auth: e.auth }));
+    endpointsSource = "openapi";
+  } else {
+    const rawEp = readJson(path11.join(dataDir, "endpoints.json"));
+    if (Array.isArray(rawEp) && rawEp.length) {
+      endpoints = rawEp.filter((x) => typeof x === "string").map((op) => ({ op: op.trim() }));
+      endpointsSource = "observed";
+    }
+  }
+  const flows = ctx.flows.map((text, i) => {
+    const rows = ctx.coverage.filter((r) => r.critical_flow === i + 1);
+    const status = rows.length === 0 ? "not-tested" : rows.every((r) => r.status === "tested") ? "tested" : "partial";
+    return { n: i + 1, text, status };
+  });
+  return { pages, endpoints, endpointsSource, roles: ctx.roles, flows, uiUrls: ctx.uiUrls };
+}
+function computeChanges(prev, obs, mode) {
+  if (!prev) return { first_run: true, pages_new: [], pages_not_seen: [], endpoints_added: [], endpoints_removed: [], notes: ["This is the first run for this project, so there is nothing to compare with."] };
+  const changes = { since_run: prev.last_run, since_date: prev.updated, first_run: false, pages_new: [], pages_not_seen: [], endpoints_added: [], endpoints_removed: [], notes: [] };
+  const known = (ui, p) => prev.uis[ui]?.pages[p];
+  for (const p of obs.pages) if (!known(p.ui, p.path)) changes.pages_new.push({ ui: p.ui, path: p.path, ...p.title ? { title: p.title } : {} });
+  if (mode === "full" && obs.pages.length > 0) {
+    const now = new Set(obs.pages.map((p) => `${p.ui}|${p.path}`));
+    for (const [ui, entry] of Object.entries(prev.uis)) for (const [p, info] of Object.entries(entry.pages)) if (!now.has(`${ui}|${p}`)) changes.pages_not_seen.push({ ui, path: p, ...info.title ? { title: info.title } : {} });
+  } else if (mode !== "full") changes.notes.push("Pages that were not visited are not listed as gone, because this was not a full run.");
+  const prevOps = prev.api.endpoints;
+  for (const e of obs.endpoints) if (!prevOps[e.op]) changes.endpoints_added.push({ op: e.op, ...e.summary ? { summary: e.summary } : {} });
+  if (obs.endpointsSource === "openapi" && prev.api.source === "openapi") {
+    const now = new Set(obs.endpoints.map((e) => e.op));
+    for (const [op, info] of Object.entries(prevOps)) if (!now.has(op)) changes.endpoints_removed.push({ op, ...info.summary ? { summary: info.summary } : {} });
+  } else if (obs.endpoints.length > 0 && prev.api.source !== obs.endpointsSource) changes.notes.push("The list of endpoints came from a different source than last time, so removed endpoints are not asserted.");
+  return changes;
+}
+function applyObserved(prev, obs, runId, mode, now) {
+  const stamp = now.toISOString();
+  const map = prev ?? { schema_version: 1, updated: stamp, last_run: runId, last_run_mode: mode, uis: {}, api: { source: "none", endpoints: {} }, roles: [], flows: [] };
+  map.updated = stamp;
+  map.last_run = runId;
+  map.last_run_mode = mode;
+  for (const [ui, url] of Object.entries(obs.uiUrls)) (map.uis[ui] ??= { pages: {} }).url = url;
+  for (const p of obs.pages) {
+    const entry = map.uis[p.ui] ??= { pages: {} };
+    const old = entry.pages[p.path];
+    const roles = [.../* @__PURE__ */ new Set([...old?.roles ?? [], ...p.roles ?? []])].sort();
+    entry.pages[p.path] = { ...p.title ? { title: p.title } : old?.title ? { title: old.title } : {}, roles, first_seen: old?.first_seen ?? runId, last_seen: runId, last_seen_date: stamp };
+  }
+  if (obs.endpoints.length > 0) {
+    const fresh = {};
+    for (const e of obs.endpoints) {
+      const old = map.api.endpoints[e.op];
+      fresh[e.op] = { ...e.summary ? { summary: e.summary } : old?.summary ? { summary: old.summary } : {}, ...e.auth ? { auth: e.auth } : {}, first_seen: old?.first_seen ?? runId, last_seen: runId };
+    }
+    map.api = obs.endpointsSource === "openapi" ? { source: "openapi", endpoints: fresh } : { source: map.api.source === "openapi" ? "openapi" : "observed", endpoints: { ...map.api.endpoints, ...fresh } };
+  }
+  map.roles = [.../* @__PURE__ */ new Set([...map.roles, ...obs.roles])].sort();
+  map.flows = obs.flows.map((f) => ({ ...f, last_run: runId }));
+  return map;
+}
+function saveMap(store, map) {
+  writeMemoryJson(memoryPaths(store).productMap, map);
+}
+var changesFile = (runDir) => path11.join(runDir, "data", "changes.json");
+function loadChanges(runDir) {
+  return readJson(changesFile(runDir));
+}
+function saveChanges(runDir, c) {
+  writeJson(changesFile(runDir), c);
+}
+function hasChanges(c) {
+  return !!c && !c.first_run && c.pages_new.length + c.pages_not_seen.length + c.endpoints_added.length + c.endpoints_removed.length > 0;
+}
+function describeChanges(c, isPlain = () => true) {
+  const technical = [];
+  const plain = [];
+  const quoted = (text) => text && isPlain(text) ? text : void 0;
+  const where = (p) => {
+    const label = quoted(pageLabel(p)) ?? quoted(humanizePath(p.path));
+    return label ? `the "${label}" screen in the ${p.ui}` : `a screen in the ${p.ui}`;
+  };
+  for (const p of c.pages_new) {
+    technical.push(`Page seen for the first time: ${p.ui} \`${p.path}\`${p.title ? ` (${p.title})` : ""} (new, or not reached by earlier runs)`);
+    plain.push(`Seen for the first time: ${where(p)} (it is new, or the earlier check did not reach it).`);
+  }
+  for (const e of c.endpoints_added) {
+    technical.push(`New endpoint: \`${e.op}\`${e.summary ? ` (${e.summary})` : ""}`);
+    const name = quoted(e.summary);
+    plain.push(`New since the last check: ${name ? `a new behind-the-screens function ("${name}")` : "a new behind-the-screens function"}.`);
+  }
+  for (const e of c.endpoints_removed) {
+    technical.push(`Endpoint removed: \`${e.op}\`${e.summary ? ` (${e.summary})` : ""}`);
+    const name = quoted(e.summary);
+    plain.push(`No longer found: ${name ? `the behind-the-screens function "${name}"` : "a behind-the-screens function that existed before"}.`);
+  }
+  for (const p of c.pages_not_seen) {
+    technical.push(`Page not seen this run: ${p.ui} \`${p.path}\`${p.title ? ` (${p.title})` : ""}`);
+    plain.push(`Not found this time: ${where(p)} (it was removed, or the check did not reach it).`);
+  }
+  return { technical, plain };
+}
+function pageCount(m) {
+  return m ? Object.values(m.uis).reduce((n, u) => n + Object.keys(u.pages).length, 0) : 0;
+}
+
+// core/lib/verdict.ts
+function flowStatus(data) {
+  const total = data.meta?.critical_flows?.length ?? 0;
+  const tested = [];
+  const untested = [];
+  for (let i = 1; i <= total; i++) {
+    const rows = data.coverage.filter((r) => r.critical_flow === i);
+    (rows.length > 0 && rows.every((r) => r.status === "tested") ? tested : untested).push(i);
+  }
+  return { total, tested, untested };
+}
+var isOpen = (f) => f.fix_status !== "fixed-verified";
+var plural = (n, one4, many) => `${n} ${n === 1 ? one4 : many}`;
+var sentence = (s) => s.trim().replace(/[.\s]+$/, "");
+function computeVerdict(data) {
+  const open = data.findings.filter(isOpen);
+  const critical = open.filter((f) => f.severity === "critical");
+  const important = open.filter((f) => f.severity === "important");
+  const plainTitle = (f) => sentence(f.plain?.title ?? f.title);
+  if (data.health && !data.health.environment_ok) {
+    return {
+      level: "not-ready",
+      environment_problem: true,
+      reasons: ["The test environment had a problem, so the product could not be checked."],
+      line: "\u26D4 **Not ready to release:** the test environment has a problem, so nothing could be checked (see below)."
+    };
+  }
+  if (critical.length > 0) {
+    const first = plainTitle(critical[0]);
+    const more = important.length > 2 ? ` and ${plural(important.length, "important problem", "important problems")}` : "";
+    return {
+      level: "not-ready",
+      environment_problem: false,
+      reasons: critical.map(plainTitle),
+      line: `\u26D4 **Not ready to release:** ${plural(critical.length, "critical problem", "critical problems")} found${more}, for example: ${first}.`
+    };
+  }
+  const risks = [];
+  if (important.length > 2) risks.push(`${important.length} important problems are open`);
+  const flows = flowStatus(data);
+  if (flows.total === 0) risks.push("the key journeys were not listed, so they could not be confirmed as checked");
+  else if (flows.untested.length > 0) risks.push(`${plural(flows.untested.length, "key journey was", "key journeys were")} not fully checked`);
+  if (!data.health) risks.push("the test environment was not confirmed healthy");
+  if (risks.length === 0) {
+    return {
+      level: "ready",
+      environment_problem: false,
+      reasons: [],
+      line: `\u2705 **Ready to release:** no critical problems, ${plural(important.length, "important problem", "important problems")}, and every key journey was checked.`
+    };
+  }
+  return { level: "ready-with-risks", environment_problem: false, reasons: risks, line: `\u26A0\uFE0F **Ready with risks:** ${risks.join("; ")}.` };
+}
+
+// core/lib/report.ts
 var SURFACES = ["api", "ui", "cross", "permissions", "business-rule", "other"];
-var dataFile = (runDir, name) => path10.join(runDir, "data", name);
+function compactFinding(f) {
+  return { id: f.id ?? "", title: f.title, severity: f.severity, surface: f.surface, area: f.area, type: f.type, ...f.ui ? { ui: f.ui } : {}, ...f.steps?.[0] ? { first_step: f.steps[0].slice(0, 200) } : {} };
+}
+var dataFile = (runDir, name) => path12.join(runDir, "data", name);
 function readList(runDir, name) {
   const v = readJson(dataFile(runDir, name));
   if (v === void 0) return [];
@@ -8818,20 +9166,24 @@ function readList(runDir, name) {
   return v;
 }
 function readRunData(runDir) {
-  const apiDir = path10.join(runDir, "data", "api-results");
+  const apiDir = path12.join(runDir, "data", "api-results");
   const apiSummaries = [];
-  if (fs8.existsSync(apiDir)) {
-    for (const f of fs8.readdirSync(apiDir).filter((x) => x.endsWith(".json")).sort()) {
-      const r = readJson(path10.join(apiDir, f));
+  if (fs9.existsSync(apiDir)) {
+    for (const f of fs9.readdirSync(apiDir).filter((x) => x.endsWith(".json")).sort()) {
+      const r = readJson(path12.join(apiDir, f));
       if (r?.summary) apiSummaries.push({ file: `data/api-results/${f}`, ...r.summary });
     }
   }
   const meta = readJson(dataFile(runDir, "meta.json"));
   const health = readJson(dataFile(runDir, "health.json"));
   const admin = readJson(dataFile(runDir, "admin.json"));
+  const changes = readJson(dataFile(runDir, "changes.json"));
+  const memLog = readJson(dataFile(runDir, "memory-log.json"));
   return {
     ...meta ? { meta } : {},
     ...admin ? { admin } : {},
+    ...changes ? { changes } : {},
+    memoryLog: Array.isArray(memLog) ? memLog : [],
     charters: readList(runDir, "charters.json"),
     findings: readList(runDir, "findings.json"),
     unconfirmed: readList(runDir, "unconfirmed.json"),
@@ -8898,7 +9250,8 @@ function duration(seconds) {
   const m = Math.floor(seconds / 60);
   return `${m}m ${String(Math.round(seconds % 60)).padStart(2, "0")}s`;
 }
-function renderTechnicalReport(data) {
+var journeyCell = (tested, total) => total > 0 ? `${tested}/${total}` : "-";
+function renderTechnicalReport(data, ctx = {}) {
   const m = data.meta;
   const counts = countBySeverity(data.findings);
   const notTested = mergedNotTested(data);
@@ -8938,6 +9291,22 @@ function renderTechnicalReport(data) {
   L.push(`- Areas not tested: **${notTested.length}**`);
   const api = data.apiSummaries.reduce((a, s) => ({ total: a.total + s.total, failed: a.failed + s.failed, signals: a.signals + s.signals }), { total: 0, failed: 0, signals: 0 });
   if (data.apiSummaries.length) L.push(`- API probes executed: **${api.total}** (${api.signals} produced a signal worth a look)`);
+  L.push("");
+  L.push("## What changed since the last run", "");
+  const ch = data.changes;
+  if (!ch) L.push("_Not computed (no page or endpoint list was recorded)._", "");
+  else if (ch.first_run) L.push("_First run for this project: there is nothing to compare with yet._", "");
+  else {
+    const lines = describeChanges(ch).technical;
+    L.push(...lines.length ? lines.map((x) => `- ${x}`) : ["No new or removed pages or endpoints since the last run."], ...ch.notes.map((n) => `- _${n}_`), "");
+  }
+  L.push("## Trend", "");
+  const cur = { counts: { ...counts, unconfirmed: data.unconfirmed.length }, tested: data.coverage.filter((c) => c.status === "tested").length, partial: data.coverage.filter((c) => c.status === "partial").length, notTested: notTested.length };
+  L.push("| Run | Mode | \u{1F534} | \u{1F7E0} | \u{1F7E1} | Unconfirmed | Key journeys tested | Checked | Partly checked | Not tested |", "|---|---|---|---|---|---|---|---|---|---|");
+  L.push(`| **this run** | ${m?.mode ?? "-"} | ${cur.counts.critical} | ${cur.counts.important} | ${cur.counts.minor} | ${cur.counts.unconfirmed} | ${journeyCell(flowStatus(data).tested.length, flowStatus(data).total)} | ${cur.tested} | ${cur.partial} | ${cur.notTested} |`);
+  for (const p of (ctx.previous ?? []).slice(0, 4)) L.push(`| ${p.run_id} | ${p.mode} | ${p.counts.critical} | ${p.counts.important} | ${p.counts.minor} | ${p.counts.unconfirmed} | ${p.journeys ? journeyCell(p.journeys.tested, p.journeys.total) : "-"} | ${p.coverage.tested} | ${p.coverage.partial} | ${p.not_tested_count} |`);
+  if (!ctx.previous?.length) L.push("", "_No earlier run to compare with._");
+  else if (ctx.previous[0] && ctx.previous[0].mode !== m?.mode) L.push("", `_The last run was a ${ctx.previous[0].mode} run and this one is ${m?.mode ?? "?"}, so the rows are not directly comparable._`);
   L.push("");
   L.push("## Test plan (charters)", "");
   if (data.charters.length === 0) L.push("_No charters recorded._", "");
@@ -8987,8 +9356,25 @@ function renderTechnicalReport(data) {
     L.push("");
   }
   L.push("## Memory", "");
-  L.push(m?.memory_applied?.length ? m.memory_applied.map((x) => `- Applied: ${x}`).join("\n") : "_No project memory was applied (first run, or memory held nothing relevant)._", "");
-  L.push("_Learnings are not written in this version; the run summary and detected stack are saved to the private user store._", "");
+  const applied = data.memoryLog.filter((e) => e.kind === "learning-applied" || e.kind === "false-alarm-skipped");
+  const saved = data.memoryLog.filter((e) => !["learning-applied", "false-alarm-skipped"].includes(e.kind));
+  const verb = { "learning-applied": "Applied learning", "false-alarm-skipped": "Skipped known false alarm", "learning-created": "New learning", "learning-merged": "Confirmed again", "learning-contradicted": "Contradicted learning", "false-alarm-created": "New false alarm" };
+  L.push("**Applied this run** (memory is leads, not proof; each was re-verified)", "");
+  if (applied.length === 0 && !m?.memory_applied?.length) L.push("_No project memory was applied (first run, or memory held nothing relevant)._");
+  const agentLines = [...m?.memory_applied ?? []];
+  const cites = (line, id) => !!id && new RegExp(`\\b${id}\\b`).test(line);
+  for (const e of applied) {
+    L.push(`- ${verb[e.kind]} ${e.id}: ${e.text}`);
+    for (let i = agentLines.length - 1; i >= 0; i--) {
+      if (cites(agentLines[i], e.id)) L.push(`  - In this run: ${agentLines.splice(i, 1)[0]}`);
+    }
+  }
+  for (const x of agentLines) L.push(`- ${x}`);
+  L.push("", "**Saved this run**", "");
+  if (saved.length === 0) L.push("_No learnings or false alarms were saved._");
+  for (const e of saved) L.push(`- ${verb[e.kind]} ${e.id}: ${e.text}`);
+  if (m?.memory_updated?.length) L.push("", "**Memory after the run**", "", ...m.memory_updated.map((x) => `- ${x}`));
+  L.push("");
   const tests = sorted.filter((f) => f.regression_test);
   L.push("## Proposed regression tests", "", "_/qa-only never writes tests into the product; these are proposals._", "");
   if (tests.length === 0) L.push("_None._", "");
@@ -8998,8 +9384,8 @@ function renderTechnicalReport(data) {
   return L.join("\n");
 }
 function insideRun(runDir, rel) {
-  const abs = path10.resolve(runDir, rel);
-  const root = path10.resolve(runDir) + path10.sep;
+  const abs = path12.resolve(runDir, rel);
+  const root = path12.resolve(runDir) + path12.sep;
   return abs.startsWith(root) ? abs : null;
 }
 function lintRun(runDir, data, knownSecrets = []) {
@@ -9025,7 +9411,7 @@ function lintRun(runDir, data, knownSecrets = []) {
     for (const e of f.evidence ?? []) {
       const abs = insideRun(runDir, e);
       if (!abs) errors.push(`${tag}: evidence path "${e}" is outside the run folder.`);
-      else if (!fs8.existsSync(abs)) errors.push(`${tag}: evidence file "${e}" does not exist.`);
+      else if (!fs9.existsSync(abs)) errors.push(`${tag}: evidence file "${e}" does not exist.`);
     }
     if (!f.regression_test) warnings.push(`${tag}: no regression test proposed.`);
   }
@@ -9041,7 +9427,7 @@ function lintRun(runDir, data, knownSecrets = []) {
     if (!Array.isArray(p.how_to_see_it)) errors.push(`${tag}: plain.how_to_see_it must be a list (an empty list means it cannot be seen on screen).`);
     if (p.screenshot) {
       const abs = insideRun(runDir, p.screenshot);
-      if (!abs || !fs8.existsSync(abs)) errors.push(`${tag}: plain.screenshot "${p.screenshot}" does not exist inside the run folder.`);
+      if (!abs || !fs9.existsSync(abs)) errors.push(`${tag}: plain.screenshot "${p.screenshot}" does not exist inside the run folder.`);
     }
   }
   for (const n of data.notTested) if (!n.plain?.area?.trim() || !n.plain?.reason?.trim()) errors.push(`not-tested.json: "${n.area}" needs a plain { area, reason } for the admin report.`);
@@ -9056,97 +9442,321 @@ function lintRun(runDir, data, knownSecrets = []) {
     if (row.surface === "ui" && !row.ui) warnings.push(`coverage "${row.area}": a UI row without "ui" is grouped under "Web screens" in the admin report.`);
   }
   for (let i = 1; i <= flowCount; i++) if (!data.coverage.some((r) => r.critical_flow === i)) warnings.push(`Critical journey ${i} ("${data.meta?.critical_flows?.[i - 1]}") has no coverage row, so the verdict cannot be Ready.`);
-  const dataDir = path10.join(runDir, "data");
-  if (fs8.existsSync(dataDir)) {
-    const newestData = Math.max(0, ...fs8.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs8.statSync(path10.join(dataDir, f)).mtimeMs));
+  const dataDir = path12.join(runDir, "data");
+  if (fs9.existsSync(dataDir)) {
+    const newestData = Math.max(0, ...fs9.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs9.statSync(path12.join(dataDir, f)).mtimeMs));
     for (const name of ["TECHNICAL-REPORT.md", "ADMIN-REPORT.md"]) {
-      const file = path10.join(runDir, name);
-      if (fs8.existsSync(file) && fs8.statSync(file).mtimeMs + 1 < newestData) errors.push(`${name} is older than the data it is built from: run \`report build\` again.`);
+      const file2 = path12.join(runDir, name);
+      if (fs9.existsSync(file2) && fs9.statSync(file2).mtimeMs + 1 < newestData) errors.push(`${name} is older than the data it is built from: run \`report build\` again.`);
     }
   }
   for (const row of data.coverage) {
     if (row.status === "tested" && /not tested|blocked|skipped/i.test(row.note ?? "")) errors.push(`coverage "${row.area}" is marked tested but its note says otherwise.`);
   }
   if (data.findings.length === 0 && data.coverage.length === 0) warnings.push("No findings and no coverage rows: the report would not show what was checked.");
-  const scan = [path10.join(runDir, "TECHNICAL-REPORT.md")];
+  const scan = [path12.join(runDir, "TECHNICAL-REPORT.md")];
   for (const sub of ["evidence", "data"]) {
-    const dir = path10.join(runDir, sub);
-    if (!fs8.existsSync(dir)) continue;
+    const dir = path12.join(runDir, sub);
+    if (!fs9.existsSync(dir)) continue;
     const walk = (d) => {
-      for (const e of fs8.readdirSync(d, { withFileTypes: true })) {
-        const p = path10.join(d, e.name);
+      for (const e of fs9.readdirSync(d, { withFileTypes: true })) {
+        const p = path12.join(d, e.name);
         if (e.isDirectory()) walk(p);
         else if (/\.(json|md|txt|log|yml|yaml|har|html)$/i.test(e.name)) scan.push(p);
       }
     };
     walk(dir);
   }
-  for (const file of scan) {
-    if (!fs8.existsSync(file)) continue;
-    const isPlan = path10.relative(runDir, file).split(path10.sep).join("/").startsWith("data/plans/");
-    const leaks = findSecretLeaks(fs8.readFileSync(file, "utf8"), knownSecrets, { generic: !isPlan });
-    for (const leak of leaks) errors.push(`${path10.relative(runDir, file)}: contains ${leak}; redact it before reporting.`);
+  for (const file2 of scan) {
+    if (!fs9.existsSync(file2)) continue;
+    const isPlan = path12.relative(runDir, file2).split(path12.sep).join("/").startsWith("data/plans/");
+    const leaks = findSecretLeaks(fs9.readFileSync(file2, "utf8"), knownSecrets, { generic: !isPlan });
+    for (const leak of leaks) errors.push(`${path12.relative(runDir, file2)}: contains ${leak}; redact it before reporting.`);
   }
   return { ok: errors.length === 0, errors, warnings };
 }
 
-// core/lib/reports.ts
-import fs10 from "node:fs";
-import path12 from "node:path";
+// core/lib/memory/falsealarms.ts
+var SOURCES = ["owner", "reproduction", "spec"];
+var one = (s) => s.replace(/\s+/g, " ").trim();
+function loadFalseAlarms(store, now = /* @__PURE__ */ new Date()) {
+  const read = readJsonl(memoryPaths(store).falseAlarms);
+  const warnings = [...read.warnings];
+  const ids = read.records.map((r) => String(r.id ?? "")).filter(Boolean);
+  const alarms = [];
+  for (const r of read.records) {
+    if (!r.symptom || typeof r.symptom !== "string") {
+      warnings.push(`A false alarm without a symptom was ignored${r.id ? ` (${r.id})` : ""}.`);
+      continue;
+    }
+    const id = r.id ? String(r.id) : nextId("FA", ids);
+    if (!r.id) ids.push(id);
+    alarms.push({ ...r, id, area: String(r.area ?? "general"), symptom: r.symptom, reason: String(r.reason ?? "marked as not a bug"), source: SOURCES.includes(r.source) ? r.source : "owner", created: String(r.created ?? now.toISOString()), hits: Number(r.hits ?? 0) || 0 });
+  }
+  return { alarms, warnings, unparsed: read.unparsed };
+}
+function addFalseAlarm(store, input, opts2 = {}) {
+  const now = opts2.now ?? /* @__PURE__ */ new Date();
+  const symptom = one(input.symptom);
+  const reason = one(input.reason);
+  const area = one(input.area);
+  if (symptom.length < 12 || reason.length < 8 || !area) throw new Error("A false alarm needs an area, a symptom (what was seen) and a reason (why it is not a bug).");
+  assertSafeText("this false alarm", `${area} ${symptom} ${reason}`, opts2.knownSecrets ?? []);
+  const loaded = loadFalseAlarms(store, now);
+  const dup = loaded.alarms.find((a) => similarity(a.symptom, symptom) >= 0.7);
+  if (dup) return { action: "existing", alarm: dup, warnings: loaded.warnings };
+  const alarm = {
+    id: nextId("FA", loaded.alarms.map((a) => a.id)),
+    area,
+    symptom,
+    reason,
+    source: input.source ?? "reproduction",
+    ...input.run ? { evidence_run: input.run } : {},
+    created: now.toISOString(),
+    hits: 0
+  };
+  writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", [...loaded.alarms, alarm], loaded.unparsed);
+  return { action: "created", alarm, warnings: loaded.warnings };
+}
+var MATCH_AT = 0.6;
+function matchFalseAlarms(findings, alarms) {
+  const out = [];
+  for (const f of findings) {
+    if (f.not_a_known_false_alarm?.trim()) continue;
+    const text = [f.title, f.summary, f.area, f.type].filter(Boolean).join(" ");
+    for (const a of alarms) {
+      if (tokens(a.symptom).length < 3) continue;
+      const score = coverage(`${a.symptom}`, text);
+      if (score >= MATCH_AT) out.push({ finding: f, alarm: a, score });
+    }
+  }
+  return out;
+}
+function markFalseAlarmsSeen(store, ids, now = /* @__PURE__ */ new Date()) {
+  const loaded = loadFalseAlarms(store, now);
+  const touched = [];
+  for (const a of loaded.alarms) {
+    if (ids.includes(a.id)) {
+      a.hits += 1;
+      a.last_seen = now.toISOString();
+      touched.push(a.id);
+    }
+  }
+  if (touched.length) writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", loaded.alarms, loaded.unparsed);
+  return touched;
+}
 
-// core/lib/verdict.ts
-function flowStatus(data) {
-  const total = data.meta?.critical_flows?.length ?? 0;
-  const tested = [];
-  const untested = [];
-  for (let i = 1; i <= total; i++) {
-    const rows = data.coverage.filter((r) => r.critical_flow === i);
-    (rows.length > 0 && rows.every((r) => r.status === "tested") ? tested : untested).push(i);
+// core/lib/memory/learnings.ts
+var LEARNING_TYPES = ["behavior", "pitfall", "test-tip", "fix-pattern", "env-quirk"];
+var LEARNINGS_CAP = 200;
+var ARCHIVE_BELOW = 3;
+var MERGE_AT = 0.6;
+var clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+var one2 = (s) => s.replace(/\s+/g, " ").trim();
+function loadLearnings(store, now = /* @__PURE__ */ new Date()) {
+  const read = readJsonl(memoryPaths(store).learnings);
+  const warnings = [...read.warnings];
+  const ids = read.records.map((r) => String(r.id ?? "")).filter(Boolean);
+  const active = [];
+  for (const r of read.records) {
+    if (!r.text || typeof r.text !== "string") {
+      warnings.push(`A learning without text was ignored${r.id ? ` (${r.id})` : ""}.`);
+      continue;
+    }
+    const id = r.id ? String(r.id) : nextId("L", ids);
+    if (!r.id) ids.push(id);
+    let type = r.type;
+    if (!LEARNING_TYPES.includes(type)) {
+      warnings.push(`${id} has an unknown type "${String(r.type)}"; treated as "behavior".`);
+      type = "behavior";
+    }
+    active.push({
+      ...r,
+      id,
+      type,
+      area: String(r.area ?? "general"),
+      text: r.text,
+      evidence_run: String(r.evidence_run ?? "manual"),
+      confidence: clamp(Number(r.confidence ?? 5) || 5, 1, 10),
+      created: String(r.created ?? now.toISOString()),
+      last_confirmed: String(r.last_confirmed ?? r.created ?? now.toISOString()),
+      hits: Number(r.hits ?? 0) || 0
+    });
   }
-  return { total, tested, untested };
+  return { active, warnings, unparsed: read.unparsed };
 }
-var isOpen = (f) => f.fix_status !== "fixed-verified";
-var plural = (n, one2, many) => `${n} ${n === 1 ? one2 : many}`;
-var sentence = (s) => s.trim().replace(/[.\s]+$/, "");
-function computeVerdict(data) {
-  const open = data.findings.filter(isOpen);
-  const critical = open.filter((f) => f.severity === "critical");
-  const important = open.filter((f) => f.severity === "important");
-  const plainTitle = (f) => sentence(f.plain?.title ?? f.title);
-  if (data.health && !data.health.environment_ok) {
-    return {
-      level: "not-ready",
-      environment_problem: true,
-      reasons: ["The test environment had a problem, so the product could not be checked."],
-      line: "\u26D4 **Not ready to release:** the test environment has a problem, so nothing could be checked (see below)."
-    };
+function save(store, active, unparsed, now) {
+  let kept = active;
+  let archived = [];
+  if (active.length > LEARNINGS_CAP) {
+    const ranked = [...active].sort((a, b) => learningScore(b, now) - learningScore(a, now));
+    kept = ranked.slice(0, LEARNINGS_CAP);
+    archived = ranked.slice(LEARNINGS_CAP);
+    appendArchive(store, "learnings", archived.map((l) => ({ ...l, archived_at: now.toISOString(), archived_reason: "over the size limit; lowest-scoring learnings are archived" })));
   }
-  if (critical.length > 0) {
-    const first = plainTitle(critical[0]);
-    const more = important.length > 2 ? ` and ${plural(important.length, "important problem", "important problems")}` : "";
-    return {
-      level: "not-ready",
-      environment_problem: false,
-      reasons: critical.map(plainTitle),
-      line: `\u26D4 **Not ready to release:** ${plural(critical.length, "critical problem", "critical problems")} found${more}, for example: ${first}.`
-    };
-  }
-  const risks = [];
-  if (important.length > 2) risks.push(`${important.length} important problems are open`);
-  const flows = flowStatus(data);
-  if (flows.total === 0) risks.push("the key journeys were not listed, so they could not be confirmed as checked");
-  else if (flows.untested.length > 0) risks.push(`${plural(flows.untested.length, "key journey was", "key journeys were")} not fully checked`);
-  if (!data.health) risks.push("the test environment was not confirmed healthy");
-  if (risks.length === 0) {
-    return {
-      level: "ready",
-      environment_problem: false,
-      reasons: [],
-      line: `\u2705 **Ready to release:** no critical problems, ${plural(important.length, "important problem", "important problems")}, and every key journey was checked.`
-    };
-  }
-  return { level: "ready-with-risks", environment_problem: false, reasons: risks, line: `\u26A0\uFE0F **Ready with risks:** ${risks.join("; ")}.` };
+  writeJsonl(memoryPaths(store).learnings, "learnings", kept, unparsed);
+  return archived;
 }
+function learningScore(l, now) {
+  return l.confidence / 10 * Math.pow(0.5, daysBetween(l.last_confirmed, now) / 120) + Math.min(l.hits, 10) * 0.02;
+}
+function learn(store, input, opts2 = {}) {
+  const now = opts2.now ?? /* @__PURE__ */ new Date();
+  if (!LEARNING_TYPES.includes(input.type)) throw new Error(`type must be one of ${LEARNING_TYPES.join(", ")}.`);
+  const text = one2(input.text);
+  const area = one2(input.area);
+  if (text.length < 12 || text.length > 400) throw new Error("A learning is one atomic statement of 12 to 400 characters.");
+  if (!area || area.length > 120) throw new Error("A learning needs an area (a short label, up to 120 characters).");
+  assertSafeText("this learning", `${area} ${text}`, opts2.knownSecrets ?? []);
+  const loaded = loadLearnings(store, now);
+  const similar = loaded.active.filter((l) => l.type === input.type).map((l) => ({ l, s: similarity(l.text, text) })).filter((x) => x.s >= MERGE_AT).sort((a, b) => b.s - a.s)[0];
+  if (similar) {
+    similar.l.confidence = clamp(similar.l.confidence + 1, 1, 10);
+    similar.l.last_confirmed = now.toISOString();
+    const archived2 = save(store, loaded.active, loaded.unparsed, now);
+    return { action: "merged", learning: similar.l, archived: archived2, warnings: loaded.warnings };
+  }
+  const learning = {
+    id: nextId("L", loaded.active.map((l) => l.id)),
+    type: input.type,
+    area,
+    text,
+    evidence_run: input.run,
+    confidence: clamp(Math.round(input.confidence ?? 5), 1, 10),
+    created: now.toISOString(),
+    last_confirmed: now.toISOString(),
+    hits: 0
+  };
+  loaded.active.push(learning);
+  const archived = save(store, loaded.active, loaded.unparsed, now);
+  return { action: "created", learning, archived, warnings: loaded.warnings };
+}
+function adjustLearning(store, id, direction, run, now = /* @__PURE__ */ new Date()) {
+  const loaded = loadLearnings(store, now);
+  const l = loaded.active.find((x) => x.id === id);
+  if (!l) throw new Error(`No active learning ${id}.`);
+  if (direction === "confirm") {
+    l.confidence = clamp(l.confidence + 1, 1, 10);
+    l.last_confirmed = now.toISOString();
+    save(store, loaded.active, loaded.unparsed, now);
+    return { learning: l, archived: false };
+  }
+  l.confidence = clamp(l.confidence - 2, 1, 10);
+  l.contradicted_in = [...l["contradicted_in"] ?? [], run];
+  if (l.confidence < ARCHIVE_BELOW) {
+    appendArchive(store, "learnings", [{ ...l, archived_at: now.toISOString(), archived_reason: `contradicted (run ${run}); confidence fell below ${ARCHIVE_BELOW}` }]);
+    save(store, loaded.active.filter((x) => x.id !== id), loaded.unparsed, now);
+    return { learning: l, archived: true };
+  }
+  save(store, loaded.active, loaded.unparsed, now);
+  return { learning: l, archived: false };
+}
+function markApplied(store, ids, now = /* @__PURE__ */ new Date()) {
+  const loaded = loadLearnings(store, now);
+  const applied = [];
+  const unknown = [];
+  for (const id of ids) {
+    const l = loaded.active.find((x) => x.id === id);
+    if (!l) unknown.push(id);
+    else {
+      l.hits += 1;
+      applied.push(l);
+    }
+  }
+  if (applied.length) save(store, loaded.active, loaded.unparsed, now);
+  return { applied, unknown };
+}
+
+// core/lib/memory/memorylog.ts
+import path13 from "node:path";
+var file = (runDir) => path13.join(runDir, "data", "memory-log.json");
+function readMemoryLog(runDir) {
+  const v = readJson(file(runDir));
+  return Array.isArray(v) ? v : [];
+}
+function appendMemoryLog(runDir, entry, now = /* @__PURE__ */ new Date()) {
+  const all = readMemoryLog(runDir);
+  all.push({ ...entry, at: now.toISOString() });
+  writeJson(file(runDir), all);
+}
+
+// core/lib/memory/risk.ts
+var WEIGHT = { critical: 10, important: 4, minor: 1 };
+var HALF_LIFE_DAYS = 90;
+var MAX_EVENTS = 30;
+var MAX_AREAS = 200;
+var areaKey = (area) => area.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+function loadRisk(store) {
+  return readMemoryJson(memoryPaths(store).riskAreas) ?? { schema_version: 1, updated: (/* @__PURE__ */ new Date(0)).toISOString(), areas: [] };
+}
+function recordRisk(store, runId, date, findings) {
+  const file2 = loadRisk(store);
+  for (const a of file2.areas) a.events = a.events.filter((e) => e.run !== runId);
+  for (const f of findings) {
+    const key = areaKey(f.area);
+    if (!key) continue;
+    let entry = file2.areas.find((a) => areaKey(a.area) === key);
+    if (!entry) file2.areas.push(entry = { area: f.area.trim(), ...f.surface ? { surface: f.surface } : {}, events: [] });
+    entry.events.unshift({ run: runId, date: date.toISOString(), severity: f.severity });
+  }
+  for (const a of file2.areas) a.events = a.events.sort((x, y) => y.date.localeCompare(x.date)).slice(0, MAX_EVENTS);
+  file2.areas = file2.areas.filter((a) => a.events.length > 0).slice(0, MAX_AREAS);
+  file2.updated = date.toISOString();
+  writeMemoryJson(memoryPaths(store).riskAreas, file2);
+  return file2;
+}
+function scoreAreas(file2, now = /* @__PURE__ */ new Date()) {
+  const order = ["critical", "important", "minor"];
+  return file2.areas.filter((a) => a.events.length > 0).map((a) => ({
+    area: a.area,
+    ...a.surface ? { surface: a.surface } : {},
+    score: Math.round(a.events.reduce((s, e) => s + WEIGHT[e.severity] * Math.pow(0.5, daysBetween(e.date, now) / HALF_LIFE_DAYS), 0) * 100) / 100,
+    occurrences: new Set(a.events.map((e) => e.run)).size,
+    worst_severity: a.events.map((e) => e.severity).sort((x, y) => order.indexOf(x) - order.indexOf(y))[0],
+    last_seen: a.events[0]?.date ?? ""
+  })).sort((a, b) => b.score - a.score || a.area.localeCompare(b.area));
+}
+
+// core/lib/memory/update.ts
+function detectChanges(input) {
+  const data = readRunData(input.runDir);
+  const observed = readObserved(input.runDir, { roles: input.roles, uiUrls: input.uiUrls, flows: data.meta?.critical_flows ?? [], coverage: data.coverage });
+  const changes = computeChanges(loadMap(input.store), observed, input.mode);
+  saveChanges(input.runDir, changes);
+  return changes;
+}
+function applyRunToMemory(input) {
+  loadMap(input.store);
+  loadRisk(input.store);
+  loadLearnings(input.store);
+  loadFalseAlarms(input.store);
+  const data = readRunData(input.runDir);
+  const changes = loadChanges(input.runDir) ?? detectChanges(input);
+  const observed = readObserved(input.runDir, { roles: input.roles, uiUrls: input.uiUrls, flows: data.meta?.critical_flows ?? [], coverage: data.coverage });
+  const updated = [];
+  const map = applyObserved(loadMap(input.store), observed, input.runId, input.mode, input.now);
+  saveMap(input.store, map);
+  const pageTotal = Object.values(map.uis).reduce((n, u) => n + Object.keys(u.pages).length, 0);
+  updated.push(`Product map: ${pageTotal} page(s) and ${Object.keys(map.api.endpoints).length} endpoint(s) known${hasChanges(changes) ? `; ${describeChanges(changes).technical.length} change(s) since the last run` : ""}.`);
+  if (observed.pages.length === 0) updated.push("No pages were recorded for this run (data/pages.json), so the map learned no pages.");
+  const open = data.findings.filter((f) => f.fix_status !== "fixed-verified");
+  const risk = recordRisk(input.store, input.runId, input.now, open.map((f) => ({ area: f.area, surface: f.surface, severity: f.severity })));
+  const top = scoreAreas(risk, input.now)[0];
+  updated.push(`Risk areas: ${risk.areas.length} area(s) tracked${top ? `; highest now: ${top.area} (score ${top.score})` : ""}.`);
+  const skipped = readMemoryLog(input.runDir).filter((e) => e.kind === "false-alarm-skipped").map((e) => e.id);
+  const touched = markFalseAlarmsSeen(input.store, skipped, input.now);
+  if (touched.length) updated.push(`Known false alarms skipped: ${touched.join(", ")}.`);
+  const log = readMemoryLog(input.runDir);
+  const count = (k) => log.filter((e) => e.kind === k).length;
+  if (count("learning-created") + count("learning-merged") + count("learning-applied") + count("false-alarm-created") > 0) {
+    updated.push(`Learnings: ${count("learning-created")} new, ${count("learning-merged")} confirmed again, ${count("learning-applied")} applied; false alarms recorded: ${count("false-alarm-created")}.`);
+  } else updated.push("No learnings were saved this run.");
+  return { updated, changes };
+}
+
+// core/lib/reports.ts
+import fs11 from "node:fs";
+import path15 from "node:path";
 
 // core/lib/adminreport.ts
 var MISSING_PLAIN = "(plain-language text not written yet)";
@@ -9168,8 +9778,8 @@ var GLOSSARY = [
   ["Seen only once", "Something we noticed but could not repeat. It is not counted as a problem until it is confirmed."],
   ["Not tested", "Something we did not check, with the reason. It is never reported as working."]
 ];
-var one = (s) => (s ?? "").replace(/\s+/g, " ").trim();
-var cell = (s) => one(s).replace(/\|/g, "\\|");
+var one3 = (s) => (s ?? "").replace(/\s+/g, " ").trim();
+var cell = (s) => one3(s).replace(/\|/g, "\\|");
 var plural2 = (n, a, b) => `${n} ${n === 1 ? a : b}`;
 var MODE_TEXT = {
   full: "full check (everything we could reach)",
@@ -9244,17 +9854,17 @@ function statusText(s) {
 var IMAGE = /\.(png|jpe?g|webp|gif)$/i;
 function toProblem(f) {
   const p = f.plain;
-  const complete = !!p && !!one(p.title) && !!one(p.where) && !!one(p.what_happens) && !!one(p.who_is_affected) && !!one(p.expected) && Array.isArray(p.how_to_see_it);
+  const complete = !!p && !!one3(p.title) && !!one3(p.where) && !!one3(p.what_happens) && !!one3(p.who_is_affected) && !!one3(p.expected) && Array.isArray(p.how_to_see_it);
   const shot = p?.screenshot ?? f.evidence.find((e) => IMAGE.test(e));
   return {
     id: f.id ?? "ISSUE-???",
     severity: f.severity,
-    title: one(p?.title) || f.title,
-    where: one(p?.where) || MISSING_PLAIN,
-    what: one(p?.what_happens) || MISSING_PLAIN,
-    who: one(p?.who_is_affected) || MISSING_PLAIN,
-    steps: (p?.how_to_see_it ?? []).map(one).filter(Boolean),
-    expected: one(p?.expected) || MISSING_PLAIN,
+    title: one3(p?.title) || f.title,
+    where: one3(p?.where) || MISSING_PLAIN,
+    what: one3(p?.what_happens) || MISSING_PLAIN,
+    who: one3(p?.who_is_affected) || MISSING_PLAIN,
+    steps: (p?.how_to_see_it ?? []).map(one3).filter(Boolean),
+    expected: one3(p?.expected) || MISSING_PLAIN,
     ...shot ? { screenshot: shot } : {},
     status: statusText(f.fix_status),
     ...p?.ticket ? { ticket: p.ticket } : {},
@@ -9270,9 +9880,20 @@ function trendLines(data, previous) {
     `Last check (${plainDate(last.started)}, ${MODE_TEXT[last.mode]?.split(" (")[0] ?? last.mode}): ${last.counts.critical} critical, ${last.counts.important} important, ${last.counts.minor} minor.`,
     `This check: ${now.critical} critical (${diff(last.counts.critical, now.critical)}), ${now.important} important (${diff(last.counts.important, now.important)}), ${now.minor} minor (${diff(last.counts.minor, now.minor)}).`
   ];
+  const journeysNow = flowStatus(data);
+  if (last.journeys && journeysNow.total > 0) lines.push(`Key journeys fully checked: ${journeysNow.tested.length} of ${journeysNow.total} this time, ${last.journeys.tested} of ${last.journeys.total} last time.`);
   if (last.mode !== data.meta?.mode) lines.push("The two checks were not the same kind, so the numbers are not directly comparable.");
   lines.push("We do not yet track which problems are new and which are repeats of earlier ones.");
   return lines;
+}
+function changeLines(data) {
+  const c = data.changes;
+  if (!c) return ["We could not tell what changed, because no list of screens and functions was recorded for this check."];
+  if (c.first_run) return ["This is the first check, so there is nothing to compare with."];
+  const plain = describeChanges(c, (text) => lintAdminLanguage(text).length === 0).plain;
+  const out = plain.length ? plain : ["Nothing new or removed: the same screens and functions as last time."];
+  if (data.meta?.mode !== "full") out.push("Screens that were not visited are not listed as gone, because this was not a full check.");
+  return out;
 }
 function buildAdminModel(data, previous = []) {
   const verdict = computeVerdict(data);
@@ -9281,10 +9902,10 @@ function buildAdminModel(data, previous = []) {
   const areas = buildAreas(data);
   const problems = [...open].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? "")).map(toProblem);
   const notTested = mergedNotTested(data).map((n) => {
-    if (n.plain?.area?.trim() && n.plain?.reason?.trim()) return { area: one(n.plain.area), reason: one(n.plain.reason) };
+    if (n.plain?.area?.trim() && n.plain?.reason?.trim()) return { area: one3(n.plain.area), reason: one3(n.plain.reason) };
     const row = n.fromCoverage;
-    if (row) return { area: `${areaOf(row.surface, row.ui)} \u2192 ${one(row.area)}`, reason: /^(not covered|reason not recorded)\.?$/i.test(one(row.note)) || !one(row.note) ? "This was not checked in this run." : one(row.note) };
-    return { area: one(n.area), reason: one(n.reason) };
+    if (row) return { area: `${areaOf(row.surface, row.ui)} \u2192 ${one3(row.area)}`, reason: /^(not covered|reason not recorded)\.?$/i.test(one3(row.note)) || !one3(row.note) ? "This was not checked in this run." : one3(row.note) };
+    return { area: one3(n.area), reason: one3(n.reason) };
   });
   const fine = areas.filter((a) => a.result === "\u2705").length;
   const withProblems = areas.filter((a) => /^Problems found/.test(a.note)).length;
@@ -9292,7 +9913,7 @@ function buildAdminModel(data, previous = []) {
   const partly = areas.length - fine - withProblems - notChecked;
   const areaParts = [`${fine} fine`, `${withProblems} with problems`, ...partly > 0 ? [`${partly} partly checked`] : [], `${notChecked} not checked`];
   const meta = data.meta;
-  const biggest = one(data.admin?.biggest_risk) || (problems[0] && problems[0].severity !== "minor" ? `${problems[0].title}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
+  const biggest = one3(data.admin?.biggest_risk) || (problems[0] && problems[0].severity !== "minor" ? `${problems[0].title}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
   const names = notTested.slice(0, 3).map((n) => n.area.length > 60 ? `${n.area.slice(0, 57)}...` : n.area);
   const summary = [
     `Checked on ${plainDate(meta?.started)} \xB7 Environment: ${meta?.environment ?? "unknown"} \xB7 Type of check: ${MODE_TEXT[meta?.mode ?? ""] ?? meta?.mode ?? "unknown"}`,
@@ -9306,9 +9927,9 @@ function buildAdminModel(data, previous = []) {
   if (counts.critical > 0) fallbackSteps.push("Have a developer fix the critical problems first.");
   if (notTested.length > 0) fallbackSteps.push("Arrange what is needed to check the areas that were not tested (see the list below).");
   if (problems.length > 0) fallbackSteps.push("Run the check again after the fixes to confirm them.");
-  const authored = (data.admin?.next_steps ?? []).map(one).filter(Boolean);
+  const authored = (data.admin?.next_steps ?? []).map(one3).filter(Boolean);
   const nextSteps = (authored.length ? authored : fallbackSteps).slice(0, MAX_NEXT_STEPS);
-  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), notTested, nextSteps };
+  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps };
 }
 function renderAdminMarkdown(m) {
   const L = [m.verdict.line, ""];
@@ -9327,7 +9948,7 @@ function renderAdminMarkdown(m) {
     if (notes.length) L.push(notes.join(" "), "");
   }
   for (const p of m.problems) {
-    L.push(`### ${ICON2[p.severity]} ${LABEL2[p.severity]}: ${one(p.title)}`, "");
+    L.push(`### ${ICON2[p.severity]} ${LABEL2[p.severity]}: ${one3(p.title)}`, "");
     L.push(`- **Where:** ${p.where}`, `- **What happens:** ${p.what}`, `- **Who is affected:** ${p.who}`);
     if (p.steps.length) {
       L.push("- **How to see it yourself:**");
@@ -9338,10 +9959,11 @@ function renderAdminMarkdown(m) {
     L.push(`- **Status:** ${p.status}`, `- **Ticket:** ${p.ticket ? `[open the ticket](${p.ticket})` : "none yet"}`, "- **Your feedback (optional):** ______");
     L.push(`- **For developers:** [${p.id}](${TECHNICAL_FILE}#${p.id})`, "");
   }
+  L.push("## What changed since the last check", "", ...m.changes.map((t) => `- ${t}`), "");
   L.push("## Compared with the last check", "", ...m.trend.map((t) => `- ${t}`), "");
   L.push("## What was not tested", "");
   if (m.notTested.length === 0) L.push("Everything planned was checked.", "");
-  else L.push(...m.notTested.map((n) => `- **${one(n.area)}**: ${one(n.reason)}`), "");
+  else L.push(...m.notTested.map((n) => `- **${one3(n.area)}**: ${one3(n.reason)}`), "");
   if (m.nextSteps.length) L.push("## Suggested next steps", "", ...m.nextSteps.map((s, i) => `${i + 1}. ${s}`), "");
   L.push("## Words used in this report", "", ...GLOSSARY.map(([w, d]) => `- **${w}**: ${d}`), "");
   L.push(
@@ -9375,8 +9997,8 @@ function lintAdminLanguage(markdown) {
 }
 
 // core/scripts/consistency-check.ts
-import fs9 from "node:fs";
-import path11 from "node:path";
+import fs10 from "node:fs";
+import path14 from "node:path";
 var SEV_WORD = { "\u{1F534}": "critical", "\u{1F7E0}": "important", "\u{1F7E1}": "minor" };
 var VERDICT = /^(✅ \*\*Ready to release|⚠️ \*\*Ready with risks|⛔ \*\*Not ready to release)/;
 function section(text, heading) {
@@ -9391,16 +10013,16 @@ function checkConsistency(runDir) {
   const errors = [];
   const warnings = [];
   const result = { ok: true, errors, warnings, technical: [], admin: [] };
-  const techFile = path11.join(runDir, "TECHNICAL-REPORT.md");
-  const adminFile = path11.join(runDir, "ADMIN-REPORT.md");
+  const techFile = path14.join(runDir, "TECHNICAL-REPORT.md");
+  const adminFile = path14.join(runDir, "ADMIN-REPORT.md");
   for (const f of [techFile, adminFile]) {
-    if (!fs9.existsSync(f)) {
-      errors.push(`${path11.basename(f)} does not exist: run \`report build\` first.`);
+    if (!fs10.existsSync(f)) {
+      errors.push(`${path14.basename(f)} does not exist: run \`report build\` first.`);
     }
   }
   if (errors.length) return { ...result, ok: false };
-  const tech = fs9.readFileSync(techFile, "utf8");
-  const admin = fs9.readFileSync(adminFile, "utf8");
+  const tech = fs10.readFileSync(techFile, "utf8");
+  const admin = fs10.readFileSync(adminFile, "utf8");
   const findingsSection = section(`
 ${tech}`, "Findings");
   for (const m of findingsSection.matchAll(/^### (ISSUE-\d+) (🔴|🟠|🟡) (Critical|Important|Minor): /gm)) result.technical.push({ id: m[1], severity: SEV_WORD[m[2]] });
@@ -9474,33 +10096,51 @@ ${admin}`, "Suggested next steps").match(/^\d+\. /gm) ?? []).length;
 function previousRuns(store, currentRunId, limit = 3) {
   if (!store) return [];
   const dir = storeSubdirs(store).runs;
-  if (!fs10.existsSync(dir)) return [];
-  return fs10.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().map((f) => readJson(path12.join(dir, f))).filter((r) => !!r && r.run_id !== currentRunId).slice(0, limit);
+  if (!fs11.existsSync(dir)) return [];
+  return fs11.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().map((f) => readJson(path15.join(dir, f))).filter((r) => !!r && r.run_id !== currentRunId).slice(0, limit);
 }
-function renderReports(runDir, store) {
+function renderReports(runDir, store, ctx) {
   const first = readRunData(runDir);
   assignIds(runDir, first);
+  if (store && ctx?.refreshChanges) detectChanges({ store, runDir, runId: ctx.runId, mode: ctx.mode, now: /* @__PURE__ */ new Date(), roles: ctx.roles, uiUrls: ctx.uiUrls });
   const data = readRunData(runDir);
-  const model = buildAdminModel(data, previousRuns(store, data.meta?.run_id));
-  return { data, model, technical: renderTechnicalReport(data), admin: renderAdminMarkdown(model) };
+  const previous = previousRuns(store, data.meta?.run_id);
+  const model = buildAdminModel(data, previous);
+  return { data, model, technical: renderTechnicalReport(data, { previous }), admin: renderAdminMarkdown(model) };
 }
-function writeReports(runDir, store) {
-  const r = renderReports(runDir, store);
-  fs10.writeFileSync(path12.join(runDir, "TECHNICAL-REPORT.md"), r.technical, "utf8");
-  fs10.writeFileSync(path12.join(runDir, "ADMIN-REPORT.md"), r.admin, "utf8");
+function writeReports(runDir, store, ctx) {
+  const r = renderReports(runDir, store, ctx);
+  fs11.writeFileSync(path15.join(runDir, "TECHNICAL-REPORT.md"), r.technical, "utf8");
+  fs11.writeFileSync(path15.join(runDir, "ADMIN-REPORT.md"), r.admin, "utf8");
   return r;
 }
-function lintReports(runDir, knownSecrets = []) {
+function lintReports(runDir, knownSecrets = [], store) {
   const data = readRunData(runDir);
   const base = lintRun(runDir, data, knownSecrets);
   const consistency = checkConsistency(runDir);
   const errors = [...base.errors, ...consistency.errors.filter((e) => !base.errors.includes(e))];
-  return { ok: errors.length === 0, errors, warnings: [...base.warnings, ...consistency.warnings], consistency };
+  const warnings = [...base.warnings, ...consistency.warnings];
+  if (store) {
+    const alarms = loadFalseAlarms(store).alarms;
+    for (const m of matchFalseAlarms(data.findings, alarms)) {
+      const msg = `${m.finding.id ?? m.finding.title} resembles known false alarm ${m.alarm.id} ("${m.alarm.symptom}", ${m.alarm.source}: ${m.alarm.reason}). Do not report it, or set "not_a_known_false_alarm" on the finding with the reason it is different.`;
+      (m.alarm.source === "reproduction" ? warnings : errors).push(msg);
+    }
+    const learningIds = new Set(loadLearnings(store).active.map((l) => l.id));
+    const alarmIds = new Set(alarms.map((a) => a.id));
+    for (const text of data.meta?.memory_applied ?? []) {
+      for (const id of text.match(/\b(?:L|FA)-\d{3,}\b/g) ?? []) {
+        if (!learningIds.has(id) && !alarmIds.has(id)) errors.push(`memory_applied cites ${id}, which does not exist in this project's memory.`);
+      }
+    }
+  }
+  if (!fs11.existsSync(path15.join(runDir, "data", "pages.json"))) warnings.push("data/pages.json was not written: the product map will not learn which screens exist, and what changed since the last run cannot be reported for screens.");
+  return { ok: errors.length === 0, errors, warnings, consistency };
 }
 
 // core/lib/stack.ts
-import fs11 from "node:fs";
-import path13 from "node:path";
+import fs12 from "node:fs";
+import path16 from "node:path";
 var JS_FRAMEWORKS = [
   ["next", "nextjs"],
   ["react", "react"],
@@ -9522,9 +10162,9 @@ var JS_TEST_RUNNERS = [
   ["cypress", "cypress"],
   ["ava", "ava"]
 ];
-function readIf(file) {
+function readIf(file2) {
   try {
-    return fs11.readFileSync(file, "utf8");
+    return fs12.readFileSync(file2, "utf8");
   } catch {
     return "";
   }
@@ -9535,14 +10175,14 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   const runners = /* @__PURE__ */ new Set();
   const commands = {};
   let packageManager;
-  const pkg = readJson(path13.join(root, "package.json"));
+  const pkg = readJson(path16.join(root, "package.json"));
   if (pkg) {
     languages.add("javascript");
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
     for (const [dep, name] of JS_FRAMEWORKS) if (deps[dep]) frameworks.add(name);
     for (const [dep, name] of JS_TEST_RUNNERS) if (deps[dep]) runners.add(name);
-    if (deps["typescript"] || exists(path13.join(root, "tsconfig.json"))) languages.add("typescript");
-    packageManager = exists(path13.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path13.join(root, "yarn.lock")) ? "yarn" : exists(path13.join(root, "bun.lock")) ? "bun" : "npm";
+    if (deps["typescript"] || exists(path16.join(root, "tsconfig.json"))) languages.add("typescript");
+    packageManager = exists(path16.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path16.join(root, "yarn.lock")) ? "yarn" : exists(path16.join(root, "bun.lock")) ? "bun" : "npm";
     const run = packageManager === "npm" ? "npm run" : packageManager;
     if (pkg.scripts?.["test"] && !/no test specified/.test(pkg.scripts["test"])) {
       commands.test = packageManager === "npm" ? "npm test" : `${packageManager} test`;
@@ -9552,7 +10192,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (pkg.scripts?.["dev"]) commands.dev = `${run} dev`;
     else if (pkg.scripts?.["start"]) commands.dev = packageManager === "npm" ? "npm start" : `${packageManager} start`;
   }
-  const composer = readIf(path13.join(root, "composer.json"));
+  const composer = readIf(path16.join(root, "composer.json"));
   if (composer) {
     languages.add("php");
     if (/laravel\/framework/.test(composer)) frameworks.add("laravel");
@@ -9560,23 +10200,23 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (/pestphp/.test(composer)) runners.add("pest");
     packageManager ??= "composer";
   }
-  const py = readIf(path13.join(root, "requirements.txt")) + readIf(path13.join(root, "pyproject.toml"));
-  if (py || exists(path13.join(root, "manage.py"))) {
+  const py = readIf(path16.join(root, "requirements.txt")) + readIf(path16.join(root, "pyproject.toml"));
+  if (py || exists(path16.join(root, "manage.py"))) {
     languages.add("python");
-    if (/django/i.test(py) || exists(path13.join(root, "manage.py"))) frameworks.add("django");
+    if (/django/i.test(py) || exists(path16.join(root, "manage.py"))) frameworks.add("django");
     if (/fastapi/i.test(py)) frameworks.add("fastapi");
     if (/flask/i.test(py)) frameworks.add("flask");
     if (/pytest/i.test(py)) runners.add("pytest");
     packageManager ??= "pip";
   }
-  if (/rails/.test(readIf(path13.join(root, "Gemfile")))) {
+  if (/rails/.test(readIf(path16.join(root, "Gemfile")))) {
     languages.add("ruby");
     frameworks.add("rails");
-    if (/rspec/.test(readIf(path13.join(root, "Gemfile")))) runners.add("rspec");
+    if (/rspec/.test(readIf(path16.join(root, "Gemfile")))) runners.add("rspec");
     packageManager ??= "bundler";
   }
   try {
-    if (fs11.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"))) {
+    if (fs12.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"))) {
       languages.add("csharp");
       frameworks.add("dotnet");
       commands.test ??= "dotnet test";
@@ -9595,11 +10235,11 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   };
 }
 function saveStack(memoryDir, stack) {
-  const file = path13.join(memoryDir, "stack.json");
-  const prev = readJson(file);
+  const file2 = path16.join(memoryDir, "stack.json");
+  const prev = readJson(file2);
   const strip = (s) => JSON.stringify({ ...s, detected_at: void 0 });
   if (prev && strip(prev) === strip(stack)) return { changed: false };
-  writeJson(file, stack);
+  writeJson(file2, stack);
   return { changed: true };
 }
 
@@ -9612,13 +10252,13 @@ var MODES = ["full", "quick", "regression", "diff"];
 var MARKER_TTL_HOURS = 8;
 function realOrResolved(p) {
   try {
-    return fs12.realpathSync(p);
+    return fs13.realpathSync(p);
   } catch {
-    return path14.resolve(p);
+    return path17.resolve(p);
   }
 }
 function browserStatus(home, projectRoot, expectedNames) {
-  const state = readJson(path14.join(home, "state", "browser-state.json"));
+  const state = readJson(path17.join(home, "state", "browser-state.json"));
   const key = Object.keys(state ?? {}).find((k) => realOrResolved(k) === realOrResolved(projectRoot));
   if (!state || !key) {
     return {
@@ -9639,12 +10279,12 @@ function browserStatus(home, projectRoot, expectedNames) {
 }
 function copyIfMissing(from, to, created) {
   if (exists(to)) return;
-  ensureDir(path14.dirname(to));
-  fs12.copyFileSync(from, to);
+  ensureDir(path17.dirname(to));
+  fs13.copyFileSync(from, to);
   created.push(to);
 }
 function markerPath(store) {
-  return path14.join(storeSubdirs(store).state, RUN_MARKER_FILE);
+  return path17.join(storeSubdirs(store).state, RUN_MARKER_FILE);
 }
 function readMarker(store) {
   return readJson(markerPath(store));
@@ -9656,9 +10296,9 @@ function findActiveMarkers(home, now = /* @__PURE__ */ new Date()) {
   const root = projectsRoot(home);
   if (!exists(root)) return [];
   const out = [];
-  for (const entry of fs12.readdirSync(root, { withFileTypes: true })) {
+  for (const entry of fs13.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const m = readJson(path14.join(root, entry.name, "state", RUN_MARKER_FILE));
+    const m = readJson(path17.join(root, entry.name, "state", RUN_MARKER_FILE));
     if (m && !isExpired(m, now)) out.push(m);
   }
   return out;
@@ -9670,9 +10310,9 @@ function scanAllMarkers(home) {
   const root = projectsRoot(home);
   if (!exists(root)) return [];
   const out = [];
-  for (const entry of fs12.readdirSync(root, { withFileTypes: true })) {
+  for (const entry of fs13.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const m = readJson(path14.join(root, entry.name, "state", RUN_MARKER_FILE));
+    const m = readJson(path17.join(root, entry.name, "state", RUN_MARKER_FILE));
     if (m) out.push(m);
   }
   return out;
@@ -9680,8 +10320,8 @@ function scanAllMarkers(home) {
 function startRun(opts2) {
   const env = opts2.env ?? process.env;
   const now = opts2.now ?? /* @__PURE__ */ new Date();
-  const root = path14.resolve(opts2.project ?? opts2.cwd);
-  if (!exists(root) || !fs12.statSync(root).isDirectory()) {
+  const root = path17.resolve(opts2.project ?? opts2.cwd);
+  if (!exists(root) || !fs13.statSync(root).isDirectory()) {
     return { status: "no-project", message: `The folder ${root} does not exist. Ask the user which project folder to test.`, known_projects: listKnownProjects(opts2.home) };
   }
   if (!opts2.project && !looksLikeProject(root)) {
@@ -9694,13 +10334,13 @@ function startRun(opts2) {
   const info = resolveProject(root);
   const { store } = ensureProjectStore(opts2.home, info, now);
   const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store };
-  const configFile = path14.join(root, ".qa", "config.md");
+  const configFile = path17.join(root, ".qa", "config.md");
   const gitignoreAdded = ensureGitignoreEntries(root);
   if (!exists(configFile)) {
     const created = [];
     const core = corePath();
-    copyIfMissing(path14.join(core, "shared", "templates", "config.md"), configFile, created);
-    copyIfMissing(path14.join(core, "shared", "templates", "env.qa.example"), path14.join(root, ".env.qa.example"), created);
+    copyIfMissing(path17.join(core, "shared", "templates", "config.md"), configFile, created);
+    copyIfMissing(path17.join(core, "shared", "templates", "env.qa.example"), path17.join(root, ".env.qa.example"), created);
     return {
       status: "needs-config",
       message: "First run in this project: QAMind created .qa/config.md and .env.qa.example and added .qa/ and .env.qa to .gitignore. Fill in .qa/config.md (every REPLACE_ME), copy .env.qa.example to .env.qa and add the TEST account logins, then run QA again. Nothing was tested.",
@@ -9752,10 +10392,10 @@ function startRun(opts2) {
     }
   }
   let runId = `run-${utcStamp(now)}`;
-  const reports = path14.join(root, ".qa", "reports");
-  for (let n = 2; exists(path14.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
-  const runDir = path14.join(reports, runId);
-  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path14.join(runDir, sub));
+  const reports = path17.join(root, ".qa", "reports");
+  for (let n = 2; exists(path17.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
+  const runDir = path17.join(reports, runId);
+  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path17.join(runDir, sub));
   const criticalFlows = parseCriticalFlows(check.body ?? "");
   const stack = detectStack(root, now);
   saveStack(storeSubdirs(store).memory, stack);
@@ -9800,13 +10440,13 @@ function startRun(opts2) {
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION
   };
-  writeJson(path14.join(runDir, "data", "meta.json"), meta);
+  writeJson(path17.join(runDir, "data", "meta.json"), meta);
   return {
     status: "ready",
     message: "Ready. Credentials are present for the roles listed (values are never shown).",
     project: projectOut,
     gitignore_added: gitignoreAdded,
-    run: { id: runId, dir: runDir, mode: opts2.mode, ...opts2.focus ? { focus: opts2.focus } : {}, readonly, report: path14.join(runDir, "TECHNICAL-REPORT.md") },
+    run: { id: runId, dir: runDir, mode: opts2.mode, ...opts2.focus ? { focus: opts2.focus } : {}, readonly, report: path17.join(runDir, "TECHNICAL-REPORT.md") },
     config: {
       environment: config.environment.name,
       web_uis: config.web_uis,
@@ -9832,9 +10472,10 @@ function finishRun(opts2) {
   assignIds(marker.run_dir, data);
   const counts = countBySeverity(data.findings);
   const notTested = mergedNotTested(data);
+  const journeys = flowStatus(data);
   const started = new Date(marker.started).getTime();
   const duration_s = Math.max(0, Math.round((now.getTime() - started) / 1e3));
-  const meta = readJson(path14.join(marker.run_dir, "data", "meta.json"));
+  const meta = readJson(path17.join(marker.run_dir, "data", "meta.json"));
   const stop_reason = opts2.stopReason ?? "completed";
   const summary = {
     schema_version: SCHEMA_VERSION,
@@ -9848,11 +10489,13 @@ function finishRun(opts2) {
     duration_s,
     counts: { ...counts, unconfirmed: data.unconfirmed.length },
     finding_ids: data.findings.map((f) => f.id ?? "").filter(Boolean),
+    findings: data.findings.map(compactFinding),
     coverage: {
       tested: data.coverage.filter((c) => c.status === "tested").length,
       partial: data.coverage.filter((c) => c.status === "partial").length,
       not_tested: data.coverage.filter((c) => c.status === "not-tested").length
     },
+    ...journeys.total > 0 ? { journeys: { total: journeys.total, tested: journeys.tested.length } } : {},
     not_tested_count: notTested.length,
     blocked_areas: notTested.map((n) => n.area),
     cost: opts2.cost ?? "not available on this host",
@@ -9861,12 +10504,23 @@ function finishRun(opts2) {
     knowledge_version: KNOWLEDGE_VERSION,
     ...meta?.branch ? { branch: meta.branch } : {},
     ...meta?.commit ? { commit: meta.commit } : {},
-    report: path14.join(marker.run_dir, "TECHNICAL-REPORT.md")
+    report: path17.join(marker.run_dir, "TECHNICAL-REPORT.md")
   };
-  writeJson(path14.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
-  if (meta) writeJson(path14.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost });
+  const config = checkConfigFile(marker.project_root, process.env).config;
+  const memory = applyRunToMemory({
+    store: marker.store,
+    runDir: marker.run_dir,
+    runId: marker.run_id,
+    mode: marker.mode,
+    now,
+    roles: (config?.roles ?? []).map((r) => r.name),
+    uiUrls: Object.fromEntries((config?.web_uis ?? []).map((u) => [u.name, u.url]))
+  });
+  if (meta) writeJson(path17.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, memory_updated: memory.updated });
+  summary.memory_updated = memory.updated;
+  writeJson(path17.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
   writeReports(marker.run_dir, marker.store);
-  fs12.rmSync(markerPath(marker.store), { force: true });
+  fs13.rmSync(markerPath(marker.store), { force: true });
   return summary;
 }
 
@@ -9890,19 +10544,19 @@ function decide(url, markers) {
   return { allowed: r.allowed, reason: r.reason, internal };
 }
 function logBlocked(home, markers, entry) {
-  const targets = markers.length ? markers.map((m) => ({ file: path15.join(m.store, "state", "guard-blocked.jsonl"), run_id: m.run_id })) : [{ file: path15.join(home, "state", "guard-blocked.jsonl"), run_id: "none" }];
+  const targets = markers.length ? markers.map((m) => ({ file: path18.join(m.store, "state", "guard-blocked.jsonl"), run_id: m.run_id })) : [{ file: path18.join(home, "state", "guard-blocked.jsonl"), run_id: "none" }];
   for (const t of targets) {
     try {
-      ensureDir(path15.dirname(t.file));
-      fs13.appendFileSync(t.file, JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), run_id: t.run_id, ...entry }) + "\n", "utf8");
+      ensureDir(path18.dirname(t.file));
+      fs14.appendFileSync(t.file, JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), run_id: t.run_id, ...entry }) + "\n", "utf8");
     } catch {
     }
   }
 }
 function readBlocked(store, runId) {
-  const file = path15.join(store, "state", "guard-blocked.jsonl");
-  if (!fs13.existsSync(file)) return [];
-  return fs13.readFileSync(file, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((e) => e.run_id === runId);
+  const file2 = path18.join(store, "state", "guard-blocked.jsonl");
+  if (!fs14.existsSync(file2)) return [];
+  return fs14.readFileSync(file2, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((e) => e.run_id === runId);
 }
 function markerSource(home, ttlMs = 1e3) {
   let at = 0;
@@ -9966,7 +10620,7 @@ async function runHealthCheck(args) {
 }
 
 // core/lib/hooks.ts
-import path16 from "node:path";
+import path19 from "node:path";
 var GIT_MUTATION = /\bgit\s+(?:-[A-Za-z]\s+\S+\s+)*(add|commit|push|pull|fetch\s+--prune|merge|rebase|reset|checkout|switch|restore|stash|cherry-pick|revert|rm|mv|clean|tag|apply|am|worktree|branch\s+-[dDmM])\b/;
 var INSTALLS = /\b(npm|pnpm|yarn|bun)\s+(install|i|add|remove|uninstall|update|upgrade|ci)\b|\bpip3?\s+install\b|\bcomposer\s+(install|require|update|remove)\b|\bbundle\s+(install|update)\b|\bdotnet\s+add\b/;
 var IN_PLACE_EDIT = /\bsed\s+(?:-[A-Za-z]*i|--in-place)\b|\bperl\s+-[A-Za-z]*i\b/;
@@ -9975,11 +10629,11 @@ var AMP_REDIRECT = /&>{1,2}\s*([^\s&|;)]+)/g;
 var stripQuoted = (cmd) => cmd.replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, '""');
 var CREDENTIAL_FILE = /(^|[\\/\s"'=])\.env\.qa(?![.\w-])/;
 function inside(child, parent) {
-  const rel = path16.relative(parent, child);
-  return rel === "" || !rel.startsWith("..") && !path16.isAbsolute(rel);
+  const rel = path19.relative(parent, child);
+  return rel === "" || !rel.startsWith("..") && !path19.isAbsolute(rel);
 }
 function allowedWriteRoots(marker, home, tmpDirs) {
-  return [path16.join(marker.project_root, ".qa"), home, ...tmpDirs];
+  return [path19.join(marker.project_root, ".qa"), home, ...tmpDirs];
 }
 function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new Date()) {
   if (!input.session_id) return null;
@@ -9988,10 +10642,10 @@ function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new D
   const tool = input.tool_name ?? "";
   const ti = input.tool_input ?? {};
   const cwd = input.cwd ?? marker.project_root;
-  const abs = (p) => path16.resolve(cwd, p);
+  const abs = (p) => path19.resolve(cwd, p);
   if (tool === "Read" || tool === "Grep" || tool === "Glob") {
     const target = String(ti["file_path"] ?? ti["path"] ?? ti["pattern"] ?? "");
-    if (CREDENTIAL_FILE.test(`/${target}`) || path16.basename(target) === ".env.qa") {
+    if (CREDENTIAL_FILE.test(`/${target}`) || path19.basename(target) === ".env.qa") {
       return { decision: "deny", reason: "QAMind never reads .env.qa: credentials must not enter the conversation. Use the secret names in the roles table (the browser tool and the qamind CLI substitute the values)." };
     }
   }
@@ -10033,29 +10687,51 @@ function toHookOutput(d) {
   return { hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: d.decision, permissionDecisionReason: d.reason } };
 }
 
-// core/lib/memory.ts
-import fs14 from "node:fs";
-import path17 from "node:path";
-function loadMemoryContext(store, limit = 3) {
-  const dirs = storeSubdirs(store);
-  const stack = readJson(path17.join(dirs.memory, "stack.json"));
-  const runs = [];
-  if (fs14.existsSync(dirs.runs)) {
-    const files = fs14.readdirSync(dirs.runs).filter((f) => f.endsWith(".json")).sort().reverse().slice(0, limit);
-    for (const f of files) {
-      const r = readJson(path17.join(dirs.runs, f));
-      if (r) runs.push({ run_id: r.run_id, mode: r.mode, finished: r.finished, counts: r.counts, not_tested_count: r.not_tested_count, finding_ids: r.finding_ids, stop_reason: r.stop_reason });
-    }
+// core/lib/memory/context.ts
+import fs15 from "node:fs";
+import path20 from "node:path";
+var PER_TYPE = 6;
+var MAX_PAGES_SHOWN = 40;
+function recentRunSummaries(store, limit = 3) {
+  const dir = memoryPaths(store).runs;
+  if (!fs15.existsSync(dir)) return [];
+  return fs15.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().slice(0, limit).map((f) => readJson(path20.join(dir, f))).filter((r) => !!r);
+}
+function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date()) {
+  const paths = memoryPaths(store);
+  const stack = readJson(paths.stack);
+  const runs = recentRunSummaries(store, limit);
+  const risk = scoreAreas(loadRisk(store), now).slice(0, 8);
+  const learned = loadLearnings(store, now);
+  const alarms = loadFalseAlarms(store, now);
+  const map = loadMap(store);
+  const learnings = {};
+  for (const type of LEARNING_TYPES) {
+    const best = learned.active.filter((l) => l.type === type).sort((a, b) => learningScore(b, now) - learningScore(a, now)).slice(0, PER_TYPE).map((l) => ({ id: l.id, area: l.area, text: l.text, confidence: l.confidence, last_confirmed: l.last_confirmed.slice(0, 10) }));
+    if (best.length) learnings[type] = best;
   }
+  const focus = risk.filter((r) => r.score > 0.5).slice(0, 5).map((r) => `${r.area}: ${r.occurrences} earlier run${r.occurrences === 1 ? "" : "s"} with problems (worst: ${r.worst_severity}, last ${r.last_seen.slice(0, 10)}). Test it early.`);
+  const last = runs[0];
+  if (last && last.counts.critical + last.counts.important > 0) focus.push(`The last run (${last.run_id}) found ${last.counts.critical} critical and ${last.counts.important} important problems: re-verify them first.`);
+  if ((learnings["env-quirk"]?.length ?? 0) > 0) focus.push("Known environment quirks exist: read them before running anything slow or order-dependent.");
+  const uis = {};
+  if (map) for (const [ui, entry] of Object.entries(map.uis)) uis[ui] = Object.keys(entry.pages).sort().slice(0, MAX_PAGES_SHOWN);
   return {
-    note: runs.length === 0 ? "No previous runs for this project: treat this as a first run." : `${runs.length} previous run(s) found. Memory is leads, not proof: re-verify current behaviour.`,
+    note: runs.length === 0 && !map ? "No memory for this project yet: treat this as a first run." : `Memory from ${runs.length} earlier run(s). It is leads, not proof: re-verify current behaviour and say when it shaped a decision.`,
     ...stack ? { stack } : {},
-    last_runs: runs
+    last_runs: runs.map((r) => ({ run_id: r.run_id, mode: r.mode, finished: r.finished, counts: r.counts, not_tested_count: r.not_tested_count, finding_ids: r.finding_ids, stop_reason: r.stop_reason })),
+    focus,
+    risk_areas: risk,
+    learnings,
+    false_alarms: alarms.alarms.slice(0, 30).map((a) => ({ id: a.id, area: a.area, symptom: a.symptom, reason: a.reason, source: a.source })),
+    previous_findings: { ...last ? { from_run: last.run_id } : {}, findings: (last?.findings ?? []).slice(0, 25) },
+    product_map: { pages: pageCount(map), endpoints: map ? Object.keys(map.api.endpoints).length : 0, ...map ? { last_run: map.last_run } : {}, uis },
+    warnings: [...learned.warnings, ...alarms.warnings]
   };
 }
 
 // core/lib/runctx.ts
-import path18 from "node:path";
+import path21 from "node:path";
 function loadRunContext(home, runId, env = process.env) {
   if (!runId) throw new Error("--run <run-id> is required (use the id printed by `run start`).");
   const marker = findMarkerByRunId(home, runId);
@@ -10073,7 +10749,7 @@ function loadRunContext(home, runId, env = process.env) {
   return {
     marker,
     projectRoot: marker.project_root,
-    runDir: path18.resolve(marker.run_dir),
+    runDir: path21.resolve(marker.run_dir),
     config: check.config,
     policy: marker.policy,
     roles,
@@ -10083,9 +10759,9 @@ function loadRunContext(home, runId, env = process.env) {
 
 // core/scripts/browser-launcher.ts
 import { spawn } from "node:child_process";
-import fs15 from "node:fs";
+import fs16 from "node:fs";
 import os2 from "node:os";
-import path19 from "node:path";
+import path22 from "node:path";
 import { createRequire } from "node:module";
 
 // core/scripts/guard-proxy.ts
@@ -10184,15 +10860,15 @@ function startGuardProxy(home, port = 0) {
 // core/scripts/browser-launcher.ts
 var PLAYWRIGHT_MCP_VERSION = "0.0.83";
 function detectChromeChannel() {
-  const exists2 = (p) => fs15.existsSync(p);
-  const onPath = (name) => (process.env["PATH"] ?? "").split(path19.delimiter).some((d) => d && exists2(path19.join(d, name)));
+  const exists2 = (p) => fs16.existsSync(p);
+  const onPath = (name) => (process.env["PATH"] ?? "").split(path22.delimiter).some((d) => d && exists2(path22.join(d, name)));
   if (process.platform === "darwin") {
     if (exists2("/Applications/Google Chrome.app")) return "chrome";
     if (exists2("/Applications/Microsoft Edge.app")) return "msedge";
   } else if (process.platform === "win32") {
     const roots = [process.env["PROGRAMFILES"], process.env["PROGRAMFILES(X86)"], process.env["LOCALAPPDATA"]].filter((x) => !!x);
-    if (roots.some((r) => exists2(path19.join(r, "Google", "Chrome", "Application", "chrome.exe")))) return "chrome";
-    if (roots.some((r) => exists2(path19.join(r, "Microsoft", "Edge", "Application", "msedge.exe")))) return "msedge";
+    if (roots.some((r) => exists2(path22.join(r, "Google", "Chrome", "Application", "chrome.exe")))) return "chrome";
+    if (roots.some((r) => exists2(path22.join(r, "Microsoft", "Edge", "Application", "msedge.exe")))) return "msedge";
   } else {
     if (["google-chrome", "google-chrome-stable"].some(onPath)) return "chrome";
     if (onPath("microsoft-edge")) return "msedge";
@@ -10203,39 +10879,39 @@ function resolvePlaywrightMcp() {
   try {
     const req = createRequire(import.meta.url);
     const pkg = req.resolve("@playwright/mcp/package.json");
-    return { command: process.execPath, args: [path19.join(path19.dirname(pkg), "cli.js")] };
+    return { command: process.execPath, args: [path22.join(path22.dirname(pkg), "cli.js")] };
   } catch {
     return { command: process.platform === "win32" ? "npx.cmd" : "npx", args: ["--yes", `@playwright/mcp@${PLAYWRIGHT_MCP_VERSION}`] };
   }
 }
 async function runBrowserLauncher() {
   const home = qamindHome();
-  const projectRoot = fs15.realpathSync(path19.resolve(process.env["CLAUDE_PROJECT_DIR"] ?? process.cwd()));
+  const projectRoot = fs16.realpathSync(path22.resolve(process.env["CLAUDE_PROJECT_DIR"] ?? process.cwd()));
   const guard = await startGuardProxy(home);
   const secrets = {};
-  const envFile = path19.join(projectRoot, ".env.qa");
-  if (fs15.existsSync(envFile)) Object.assign(secrets, parseDotenv(fs15.readFileSync(envFile, "utf8")));
+  const envFile = path22.join(projectRoot, ".env.qa");
+  if (fs16.existsSync(envFile)) Object.assign(secrets, parseDotenv(fs16.readFileSync(envFile, "utf8")));
   try {
-    if (fs15.existsSync(path19.join(projectRoot, ".qa", "config.md"))) {
+    if (fs16.existsSync(path22.join(projectRoot, ".qa", "config.md"))) {
       const cfg = checkConfigFile(projectRoot).config;
       for (const r of cfg?.roles ?? []) for (const n of [r.username_env, r.password_env]) if (process.env[n]) secrets[n] = process.env[n];
     }
   } catch {
   }
-  const tmp = fs15.mkdtempSync(path19.join(os2.tmpdir(), "qamind-browser-"));
-  fs15.chmodSync(tmp, 448);
-  const secretsFile = path19.join(tmp, "secrets.env");
-  fs15.writeFileSync(secretsFile, Object.entries(secrets).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("\n") + "\n", { mode: 384 });
-  const outDir = path19.join(tmp, "output");
+  const tmp = fs16.mkdtempSync(path22.join(os2.tmpdir(), "qamind-browser-"));
+  fs16.chmodSync(tmp, 448);
+  const secretsFile = path22.join(tmp, "secrets.env");
+  fs16.writeFileSync(secretsFile, Object.entries(secrets).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("\n") + "\n", { mode: 384 });
+  const outDir = path22.join(tmp, "output");
   ensureDir(outDir);
-  const stateFile = path19.join(home, "state", "browser-state.json");
+  const stateFile = path22.join(home, "state", "browser-state.json");
   const state = readJson(stateFile) ?? {};
   state[projectRoot] = { secret_names: Object.keys(secrets).sort(), proxy_port: guard.port, pid: process.pid, started: (/* @__PURE__ */ new Date()).toISOString() };
   writeJson(stateFile, state);
   const auditScript = (() => {
     try {
-      const f = path19.join(corePath(), "shared", "page-audit.js");
-      return fs15.existsSync(f) ? f : void 0;
+      const f = path22.join(corePath(), "shared", "page-audit.js");
+      return fs16.existsSync(f) ? f : void 0;
     } catch {
       return void 0;
     }
@@ -10263,7 +10939,7 @@ async function runBrowserLauncher() {
   const child = spawn(mcp.command, args, { stdio: "inherit", cwd: projectRoot });
   const cleanup = async () => {
     await guard.close().catch(() => void 0);
-    fs15.rmSync(tmp, { recursive: true, force: true });
+    fs16.rmSync(tmp, { recursive: true, force: true });
   };
   for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => child.kill(sig));
   return new Promise((resolve) => {
@@ -10281,8 +10957,8 @@ async function runBrowserLauncher() {
 }
 
 // core/scripts/export-html.ts
-import fs16 from "node:fs";
-import path20 from "node:path";
+import fs17 from "node:fs";
+import path23 from "node:path";
 var esc2 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 var SEV_CLASS = { critical: "sev-critical", important: "sev-important", minor: "sev-minor" };
 var SEV_LABEL = { critical: "\u{1F534} Critical", important: "\u{1F7E0} Important", minor: "\u{1F7E1} Minor" };
@@ -10335,6 +11011,7 @@ function renderAdminHtml(m, title, opts2 = {}) {
     H.push(`<dt>Status</dt><dd>${esc2(p.status)}</dd>`, `<dt>Ticket</dt><dd>${p.ticket && /^https?:\/\//.test(p.ticket) ? `<a href="${esc2(p.ticket)}">open the ticket</a>` : "none yet"}</dd>`);
     H.push(`<dt>For developers</dt><dd>${esc2(p.id)} in ${esc2(TECHNICAL_FILE)}</dd>`, "</dl>", "</article>");
   }
+  H.push("<h2>What changed since the last check</h2>", `<ul>${m.changes.map((t) => `<li>${esc2(t)}</li>`).join("")}</ul>`);
   H.push("<h2>Compared with the last check</h2>", `<ul>${m.trend.map((t) => `<li>${esc2(t)}</li>`).join("")}</ul>`);
   H.push("<h2>What was not tested</h2>", m.notTested.length ? `<ul>${m.notTested.map((n) => `<li><strong>${esc2(n.area)}</strong>: ${esc2(n.reason)}</li>`).join("")}</ul>` : "<p>Everything planned was checked.</p>");
   if (m.nextSteps.length) H.push("<h2>Suggested next steps</h2>", `<ol>${m.nextSteps.map((s) => `<li>${esc2(s)}</li>`).join("")}</ol>`);
@@ -10349,20 +11026,20 @@ function exportAdminHtml(runDir, store, opts2 = {}) {
   let total = 0;
   const embed = (rel) => {
     if (opts2.embedImages === false) return void 0;
-    const abs = path20.resolve(runDir, rel);
-    if (!abs.startsWith(path20.resolve(runDir) + path20.sep) || !fs16.existsSync(abs)) return void skipped.push(rel);
-    const mime = MIME[path20.extname(abs).toLowerCase()];
-    const size = fs16.statSync(abs).size;
+    const abs = path23.resolve(runDir, rel);
+    if (!abs.startsWith(path23.resolve(runDir) + path23.sep) || !fs17.existsSync(abs)) return void skipped.push(rel);
+    const mime = MIME[path23.extname(abs).toLowerCase()];
+    const size = fs17.statSync(abs).size;
     if (!mime || size > MAX_IMAGE_BYTES || total + size > MAX_TOTAL_IMAGE_BYTES) return void skipped.push(rel);
     total += size;
     embedded.push(rel);
-    return `data:${mime};base64,${fs16.readFileSync(abs).toString("base64")}`;
+    return `data:${mime};base64,${fs17.readFileSync(abs).toString("base64")}`;
   };
   const html = renderAdminHtml(model, `QAMind report: ${data.meta?.environment ?? "test"} check on ${plainDate(data.meta?.started)}`, { embed });
-  const file = opts2.out ? path20.resolve(opts2.out) : path20.join(runDir, "ADMIN-REPORT.html");
-  fs16.writeFileSync(file, html, "utf8");
+  const file2 = opts2.out ? path23.resolve(opts2.out) : path23.join(runDir, "ADMIN-REPORT.html");
+  fs17.writeFileSync(file2, html, "utf8");
   return {
-    file,
+    file: file2,
     bytes: Buffer.byteLength(html),
     images_embedded: embedded.length,
     images_skipped: skipped,
@@ -10394,7 +11071,12 @@ Reporting and memory
   report lint  --run ID        evidence rules, plain-language text, and the two reports agreeing (exit 1 on errors)
   report check --run ID        only the consistency check of the two written reports
   report export-html --run ID [--no-images] [--out FILE]   ADMIN-REPORT.html: one self-contained file for emailing
-  memory context --run ID      stack and recent runs for this project
+  memory context --run ID      what memory knows: risk areas, learnings, false alarms, product map, last findings
+  memory learn --run ID --type T --area A --text TEXT [--confidence N]     save one atomic learning (de-duplicated)
+  memory learn --run ID --confirms L-001 | --contradicts L-001             adjust confidence (below 3 it is archived)
+  memory applied --run ID --ids L-001,FA-002   record learnings you used and false alarms you skipped (must exist)
+  memory false-alarm --run ID --area A --symptom S --reason R [--source reproduction|owner|spec]
+  memory show --run ID --what learnings|false-alarms|risk|map
   memory where [--project DIR] print the project's private store path
   guard log    --run ID        origins the browser guard blocked during the run
 Plumbing (started by the host, not by hand)
@@ -10469,18 +11151,21 @@ async function loadInventory(ctx, specArg) {
     doc = loadSpecFile(resolveSpecPath(source, ctx.projectRoot));
   }
   const inv = buildInventory(doc, source);
-  writeJson(path21.join(ctx.runDir, "data", "api-inventory.json"), inv);
+  writeJson(path24.join(ctx.runDir, "data", "api-inventory.json"), inv);
   return inv;
 }
 function readInventory(ctx) {
-  return readJson(path21.join(ctx.runDir, "data", "api-inventory.json"));
+  return readJson(path24.join(ctx.runDir, "data", "api-inventory.json"));
 }
 async function cmdApi(sub, rest, home) {
   if (sub === "inventory") {
     const { values } = opts(rest, { run: { type: "string" }, spec: { type: "string" } });
     const ctx = loadRunContext(home, values.run);
     const inv = await loadInventory(ctx, values.spec);
+    const known = loadMap(ctx.marker.store);
+    const changes_vs_memory = known && known.api.source === "openapi" ? { added: inv.endpoints.filter((e) => !known.api.endpoints[e.operation]).map((e) => e.operation), removed: Object.keys(known.api.endpoints).filter((op) => !inv.endpoints.some((e) => e.operation === op)) } : void 0;
     emit({
+      ...changes_vs_memory ? { changes_vs_memory } : {},
       source: inv.source,
       title: inv.title,
       version: inv.version,
@@ -10518,10 +11203,10 @@ async function cmdApi(sub, rest, home) {
     });
     plan.name = values.name ?? (values.role ? `baseline-${role}` : "baseline");
     const rel = `data/plans/${plan.name}.json`;
-    writeJson(path21.join(ctx.runDir, rel), plan);
+    writeJson(path24.join(ctx.runDir, rel), plan);
     const byTag = {};
     for (const p of plan.probes) for (const t of p.tags ?? []) byTag[t] = (byTag[t] ?? 0) + 1;
-    emit({ plan_file: path21.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
+    emit({ plan_file: path24.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
     return 0;
   }
   if (sub === "run") {
@@ -10531,9 +11216,9 @@ async function cmdApi(sub, rest, home) {
     const base = ctx.config.api.base_url;
     if (!base) throw new UsageError("api.base_url is not set in .qa/config.md");
     const given = values.plan;
-    const byName = path21.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
-    const planFile = exists(path21.resolve(given)) ? path21.resolve(given) : exists(byName) ? byName : void 0;
-    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path21.join(ctx.runDir, "data", "plans")}.`);
+    const byName = path24.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
+    const planFile = exists(path24.resolve(given)) ? path24.resolve(given) : exists(byName) ? byName : void 0;
+    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path24.join(ctx.runDir, "data", "plans")}.`);
     const plan = readJson(planFile);
     const result = await runPlan(plan, {
       baseUrl: base,
@@ -10564,10 +11249,16 @@ async function cmdReport(sub, rest, home) {
   const { values } = opts(rest, { run: { type: "string" }, "no-images": { type: "boolean", default: false }, out: { type: "string" } });
   const ctx = loadRunContext(home, values.run);
   if (sub === "build") {
-    const r = writeReports(ctx.runDir, ctx.marker.store);
+    const r = writeReports(ctx.runDir, ctx.marker.store, {
+      mode: ctx.marker.mode,
+      runId: ctx.marker.run_id,
+      roles: ctx.config.roles.map((x) => x.name),
+      uiUrls: Object.fromEntries(ctx.config.web_uis.map((u) => [u.name, u.url])),
+      refreshChanges: true
+    });
     emit({
-      technical_report: path21.join(ctx.runDir, "TECHNICAL-REPORT.md"),
-      admin_report: path21.join(ctx.runDir, "ADMIN-REPORT.md"),
+      technical_report: path24.join(ctx.runDir, "TECHNICAL-REPORT.md"),
+      admin_report: path24.join(ctx.runDir, "ADMIN-REPORT.md"),
       verdict: r.model.verdict.line,
       findings: r.data.findings.map((f) => `${f.id} ${f.severity}: ${f.title}`),
       unconfirmed: r.data.unconfirmed.length,
@@ -10577,7 +11268,7 @@ async function cmdReport(sub, rest, home) {
     return 0;
   }
   if (sub === "lint") {
-    const result = lintReports(ctx.runDir, ctx.passwords);
+    const result = lintReports(ctx.runDir, ctx.passwords, ctx.marker.store);
     const { consistency: _c, ...printable } = result;
     emit(printable);
     return result.ok ? 0 : 1;
@@ -10596,23 +11287,91 @@ async function cmdReport(sub, rest, home) {
 }
 async function cmdMemory(sub, rest, home) {
   if (sub === "where") {
-    const { values } = opts(rest, { project: { type: "string" } });
-    const info = resolveProject(path21.resolve(values.project ?? process.cwd()));
-    const { store } = ensureProjectStore(home, info);
-    emit({ project_id: info.id, id_source: info.idSource, store });
+    const { values: values2 } = opts(rest, { project: { type: "string" } });
+    const info = resolveProject(path24.resolve(values2.project ?? process.cwd()));
+    const { store: store2 } = ensureProjectStore(home, info);
+    emit({ project_id: info.id, id_source: info.idSource, store: store2 });
     return 0;
   }
+  const { values } = opts(rest, {
+    run: { type: "string" },
+    type: { type: "string" },
+    area: { type: "string" },
+    text: { type: "string" },
+    confidence: { type: "string" },
+    confirms: { type: "string" },
+    contradicts: { type: "string" },
+    ids: { type: "string" },
+    symptom: { type: "string" },
+    reason: { type: "string" },
+    source: { type: "string" },
+    what: { type: "string" }
+  });
+  const ctx = loadRunContext(home, values.run);
+  const store = ctx.marker.store;
+  const runId = ctx.marker.run_id;
+  const secrets = ctx.passwords;
   if (sub === "context") {
-    const { values } = opts(rest, { run: { type: "string" } });
-    const ctx = loadRunContext(home, values.run);
-    emit(loadMemoryContext(ctx.marker.store));
+    emit(loadMemoryContext(store));
     return 0;
   }
-  throw new UsageError("memory needs a subcommand: context | where");
+  if (sub === "learn") {
+    if (values.confirms || values.contradicts) {
+      const id = values.confirms ?? values.contradicts;
+      const direction = values.confirms ? "confirm" : "contradict";
+      const r2 = adjustLearning(store, id, direction, runId);
+      const l = r2.learning;
+      appendMemoryLog(ctx.runDir, { kind: direction === "confirm" ? "learning-merged" : "learning-contradicted", id: l.id, text: l.text });
+      emit({ action: direction === "confirm" ? "confirmed" : r2.archived ? "contradicted-and-archived" : "contradicted", id: l.id, confidence: l.confidence });
+      return 0;
+    }
+    const type = values.type;
+    if (!type || !values.area || !values.text) throw new UsageError(`memory learn needs --type (${LEARNING_TYPES.join("|")}), --area and --text (or --confirms/--contradicts <id>)`);
+    const r = learn(store, { type, area: values.area, text: values.text, run: runId, ...values.confidence ? { confidence: num(values.confidence, "confidence", 5) } : {} }, { knownSecrets: secrets });
+    appendMemoryLog(ctx.runDir, { kind: r.action === "created" ? "learning-created" : "learning-merged", id: r.learning.id, text: r.learning.text });
+    emit({ action: r.action, id: r.learning.id, confidence: r.learning.confidence, archived: r.archived.map((a) => a.id), warnings: r.warnings });
+    return 0;
+  }
+  if (sub === "applied") {
+    const ids = String(values.ids ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+    if (ids.length === 0) throw new UsageError("memory applied needs --ids L-001,FA-002 (learnings you used, false alarms you skipped)");
+    const learningIds = ids.filter((i) => i.startsWith("L-"));
+    const alarmIds = ids.filter((i) => i.startsWith("FA-"));
+    const applied = markApplied(store, learningIds);
+    const alarms = loadFalseAlarms(store).alarms;
+    const unknown = [...applied.unknown, ...alarmIds.filter((id) => !alarms.some((a) => a.id === id)), ...ids.filter((i) => !/^(L|FA)-\d+$/.test(i))];
+    for (const l of applied.applied) appendMemoryLog(ctx.runDir, { kind: "learning-applied", id: l.id, text: `(${l.area}) ${l.text}` });
+    for (const id of alarmIds) {
+      const a = alarms.find((x) => x.id === id);
+      if (a) appendMemoryLog(ctx.runDir, { kind: "false-alarm-skipped", id, text: a.symptom });
+    }
+    if (unknown.length) throw new Error(`These ids do not exist in this project's memory: ${unknown.join(", ")}. Cite only what memory context gave you.`);
+    emit({ applied: ids });
+    return 0;
+  }
+  if (sub === "false-alarm") {
+    if (!values.area || !values.symptom || !values.reason) throw new UsageError("memory false-alarm needs --area, --symptom (what was seen) and --reason (why it is not a bug)");
+    const source = values.source ?? "reproduction";
+    if (!["owner", "reproduction", "spec"].includes(source)) throw new UsageError("--source must be owner, reproduction or spec");
+    const r = addFalseAlarm(store, { area: values.area, symptom: values.symptom, reason: values.reason, source, run: runId }, { knownSecrets: secrets });
+    if (r.action === "created") appendMemoryLog(ctx.runDir, { kind: "false-alarm-created", id: r.alarm.id, text: r.alarm.symptom });
+    emit({ action: r.action, id: r.alarm.id, warnings: r.warnings });
+    return 0;
+  }
+  if (sub === "show") {
+    const what = values.what;
+    if (what === "learnings") emit(loadLearnings(store));
+    else if (what === "false-alarms") emit(loadFalseAlarms(store));
+    else if (what === "risk") emit({ areas: scoreAreas(loadRisk(store)) });
+    else if (what === "map") emit(loadMap(store) ?? { note: "no product map yet" });
+    else throw new UsageError("memory show needs --what learnings|false-alarms|risk|map");
+    return 0;
+  }
+  throw new UsageError("memory needs a subcommand: context | learn | applied | false-alarm | show | where");
 }
 async function cmdHook(sub, home) {
   if (sub !== "pre-tool-use") throw new UsageError("hook needs a subcommand: pre-tool-use");
-  const raw = fs17.readFileSync(0, "utf8");
+  const raw = fs18.readFileSync(0, "utf8");
   let input;
   try {
     input = JSON.parse(raw);
@@ -10633,8 +11392,8 @@ async function main(argv) {
         return await cmdRun(sub, rest, home);
       case "config": {
         const { values } = opts(rest, { project: { type: "string" } });
-        const root = path21.resolve(values.project ?? process.cwd());
-        if (!exists(path21.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
+        const root = path24.resolve(values.project ?? process.cwd());
+        if (!exists(path24.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
         const check = checkConfigFile(root);
         const { config: _c, body: _b, ...printable } = check;
         emit(printable);
@@ -10644,8 +11403,8 @@ async function main(argv) {
         const { values } = opts(sub ? [sub, ...rest] : rest, { run: { type: "string" } });
         const ctx = loadRunContext(home, values.run);
         const result = await runHealthCheck({ config: ctx.config, policy: ctx.policy, roles: ctx.roles });
-        ensureDir(path21.join(ctx.runDir, "data"));
-        writeJson(path21.join(ctx.runDir, "data", "health.json"), result);
+        ensureDir(path24.join(ctx.runDir, "data"));
+        writeJson(path24.join(ctx.runDir, "data", "health.json"), result);
         emit(result);
         return result.environment_ok ? 0 : 7;
       }

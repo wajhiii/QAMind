@@ -1,9 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { SEVERITIES } from "./config.ts";
+import { describeChanges } from "./memory/productmap.ts";
 import type { Severity } from "./config.ts";
 import { readJson, writeJson } from "./fsutil.ts";
+import type { MemoryLogEntry } from "./memory/memorylog.ts";
+import type { Changes } from "./memory/productmap.ts";
 import { findSecretLeaks } from "./redact.ts";
+import { flowStatus } from "./verdict.ts";
 
 /** Structured run data lives in <run>/data/*.json; TECHNICAL-REPORT.md is rendered from it (spec §11.2/§11.3). */
 
@@ -37,6 +41,23 @@ export interface PlainFinding {
   ticket?: string;
 }
 
+/** A finding reduced to what a later run needs (regression mode, "what did we find last time"). Stored in the run summary. */
+export interface CompactFinding {
+  id: string;
+  title: string;
+  severity: Severity;
+  surface: string;
+  area: string;
+  type: string;
+  ui?: string;
+  /** The first reproduction step, so a regression run knows where to start. */
+  first_step?: string;
+}
+
+export function compactFinding(f: Finding): CompactFinding {
+  return { id: f.id ?? "", title: f.title, severity: f.severity, surface: f.surface, area: f.area, type: f.type, ...(f.ui ? { ui: f.ui } : {}), ...(f.steps?.[0] ? { first_step: f.steps[0].slice(0, 200) } : {}) };
+}
+
 export type FixStatus = "not-fixed" | "fixed-verified" | "fixed-needs-confirmation";
 
 export interface Finding {
@@ -61,6 +82,8 @@ export interface Finding {
   memory_applied?: string[];
   charter?: string;
   plain?: PlainFinding;
+  /** Set only when this finding resembles a known false alarm in memory but is genuinely different: say why. */
+  not_a_known_false_alarm?: string;
   /** Fix mode sets this; report-only runs leave it unset (not fixed). */
   fix_status?: FixStatus;
 }
@@ -119,6 +142,8 @@ export interface RunMeta {
   notes?: string[];
   /** The critical journeys from the config, in order (copied at run start). */
   critical_flows?: string[];
+  /** Written by `run finish`: what was saved to memory. */
+  memory_updated?: string[];
 }
 
 /** data/admin.json: the two things in the admin report only the agent can judge. */
@@ -138,6 +163,10 @@ export interface HealthResult {
 export interface RunData {
   meta?: RunMeta;
   admin?: AdminNotes;
+  /** What changed since the last run (data/changes.json), if computed. */
+  changes?: Changes;
+  /** What memory did during this run (data/memory-log.json). */
+  memoryLog: MemoryLogEntry[];
   charters: Charter[];
   findings: Finding[];
   unconfirmed: Unconfirmed[];
@@ -178,9 +207,13 @@ export function readRunData(runDir: string): RunData {
   const meta = readJson<RunMeta>(dataFile(runDir, "meta.json"));
   const health = readJson<HealthResult>(dataFile(runDir, "health.json"));
   const admin = readJson<AdminNotes>(dataFile(runDir, "admin.json"));
+  const changes = readJson<Changes>(dataFile(runDir, "changes.json"));
+  const memLog = readJson<unknown>(dataFile(runDir, "memory-log.json"));
   return {
     ...(meta ? { meta } : {}),
     ...(admin ? { admin } : {}),
+    ...(changes ? { changes } : {}),
+    memoryLog: Array.isArray(memLog) ? (memLog as MemoryLogEntry[]) : [],
     charters: readList<Charter>(runDir, "charters.json"),
     findings: readList<Finding>(runDir, "findings.json"),
     unconfirmed: readList<Unconfirmed>(runDir, "unconfirmed.json"),
@@ -259,7 +292,15 @@ function duration(seconds?: number): string {
   return `${m}m ${String(Math.round(seconds % 60)).padStart(2, "0")}s`;
 }
 
-export function renderTechnicalReport(data: RunData): string {
+export interface TechnicalContext {
+  /** Earlier finished runs of this project, newest first (for the trend table). */
+  previous?: Array<{ run_id: string; started: string; mode: string; counts: { critical: number; important: number; minor: number; unconfirmed: number }; coverage: { tested: number; partial: number; not_tested: number }; journeys?: { total: number; tested: number }; not_tested_count: number }>;
+}
+
+/** "3/5", or "-" when the config lists no key journeys. */
+const journeyCell = (tested: number, total: number): string => (total > 0 ? `${tested}/${total}` : "-");
+
+export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {}): string {
   const m = data.meta;
   const counts = countBySeverity(data.findings);
   const notTested = mergedNotTested(data);
@@ -301,6 +342,24 @@ export function renderTechnicalReport(data: RunData): string {
   L.push(`- Areas not tested: **${notTested.length}**`);
   const api = data.apiSummaries.reduce((a, s) => ({ total: a.total + s.total, failed: a.failed + s.failed, signals: a.signals + s.signals }), { total: 0, failed: 0, signals: 0 });
   if (data.apiSummaries.length) L.push(`- API probes executed: **${api.total}** (${api.signals} produced a signal worth a look)`);
+  L.push("");
+
+  L.push("## What changed since the last run", "");
+  const ch = data.changes;
+  if (!ch) L.push("_Not computed (no page or endpoint list was recorded)._", "");
+  else if (ch.first_run) L.push("_First run for this project: there is nothing to compare with yet._", "");
+  else {
+    const lines = describeChanges(ch).technical;
+    L.push(...(lines.length ? lines.map((x) => `- ${x}`) : ["No new or removed pages or endpoints since the last run."]), ...ch.notes.map((n) => `- _${n}_`), "");
+  }
+
+  L.push("## Trend", "");
+  const cur = { counts: { ...counts, unconfirmed: data.unconfirmed.length }, tested: data.coverage.filter((c) => c.status === "tested").length, partial: data.coverage.filter((c) => c.status === "partial").length, notTested: notTested.length };
+  L.push("| Run | Mode | 🔴 | 🟠 | 🟡 | Unconfirmed | Key journeys tested | Checked | Partly checked | Not tested |", "|---|---|---|---|---|---|---|---|---|---|");
+  L.push(`| **this run** | ${m?.mode ?? "-"} | ${cur.counts.critical} | ${cur.counts.important} | ${cur.counts.minor} | ${cur.counts.unconfirmed} | ${journeyCell(flowStatus(data).tested.length, flowStatus(data).total)} | ${cur.tested} | ${cur.partial} | ${cur.notTested} |`);
+  for (const p of (ctx.previous ?? []).slice(0, 4)) L.push(`| ${p.run_id} | ${p.mode} | ${p.counts.critical} | ${p.counts.important} | ${p.counts.minor} | ${p.counts.unconfirmed} | ${p.journeys ? journeyCell(p.journeys.tested, p.journeys.total) : "-"} | ${p.coverage.tested} | ${p.coverage.partial} | ${p.not_tested_count} |`);
+  if (!ctx.previous?.length) L.push("", "_No earlier run to compare with._");
+  else if (ctx.previous[0] && ctx.previous[0].mode !== m?.mode) L.push("", `_The last run was a ${ctx.previous[0].mode} run and this one is ${m?.mode ?? "?"}, so the rows are not directly comparable._`);
   L.push("");
 
   L.push("## Test plan (charters)", "");
@@ -357,8 +416,27 @@ export function renderTechnicalReport(data: RunData): string {
   }
 
   L.push("## Memory", "");
-  L.push(m?.memory_applied?.length ? m.memory_applied.map((x) => `- Applied: ${x}`).join("\n") : "_No project memory was applied (first run, or memory held nothing relevant)._", "");
-  L.push("_Learnings are not written in this version; the run summary and detected stack are saved to the private user store._", "");
+  const applied = data.memoryLog.filter((e) => e.kind === "learning-applied" || e.kind === "false-alarm-skipped");
+  const saved = data.memoryLog.filter((e) => !["learning-applied", "false-alarm-skipped"].includes(e.kind));
+  const verb: Record<string, string> = { "learning-applied": "Applied learning", "false-alarm-skipped": "Skipped known false alarm", "learning-created": "New learning", "learning-merged": "Confirmed again", "learning-contradicted": "Contradicted learning", "false-alarm-created": "New false alarm" };
+  L.push("**Applied this run** (memory is leads, not proof; each was re-verified)", "");
+  if (applied.length === 0 && !m?.memory_applied?.length) L.push("_No project memory was applied (first run, or memory held nothing relevant)._");
+  // The log holds the exact text of what was applied (checked against memory); the agent's own line says how it changed this run.
+  // Show each agent line once, under the entry it cites, and list only the lines that cite nothing in the log on their own.
+  const agentLines = [...(m?.memory_applied ?? [])];
+  const cites = (line: string, id: string | undefined): boolean => !!id && new RegExp(`\\b${id}\\b`).test(line);
+  for (const e of applied) {
+    L.push(`- ${verb[e.kind]} ${e.id}: ${e.text}`);
+    for (let i = agentLines.length - 1; i >= 0; i--) {
+      if (cites(agentLines[i] as string, e.id)) L.push(`  - In this run: ${(agentLines.splice(i, 1)[0] as string)}`);
+    }
+  }
+  for (const x of agentLines) L.push(`- ${x}`);
+  L.push("", "**Saved this run**", "");
+  if (saved.length === 0) L.push("_No learnings or false alarms were saved._");
+  for (const e of saved) L.push(`- ${verb[e.kind]} ${e.id}: ${e.text}`);
+  if (m?.memory_updated?.length) L.push("", "**Memory after the run**", "", ...m.memory_updated.map((x) => `- ${x}`));
+  L.push("");
 
   const tests = sorted.filter((f) => f.regression_test);
   L.push("## Proposed regression tests", "", "_/qa-only never writes tests into the product; these are proposals._", "");

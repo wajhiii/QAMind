@@ -194,3 +194,84 @@ names ("Client Portal") and a few specialist words as unclear on every report; t
 
 ### Not tracked yet (the admin report says so in plain words)
 Which problems are new, still open or came back (7.7), regressed bugs in the verdict (7.7), per-project verdict rules (7.10), fix status and branch line (6), tickets (8).
+
+
+## Phase 4: project memory (the learning test, spec section 14)
+
+Spec: "run twice; the second run must apply memory (cite learnings, skip known false alarms, report 'changed since last run') and must not be slower to reach
+critical flows." `scripts/eval-learning.ts` does this on the demo app with the same pinned settings as above (mode `full`), two `/qa-only` runs against **one**
+scratch memory. Between the runs it changes its copy of the demo app (`scripts/learning-mutation.ts`: a new Help page with its own script, a new `GET /api/help`,
+`POST /api/auth/reset-password` removed from the OpenAPI spec only), resets the data, and seeds an **owner-confirmed false alarm** taken from run 1's own
+lowest-severity finding (preferring one that matches no scored bug). It checks the files, not the agent's word: memory loaded; learnings cited exist; the false alarm
+is not reported again and is logged as skipped; the page, the added endpoint and the removed endpoint are all in `changes.json` and both reports; reports lint clean;
+no fixture password anywhere in the store or either run folder. A run counts only if it ended normally, wrote its findings and finished its memory update;
+otherwise a `-FAILED-run<n>.json` record is written. Each run's tool-call trace is saved (`*.run<n>.trace.json`, passwords masked) from sequence 3 on.
+
+### What was evaluated
+
+| Sequence | Build | Result |
+|---|---|---|
+| 1 (`phase-4-learning-r1`) | first Phase 4 build | 12 of 13 checks; **found the defects listed below**. Kept for the record. |
+| (failed attempt, no record file) | corrected build | run 1 ended without writing its findings; run 2 exited after 7 seconds. Not counted. |
+| 2, 3, 4 (`r2`, `r3`, `r4`) | corrected build, `plugin_content_sha256` 9c162a42ce32 (uncommitted when run) | **valid; the numbers below** |
+
+Ten runs were started across these attempts; two failed, both in the failed attempt. What is known about it: run 1 did the API and browser work, then the agent
+wrote a Python generator for its data files (`gen_data.py` in the run folder) and the run ended with no `findings.json` and the run marker still present; a
+3-turn probe with a $0.05 cap in the same workspace started normally, so the leftover state does not explain run 2's immediate exit. The harness kept no event log
+then, so the cause is **unknown**; it now records the result status, permission denials and stderr. One failed sequence in five is a real signal on a small sample:
+no stall or failure occurred in the eight valid runs, but watch for it.
+
+The final plugin differs from the evaluated one only in `dist/qamind.mjs` (the admin trend line now compares key journeys instead of coverage rows, see below); every
+instruction file is identical. **No agent instruction was changed after seeing these results.**
+
+### Defects the evaluation found (all fixed, each with a test)
+- The admin report's plain "what changed" line quoted an API summary containing the word "token", so the jargon lint failed the report (sequence 1). Plain lines now quote
+  product text only when it passes the same lint, else use generic wording.
+- A screen seen for the first time was called "new" although the earlier run had simply not reached it (the Customers page). Memory records pages *seen*, not pages that
+  *exist*; the wording is now "seen for the first time (it is new, or the earlier check did not reach it)".
+- Each applied learning appeared twice in the Memory section (verified log entry and the agent's own line); the agent's line is now nested under its entry.
+- The trend line "parts checked in full: N this time, M last time" compared coverage-row counts, which are the agent's choice of granularity (9 vs 24 between two runs
+  with no real change; 12 vs 12 in another). It now compares **key journeys fully checked** (fixed by the config), and an older summary without that number is not compared.
+- Harness: my new Help page had no script, so sign-out broke and run 2 correctly reported it (inflating its findings and cost); the seeded false alarm's bug was credited
+  to the wrong scored bug. Both fixed; recall is now compared without every bug the false alarm covers.
+
+### Results, corrected build (sequences 2, 3, 4)
+
+Mechanism checks, every valid sequence: memory loaded, **4 real learnings cited** (all ids exist), the seeded false alarm **not reported again and logged as skipped**,
+the new page, the new endpoint and the removed endpoint **all reported** (technical and plain-language), both reports consistent and lint clean, **no fixture password
+anywhere** in the memory store or either run folder.
+
+| | Seq 2 run 1 / run 2 | Seq 3 run 1 / run 2 | Seq 4 run 1 / run 2 | Mean run 1 | Mean run 2 |
+|---|---|---|---|---|---|
+| First API test (tool calls, seconds) | 20, 30.7 / 26, 44.9 | 18, 22.8 / 18, 38.5 | 18, 22.2 / 22, 34.5 | 18.7, 25.2 | 22.0, **39.3** |
+| First UI interaction (calls, seconds) | 34, 105 / 42, 148 | 37, 144 / 34, 145 | 37, 124 / 36, 112 | 36.0, 124 | 37.3, 135 |
+| Wall time, minutes | 4.7 / 7.4 | 6.7 / 5.8 | 4.8 / 6.0 | 5.4 | 6.4 |
+| Cost, USD | 1.25 / 2.06 | 1.73 / 1.46 | 1.12 / 1.50 | 1.37 | 1.68 |
+| Seeded bugs found, of 14, excluding the bug(s) the false alarm covers | 11 / 11 | 13 / 14 | 11 / 11 | 11.7 | 12.0 |
+| Findings reported | 12 / 12 | 13 / 13 | 11 / 13 | 12.0 | 12.7 |
+
+The first sequence (first build) was similar: run 2 took 7.8 min and $2.21 against 5.9 min and $1.44 for run 1; first UI interaction was equal (40 calls, 167 s vs 162 s).
+Cold runs (run 1) cost and found what the Phase 3 full runs did (about $1.4 and 12 of 14), so Phase 4 did not make a first run worse.
+
+### Against the spec's criterion
+- **Applies memory, skips known false alarms, reports what changed:** met in every valid sequence, and in the first one.
+- **"Not slower to reach critical flows": not met as I defined it beforehand (no more than 10% more calls and seconds).** The first UI interaction passed in 3 of 4
+  sequences (not sequence 2); the first API test was slower in **all three** instrumented sequences (+14 s on average, +56%), and total time and cost were higher on
+  average (+19% and +22%) but varied from 16% lower to 65% higher.
+- **Why, from the traces (sequences 3 and 4):** loading memory is not the cause. `memory context` takes about 2 s in run 1 as well (it returns "first run"). The extra
+  time before run 2's first API test is the agent **investigating the product change**: `git diff`, reading the new page and script, and a second `api inventory`.
+  The test leaves an uncommitted diff, and the workflow tells the agent to look at recently changed code. This is an explanation from two traces, not proof: the test
+  has no control arm (run 2 on the changed product with an empty memory) that would separate "memory" from "the product changed".
+
+### What this does and does not show
+- **Shown:** memory is loaded, cited honestly (ids are verified, invented ones fail the lint), a known false alarm is reliably not reported again, changes are detected
+  and described for developers and managers, and nothing secret or personal reaches the store.
+- **Not shown:** that memory makes a run *better*. Bug-finding is flat within the noise (11.7 vs 12.0; per-run spread is about two bugs), and run 1 already finds
+  12 of 14 on this fixture, so there is little room to improve.
+- **Not shown:** that memory makes a run *faster*. It did not, on this fixture, in this design.
+- n = 3 valid sequences, one product, one model. The mutation is small and planted by me.
+- **Learning quality is uneven.** Most saved learnings are useful (the 1,000.00 threshold, warm-then-change-then-reread for stale lists, a 4-second report, "viewport resets
+  after browser_close"), but sequence 4 saved "Admin Orders has an unlabelled search box and two icon-only buttons" as a learning: that is a finding, not a lesson, and
+  findings already persist as `previous_findings`. Not changed; tighten the protocol if it recurs.
+- Learning confidence moves on the agent's say-so (one learning about the report's 4-second delay was marked contradicted in sequence 2), which is why learnings stay
+  "leads, not proof".

@@ -16,7 +16,7 @@ import { ALL_FLOWS_TESTED, DEMO_CONFIG, finding, makeRunWithData, repoRoot } fro
 
 const dataOf = (over: Partial<RunData> = {}): RunData => ({
   meta: { schema_version: 1, run_id: "run-x", project_id: "p", project_name: "p", environment: "staging", mode: "full", trigger: "manual", kind: "qa-only", host: "t", started: "2026-10-30T10:00:00Z", agent_version: "0", knowledge_version: "0", critical_flows: ["a", "b"] },
-  charters: [], findings: [], unconfirmed: [], notTested: [], apiSummaries: [],
+  charters: [], findings: [], unconfirmed: [], notTested: [], apiSummaries: [], memoryLog: [],
   coverage: [1, 2].map((n): CoverageRow => ({ surface: "ui", area: `j${n}`, status: "tested", critical_flow: n })),
   health: { environment_ok: true, checks: [], ran_at: "x" },
   ...over,
@@ -191,7 +191,12 @@ test("trend compares with the previous finished run and says plainly what it can
   assert.match(text, /Last check \(30 October 2026, full check\): 1 critical, 1 important, 1 minor\./);
   assert.match(text, /This check: 1 critical \(same\), 1 important \(same\), 1 minor \(same\)\./);
   assert.match(text, /do not yet track which problems are new/);
+  assert.match(text, /Key journeys fully checked: \d of 5 this time, \d of 5 last time\./, "compared by key journeys, which the config fixes");
+  assert.ok(!/checked in full/.test(text), "the number of coverage rows is the agent's choice of granularity, not a trend");
   assert.equal(previousRuns(fx.store, fx.runId).length, 0, "the run being reported is never its own predecessor");
+  // An older summary without journeys is not compared on a number it never recorded.
+  const older = prev.map((p) => ({ ...p, journeys: undefined }));
+  assert.ok(!/Key journeys fully checked/.test(buildAdminModel(readRunData(fx.runDir), older).trend.join("\n")));
 });
 
 test("HTML export is one self-contained file: no external resources, escaped text, embedded screenshots", () => {

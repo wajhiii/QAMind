@@ -11,8 +11,11 @@ import { ensureGitignoreEntries } from "./gitignore.ts";
 import { RUN_MARKER_FILE, SCHEMA_VERSION, projectsRoot, storeSubdirs } from "./paths.ts";
 import { ensureProjectStore, listKnownProjects, looksLikeProject, resolveProject } from "./project.ts";
 import { assignIds, countBySeverity, mergedNotTested, readRunData } from "./report.ts";
-import type { RunMeta } from "./report.ts";
+import { compactFinding } from "./report.ts";
+import type { CompactFinding, RunMeta } from "./report.ts";
+import { applyRunToMemory } from "./memory/update.ts";
 import { writeReports } from "./reports.ts";
+import { flowStatus } from "./verdict.ts";
 import { detectStack, saveStack } from "./stack.ts";
 import type { StackInfo } from "./stack.ts";
 import type { RunPolicy } from "./urlpolicy.ts";
@@ -54,7 +57,11 @@ export interface RunSummary {
   duration_s: number;
   counts: { critical: number; important: number; minor: number; unconfirmed: number };
   finding_ids: string[];
+  /** Compact copies of the findings, so a later run (regression mode) has them even if the report folder is gone. */
+  findings?: CompactFinding[];
   coverage: { tested: number; partial: number; not_tested: number };
+  /** Key journeys from the config that were tested end to end. A stable measure to compare runs by: the number of coverage rows is the agent's choice of granularity. */
+  journeys?: { total: number; tested: number };
   not_tested_count: number;
   blocked_areas: string[];
   cost: string;
@@ -64,6 +71,8 @@ export interface RunSummary {
   branch?: string;
   commit?: string;
   report: string;
+  /** What this run saved to project memory. */
+  memory_updated?: string[];
 }
 
 export interface BrowserStatus {
@@ -378,6 +387,7 @@ export function finishRun(opts: FinishOptions): RunSummary {
   assignIds(marker.run_dir, data);
   const counts = countBySeverity(data.findings);
   const notTested = mergedNotTested(data);
+  const journeys = flowStatus(data);
   const started = new Date(marker.started).getTime();
   const duration_s = Math.max(0, Math.round((now.getTime() - started) / 1000));
   const meta = readJson<RunMeta>(path.join(marker.run_dir, "data", "meta.json"));
@@ -394,11 +404,13 @@ export function finishRun(opts: FinishOptions): RunSummary {
     duration_s,
     counts: { ...counts, unconfirmed: data.unconfirmed.length },
     finding_ids: data.findings.map((f) => f.id ?? "").filter(Boolean),
+    findings: data.findings.map(compactFinding),
     coverage: {
       tested: data.coverage.filter((c) => c.status === "tested").length,
       partial: data.coverage.filter((c) => c.status === "partial").length,
       not_tested: data.coverage.filter((c) => c.status === "not-tested").length,
     },
+    ...(journeys.total > 0 ? { journeys: { total: journeys.total, tested: journeys.tested.length } } : {}),
     not_tested_count: notTested.length,
     blocked_areas: notTested.map((n) => n.area),
     cost: opts.cost ?? "not available on this host",
@@ -409,9 +421,21 @@ export function finishRun(opts: FinishOptions): RunSummary {
     ...(meta?.commit ? { commit: meta.commit } : {}),
     report: path.join(marker.run_dir, "TECHNICAL-REPORT.md"),
   };
+  // Apply this run to project memory (product map, risk areas, false-alarm use counts) from what the config says is in the product.
+  const config = checkConfigFile(marker.project_root, process.env).config;
+  const memory = applyRunToMemory({
+    store: marker.store,
+    runDir: marker.run_dir,
+    runId: marker.run_id,
+    mode: marker.mode,
+    now,
+    roles: (config?.roles ?? []).map((r) => r.name),
+    uiUrls: Object.fromEntries((config?.web_uis ?? []).map((u) => [u.name, u.url])),
+  });
+  if (meta) writeJson(path.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, memory_updated: memory.updated });
+  summary.memory_updated = memory.updated;
   writeJson(path.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
-  if (meta) writeJson(path.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost });
-  // Re-render both reports so they carry the final duration and stop reason (and the admin report sees the finished run).
+  // Re-render both reports so they carry the final duration, stop reason and memory updates (what changed uses the saved result).
   writeReports(marker.run_dir, marker.store);
   fs.rmSync(markerPath(marker.store), { force: true });
   return summary;

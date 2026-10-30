@@ -1,0 +1,150 @@
+{
+  "label": "phase-4",
+  "seq": 3,
+  "date": "2026-10-30T11:16:24.648Z",
+  "prompt": "/qamind:qa-only full",
+  "model": "claude-sonnet-5-5",
+  "between_runs": {
+    "added_page": "/help.html (linked from the client nav)",
+    "added_endpoint": "GET /api/help",
+    "removed_endpoint": "POST /api/auth/reset-password (spec only)",
+    "seeded_false_alarm": {
+      "id": "FA-001",
+      "from_finding": "ISSUE-011",
+      "title": "Page size below 1 is accepted on the order list"
+    },
+    "seeded_false_alarm_covers_scored_bugs": []
+  },
+  "run1": {
+    "cost_usd": 1.7327816999999994,
+    "turns": 136,
+    "minutes": 6.69,
+    "result": {
+      "subtype": "success",
+      "is_error": false,
+      "permission_denials": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "final_message": "⛔ **Not ready to release:** 5 critical problems found and 3 important problems, for example: Any customer can see the list of all customers, with personal details.\n\n- **Critical (5):**\n  - Any customer can read the full customer list, including contact and card details.\n  - A customer can open another company's order.\n  - Tax is worked out before the discount is taken off, so a 1,000.00 order show"
+    },
+    "first_ui_interaction": {
+      "calls": 37,
+      "seconds": 143.9
+    },
+    "first_api_run": {
+      "calls": 18,
+      "seconds": 22.8
+    },
+    "found": 13,
+    "found_excluding_suppressed": 13,
+    "missed": [
+      "DB-08"
+    ],
+    "findings": 13,
+    "memory_calls": {
+      "learn": 4,
+      "applied": 0,
+      "context": 1
+    }
+  },
+  "run2": {
+    "cost_usd": 1.4611268,
+    "turns": 122,
+    "minutes": 5.84,
+    "result": {
+      "subtype": "success",
+      "is_error": false,
+      "permission_denials": [
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash",
+        "Bash"
+      ],
+      "final_message": "⛔ **Not ready to release:** 5 critical problems found and 4 important problems, for example: Any customer can read the company's full customer list.\n\n- **Counts:** 5 critical, 4 important, 4 minor, 0 unconfirmed.\n- **Critical:**\n  - Any customer can read the full customer list.\n  - A customer can open another company's order.\n  - Tax is calculated on the price before the discount.\n  - Signing out "
+    },
+    "first_ui_interaction": {
+      "calls": 34,
+      "seconds": 145
+    },
+    "first_api_run": {
+      "calls": 18,
+      "seconds": 38.5
+    },
+    "found": 14,
+    "found_excluding_suppressed": 14,
+    "missed": [],
+    "findings": 13,
+    "memory_calls": {
+      "learn": 4,
+      "applied": 1,
+      "context": 1
+    },
+    "memory_applied": [
+      "Applied L-001 to test totals on both sides of the 1,000.00 threshold with exact cents",
+      "Applied L-002 to probe admin routes and other companies' orders as clients",
+      "Applied L-003 to write plan files with a name and probes wrapper",
+      "Applied L-004 to wait for the sales report figures",
+      "Skipped false alarm FA-001: page size below 1 accepted (only the 500 for 0 is reported)"
+    ],
+    "lint_errors": [],
+    "changes": {
+      "since_run": "run-20261030T110354Z",
+      "since_date": "2026-10-30T11:10:25.922Z",
+      "first_run": false,
+      "pages_new": [
+        {
+          "ui": "Client Portal",
+          "path": "/help.html",
+          "title": "Help centre"
+        },
+        {
+          "ui": "Admin Portal",
+          "path": "/customers.html",
+          "title": "Customers"
+        }
+      ],
+      "pages_not_seen": [],
+      "endpoints_added": [
+        {
+          "op": "GET /help",
+          "summary": "List help articles"
+        }
+      ],
+      "endpoints_removed": [
+        {
+          "op": "POST /auth/reset-password",
+          "summary": "Choose a new password with a reset token"
+        }
+      ],
+      "notes": []
+    }
+  },
+  "bug_finding_expected_suppressed": [],
+  "checks": {
+    "memory_loaded": true,
+    "learnings_saved_in_run1": 4,
+    "cites_real_learnings": true,
+    "cited_learning_ids": [
+      "L-001",
+      "L-002",
+      "L-003",
+      "L-004"
+    ],
+    "false_alarm_seeded": "FA-001",
+    "false_alarm_not_reported_again": true,
+    "false_alarm_cited_as_skipped": true,
+    "changed_page_reported": true,
+    "changed_endpoint_added": true,
+    "changed_endpoint_removed": true,
+    "not_slower_to_first_ui_interaction": true,
+    "not_slower_to_first_api_test": false,
+    "reports_consistent_and_lint_clean": true,
+    "no_secrets_in_memory_or_reports": true
+  },
+  "secrets_found_in": []
+}

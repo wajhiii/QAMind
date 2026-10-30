@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { writeJson } from "../../core/lib/fsutil.ts";
-import { loadMemoryContext } from "../../core/lib/memory.ts";
+import { loadMemoryContext } from "../../core/lib/memory/context.ts";
 import { lintRun, readRunData } from "../../core/lib/report.ts";
 import type { Finding } from "../../core/lib/report.ts";
 import { finishRun, markerPath, readMarker, startRun } from "../../core/lib/run.ts";

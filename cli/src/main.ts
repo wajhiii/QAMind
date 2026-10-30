@@ -12,7 +12,14 @@ import { readBlocked } from "../../core/lib/guardpolicy.ts";
 import { runHealthCheck } from "../../core/lib/health.ts";
 import { decidePreToolUse, toHookOutput } from "../../core/lib/hooks.ts";
 import type { PreToolUseInput } from "../../core/lib/hooks.ts";
-import { loadMemoryContext } from "../../core/lib/memory.ts";
+import { loadFalseAlarms, addFalseAlarm } from "../../core/lib/memory/falsealarms.ts";
+import type { FalseAlarmSource } from "../../core/lib/memory/falsealarms.ts";
+import { LEARNING_TYPES, adjustLearning, learn, loadLearnings, markApplied } from "../../core/lib/memory/learnings.ts";
+import type { LearningType } from "../../core/lib/memory/learnings.ts";
+import { loadMemoryContext } from "../../core/lib/memory/context.ts";
+import { appendMemoryLog } from "../../core/lib/memory/memorylog.ts";
+import { loadMap } from "../../core/lib/memory/productmap.ts";
+import { loadRisk, scoreAreas } from "../../core/lib/memory/risk.ts";
 import { buildInventory, loadSpecFile, parseSpecText, resolveSpecPath } from "../../core/lib/openapi.ts";
 import type { Inventory } from "../../core/lib/openapi.ts";
 import { qamindHome } from "../../core/lib/paths.ts";
@@ -53,7 +60,12 @@ Reporting and memory
   report lint  --run ID        evidence rules, plain-language text, and the two reports agreeing (exit 1 on errors)
   report check --run ID        only the consistency check of the two written reports
   report export-html --run ID [--no-images] [--out FILE]   ADMIN-REPORT.html: one self-contained file for emailing
-  memory context --run ID      stack and recent runs for this project
+  memory context --run ID      what memory knows: risk areas, learnings, false alarms, product map, last findings
+  memory learn --run ID --type T --area A --text TEXT [--confidence N]     save one atomic learning (de-duplicated)
+  memory learn --run ID --confirms L-001 | --contradicts L-001             adjust confidence (below 3 it is archived)
+  memory applied --run ID --ids L-001,FA-002   record learnings you used and false alarms you skipped (must exist)
+  memory false-alarm --run ID --area A --symptom S --reason R [--source reproduction|owner|spec]
+  memory show --run ID --what learnings|false-alarms|risk|map
   memory where [--project DIR] print the project's private store path
   guard log    --run ID        origins the browser guard blocked during the run
 Plumbing (started by the host, not by hand)
@@ -145,7 +157,14 @@ async function cmdApi(sub: string | undefined, rest: string[], home: string): Pr
     const { values } = opts(rest, { run: { type: "string" }, spec: { type: "string" } });
     const ctx = loadRunContext(home, values.run as string | undefined);
     const inv = await loadInventory(ctx, values.spec as string | undefined);
+    // Compare with what memory knew, so new and removed endpoints are tested first.
+    const known = loadMap(ctx.marker.store);
+    const changes_vs_memory =
+      known && known.api.source === "openapi"
+        ? { added: inv.endpoints.filter((e) => !known.api.endpoints[e.operation]).map((e) => e.operation), removed: Object.keys(known.api.endpoints).filter((op) => !inv.endpoints.some((e) => e.operation === op)) }
+        : undefined;
     emit({
+      ...(changes_vs_memory ? { changes_vs_memory } : {}),
       source: inv.source,
       title: inv.title,
       version: inv.version,
@@ -230,7 +249,13 @@ async function cmdReport(sub: string | undefined, rest: string[], home: string):
   const { values } = opts(rest, { run: { type: "string" }, "no-images": { type: "boolean", default: false }, out: { type: "string" } });
   const ctx = loadRunContext(home, values.run as string | undefined);
   if (sub === "build") {
-    const r = writeReports(ctx.runDir, ctx.marker.store);
+    const r = writeReports(ctx.runDir, ctx.marker.store, {
+      mode: ctx.marker.mode,
+      runId: ctx.marker.run_id,
+      roles: ctx.config.roles.map((x) => x.name),
+      uiUrls: Object.fromEntries(ctx.config.web_uis.map((u) => [u.name, u.url])),
+      refreshChanges: true,
+    });
     emit({
       technical_report: path.join(ctx.runDir, "TECHNICAL-REPORT.md"),
       admin_report: path.join(ctx.runDir, "ADMIN-REPORT.md"),
@@ -244,7 +269,7 @@ async function cmdReport(sub: string | undefined, rest: string[], home: string):
   }
   if (sub === "lint") {
     // Deliberately does not rebuild: it checks the reports as they are on disk, so a hand edit or a stale file is caught.
-    const result = lintReports(ctx.runDir, ctx.passwords);
+    const result = lintReports(ctx.runDir, ctx.passwords, ctx.marker.store);
     const { consistency: _c, ...printable } = result;
     emit(printable);
     return result.ok ? 0 : 1;
@@ -270,13 +295,72 @@ async function cmdMemory(sub: string | undefined, rest: string[], home: string):
     emit({ project_id: info.id, id_source: info.idSource, store });
     return 0;
   }
+  const { values } = opts(rest, {
+    run: { type: "string" }, type: { type: "string" }, area: { type: "string" }, text: { type: "string" }, confidence: { type: "string" },
+    confirms: { type: "string" }, contradicts: { type: "string" }, ids: { type: "string" }, symptom: { type: "string" }, reason: { type: "string" },
+    source: { type: "string" }, what: { type: "string" },
+  });
+  const ctx = loadRunContext(home, values.run as string | undefined);
+  const store = ctx.marker.store;
+  const runId = ctx.marker.run_id;
+  const secrets = ctx.passwords;
   if (sub === "context") {
-    const { values } = opts(rest, { run: { type: "string" } });
-    const ctx = loadRunContext(home, values.run as string | undefined);
-    emit(loadMemoryContext(ctx.marker.store));
+    emit(loadMemoryContext(store));
     return 0;
   }
-  throw new UsageError("memory needs a subcommand: context | where");
+  if (sub === "learn") {
+    if (values.confirms || values.contradicts) {
+      const id = (values.confirms ?? values.contradicts) as string;
+      const direction = values.confirms ? "confirm" : "contradict";
+      const r = adjustLearning(store, id, direction, runId);
+      const l = r.learning;
+      appendMemoryLog(ctx.runDir, { kind: direction === "confirm" ? "learning-merged" : "learning-contradicted", id: l.id, text: l.text });
+      emit({ action: direction === "confirm" ? "confirmed" : r.archived ? "contradicted-and-archived" : "contradicted", id: l.id, confidence: l.confidence });
+      return 0;
+    }
+    const type = values.type as LearningType | undefined;
+    if (!type || !values.area || !values.text) throw new UsageError(`memory learn needs --type (${LEARNING_TYPES.join("|")}), --area and --text (or --confirms/--contradicts <id>)`);
+    const r = learn(store, { type, area: values.area as string, text: values.text as string, run: runId, ...(values.confidence ? { confidence: num(values.confidence, "confidence", 5) } : {}) }, { knownSecrets: secrets });
+    appendMemoryLog(ctx.runDir, { kind: r.action === "created" ? "learning-created" : "learning-merged", id: r.learning.id, text: r.learning.text });
+    emit({ action: r.action, id: r.learning.id, confidence: r.learning.confidence, archived: r.archived.map((a) => a.id), warnings: r.warnings });
+    return 0;
+  }
+  if (sub === "applied") {
+    const ids = String(values.ids ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+    if (ids.length === 0) throw new UsageError("memory applied needs --ids L-001,FA-002 (learnings you used, false alarms you skipped)");
+    const learningIds = ids.filter((i) => i.startsWith("L-"));
+    const alarmIds = ids.filter((i) => i.startsWith("FA-"));
+    const applied = markApplied(store, learningIds);
+    const alarms = loadFalseAlarms(store).alarms;
+    const unknown = [...applied.unknown, ...alarmIds.filter((id) => !alarms.some((a) => a.id === id)), ...ids.filter((i) => !/^(L|FA)-\d+$/.test(i))];
+    for (const l of applied.applied) appendMemoryLog(ctx.runDir, { kind: "learning-applied", id: l.id, text: `(${l.area}) ${l.text}` });
+    for (const id of alarmIds) {
+      const a = alarms.find((x) => x.id === id);
+      if (a) appendMemoryLog(ctx.runDir, { kind: "false-alarm-skipped", id, text: a.symptom });
+    }
+    if (unknown.length) throw new Error(`These ids do not exist in this project's memory: ${unknown.join(", ")}. Cite only what memory context gave you.`);
+    emit({ applied: ids });
+    return 0;
+  }
+  if (sub === "false-alarm") {
+    if (!values.area || !values.symptom || !values.reason) throw new UsageError("memory false-alarm needs --area, --symptom (what was seen) and --reason (why it is not a bug)");
+    const source = (values.source ?? "reproduction") as FalseAlarmSource;
+    if (!["owner", "reproduction", "spec"].includes(source)) throw new UsageError("--source must be owner, reproduction or spec");
+    const r = addFalseAlarm(store, { area: values.area as string, symptom: values.symptom as string, reason: values.reason as string, source, run: runId }, { knownSecrets: secrets });
+    if (r.action === "created") appendMemoryLog(ctx.runDir, { kind: "false-alarm-created", id: r.alarm.id, text: r.alarm.symptom });
+    emit({ action: r.action, id: r.alarm.id, warnings: r.warnings });
+    return 0;
+  }
+  if (sub === "show") {
+    const what = values.what as string | undefined;
+    if (what === "learnings") emit(loadLearnings(store));
+    else if (what === "false-alarms") emit(loadFalseAlarms(store));
+    else if (what === "risk") emit({ areas: scoreAreas(loadRisk(store)) });
+    else if (what === "map") emit(loadMap(store) ?? { note: "no product map yet" });
+    else throw new UsageError("memory show needs --what learnings|false-alarms|risk|map");
+    return 0;
+  }
+  throw new UsageError("memory needs a subcommand: context | learn | applied | false-alarm | show | where");
 }
 
 async function cmdHook(sub: string | undefined, home: string): Promise<number> {

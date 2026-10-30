@@ -23,16 +23,17 @@ Knowledge is guidance, not proof: verify every claim against the product. Never 
 wrong or missing something, append a proposal to `.qa/suggested-improvements.md`.
 
 ## Phase 1: load memory
-`qamind memory context --run <id>`. Memory is **leads, not proof**: re-verify current behaviour, and cite it
-when it shaped a decision ("Applied: last run found the order totals wrong above 1,000"). In this version memory
-holds the detected stack and the last runs' summaries. State in one short paragraph what it says to focus on.
-Record what you applied in `data/meta.json` → `memory_applied` (a list of short strings).
+`qamind memory context --run <id>`, then read `${CLAUDE_PLUGIN_ROOT}/core/shared/memory-protocol.md` for what each part means. Memory is **leads, not
+proof**: re-verify current behaviour, and cite it when it shaped a decision. It gives you risk areas to test first, learnings that change
+how you run things, false alarms not to report again, the last run's findings, and the product map. State in one short paragraph what
+it says to focus on (or that this is a first run). Record what you used with `memory applied` and in `data/meta.json` → `memory_applied`.
 
 ## Phase 2: plan with charters (before probing)
 For each surface and critical flow write a charter: goal, risk, entry point, expected results, exit condition (the templates
 in `exploratory-charters.md` fit most product areas).
-Prioritize: flows and rules from the config first, then areas with past findings, then recently changed code
-(`git.changed_files` from `run start`). Save `data/charters.json`, then run `qamind report build --run <id>` so the
+Prioritize: flows and rules from the config first, then the risk areas from memory (most likely to break again), then new or changed
+endpoints (`changes_vs_memory`), then recently changed code (`git.changed_files` from `run start`). Do not rediscover what the product map already
+lists; spend that time on what is new. Save `data/charters.json`, then run `qamind report build --run <id>` so the
 plan is on disk before you probe.
 
 Modes:
@@ -44,8 +45,9 @@ Modes:
 - `quick`: critical flows and the top-risk areas; a desktop pass plus a mobile pass over every page of the critical
   flows, with the page audit on each page (`surfaces.md`). Smaller scope, not lower rigour: every finding still needs
   two reproductions and evidence.
-- `regression`: re-run the previous run's findings and the areas next to them. Read the earlier run's
-  `data/findings.json` from `.qa/reports/<run-id>/` (ids are in `memory context`). If it is gone, say so and run `quick`.
+- `regression`: re-run every finding in `previous_findings` from `memory context` (title, area and first step are there; the full steps are in that
+  run's report folder if it still exists) and the areas next to them, and report for each whether it still happens. With no previous findings,
+  say so and run `quick`.
 - `diff`: only the changed code and what depends on it. Map `git.changed_files` to routes, pages and endpoints by
   reading the source, test those plus their neighbours, and state the mapping in the charters.
 - Free-text focus narrows any mode to that area.
@@ -80,6 +82,7 @@ Write the data files (`reporting.md`), `qamind report build`, then `qamind repor
 (missing evidence, a finding not reproduced twice, a leaked secret) before finishing.
 
 ## Phase 6: learn and finish
+Write `data/pages.json` (and `endpoints.json` without a spec), save your learnings and any verified false alarms (`memory-protocol.md`, section 4), then
 `qamind run finish --run <id> --stop-reason "<completed | environment problem | stopped by the user | …>"` writes
 the run summary to the private store, re-renders the report with duration and stop reason, and clears the run marker.
 Then give the user a short chat summary (reporting.md). If you noticed a gap in these instructions, append a proposal

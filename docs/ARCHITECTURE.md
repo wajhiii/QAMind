@@ -1,4 +1,4 @@
-# Architecture (Phase 1)
+# Architecture
 
 QAMind is **write once, run everywhere**: the QA logic, knowledge and file formats live in a host-agnostic core, and each
 AI coding tool gets a thin generated adapter.
@@ -9,6 +9,7 @@ core/                         single source of truth
   shared/*.md                   workflow, safety, surfaces, reporting, memory protocol, templates
   knowledge/                    curated QA expertise: 27 topic files + INDEX.md + VERSION (docs/KNOWLEDGE-SOURCES.md credits every source)
   lib/*.ts                      deterministic runtime: store, config, URL policy, runs, API plan/runner, report, hooks
+  lib/memory/*.ts               project memory: learnings, false alarms, risk areas, product map, change detection, context bundle
   scripts/                      browser launcher + guard proxy
 cli/src/                      the `qamind` command (JSON in/out) used by skills and hooks
 hosts/claude/                 adapter: host.json, adapter.ts, plugin dependency manifest + lockfile
@@ -30,9 +31,9 @@ bug*; code does the rest:
 ## A run
 
 ```
-run start ─► memory context ─► health ─► charters ─► test (API → UI → cross-checks → rules) ─► data/*.json ─► report build/lint ─► run finish
-   │ writes project.json, stack.json,           │ api inventory / plan / run     │ browser tools           │ renders TECHNICAL-REPORT.md
-   │ run marker (store), run folder (.qa)        │ evidence/api/*.json            │ screenshots/            │ summary → store memory/runs/
+run start ─► memory context ─► health ─► charters ─► test (API → UI → cross-checks → rules) ─► data/*.json ─► memory learn ─► report build/lint ─► run finish
+   │ writes project.json, stack.json,           │ api inventory / plan / run     │ browser tools           │ renders both reports
+   │ run marker (store), run folder (.qa)        │ evidence/api/*.json            │ screenshots/            │ summary + product map + risk areas → store memory/
 ```
 
 `run start` is the gate: it picks the project, scaffolds the config on first run and stops, refuses an unfilled
@@ -59,6 +60,22 @@ them, so the problems and severities are identical by construction:
 
 Not yet tracked (arrive with later phases): regressed bugs and new/still-open/came-back lifecycle (7.7), per-project verdict rules (7.10),
 fix-mode status and branch line (6), tickets (8). The admin report says so in plain words where it matters.
+
+## Project memory
+
+`core/lib/memory/` holds the logic and the `qamind memory …` commands expose it; Phase 5 wraps the same functions in an MCP server, so
+the file formats do not change. Formats and lifecycle are in [MEMORY.md](MEMORY.md). The split follows the rest of the design:
+
+| Code | Agent |
+|---|---|
+| reads and writes the four memory stores with schema checks, secret/PII screening, de-duplication, confidence and archiving | decides what is worth remembering: one short, atomic lesson per `memory learn` |
+| builds the context bundle (top risk areas, learnings, false alarms, last findings, product-map summary) | uses it to plan, and cites only ids that exist |
+| detects what changed since the last run from `data/pages.json`, `api-inventory.json` and the OpenAPI spec; scores risk areas | tests the changes and risk areas first |
+| matches new findings against false alarms; the lint refuses an unexplained match and an invented citation | reports only what is genuinely new, or says why a similar finding is different |
+
+Memory is written in two places, both by code: `run finish` updates the product map, risk areas and false-alarm counters (after checking
+every memory file's schema, so a too-new store is never half-updated), and `memory learn` saves a learning. A report is rendered from the
+run's data files plus the previous runs' summaries, so a trend never depends on the agent remembering numbers.
 
 ## Knowledge, loaded on demand
 

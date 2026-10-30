@@ -1,0 +1,129 @@
+{
+  "label": "phase-4",
+  "seq": 2,
+  "date": "2026-10-30T10:55:49.630Z",
+  "prompt": "/qamind:qa-only full",
+  "model": "claude-sonnet-5-5",
+  "between_runs": {
+    "added_page": "/help.html (linked from the client nav)",
+    "added_endpoint": "GET /api/help",
+    "removed_endpoint": "POST /api/auth/reset-password (spec only)",
+    "seeded_false_alarm": {
+      "id": "FA-001",
+      "from_finding": "ISSUE-010",
+      "title": "My orders on a phone: the filter bar covers the first order and totals are cut off"
+    },
+    "seeded_false_alarm_covers_scored_bugs": [
+      "DB-15"
+    ]
+  },
+  "run1": {
+    "cost_usd": 1.2534747999999998,
+    "turns": 111,
+    "minutes": 4.73,
+    "first_ui_interaction": {
+      "calls": 34,
+      "seconds": 105
+    },
+    "first_api_run": {
+      "calls": 20,
+      "seconds": 30.7
+    },
+    "found": 12,
+    "found_excluding_suppressed": 11,
+    "missed": [
+      "DB-08",
+      "DB-11"
+    ],
+    "findings": 12,
+    "memory_calls": {
+      "learn": 4,
+      "applied": 0,
+      "context": 1
+    }
+  },
+  "run2": {
+    "cost_usd": 2.0643601999999994,
+    "turns": 153,
+    "minutes": 7.42,
+    "first_ui_interaction": {
+      "calls": 42,
+      "seconds": 148
+    },
+    "first_api_run": {
+      "calls": 26,
+      "seconds": 44.9
+    },
+    "found": 11,
+    "found_excluding_suppressed": 11,
+    "missed": [
+      "DB-13",
+      "DB-15"
+    ],
+    "findings": 12,
+    "memory_calls": {
+      "learn": 5,
+      "applied": 1,
+      "context": 1
+    },
+    "memory_applied": [
+      "Applied learning L-001 to test both sides of the 1,000.00 threshold and recompute tax by hand.",
+      "Applied learning L-002 to probe order detail across companies and admin routes as a client.",
+      "Applied learning L-003 to warm the client list, change status as admin, then re-read list and detail.",
+      "Applied learning L-004 to wait for the report figures before reading.",
+      "Skipped known false alarm FA-001 (phone filter bar covering the first order)."
+    ],
+    "lint_errors": [],
+    "changes": {
+      "since_run": "run-20261030T104344Z",
+      "since_date": "2026-10-30T10:48:17.310Z",
+      "first_run": false,
+      "pages_new": [
+        {
+          "ui": "Client Portal",
+          "path": "/help.html",
+          "title": "Help centre"
+        }
+      ],
+      "pages_not_seen": [],
+      "endpoints_added": [
+        {
+          "op": "GET /help",
+          "summary": "List help articles"
+        }
+      ],
+      "endpoints_removed": [
+        {
+          "op": "POST /auth/reset-password",
+          "summary": "Choose a new password with a reset token"
+        }
+      ],
+      "notes": []
+    }
+  },
+  "bug_finding_expected_suppressed": [
+    "DB-15"
+  ],
+  "checks": {
+    "memory_loaded": true,
+    "learnings_saved_in_run1": 4,
+    "cites_real_learnings": true,
+    "cited_learning_ids": [
+      "L-001",
+      "L-002",
+      "L-003",
+      "L-004"
+    ],
+    "false_alarm_seeded": "FA-001",
+    "false_alarm_not_reported_again": true,
+    "false_alarm_cited_as_skipped": true,
+    "changed_page_reported": true,
+    "changed_endpoint_added": true,
+    "changed_endpoint_removed": true,
+    "not_slower_to_first_ui_interaction": false,
+    "not_slower_to_first_api_test": false,
+    "reports_consistent_and_lint_clean": true,
+    "no_secrets_in_memory_or_reports": true
+  },
+  "secrets_found_in": []
+}

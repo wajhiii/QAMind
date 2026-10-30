@@ -97,14 +97,23 @@ fs.copyFileSync(path.join(repoRoot, "demo-app", "qa-fixture", "config.md"), path
 fs.copyFileSync(path.join(repoRoot, "demo-app", ".env.qa.fixture"), path.join(ws, ".env.qa"));
 
 // ---- the demo app ----
+// Something already answering on the port is a stale server from an earlier run: the agent would test that one, not this workspace.
+const answering = async (): Promise<boolean> => {
+  try {
+    return (await fetch("http://127.0.0.1:4100/api/health")).ok;
+  } catch {
+    return false;
+  }
+};
+if (await answering()) {
+  console.error("Something is already listening on port 4100 (a stale demo app?). Stop it and run again.");
+  process.exit(1);
+}
 const server = spawn(process.execPath, ["server.mjs"], { cwd: ws, stdio: "ignore" });
 const up = async (): Promise<boolean> => {
   for (let i = 0; i < 40; i++) {
-    try {
-      if ((await fetch("http://127.0.0.1:4100/api/health")).ok) return true;
-    } catch {
-      /* not up yet */
-    }
+    if (server.exitCode !== null) return false;
+    if (await answering()) return true;
     await new Promise((r) => setTimeout(r, 250));
   }
   return false;

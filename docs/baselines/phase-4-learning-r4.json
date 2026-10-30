@@ -1,0 +1,147 @@
+{
+  "label": "phase-4",
+  "seq": 4,
+  "date": "2026-10-30T11:27:15.279Z",
+  "prompt": "/qamind:qa-only full",
+  "model": "claude-sonnet-5-5",
+  "between_runs": {
+    "added_page": "/help.html (linked from the client nav)",
+    "added_endpoint": "GET /api/help",
+    "removed_endpoint": "POST /api/auth/reset-password (spec only)",
+    "seeded_false_alarm": {
+      "id": "FA-001",
+      "from_finding": "ISSUE-010",
+      "title": "Client Portal New order: the product drop-down has no accessible name"
+    },
+    "seeded_false_alarm_covers_scored_bugs": [
+      "DB-09"
+    ]
+  },
+  "run1": {
+    "cost_usd": 1.1175774,
+    "turns": 106,
+    "minutes": 4.82,
+    "result": {
+      "subtype": "success",
+      "is_error": false,
+      "permission_denials": [
+        "Bash",
+        "Bash"
+      ],
+      "final_message": "⛔ **Not ready to release:** 5 critical problems found and 4 important problems, for example: Customers can open other companies' orders if they know the order number.\n\n- **Counts:** 5 critical, 4 important, 2 minor, plus 1 unconfirmed lead.\n- **Critical findings:**\n  - Clients can read another company's order by its id.\n  - Any client can fetch every customer's personal and card details from `/adm"
+    },
+    "first_ui_interaction": {
+      "calls": 37,
+      "seconds": 124.2
+    },
+    "first_api_run": {
+      "calls": 18,
+      "seconds": 22.2
+    },
+    "found": 12,
+    "found_excluding_suppressed": 11,
+    "missed": [
+      "DB-05",
+      "DB-08"
+    ],
+    "findings": 11,
+    "memory_calls": {
+      "learn": 4,
+      "applied": 0,
+      "context": 1
+    }
+  },
+  "run2": {
+    "cost_usd": 1.5013584,
+    "turns": 127,
+    "minutes": 5.99,
+    "result": {
+      "subtype": "success",
+      "is_error": false,
+      "permission_denials": [
+        "Bash",
+        "Bash"
+      ],
+      "final_message": "⛔ **Not ready to release:** 5 critical problems found and 6 important problems, for example: A customer can open another company's order if they know its number.\n\n- **Critical (5):** another company's order can be opened by its id; the customers list is readable by any client; the session still works after sign-out; tax is charged before the 5% discount (a 1,000.00 order totals 1,050.00, not 1,045"
+    },
+    "first_ui_interaction": {
+      "calls": 36,
+      "seconds": 111.9
+    },
+    "first_api_run": {
+      "calls": 22,
+      "seconds": 34.5
+    },
+    "found": 12,
+    "found_excluding_suppressed": 11,
+    "missed": [
+      "DB-08",
+      "DB-11"
+    ],
+    "findings": 13,
+    "memory_calls": {
+      "learn": 5,
+      "applied": 1,
+      "context": 1
+    },
+    "memory_applied": [
+      "Applied L-001 to test discount and tax on both sides of the 1,000.00 threshold; the tax error is still there.",
+      "Applied L-002 to probe order by-id reads, the customers list and logout separately as other companies and client roles.",
+      "Applied L-003 to wait for the Reports page figures before judging it.",
+      "Applied L-004 to run client-role validation plans.",
+      "Skipped FA-001: the New order product drop-down without an accessible name is accepted by the owner."
+    ],
+    "lint_errors": [],
+    "changes": {
+      "since_run": "run-20261030T111628Z",
+      "since_date": "2026-10-30T11:21:08.913Z",
+      "first_run": false,
+      "pages_new": [
+        {
+          "ui": "Client Portal",
+          "path": "/help.html",
+          "title": "Help centre"
+        }
+      ],
+      "pages_not_seen": [],
+      "endpoints_added": [
+        {
+          "op": "GET /help",
+          "summary": "List help articles"
+        }
+      ],
+      "endpoints_removed": [
+        {
+          "op": "POST /auth/reset-password",
+          "summary": "Choose a new password with a reset token"
+        }
+      ],
+      "notes": []
+    }
+  },
+  "bug_finding_expected_suppressed": [
+    "DB-09"
+  ],
+  "checks": {
+    "memory_loaded": true,
+    "learnings_saved_in_run1": 4,
+    "cites_real_learnings": true,
+    "cited_learning_ids": [
+      "L-001",
+      "L-002",
+      "L-003",
+      "L-004"
+    ],
+    "false_alarm_seeded": "FA-001",
+    "false_alarm_not_reported_again": true,
+    "false_alarm_cited_as_skipped": true,
+    "changed_page_reported": true,
+    "changed_endpoint_added": true,
+    "changed_endpoint_removed": true,
+    "not_slower_to_first_ui_interaction": true,
+    "not_slower_to_first_api_test": false,
+    "reports_consistent_and_lint_clean": true,
+    "no_secrets_in_memory_or_reports": true
+  },
+  "secrets_found_in": []
+}

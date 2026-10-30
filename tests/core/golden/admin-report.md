@@ -69,6 +69,10 @@ To follow the steps you need a test login for each kind of person they mention (
 - **Your feedback (optional):** ______
 - **For developers:** [ISSUE-003](TECHNICAL-REPORT.md#ISSUE-003)
 
+## What changed since the last check
+
+- We could not tell what changed, because no list of screens and functions was recorded for this check.
+
 ## Compared with the last check
 
 - This is the first check of this project, so there is nothing to compare with yet.

@@ -2,29 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { main } from "../../cli/src/main.ts";
-import { makeRunWithData } from "./helpers.ts";
-
-/** Run a CLI command in-process and capture its JSON output and exit code. */
-async function cli(home: string, ...args: string[]): Promise<{ code: number; json: any }> {
-  const prevHome = process.env["QAMIND_HOME"];
-  process.env["QAMIND_HOME"] = home;
-  const writes: string[] = [];
-  const realOut = process.stdout.write.bind(process.stdout);
-  const realErr = process.stderr.write.bind(process.stderr);
-  process.stdout.write = ((c: string | Uint8Array) => (writes.push(String(c)), true)) as typeof process.stdout.write;
-  process.stderr.write = (() => true) as typeof process.stderr.write;
-  try {
-    const code = await main(args);
-    const text = writes.join("");
-    return { code, json: text.trim().startsWith("{") ? JSON.parse(text) : text };
-  } finally {
-    process.stdout.write = realOut;
-    process.stderr.write = realErr;
-    if (prevHome === undefined) delete process.env["QAMIND_HOME"];
-    else process.env["QAMIND_HOME"] = prevHome;
-  }
-}
+import { cli, makeRunWithData } from "./helpers.ts";
 
 test("report build writes both reports, lint passes, check passes, and export-html writes one self-contained file", async () => {
   const fx = makeRunWithData({ admin: { biggest_risk: "Customers' orders can be read by other customers." } });

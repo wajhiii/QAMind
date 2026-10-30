@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.4.0 (Phase 4, unreleased)
+
+- **Project memory, files first** (`core/lib/memory/`, private per user in `$QAMIND_HOME`): `product-map.json`, `risk-areas.json`, `learnings.jsonl`,
+  `false-alarms.jsonl` and an `archive/`, next to the existing `stack.json` and `runs/`. Every file carries `schema_version`; JSON Lines files start with a
+  `_meta` line. Hand edits are tolerated (unreadable lines are kept and reported, unknown fields survive). A store written by a newer QAMind is refused
+  **before anything is written**, so memory is never half-updated.
+- **Learnings:** five types, merged when 60% similar, confidence +1 when confirmed and -2 when contradicted, archived below 3, capped at 200. **False alarms:**
+  matched against new findings; the lint refuses an unexplained match against an owner- or spec-sourced alarm (a warning for a reproduction-sourced one).
+  **Risk areas:** frequency x severity x recency (90-day half-life), recorded once per run id. **Product map and change detection:** normalised paths,
+  new pages, endpoints added or removed (only when both pictures come from the OpenAPI spec), pages not seen (only after a full run).
+- **Nothing secret or personal is saved:** every text is screened for the project's test passwords, tokens and keys, non-reserved email addresses and national-ID-,
+  card- and phone-number-like values, and refused rather than trimmed.
+- **Citations are checked:** `memory applied` accepts only ids that exist, and the report lint rejects an invented `L-`/`FA-` id.
+- **CLI:** `memory context | learn | applied | false-alarm | show | where`; `api inventory` prints `changes_vs_memory`; `report build` refreshes change detection.
+- **Reports:** the technical report gains "What changed since the last run", a Trend table (this run and up to four before it) and a Memory section (applied,
+  saved, state after the run); the admin report gains "What changed since the last check" in plain words and a "key journeys fully checked" trend line (also in the HTML export). The number of coverage rows is not used as a trend: the agent chooses how finely to split the work (9 vs 24 rows between two runs with no real change).
+- **Agent instructions:** load memory first, plan from risk areas and changes, record `pages.json`, skip known false alarms, save learnings before finishing.
+  `core/lib/memory.ts` was replaced by the `core/lib/memory/` modules.
+- **Evaluation:** `scripts/eval-learning.ts` runs the spec's learning test (two runs on the demo app against one memory, with a product change and an owner-confirmed
+  false alarm in between), saves each run's call trace, counts a run only if it ended normally and finished its memory update, and writes a failure record otherwise.
+  Both evaluation scripts now refuse to start if something is already listening on the demo port. Results: `docs/EVALUATION-LOG.md`.
+- Found by that evaluation and fixed: plain change lines quoted jargon from an API summary; a page seen for the first time was called "new" although the earlier run had only not reached it;
+  applied learnings were listed twice; the trend compared coverage-row counts.
+- Not in this phase: fix log (6), bug lifecycle and feedback (7.7), performance and metrics (7.9, 7.10), the `qa-memory` MCP server (5).
+
 ## 0.3.0 (Phase 3, unreleased)
 
 - **Admin report** (`ADMIN-REPORT.md`), rendered from the same data as the technical report: release verdict first line (default rules from the

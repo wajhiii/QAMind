@@ -2,7 +2,8 @@ import type { Severity } from "./config.ts";
 import { countBySeverity, mergedNotTested } from "./report.ts";
 import type { Finding, FixStatus, RunData } from "./report.ts";
 import type { RunSummary } from "./run.ts";
-import { computeVerdict, isOpen } from "./verdict.ts";
+import { describeChanges } from "./memory/productmap.ts";
+import { computeVerdict, flowStatus, isOpen } from "./verdict.ts";
 import type { Verdict } from "./verdict.ts";
 
 /**
@@ -48,6 +49,8 @@ export interface AdminModel {
   areas: AreaRow[];
   problems: AdminProblem[];
   trend: string[];
+  /** What changed since the last check, in plain words. */
+  changes: string[];
   notTested: Array<{ area: string; reason: string }>;
   nextSteps: string[];
 }
@@ -188,9 +191,22 @@ function trendLines(data: RunData, previous: RunSummary[]): string[] {
     `Last check (${plainDate(last.started)}, ${MODE_TEXT[last.mode]?.split(" (")[0] ?? last.mode}): ${last.counts.critical} critical, ${last.counts.important} important, ${last.counts.minor} minor.`,
     `This check: ${now.critical} critical (${diff(last.counts.critical, now.critical)}), ${now.important} important (${diff(last.counts.important, now.important)}), ${now.minor} minor (${diff(last.counts.minor, now.minor)}).`,
   ];
+  // Compared by key journeys, which the config fixes. The number of coverage rows is how finely the agent split the work, so it is not a trend.
+  const journeysNow = flowStatus(data);
+  if (last.journeys && journeysNow.total > 0) lines.push(`Key journeys fully checked: ${journeysNow.tested.length} of ${journeysNow.total} this time, ${last.journeys.tested} of ${last.journeys.total} last time.`);
   if (last.mode !== data.meta?.mode) lines.push("The two checks were not the same kind, so the numbers are not directly comparable.");
   lines.push("We do not yet track which problems are new and which are repeats of earlier ones.");
   return lines;
+}
+
+function changeLines(data: RunData): string[] {
+  const c = data.changes;
+  if (!c) return ["We could not tell what changed, because no list of screens and functions was recorded for this check."];
+  if (c.first_run) return ["This is the first check, so there is nothing to compare with."];
+  const plain = describeChanges(c, (text) => lintAdminLanguage(text).length === 0).plain;
+  const out = plain.length ? plain : ["Nothing new or removed: the same screens and functions as last time."];
+  if (data.meta?.mode !== "full") out.push("Screens that were not visited are not listed as gone, because this was not a full check.");
+  return out;
 }
 
 export function buildAdminModel(data: RunData, previous: RunSummary[] = []): AdminModel {
@@ -236,7 +252,7 @@ export function buildAdminModel(data: RunData, previous: RunSummary[] = []): Adm
   const authored = (data.admin?.next_steps ?? []).map(one).filter(Boolean);
   const nextSteps = (authored.length ? authored : fallbackSteps).slice(0, MAX_NEXT_STEPS);
 
-  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), notTested, nextSteps };
+  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps };
 }
 
 export function renderAdminMarkdown(m: AdminModel): string {
@@ -270,6 +286,7 @@ export function renderAdminMarkdown(m: AdminModel): string {
     L.push(`- **For developers:** [${p.id}](${TECHNICAL_FILE}#${p.id})`, "");
   }
 
+  L.push("## What changed since the last check", "", ...m.changes.map((t) => `- ${t}`), "");
   L.push("## Compared with the last check", "", ...m.trend.map((t) => `- ${t}`), "");
   L.push("## What was not tested", "");
   if (m.notTested.length === 0) L.push("Everything planned was checked.", "");

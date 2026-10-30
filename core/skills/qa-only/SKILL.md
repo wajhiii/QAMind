@@ -57,8 +57,9 @@ Read `.qa/config.md` (the flows, business rules, do-not-touch list and known iss
 Skip anything under "Known issues to skip".
 
 ## Step 1: load memory
-`{{CLI}} memory context --run <id>`. In one short paragraph, tell the user what memory says to focus on (or that this is a
-first run). Record what you applied in `data/meta.json` → `memory_applied`.
+`{{CLI}} memory context --run <id>`, and read `{{CORE_PATH}}/shared/memory-protocol.md`. In one short paragraph, tell the user what memory says to focus on
+(risk areas, known quirks, the last run's problems), or that this is a first run. Memory is leads, not proof. When you use a learning or skip a
+known false alarm, record it with `memory applied` (only real ids) and in `data/meta.json` → `memory_applied`.
 
 ## Step 2: health check
 `{{CLI}} health --run <id>`. If `environment_ok` is false, follow "Environment problem" in `reporting.md`: do not test
@@ -66,7 +67,7 @@ further and report no product findings.
 
 ## Step 3: plan
 Read `{{CORE_PATH}}/knowledge/INDEX.md` now and choose the knowledge files this run needs. Write `<run.dir>/data/charters.json` (see `reporting.md`): a charter for each surface and critical flow, prioritized by
-memory and, in `diff` mode, by `git.changed_files`. Then `{{CLI}} report build --run <id>` so the plan is on disk before you probe.
+memory (risk areas first, then new or changed endpoints from `changes_vs_memory`) and, in `diff` mode, by `git.changed_files`. Then `{{CLI}} report build --run <id>` so the plan is on disk before you probe.
 Tell the user the plan in a few lines.
 
 ## Step 4: test
@@ -79,7 +80,8 @@ Load the knowledge for each pass **when you start it** (INDEX has the rest; fram
   `file-uploads.md` or `notifications-email.md` when those features exist.
 - Cross-checks: `permissions-and-data-isolation.md` and the "warm, change, re-read" sequence in `api-testing.md`.
 - Business rules: `test-design.md` (boundaries) and `payments-and-money.md` for amounts. Before writing findings: `bug-reporting.md`.
-Keep a running list for the data files: confirmed findings, unconfirmed leads, not-tested areas, coverage.
+Keep a running list for the data files: confirmed findings, unconfirmed leads, not-tested areas, coverage, and the **pages you visit**
+(`data/pages.json`, see `memory-protocol.md`). Do not report a known false alarm again.
 Every finding needs at least two reproductions and evidence. Report only what you verified. Never mark an untested area as passing.
 Be proportionate: `quick` covers the critical flows and top risks, thoroughly, and lists everything else as Not tested with the true
 reason. Run the page audit (`surfaces.md`) on every page you visit, on desktop and mobile.
@@ -95,7 +97,9 @@ and `admin.json` in `<run.dir>/data/`, then:
 Fix every lint error (including jargon in the plain text) and rebuild until lint passes. Only if the user asks for an email-ready copy,
 run `{{CLI}} report export-html --run <id>` and tell them the screenshots are not masked automatically.
 
-## Step 6: finish
+## Step 6: learn, then finish
+Save what the next run should know: at most about five atomic learnings (`{{CLI}} memory learn ...`) and any verified false alarms
+(`memory false-alarm`), as described in `memory-protocol.md`. Never include secrets or real people's data: the command refuses them. Then:
 ```
 {{CLI}} run finish --run <id> --stop-reason "<completed | environment problem | stopped by the user | ...>"
 ```

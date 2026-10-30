@@ -75,3 +75,9 @@ notes; handling secrets and personal data found in evidence (arrives with Phase 
 
 `docs/EVALUATION-LOG.md` has the exact procedure (a copy of the demo app without its answer key, a scratch `QAMIND_HOME`, a headless
 `claude -p` run, and the scorer). A quick run costs roughly $2 to $3 and takes 10 to 15 minutes.
+
+After a change to memory (`core/lib/memory/`, the memory protocol or the skill's memory steps), also run the learning test:
+`CLAUDE_BIN=/path/to/claude node scripts/eval-learning.ts --label <phase-name> --seq 1`. It runs `/qa-only` twice on the demo app against one scratch memory,
+changes the demo copy in between (`scripts/learning-mutation.ts`: a new Help page and endpoint, one endpoint dropped from the spec) and seeds an owner-confirmed
+false alarm, then checks that the second run applied memory, skipped the false alarm, reported what changed, was not slower to reach the critical flows, and left no
+secrets in the store or the reports. Make sure nothing else is listening on port 4100 first (the script refuses to start if so).

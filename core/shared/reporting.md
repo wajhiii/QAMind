@@ -75,6 +75,11 @@ If `health` fails: do not test further. Write `not-tested.json` with one entry p
 problem: <what failed>"), `coverage.json` rows with `not-tested`, no findings, build and lint the report, finish with
 `--stop-reason "environment problem"`, and tell the user plainly what is broken.
 
+## `pages.json` and `endpoints.json`: what exists (for the product map)
+`pages.json`: `[{ "ui": "Client Portal", "path": "/my-orders.html", "title": "My orders", "roles": ["client-a"] }]`, one entry per kind of page you visited
+(path without query string; ids are folded together). `endpoints.json` (only without an OpenAPI spec): `["GET /orders", "POST /orders"]`. From these and the
+last run, the reports show **what changed since the last run** (new and no-longer-seen pages and endpoints). `report lint` warns if `pages.json` is missing.
+
 ## `admin.json`: the two things only you can judge for the admin report
 `{ "biggest_risk": "One plain sentence.", "next_steps": ["At most three plain steps."] }`
 
