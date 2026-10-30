@@ -1,0 +1,253 @@
+{
+  "label": "phase-3-final-r2",
+  "report": "phase-3-final-full-r2.admin.md",
+  "date": "2026-10-30T09:54:27.472Z",
+  "model": "claude-sonnet-5-5",
+  "problems_in_report": 12,
+  "problems_with_on_screen_steps": 4,
+  "reader": {
+    "answered": true,
+    "cost_usd": 0.0688987,
+    "steps_followable": 4,
+    "steps_not_followable": 0,
+    "confusing_words": [
+      "the part that talks to the Client Portal",
+      "A customer account can ask the system for the full customer list",
+      "technical details",
+      "id=o-1039",
+      "address bar",
+      "worked out on the price before the discount",
+      "the sign-in they had keeps working if someone copied it",
+      "a stolen or shared session",
+      "session",
+      "fractional",
+      "the browser pages that use search would show an old value",
+      "search results",
+      "about 390 pixels wide",
+      "Status filter bar",
+      "a single bracket or backslash",
+      "zero items per page",
+      "make the system fail",
+      "handled gracefully",
+      "order search",
+      "badly formed request",
+      "internal technical details",
+      "the location of files on the server",
+      "helps an attacker",
+      "Two identical orders sent at the same moment",
+      "repeated references",
+      "refused or merged",
+      "screen readers",
+      "spoken name",
+      "round-arrow and clear icons",
+      "the search box has no label"
+    ],
+    "unclear_problems": [
+      "Certain searches or page settings make the order list fail"
+    ],
+    "overall": {
+      "would_you_know_what_to_do_next": true,
+      "verdict_clear": true,
+      "comments": "The 'Not ready to release' verdict and the three next steps are easy to follow, and I would pass the report to a developer. Some wording would make me ask questions: 'Environment: local demo', 'full check', 'Behind the screens' (although it is explained at the end), 'session', 'fail', and the 'Ticket: none yet' line (who creates tickets?). Most problems cannot be seen on screen, so I would have to rely on the developers. The steps that can be seen need a test login that I have to ask for."
+    },
+    "detail": [
+      {
+        "title": "Any customer who signs in can read the personal details of all other customers",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "the part that talks to the Client Portal",
+          "A customer account can ask the system for the full customer list",
+          "technical details"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand that customers can see each other's private data and that this is a legal risk. I would not know how the 'asking' happens, but I don't need to. A developer has to confirm it."
+      },
+      {
+        "title": "A customer can view another company's order by changing the number in the page address",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "id=o-1039",
+          "address bar"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I can follow this if someone gives me a Zain Traders test login. Step 2 says to change the number to 1039, but then says the address ends in 'id=o-1039'. I would not be sure exactly what to type or where. The screenshot would help."
+      },
+      {
+        "title": "Customers with large orders are charged too much tax",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "worked out on the price before the discount"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "The steps are plain and I can see the $1,050.00 result myself. The tax rate is never stated, so I could not check how the $1,000 and $1,045 figures are reached. I would have to trust the report on that. I do understand that customers are overcharged."
+      },
+      {
+        "title": "After signing out, the old sign-in can still be used",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "the sign-in they had keeps working if someone copied it",
+          "a stolen or shared session",
+          "session"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I get the idea that signing out doesn't really lock the account. I'm unsure what 'copied' means in practice and how likely this is to happen."
+      },
+      {
+        "title": "The system accepts orders with impossible quantities, including negative ones",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "fractional"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear. Orders for -5 items or 5,000 items are accepted, and that distorts the totals and sales figures."
+      },
+      {
+        "title": "Searching My orders can show an old status",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "the browser pages that use search would show an old value",
+          "search results"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand that customers may see an outdated order status. The last part of 'Who is affected' is vague."
+      },
+      {
+        "title": "On a phone, the My orders page hides part of the first order and the Total column",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "about 390 pixels wide",
+          "Status filter bar"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I could narrow the window by dragging, but 'pixels' means nothing to me, so I don't know how narrow is narrow enough. The screenshot shows the problem."
+      },
+      {
+        "title": "Certain searches or page settings make the order list fail",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "a single bracket or backslash",
+          "zero items per page",
+          "make the system fail",
+          "handled gracefully",
+          "order search"
+        ],
+        "clear_what_is_wrong": false,
+        "clear_who_is_affected": true,
+        "comments": "I don't know what 'fail' looks like to a customer. Does the page crash or show an error? I also don't know how likely anyone is to type a backslash, so I can't judge why it matters."
+      },
+      {
+        "title": "Error messages reveal internal technical details",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "badly formed request",
+          "internal technical details",
+          "the location of files on the server",
+          "helps an attacker"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I get that the system tells outsiders too much when something goes wrong, which is a security weakness. Who would see these messages is unclear, and 'the company's security' is a broad answer."
+      },
+      {
+        "title": "A double click can place the same order twice",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Two identical orders sent at the same moment",
+          "repeated references",
+          "refused or merged"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "The title talks about a double click on screen, but the steps say it can't be seen on screen, which confused me. The report also says 'we are unsure whether repeated references are meant to be allowed', so I can't tell whether this is really a fault. I would have to ask someone."
+      },
+      {
+        "title": "Some buttons on the admin Orders page cannot be understood by screen readers",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "screen readers",
+          "spoken name",
+          "round-arrow and clear icons",
+          "the search box has no label"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand that blind staff can't tell what some buttons do. 'Spoken name' and 'label' are jargon, but the sentence still makes sense."
+      },
+      {
+        "title": "The sales report is slow to appear",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Simple and easy to repeat with an admin login. It is a minor nuisance and labelled that way."
+      }
+    ]
+  },
+  "replay": {
+    "ran": 4,
+    "followed_all_steps": 3,
+    "saw_the_described_problem": 3,
+    "cost_usd": 0.1506635,
+    "detail": [
+      {
+        "problem": "🔴 Critical: A customer can view another company's order by changing the number in the page address",
+        "steps": 3,
+        "followed_all_steps": false,
+        "stuck_at_step": 1,
+        "stuck_reason": "Step 1 says to sign in as a customer of Zain Traders, but none of the logins I was given belongs to Zain Traders. I only have Acme (two customers), Bright and an admin. I didn't want to guess by using a different company's login, so I stopped before opening the portal.",
+        "saw_the_described_problem": false,
+        "notes": "I didn't open the browser or try any steps, so I have not seen the problem. The report needs a Zain Traders customer login, or confirmation of which given login to use instead.",
+        "cost": 0.015910399999999998
+      },
+      {
+        "problem": "🔴 Critical: Customers with large orders are charged too much tax",
+        "steps": 5,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "After placing the order (QA-UI-1, 80 × Ballpoint Pens), the confirmation said \"Order QA-UI-1 placed. Total: $1,050.00.\", not the expected $1,045.00. I did not open the separate order page. For step 2, my click on New order failed, so I opened the New order page by its address instead.",
+        "cost": 0.04499499999999999
+      },
+      {
+        "problem": "🟠 Important: On a phone, the My orders page hides part of the first order and the Total column",
+        "steps": 4,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "At 390px wide, signed in as the Acme customer, the My orders page showed the first order (PO-4430) partly covered by the Status filter bar, with its row cut off at the top. The Total amounts were clipped at the right edge ($94., $105., $83.), and the View link wasn't visible. Nothing on screen showed that the table could be scrolled sideways. The login landed me directly on My orders, so I didn't need to click it.",
+        "cost": 0.0294464
+      },
+      {
+        "problem": "🟡 Minor: The sales report is slow to appear",
+        "steps": 3,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "I signed in as the admin and clicked Reports. The page showed only the 'Sales summary' heading with a 'Loading' indicator. It was still loading when I checked again about 6 seconds later, and the figures were there after about 16 seconds in total. My checks were too coarse to time the delay exactly, but it was clearly longer than a couple of seconds.",
+        "cost": 0.0603117
+      }
+    ]
+  }
+}

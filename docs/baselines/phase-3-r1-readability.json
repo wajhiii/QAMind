@@ -1,0 +1,264 @@
+{
+  "label": "phase-3-r1",
+  "report": "phase-3-full-r1.admin.md",
+  "date": "2026-10-30T08:12:34.345Z",
+  "model": "claude-sonnet-5-5",
+  "problems_in_report": 12,
+  "problems_with_on_screen_steps": 4,
+  "reader": {
+    "answered": true,
+    "cost_usd": 0.0530484,
+    "steps_followable": 4,
+    "steps_not_followable": 0,
+    "confusing_words": [
+      "changing the number in the address",
+      "Client Portal",
+      "A developer can confirm it using the details below",
+      "Behind the screens (the part that talks to the Client Portal and Admin Portal)",
+      "signed in",
+      "retrieve",
+      "staff notes",
+      "Behind the screens (the part that talks to the Client Portal)",
+      "old sign-in still works for anyone who has a copy of it",
+      "Admin Portal",
+      "Ballpoint Pens, box of 50",
+      "reference",
+      "Reports",
+      "accepted",
+      "reload the page",
+      "Processing",
+      "Placed",
+      "internal technical details",
+      "attacker",
+      "something unexpected is sent",
+      "bracket",
+      "backslash",
+      "invalid page size",
+      "invalid sizes get a clear refusal",
+      "Two identical orders sent at once",
+      "Behind the screens",
+      "filter bar",
+      "narrow window",
+      "screen readers",
+      "assistive technology",
+      "Every field has a clear name"
+    ],
+    "unclear_problems": [
+      "Error messages reveal the system's internal technical details"
+    ],
+    "overall": {
+      "would_you_know_what_to_do_next": true,
+      "verdict_clear": true,
+      "comments": "The 'Not ready to release' verdict is clear and the suggested next steps tell me to have a developer fix access problems first, then sign-out and tax, then quantities and stale statuses. Weak points: the repeated 'Behind the screens' wording, 'Client Portal' and 'Admin Portal' never defined, no login details for the steps, tickets not yet created (so I would need to ask someone to create them), and the summary mentions one issue seen once that is not described. The 'Your feedback' fields are not automatically read, so I would need to tell a developer directly."
+    },
+    "detail": [
+      {
+        "title": "A customer can open another company's order by changing the number in the address",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "changing the number in the address",
+          "Client Portal",
+          "A developer can confirm it using the details below"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "The core issue is clear: one company can see another company's orders, which is a serious privacy problem. 'Changing the number in the address' is vague to a non-technical reader (the web address/URL is not named). Says only a developer can verify, so I would have to trust it."
+      },
+      {
+        "title": "Any customer can read every customer's private details, including national ID numbers and payment card information",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal and Admin Portal)",
+          "signed in",
+          "retrieve",
+          "staff notes"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear and alarming: private data of all customers is exposed, with legal risk. 'Behind the screens' is explained only loosely, and I cannot check this myself."
+      },
+      {
+        "title": "Signing out does not really sign the person out",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)",
+          "old sign-in still works for anyone who has a copy of it"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand the gist: after signing out, access could still be used by someone else. 'A copy of it' (a sign-in token) is unclear, and I would not know how someone gets a copy."
+      },
+      {
+        "title": "Large orders are charged too much tax",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Client Portal",
+          "Admin Portal",
+          "Ballpoint Pens, box of 50",
+          "reference"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Steps are followable if I know how to get into the Client Portal and have a customer login (login details are not given). 'Type a reference' does not say what to type. The wrong and right totals are stated, which helps. Explanation of discount versus tax is understandable."
+      },
+      {
+        "title": "The system accepts orders with impossible quantities, including negative and empty orders",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)",
+          "Reports",
+          "accepted"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear that bad quantities such as negative ones get through and distort totals. Affected group ('staff reading totals and the sales figures') is a bit vague, and it is not stated whether customers can do this on the normal form (the report says that was not tested)."
+      },
+      {
+        "title": "The My orders list keeps showing an old status after the order has moved on",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Client Portal",
+          "Admin Portal",
+          "reload the page",
+          "Processing",
+          "Placed"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Steps are mostly followable, but they need access to two portals with logins, and I would not know how to 'reload the page'. The problem (conflicting status) is clear and relevant to customers."
+      },
+      {
+        "title": "Error messages reveal the system's internal technical details",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)",
+          "internal technical details",
+          "attacker",
+          "something unexpected is sent"
+        ],
+        "clear_what_is_wrong": false,
+        "clear_who_is_affected": true,
+        "comments": "I do not really understand what is shown or why it helps an attacker. 'The company's security' is a broad answer. No example of what is revealed."
+      },
+      {
+        "title": "Searching orders for certain symbols, or an invalid page size, makes the system fail",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal and Admin Portal)",
+          "bracket",
+          "backslash",
+          "invalid page size",
+          "invalid sizes get a clear refusal"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Title mentions 'page size', which is never explained. I get that searching with odd symbols causes an error, but it is not clear how likely customers are to do this, so I cannot judge importance. The 'bracket' and 'backslash' symbols are not shown."
+      },
+      {
+        "title": "Clicking Place order twice can create two identical orders",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Two identical orders sent at once",
+          "Behind the screens"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Easy to grasp: a double click may create duplicates. Slightly unclear whether it actually happens on the real button, since the report says only the system behind was tested, and the title says 'can' and 'may'."
+      },
+      {
+        "title": "On a phone, the filter bar hides the first order and the total is cut off",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "filter bar",
+          "narrow window",
+          "Client Portal"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Followable with a phone and a login. 'Narrow window' is unclear to me on a computer. The screenshot helps."
+      },
+      {
+        "title": "The Reports page is slow and shows nothing while loading",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Admin Portal"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Simple and clear, though I need an Admin Portal login. Four seconds of empty page is easy to understand, though the practical impact is small."
+      },
+      {
+        "title": "The product choice box on New order cannot be understood by screen readers",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "screen readers",
+          "assistive technology",
+          "Every field has a clear name"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I broadly understand it affects blind or visually impaired customers. 'Screen reader' is not explained. The report says it cannot be seen on screen, yet it links a screenshot, which is a little confusing."
+      }
+    ]
+  },
+  "replay": {
+    "ran": 4,
+    "followed_all_steps": 4,
+    "saw_the_described_problem": 2,
+    "cost_usd": 0.30304960000000003,
+    "detail": [
+      {
+        "problem": "🔴 Critical: Large orders are charged too much tax",
+        "steps": 5,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "I signed in as the Acme customer, opened New order, entered reference TEST-1 (the steps gave no reference, so I picked one), chose Ballpoint Pens, box of 50, set quantity 80 and clicked Place order. The page said 'Order TEST-1 placed. Total: $1,050.00.' That matches the report's wrong total; the expected total is $1,045.00. I opened New order by typing its address instead of clicking the link, but it was the same page.",
+        "cost": 0.0751172
+      },
+      {
+        "problem": "🟠 Important: The My orders list keeps showing an old status after the order has moved on",
+        "steps": 4,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": false,
+        "notes": "I placed order PO-1001 as the Acme customer. The order form required a PO reference that the steps didn't specify, so I typed PO-1001. In the Admin Portal I set it to Processing and saw 'Status updated to processing'. In the Client Portal, My orders showed PO-1001 as 'processing' on the first load and again after a reload. The list did not show the old 'Placed' status. I did not open the order page in the Client Portal to compare it.",
+        "cost": 0.13012850000000004
+      },
+      {
+        "problem": "🟡 Minor: On a phone, the filter bar hides the first order and the total is cut off",
+        "steps": 3,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "In a 375px-wide window, I signed in as the Acme customer and opened My orders. The Status filter and New order button sit on top of the first order, so PO-4430 is partly hidden. The Total column is cut off at the right edge, and amounts show as '$9', '$10' and '$8'.",
+        "cost": 0.027043500000000005
+      },
+      {
+        "problem": "🟡 Minor: The Reports page is slow and shows nothing while loading",
+        "steps": 3,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": false,
+        "notes": "I signed in and clicked Reports. The page took roughly 5-8 seconds to show figures, so it is slow. It was not empty during that time: the \"Sales summary\" heading and a spinning loading indicator were visible. The report says there is no sign of activity, and that part did not match what I saw.",
+        "cost": 0.0707604
+      }
+    ]
+  }
+}

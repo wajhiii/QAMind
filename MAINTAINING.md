@@ -45,6 +45,13 @@ Releases are Git tags (`vX.Y.Z`); there is no npm package. Bump `version` in `pa
 
 Windows (the code avoids POSIX-only APIs where it can, but nothing has been run there), and Linux outside CI.
 
+## Changing the admin report
+
+The admin report is rendered by `core/lib/adminreport.ts` (Markdown) and `core/scripts/export-html.ts` (HTML) from the same model; the consistency check
+(`core/scripts/consistency-check.ts`) parses the written Markdown, so a format change must update the renderer, the parser and the golden file together.
+Regenerate the golden example with `UPDATE_GOLDEN=1 node --test tests/core/admin-report.test.ts` and review the diff of
+`tests/core/golden/admin-report.md` and `docs/examples/ADMIN-REPORT.example.md`.
+
 ## Updating the knowledge base
 
 `core/knowledge/` holds one topic per file (under 300 lines), written as checklist-style instructions to the agent, in our own words.

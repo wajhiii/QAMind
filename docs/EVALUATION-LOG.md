@@ -66,6 +66,23 @@ plan names accepted by `api run`, an honest-reasons rule (no "time budget reache
   the `npx` fallback, which connects about 1.3 s slower than the installed dependency (1.65 s vs 0.35 s).
 
 
+## How the admin report is evaluated (Phase 3)
+
+Three independent checks, because "plain language a non-technical person can follow" cannot be proved by a pattern match:
+
+1. **Mechanical (every run, recorded in `results.admin`):** the admin report exists, `report check` finds the two written reports consistent (same issue
+   ids and severities, nothing added or dropped, counts and verdict agree, complete problem blocks, at most 3 next steps, a summary of at most 6 lines), and no
+   jargon appears outside "For developers" lines.
+2. **Text-only reader** (`scripts/eval-readability.ts`): a fresh agent with no tools plays a non-technical manager and reads only the admin report. For each
+   problem it says whether it could follow the steps, quotes every word it did not understand, and says whether what is wrong and who is affected are clear.
+3. **Novice replay** (same script): a fresh agent with nothing but browser clicking and typing (no code, no back-end calls, no source, no developer tools,
+   running inside the QAMind browser guard on the live demo) is given one problem's "How to see it yourself" steps and told to follow them exactly, stopping at
+   any step it cannot do. It reports where it got stuck and whether it saw the problem described. Results are saved as `docs/baselines/<label>-readability.json`.
+
+Both readers are LLMs, so they are a proxy for a person, not a substitute: they cannot judge tone for a particular company, and a model can follow steps a
+person would find unfamiliar. They do catch the failures that matter most for the criterion: steps that cannot be followed, vague or overstated wording, and
+unexplained words.
+
 ## Phase 1 baseline and Phase 2 (mode `full`, three runs each, settings pinned as above)
 
 The first Phase 1 evaluation above used `quick` mode, one run per configuration, and loaded personal plugins; it is kept for the record. The reference for
@@ -112,3 +129,68 @@ Runs that found each bug (of 3):
   agent that does not open it; the options are a stricter step in the workflow or a deterministic check (for example lint warning when a full run has
   desktop but no mobile coverage for a page). Not done in this phase.
 - **Cost.** The knowledge roughly doubled cost and time per run ($0.7 to $1.3 per run, 4 to 6 minutes) for a modest gain on this fixture.
+
+
+## Phase 3: admin report (mode `full`, settings pinned as above)
+
+Phase 3 changes what the agent writes at the end of a run (plain-language fields, an admin report) but not how it tests, so the first question is whether
+bug-finding regressed, and the second whether the admin report meets its criterion.
+
+### Builds that were evaluated (the code under test is identified by `plugin_content_sha256`; Phase 3 was uncommitted when these ran)
+
+| Label | What it was | Runs | `plugin_content_sha256` |
+|---|---|---|---|
+| `phase-3` | first Phase 3 build | 3 (+ 1 preliminary, `phase-3-prelim`) | `46c3c0bcb160` |
+| `phase-3b` | after reader-test fixes (glossary, logins note, corrected wording) | 1 | `311378d6fe79` |
+| `phase-3-final` | after the "behind the screens" note | 3 valid, 1 stalled | `0777ae8552d8` |
+| `phase-3-c` | **the committed build**: adds the "never depend on data that only existed during the check" rule | 1 | `28fdbd879641` |
+
+The last change (build C) is one rule in `core/shared/admin-report.md` that was added after the novice replay on `phase-3-final` found a real flaw
+(below). It was verified with a single run, which stayed consistent and lint-clean but did not happen to include an on-screen problem that depends on
+test-run data, so the rule itself is **in place, not demonstrated**.
+
+### Bug-finding did not regress (three runs each; baseline and Phase 2 from the table above)
+
+| | Phase 1 baseline | Phase 2 tuned | Phase 3 first build | Phase 3 final |
+|---|---|---|---|---|
+| Seeded bugs found, of 14 (per run) | 11.3 (12, 12, 10) | 12.7 (12, 14, 12) | 12.3 (12, 12, 13) | 11.7 (12, 13, 10) |
+| Decoy false positives (mean) | 0.3 | 0.3 | 0.0 | 0.7 |
+| Cost per run, USD (mean) | 0.7 | 1.3 | 1.5 | 1.5 |
+| Wall time, minutes (mean) | 4.0 | 6.1 | 6.7 | 6.3 |
+| Admin report written and consistent with the technical report | n/a | n/a | 3 of 3 | 3 of 3 |
+| Plain-language lint errors at the end of the run | n/a | n/a | 0 | 0 |
+
+All four builds sit inside each other's run-to-run spread (about two bugs); there is no sign that writing the extra report hurt testing, and none that
+it helped. Build C found 11 of 14 in its single run. Writing the plain-language report adds about $0.2 per run.
+
+### One run stalled
+Repetition 2 of `phase-3-final` ran for 60 minutes without finishing and was killed by the harness (no result event, no findings; record kept as
+`phase-3-final-full-r2-stalled.*`). It is the only stall in about 20 full evaluation runs. The cause is unknown: no transcript was kept. The harness now keeps
+the workspace and writes diagnostics (the last tool calls) when a run ends without a result, and has a `--timeout-min` option (default 45). Spec 13.6
+(time budgets, Phase 7.6) is the planned protection for real use. Repetition 2 was re-run and is the one counted above.
+
+### Can a non-technical reader follow the steps? (`scripts/eval-readability.ts`)
+| | Problems with on-screen steps | Text-only reader: steps followable | Novice replay: followed every step | Novice replay: saw the described problem |
+|---|---|---|---|---|
+| First build (1 report) | 4 | 4 of 4 | 4 of 4 | 2 of 4 |
+| Final build (3 reports) | 12 | 12 of 12 (0 "not followable") | 12 of 12 | 10 of 12 |
+| Committed build C (1 report) | 3 | 3 of 3 | 3 of 3 | 3 of 3 |
+
+What the tests found, and what was done about it:
+- **First build, stale status not reproduced:** the steps did not say to look at the list *before* the change, and did not name an existing order. Fixed in
+  the guide ("self-contained and in the right order"); the final build's reports reproduced it.
+- **First build, "shows nothing while loading":** the page actually shows a heading and a spinner, so the report overstated. Fixed ("describe exactly what the screen shows").
+- **Text-only reader, unexplained words:** "behind the screens" was never defined; "details below" pointed at a file that is not below; managers were not told where to get
+  logins; "reload the page" and "narrow window" were unclear. Fixed with a glossary (including the severity definitions), a logins note, a "behind the screens"
+  note, corrected wording and a guide rule to explain browser actions.
+- **Final build, IDOR steps used a test-only order (`o-1039`):** on a fresh system that order does not exist, so the reader correctly saw "Order not found". Found by the
+  replay; the guide rule "never depend on data that only existed during your check" (build C) addresses it.
+- **Final build, Urdu reversal not seen:** the replay agent reads the page as text, not as drawn, so it cannot see a visual reversal. A limit of the test, not shown to be a flaw of the report.
+- **The harness itself had a gap:** its briefing omitted the Zain Traders login that one report's steps named, so one problem looked "not followable". Fixed and re-run; that problem then
+  followed all steps (the data issue above was what stopped it reproducing).
+
+Caveats: both readers are LLMs, a proxy for a person; the demo app is one product; the novice is a model that is good at following instructions. The text reader still lists product
+names ("Client Portal") and a few specialist words as unclear on every report; those are the product's own names, which a real manager would know.
+
+### Not tracked yet (the admin report says so in plain words)
+Which problems are new, still open or came back (7.7), regressed bugs in the verdict (7.7), per-project verdict rules (7.10), fix status and branch line (6), tickets (8).

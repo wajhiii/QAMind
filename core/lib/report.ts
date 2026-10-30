@@ -21,6 +21,24 @@ export interface Charter {
   exit_condition: string;
 }
 
+/** What a non-technical reader sees (ADMIN-REPORT.md). Written by the agent next to the technical finding. */
+export interface PlainFinding {
+  /** A title a manager understands. No jargon. */
+  title: string;
+  /** Where it happens, as UI -> menu -> page, for example "Client Portal -> My orders -> an order page". */
+  where: string;
+  what_happens: string;
+  who_is_affected: string;
+  /** Numbered steps a person with no technical knowledge can follow on screen. Empty when it cannot be seen on screen. */
+  how_to_see_it: string[];
+  expected: string;
+  /** Evidence path (relative to the run folder). Defaults to the first image in `evidence`. */
+  screenshot?: string;
+  ticket?: string;
+}
+
+export type FixStatus = "not-fixed" | "fixed-verified" | "fixed-needs-confirmation";
+
 export interface Finding {
   id?: string;
   title: string;
@@ -42,6 +60,9 @@ export interface Finding {
   regression_test?: { description: string; location?: string };
   memory_applied?: string[];
   charter?: string;
+  plain?: PlainFinding;
+  /** Fix mode sets this; report-only runs leave it unset (not fixed). */
+  fix_status?: FixStatus;
 }
 
 export interface Unconfirmed {
@@ -57,6 +78,8 @@ export interface Unconfirmed {
 export interface NotTested {
   area: string;
   reason: string;
+  /** The same entry in words a non-technical reader understands (used by the admin report). */
+  plain?: { area: string; reason: string };
 }
 
 export interface CoverageRow {
@@ -66,6 +89,10 @@ export interface CoverageRow {
   viewport?: string;
   status: "tested" | "partial" | "not-tested";
   note?: string;
+  /** Which web UI this row is about (a name from the config's web_uis). Used for "results by area". */
+  ui?: string;
+  /** 1-based number of the critical journey in the config this row covers. Used for the release verdict. */
+  critical_flow?: number;
 }
 
 export interface RunMeta {
@@ -90,6 +117,16 @@ export interface RunMeta {
   cost?: string;
   memory_applied?: string[];
   notes?: string[];
+  /** The critical journeys from the config, in order (copied at run start). */
+  critical_flows?: string[];
+}
+
+/** data/admin.json: the two things in the admin report only the agent can judge. */
+export interface AdminNotes {
+  /** The biggest risk, in one plain sentence. */
+  biggest_risk?: string;
+  /** At most three suggested next steps, in plain words. */
+  next_steps?: string[];
 }
 
 export interface HealthResult {
@@ -100,6 +137,7 @@ export interface HealthResult {
 
 export interface RunData {
   meta?: RunMeta;
+  admin?: AdminNotes;
   charters: Charter[];
   findings: Finding[];
   unconfirmed: Unconfirmed[];
@@ -139,8 +177,10 @@ export function readRunData(runDir: string): RunData {
   }
   const meta = readJson<RunMeta>(dataFile(runDir, "meta.json"));
   const health = readJson<HealthResult>(dataFile(runDir, "health.json"));
+  const admin = readJson<AdminNotes>(dataFile(runDir, "admin.json"));
   return {
     ...(meta ? { meta } : {}),
+    ...(admin ? { admin } : {}),
     charters: readList<Charter>(runDir, "charters.json"),
     findings: readList<Finding>(runDir, "findings.json"),
     unconfirmed: readList<Unconfirmed>(runDir, "unconfirmed.json"),
@@ -192,15 +232,18 @@ export function countBySeverity(findings: Finding[]): Record<Severity, number> {
   return c;
 }
 
+/** An entry in the merged not-tested list; entries that came from a coverage row keep the row for plain wording. */
+export type MergedNotTested = NotTested & { fromCoverage?: CoverageRow };
+
 /** Everything not tested: explicit entries plus any coverage row marked not-tested (deduplicated, never silently dropped). */
-export function mergedNotTested(data: RunData): NotTested[] {
-  const out = [...data.notTested];
+export function mergedNotTested(data: RunData): MergedNotTested[] {
+  const out: MergedNotTested[] = [...data.notTested];
   const seen = new Set(out.map((n) => n.area.toLowerCase()));
   for (const row of data.coverage) {
     if (row.status === "not-tested") {
       const label = [row.surface, row.area, row.role, row.viewport].filter(Boolean).join(" / ");
       if (!seen.has(label.toLowerCase()) && !seen.has(row.area.toLowerCase())) {
-        out.push({ area: label, reason: row.note ?? "Reason not recorded" });
+        out.push({ area: label, reason: row.note ?? "Reason not recorded", fromCoverage: row });
         seen.add(label.toLowerCase());
       }
     }
@@ -242,6 +285,7 @@ export function renderTechnicalReport(data: RunData): string {
     L.push("");
   }
 
+  L.push("_A plain-language version of this report for managers is in `ADMIN-REPORT.md` (same problems, same severities)._", "");
   L.push("## Environment health", "");
   if (!data.health) L.push("_Health check was not run._", "");
   else {
@@ -269,7 +313,7 @@ export function renderTechnicalReport(data: RunData): string {
   const sorted = [...data.findings].sort((a, b) => sevRank(a.severity) - sevRank(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""));
   if (sorted.length === 0) L.push("_No confirmed findings._", "");
   for (const f of sorted) {
-    L.push(`### ${f.id ?? "ISSUE-???"} ${ICON[f.severity]} ${LABEL[f.severity]}: ${f.title}`, "");
+    L.push(`<a id="${f.id ?? "ISSUE-"}"></a>`, "", `### ${f.id ?? "ISSUE-???"} ${ICON[f.severity]} ${LABEL[f.severity]}: ${f.title}`, "");
     L.push(`- **Surface:** ${f.surface}${f.ui ? ` · **UI:** ${f.ui}` : ""} · **Area:** ${f.area} · **Type:** ${f.type}`);
     if (f.roles?.length) L.push(`- **Roles:** ${f.roles.join(", ")}`);
     if (f.browser || f.viewport) L.push(`- **Browser / viewport:** ${[f.browser, f.viewport].filter(Boolean).join(" / ")}`);
@@ -295,9 +339,9 @@ export function renderTechnicalReport(data: RunData): string {
   L.push("## Coverage matrix", "");
   if (data.coverage.length === 0) L.push("_No coverage recorded._", "");
   else {
-    L.push("| Surface | Area | Role | Viewport | Status | Note |", "|---|---|---|---|---|---|");
+    L.push("| Surface | Area | Role | Viewport | Key journey | Status | Note |", "|---|---|---|---|---|---|---|");
     const mark = { tested: "✅ tested", partial: "◐ partial", "not-tested": "⛔ not tested" } as const;
-    for (const r of data.coverage) L.push(`| ${esc(r.surface)} | ${esc(r.area)} | ${esc(r.role ?? "-")} | ${esc(r.viewport ?? "-")} | ${mark[r.status]} | ${esc(r.note ?? "")} |`);
+    for (const r of data.coverage) L.push(`| ${esc(r.surface)} | ${esc(r.area)} | ${esc(r.role ?? "-")} | ${esc(r.viewport ?? "-")} | ${r.critical_flow ? `#${r.critical_flow}` : "-"} | ${mark[r.status]} | ${esc(r.note ?? "")} |`);
     L.push("");
   }
 
@@ -366,6 +410,44 @@ export function lintRun(runDir: string, data: RunData, knownSecrets: string[] = 
     if (!f.regression_test) warnings.push(`${tag}: no regression test proposed.`);
   }
   for (const n of data.notTested) if (!n.area?.trim() || !n.reason?.trim()) errors.push("not-tested.json: every entry needs an area and a reason.");
+
+  // ---- the admin report is written from these same files, so its plain-language parts are required ----
+  for (const f of data.findings) {
+    const tag = f.id ?? f.title;
+    const p = f.plain;
+    if (!p) {
+      errors.push(`${tag}: no "plain" block (title, where, what_happens, who_is_affected, how_to_see_it, expected) for the admin report.`);
+      continue;
+    }
+    for (const k of ["title", "where", "what_happens", "who_is_affected", "expected"] as const) if (!String(p[k] ?? "").trim()) errors.push(`${tag}: plain.${k} is empty.`);
+    if (!Array.isArray(p.how_to_see_it)) errors.push(`${tag}: plain.how_to_see_it must be a list (an empty list means it cannot be seen on screen).`);
+    if (p.screenshot) {
+      const abs = insideRun(runDir, p.screenshot);
+      if (!abs || !fs.existsSync(abs)) errors.push(`${tag}: plain.screenshot "${p.screenshot}" does not exist inside the run folder.`);
+    }
+  }
+  for (const n of data.notTested) if (!n.plain?.area?.trim() || !n.plain?.reason?.trim()) errors.push(`not-tested.json: "${n.area}" needs a plain { area, reason } for the admin report.`);
+  for (const n of mergedNotTested(data)) {
+    if (n.fromCoverage) warnings.push(`coverage "${n.fromCoverage.area}" is marked not-tested but has no entry in not-tested.json with the same area text: add one (with a plain wording) so the reports do not list it twice or in technical words.`);
+  }
+  if ((data.admin?.next_steps?.length ?? 0) > 3) errors.push("admin.json: at most 3 next_steps.");
+  if (!data.admin?.biggest_risk?.trim()) warnings.push("admin.json: no biggest_risk sentence (the admin report falls back to the top problem's title).");
+  const flowCount = data.meta?.critical_flows?.length ?? 0;
+  for (const row of data.coverage) {
+    if (row.critical_flow !== undefined && (!Number.isInteger(row.critical_flow) || row.critical_flow < 1 || row.critical_flow > flowCount)) errors.push(`coverage "${row.area}": critical_flow ${String(row.critical_flow)} is not one of the ${flowCount} critical journeys in the config.`);
+    if (row.surface === "ui" && !row.ui) warnings.push(`coverage "${row.area}": a UI row without "ui" is grouped under "Web screens" in the admin report.`);
+  }
+  for (let i = 1; i <= flowCount; i++) if (!data.coverage.some((r) => r.critical_flow === i)) warnings.push(`Critical journey ${i} ("${data.meta?.critical_flows?.[i - 1]}") has no coverage row, so the verdict cannot be Ready.`);
+
+  // Reports older than the data they were built from would disagree with it.
+  const dataDir = path.join(runDir, "data");
+  if (fs.existsSync(dataDir)) {
+    const newestData = Math.max(0, ...fs.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs.statSync(path.join(dataDir, f)).mtimeMs));
+    for (const name of ["TECHNICAL-REPORT.md", "ADMIN-REPORT.md"]) {
+      const file = path.join(runDir, name);
+      if (fs.existsSync(file) && fs.statSync(file).mtimeMs + 1 < newestData) errors.push(`${name} is older than the data it is built from: run \`report build\` again.`);
+    }
+  }
   for (const row of data.coverage) {
     if (row.status === "tested" && /not tested|blocked|skipped/i.test(row.note ?? "")) errors.push(`coverage "${row.area}" is marked tested but its note says otherwise.`);
   }

@@ -69,3 +69,102 @@ export function listFiles(root: string): string[] {
   walk(root);
   return out.sort();
 }
+
+// ---- a finished-looking run with plain-language data, for the admin report tests ----
+import { writeJson } from "../../core/lib/fsutil.ts";
+import { startRun } from "../../core/lib/run.ts";
+import type { CoverageRow, Finding, NotTested } from "../../core/lib/report.ts";
+
+export const PNG_1PX = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
+
+export function finding(over: Partial<Finding> & { id: string; severity: Finding["severity"] }): Finding {
+  return {
+    title: "Technical title",
+    surface: "ui",
+    area: "Orders",
+    type: "validation",
+    summary: "s",
+    steps: ["POST /api/orders with quantity -3"],
+    expected: "HTTP 400",
+    actual: "HTTP 201",
+    reproduced: { times: 2, of: 2 },
+    evidence: ["evidence/api/e.json"],
+    ...over,
+  };
+}
+
+export interface FixtureOptions {
+  findings?: Finding[];
+  coverage?: CoverageRow[];
+  notTested?: NotTested[];
+  health?: { environment_ok: boolean; checks: Array<{ name: string; ok: boolean; detail: string; skipped?: boolean }> };
+  admin?: { biggest_risk?: string; next_steps?: string[] };
+  unconfirmed?: number;
+}
+
+export const ALL_FLOWS_TESTED: CoverageRow[] = [1, 2, 3, 4, 5].map((n) => ({ surface: "ui", ui: "Client Portal", area: `Journey ${n}`, status: "tested" as const, critical_flow: n }));
+
+/** A configured project with a started run and the given data files written. The run is NOT finished (marker stays). */
+export function makeRunWithData(opts: FixtureOptions = {}): { home: string; proj: string; runId: string; runDir: string; store: string } {
+  const home = tmp("qamind-home-");
+  const proj = makeConfiguredProject({ remote: "https://github.com/acme/shop.git" });
+  const r = startRun({ cwd: proj, mode: "full", kind: "qa-only", host: "test", home, env: {}, sessionId: "s1", now: new Date("2026-10-30T10:00:00Z") });
+  if (r.status !== "ready" || !r.run || !r.project) throw new Error(`fixture run did not start: ${r.status}`);
+  const runDir = r.run.dir;
+  fs.mkdirSync(path.join(runDir, "evidence", "api"), { recursive: true });
+  fs.writeFileSync(path.join(runDir, "evidence", "api", "e.json"), "{}");
+  fs.writeFileSync(path.join(runDir, "screenshots", "shot.png"), PNG_1PX);
+  writeJson(path.join(runDir, "data", "charters.json"), [{ id: "C1", surface: "api", title: "t", goal: "g", risk: "r", entry_point: "e", expected: "x", exit_condition: "c" }]);
+  const findings = opts.findings ?? [
+    finding({
+      id: "ISSUE-001", severity: "critical", surface: "permissions", ui: "Client Portal", title: "Any client can read another company's order by id", evidence: ["evidence/api/e.json", "screenshots/shot.png"],
+      plain: {
+        title: "A customer can open another company's order",
+        where: "Client Portal → My orders → an order page",
+        what_happens: "A signed-in customer who changes the number in the page address can read another company's order, including what they bought and what they paid.",
+        who_is_affected: "Every customer: their orders can be seen by customers of other companies.",
+        how_to_see_it: ["Sign in to the Client Portal as a customer of Company A.", "Open any order and look at the web address: it ends in a number such as 1050.", "Sign out, then sign in as a customer of Company B.", "Type the Company A address into the address bar and press Enter.", "You see Company A's order."],
+        expected: "Company B's customer is told the order is not available.",
+        screenshot: "screenshots/shot.png",
+      },
+    }),
+    finding({
+      id: "ISSUE-002", severity: "important", surface: "api", title: "Malformed JSON returns a stack trace",
+      plain: {
+        title: "Technical error details are shown to anyone who sends a broken request",
+        where: "Behind the screens (the part that talks to the Client Portal and Admin Portal)",
+        what_happens: "When the system receives a request it cannot read, its reply includes internal details about how the system is built.",
+        who_is_affected: "Everyone indirectly: it makes the system easier to attack.",
+        how_to_see_it: [],
+        expected: "A short, friendly message with no internal details.",
+      },
+    }),
+    finding({
+      id: "ISSUE-003", severity: "minor", surface: "ui", ui: "Admin Portal", title: "Zero discount shown as -$0.00",
+      plain: {
+        title: "A discount of nothing is shown as a negative amount",
+        where: "Admin Portal → Orders → an order page",
+        what_happens: "Orders with no discount show the discount line as -$0.00.",
+        who_is_affected: "Staff reading order totals; it looks like an error.",
+        how_to_see_it: ["Sign in to the Admin Portal.", "Open Orders, then open an order below 1,000.00.", "Look at the Discount line under the totals."],
+        expected: "The line shows $0.00, or is hidden.",
+      },
+    }),
+  ];
+  writeJson(path.join(runDir, "data", "findings.json"), findings);
+  writeJson(path.join(runDir, "data", "coverage.json"), opts.coverage ?? [
+    ...ALL_FLOWS_TESTED.slice(0, 2),
+    { surface: "ui", ui: "Admin Portal", area: "Orders", status: "tested", critical_flow: 3 },
+    { surface: "api", area: "Orders API", status: "tested" },
+    { surface: "permissions", area: "Roles", status: "tested", critical_flow: 4 },
+    { surface: "ui", ui: "Admin Portal", area: "Customers page", status: "not-tested", note: "not covered", critical_flow: 5 },
+  ]);
+  writeJson(path.join(runDir, "data", "not-tested.json"), opts.notTested ?? [
+    { area: "API / password reset", reason: "Would send email", plain: { area: "Password reset emails", reason: "Testing it would send real emails, and no safe test mailbox is set up." } },
+  ]);
+  writeJson(path.join(runDir, "data", "unconfirmed.json"), Array.from({ length: opts.unconfirmed ?? 0 }, (_, i) => ({ title: `u${i}`, surface: "ui", observation: "o", why_unconfirmed: "w", attempts: 2 })));
+  if (opts.health) writeJson(path.join(runDir, "data", "health.json"), { ...opts.health, ran_at: "2026-10-30T10:01:00Z" });
+  else writeJson(path.join(runDir, "data", "health.json"), { environment_ok: true, checks: [], ran_at: "2026-10-30T10:01:00Z" });
+  if (opts.admin) writeJson(path.join(runDir, "data", "admin.json"), opts.admin);
+  return { home, proj, runId: r.run.id, runDir, store: r.project.store };
+}

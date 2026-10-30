@@ -17,6 +17,7 @@ Read these on demand (they are short and specific; do not load them all up front
 - `{{CORE_PATH}}/shared/workflow.md`: the phases and what each mode means.
 - `{{CORE_PATH}}/shared/surfaces.md`: how to test the API, each web UI, cross-checks and business rules.
 - `{{CORE_PATH}}/shared/reporting.md`: the data files, severity, and the end-of-run summary.
+- `{{CORE_PATH}}/shared/admin-report.md`: how to write the plain-language report for managers (read it before Step 5).
 - `{{CORE_PATH}}/shared/memory-protocol.md`: what memory is and is not.
 - `{{CORE_PATH}}/knowledge/INDEX.md`: the curated QA knowledge base. **Read it when you plan (Step 3)**, then load only the
   files that match what you are about to test, a few at a time, plus the `framework-notes/` file for each framework in
@@ -46,7 +47,8 @@ Act on the JSON `status`:
   `environment.confirmed_non_production: true` in `.qa/config.md` and run again. Otherwise **stop.**
 - `missing-env`: list the variable **names** that are missing (never values). **Stop.**
 - `busy`: another run is active for this project; tell the user and **stop** (they can pass `--force` if it was abandoned).
-- `ready`: remember `run.id` and `run.dir`. Roles with `has_credentials: false` are not testable: they go to Not tested.
+- `ready`: remember `run.id` and `run.dir`. Roles with `has_credentials: false` are not testable: they go to Not tested. `config.critical_flows` lists the critical journeys, numbered from 1: tag the
+  coverage rows that cover each one with `critical_flow` (the release verdict depends on it).
   Show any `advisories`. If `browser.status` is not `ok`, UI testing is not possible in this session: say why
   (`browser.message`) and how to fix it, then ask whether to continue API-only (every UI area becomes Not tested, with that
   reason) or stop so they can restart. Default to stopping if they do not answer.
@@ -83,19 +85,23 @@ Be proportionate: `quick` covers the critical flows and top risks, thoroughly, a
 reason. Run the page audit (`surfaces.md`) on every page you visit, on desktop and mobile.
 
 ## Step 5: report
-Write `findings.json`, `unconfirmed.json`, `not-tested.json` and `coverage.json` in `<run.dir>/data/`, then:
+Read `{{CORE_PATH}}/shared/admin-report.md`. Write `findings.json` (each finding with its technical text **and** a `plain` block for the
+admin report), `unconfirmed.json`, `not-tested.json` (each entry with `plain`), `coverage.json` (rows tagged with `ui` and `critical_flow`)
+and `admin.json` in `<run.dir>/data/`, then:
 ```
-{{CLI}} report build --run <id>
-{{CLI}} report lint --run <id>
+{{CLI}} report build --run <id>      # writes TECHNICAL-REPORT.md and the plain-language ADMIN-REPORT.md
+{{CLI}} report lint --run <id>       # evidence rules, plain-language text, and the two reports agreeing
 ```
-Fix every lint error and rebuild until lint passes.
+Fix every lint error (including jargon in the plain text) and rebuild until lint passes. Only if the user asks for an email-ready copy,
+run `{{CLI}} report export-html --run <id>` and tell them the screenshots are not masked automatically.
 
 ## Step 6: finish
 ```
 {{CLI}} run finish --run <id> --stop-reason "<completed | environment problem | stopped by the user | ...>"
 ```
-Then reply with the short summary described at the end of `reporting.md` (at most 8 lines): counts by severity with any
-🔴 Critical titles first, what was not tested, the report path (`<run.dir>/TECHNICAL-REPORT.md`), and "What I learned this run".
+Then reply with the short summary described at the end of `reporting.md` (at most 8 lines): the release verdict line from the admin
+report first, counts by severity with any 🔴 Critical titles, what was not tested, both report paths (`<run.dir>/ADMIN-REPORT.md` for managers,
+`<run.dir>/TECHNICAL-REPORT.md` for developers), and "What I learned this run".
 
 ## Always
 - Safety first (`safety.md`). When in doubt, stop and ask the user.

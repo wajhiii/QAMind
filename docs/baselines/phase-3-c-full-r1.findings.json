@@ -1,0 +1,494 @@
+[
+  {
+    "title": "Tax is calculated before the 5% discount, so orders of 1,000.00 or more are overcharged",
+    "severity": "critical",
+    "surface": "business-rule",
+    "area": "Orders",
+    "type": "business-rule",
+    "charter": "C1",
+    "summary": "For orders with subtotal >= 1,000.00 the tax is 10% of the undiscounted subtotal; the rule says tax applies to the discounted subtotal.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "POST /api/orders with 80 x p-102 (1250 cents each), subtotal 100000",
+      "Read the response: discount_cents 5000, tax_cents 10000, total_cents 105000",
+      "Repeat with 1000 x p-101 (subtotal 650000): tax 65000, total 682500",
+      "Same totals are shown in Client Portal confirmation ($1,050.00) and the Admin Portal order page"
+    ],
+    "expected": "Subtotal 1000.00, discount 50.00, tax 95.00 (10% of 950.00), total 1,045.00. For 6,500.00 subtotal: tax 617.50, total 6,792.50",
+    "actual": "Tax 100.00 and total 1,050.00; second case tax 650.00 and total 6,825.00 (32.50 too high)",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-R3.json",
+      "evidence/api/rules-R6.json",
+      "screenshots/client-confirm-desktop.png"
+    ],
+    "roles": [
+      "acme-1",
+      "admin"
+    ],
+    "ui": "Client Portal",
+    "viewport": "desktop",
+    "suspected_cause": "Tax computed from subtotal rather than subtotal - discount in the order total calculation",
+    "regression_test": {
+      "description": "Order with subtotal 100000 cents expects tax 9500 and total 104500",
+      "location": "test/orders.test.js"
+    },
+    "plain": {
+      "title": "Customers with large orders are charged too much tax",
+      "where": "Client Portal → New order → confirmation, and every order page",
+      "what_happens": "On orders of 1,000.00 or more the 5% discount is applied, but tax is still worked out on the full price. An order of 1,000.00 shows a total of 1,050.00 instead of 1,045.00.",
+      "who_is_affected": "Every customer placing an order of 1,000.00 or more, and the company's sales figures.",
+      "how_to_see_it": [
+        "Sign in to the Client Portal as a customer",
+        "Click New order",
+        "Type a reference, choose Ballpoint Pens, box of 50 and set the quantity to 80",
+        "Click Place order",
+        "The message says Total: $1,050.00; it should say $1,045.00 (discount $50.00, tax $95.00)"
+      ],
+      "expected": "Tax is worked out after the discount, so the total is 1,045.00.",
+      "screenshot": "screenshots/client-confirm-desktop.png"
+    },
+    "id": "ISSUE-001"
+  },
+  {
+    "title": "A user from one company can read another company's orders by id",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Orders",
+    "type": "tenant-isolation",
+    "charter": "C3",
+    "summary": "GET /api/orders/{id} returns 200 with full order details to clients of other companies (bright-1 and zain-1 read an Acme Traders order).",
+    "steps": [
+      "Sign in over the API as acme-1 and POST /api/orders (QA- reference); note the id",
+      "Sign in as bright-1 and GET /api/orders/{id}",
+      "Sign in as zain-1 and GET /api/orders/{id}",
+      "Both get 200 and the full order (see evidence)"
+    ],
+    "expected": "403 or 404 for other companies",
+    "actual": "200 with the Acme Traders order for both other companies",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-X3.json",
+      "evidence/api/rules-X4.json"
+    ],
+    "roles": [
+      "bright-1",
+      "zain-1"
+    ],
+    "suspected_cause": "Order detail handler looks up by id without checking the caller's client_id (the list endpoint does filter)",
+    "regression_test": {
+      "description": "Client B requests client A's order id and expects 403/404",
+      "location": "test/orders.test.js"
+    },
+    "plain": {
+      "title": "Customers can see other companies' orders",
+      "where": "Behind the screens (the part that talks to the Client Portal)",
+      "what_happens": "Anyone signed in as a customer can open another company's order if they know or guess its number, including items, prices and company name.",
+      "who_is_affected": "Every customer company; their orders are not private.",
+      "how_to_see_it": [],
+      "expected": "A customer can only open orders belonging to their own company."
+    },
+    "id": "ISSUE-002"
+  },
+  {
+    "title": "Any signed-in client can list all customer records, including personal and card details",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Customers",
+    "type": "role-isolation",
+    "charter": "C3",
+    "summary": "GET /api/admin/customers returns 200 to a client role; response contains contact names, emails, phone numbers, national ID numbers, addresses and card last four digits.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "GET /api/admin/customers",
+      "Observe 200 and a list of all companies' contact records (see evidence)"
+    ],
+    "expected": "403 for non-admin roles",
+    "actual": "200 with all customer records",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-X8.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "Admin role check missing on the customers route (the reports and status routes do return 403)",
+    "regression_test": {
+      "description": "Client role GET /admin/customers expects 403",
+      "location": "test/admin.test.js"
+    },
+    "plain": {
+      "title": "Customers can read the private records of all customers",
+      "where": "Behind the screens (the part that talks to the Client Portal)",
+      "what_happens": "A customer account can fetch the full customer list that only staff should see, with personal details such as phone numbers, ID numbers, addresses and part of card details.",
+      "who_is_affected": "All customers, whose personal data is exposed.",
+      "how_to_see_it": [],
+      "expected": "Only admins can see customer records."
+    },
+    "id": "ISSUE-003"
+  },
+  {
+    "title": "Signing out does not end the session: the old sign-in keeps working",
+    "severity": "critical",
+    "surface": "api",
+    "area": "Authentication",
+    "type": "session",
+    "charter": "C2",
+    "summary": "After POST /auth/logout returns 204, the same token still gets 200 from GET /me and GET /orders.",
+    "steps": [
+      "Sign in over the API as zain-1",
+      "POST /api/auth/logout (204)",
+      "GET /api/me with the same token",
+      "GET /api/orders with the same token",
+      "Both return 200"
+    ],
+    "expected": "401 immediately after sign-out",
+    "actual": "200 with the user's data; the token stays valid",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-L2.json",
+      "evidence/api/rules-L3.json"
+    ],
+    "roles": [
+      "zain-1"
+    ],
+    "suspected_cause": "Logout does not revoke the token server-side (the spec says it should)",
+    "regression_test": {
+      "description": "Logout then GET /me with the same token expects 401",
+      "location": "test/auth.test.js"
+    },
+    "plain": {
+      "title": "Signing out does not really sign the user out",
+      "where": "Behind the screens (the part that talks to the Client Portal)",
+      "what_happens": "The Sign out button takes the user back to the sign-in page, but the old sign-in still works behind the screens. Anyone who got hold of it (for example on a shared computer) can keep using the account.",
+      "who_is_affected": "Every user, especially those on shared devices.",
+      "how_to_see_it": [],
+      "expected": "After signing out, the old sign-in stops working at once."
+    },
+    "id": "ISSUE-004"
+  },
+  {
+    "title": "Order quantity and item rules are not enforced (0, 1001, 1.5, negative, and empty item lists accepted)",
+    "severity": "critical",
+    "surface": "api",
+    "area": "Orders",
+    "type": "validation",
+    "charter": "C1",
+    "summary": "POST /api/orders returns 201 for quantity 0, 1001, 1.5 and -3 and for an empty items array. A -3 quantity creates a negative total (-$21.45) that appears in both portals and reduces sales.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "POST /api/orders with items[0].quantity = -3, then 0, 1001, 1.5, and items = []",
+      "Each returns 201; the -3 order has a negative total (see evidence)"
+    ],
+    "expected": "400 naming the field: quantity must be a whole number from 1 to 1000; at least one item required",
+    "actual": "201, order created",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-baseline-P043.json",
+      "evidence/api/client-baseline-P044.json",
+      "evidence/api/client-baseline-P045.json",
+      "evidence/api/client-baseline-P046.json",
+      "evidence/api/rules-R10.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "No range or integer check and no minimum item count in the order handler",
+    "regression_test": {
+      "description": "Table-driven test: invalid quantities and empty items return 400 and create nothing",
+      "location": "test/orders.test.js"
+    },
+    "plain": {
+      "title": "The system accepts orders with impossible quantities, even negative ones",
+      "where": "Behind the screens (the part that talks to the Client Portal)",
+      "what_happens": "Orders with zero, negative, fractional or more than 1,000 items, or no items at all, are accepted. A negative quantity gives a negative total, which shows in order lists and lowers sales figures.",
+      "who_is_affected": "The company's sales figures and staff reading order totals.",
+      "how_to_see_it": [],
+      "expected": "Such orders are refused with a clear message."
+    },
+    "id": "ISSUE-005"
+  },
+  {
+    "title": "Orders list fails with a server error for page_size=0 and for search text such as ( or \\",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders",
+    "type": "error-handling",
+    "charter": "C1",
+    "summary": "GET /api/orders returns 500 for page_size=0 and q=( and q=\\; page_size=-1 returns 200 although the spec minimum is 1.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "GET /api/orders?page_size=0 -> 500",
+      "GET /api/orders?q=( -> 500",
+      "GET /api/orders?q=\\ -> 500"
+    ],
+    "expected": "400 for invalid values; special characters searched literally",
+    "actual": "500 for those; 200 for page_size=-1",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-baseline-P019.json",
+      "evidence/api/client-baseline-P024.json",
+      "evidence/api/client-baseline-P028.json",
+      "evidence/api/client-baseline-P020.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "Search text used unescaped as a regular expression; page_size not range checked (divide by zero)",
+    "regression_test": {
+      "description": "q with regex characters and page_size 0/-1 return 200/400, never 500",
+      "location": "test/orders.test.js"
+    },
+    "plain": {
+      "title": "Order search and paging can make the system fail",
+      "where": "Behind the screens (the part that talks to the Client Portal)",
+      "what_happens": "Searching orders for text containing a bracket or backslash, or asking for zero items per page, makes the system fail with an error.",
+      "who_is_affected": "Staff and customers searching orders.",
+      "how_to_see_it": [],
+      "expected": "Searches with any characters work, and invalid paging values are refused politely."
+    },
+    "id": "ISSUE-006"
+  },
+  {
+    "title": "Placing the same order twice at once creates two orders",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders",
+    "type": "duplicate-submission",
+    "charter": "C1",
+    "summary": "Two identical simultaneous POST /api/orders both return 201 and create two orders. No duplicate protection exists. Unsure whether this is intended; not tried via the UI button.",
+    "steps": [
+      "Sign in over the API as acme-1",
+      "Send the same POST /api/orders twice in parallel (see evidence)",
+      "Both return 201 with different order ids"
+    ],
+    "expected": "One order, or the second refused",
+    "actual": "Two orders created",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-baseline-P049.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "No idempotency key or duplicate check on order creation",
+    "regression_test": {
+      "description": "Parallel identical order posts create at most one order",
+      "location": "test/orders.test.js"
+    },
+    "plain": {
+      "title": "A double click or repeated send can create duplicate orders",
+      "where": "Behind the screens (the part that talks to the Client Portal)",
+      "what_happens": "If the same order is sent twice at the same moment, the system creates two separate orders.",
+      "who_is_affected": "Customers on slow connections and staff who then handle duplicates.",
+      "how_to_see_it": [],
+      "expected": "Only one order is created."
+    },
+    "id": "ISSUE-007"
+  },
+  {
+    "title": "Malformed request bodies return stack traces and server file paths",
+    "severity": "important",
+    "surface": "api",
+    "area": "Error handling",
+    "type": "error-leakage",
+    "charter": "C1",
+    "summary": "Invalid JSON sent to POST /auth/login and POST /orders returns 400 with a stack trace, file paths and a stack field.",
+    "steps": [
+      "POST /api/auth/login with raw body {\"broken\": (no sign-in needed)",
+      "Observe 400 body containing stack trace and source paths",
+      "Repeat with POST /api/orders"
+    ],
+    "expected": "Short generic error message",
+    "actual": "Stack trace and file paths exposed",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/client-baseline-P007.json",
+      "evidence/api/client-baseline-P048.json"
+    ],
+    "roles": [
+      "anonymous",
+      "acme-1"
+    ],
+    "suspected_cause": "Default error handler returns error.stack to the client",
+    "regression_test": {
+      "description": "Malformed JSON returns 400 with no 'stack' field or paths",
+      "location": "test/errors.test.js"
+    },
+    "plain": {
+      "title": "Error messages reveal internal technical details",
+      "where": "Behind the screens (the part that talks to the Client Portal)",
+      "what_happens": "When the system receives broken input it replies with internal technical details, which help attackers.",
+      "who_is_affected": "The company's security.",
+      "how_to_see_it": [],
+      "expected": "A short, friendly error with no internal details."
+    },
+    "id": "ISSUE-008"
+  },
+  {
+    "title": "My orders table overlaps the toolbar and cuts off Total and View at phone width",
+    "severity": "important",
+    "surface": "ui",
+    "area": "My orders",
+    "type": "layout",
+    "charter": "C5",
+    "ui": "Client Portal",
+    "browser": "Chromium",
+    "viewport": "mobile 390x844",
+    "summary": "At 390px the table header and first row sit under the Status/New order toolbar, the Total column is clipped and the View link is off-screen with no cue.",
+    "steps": [
+      "Sign in to the Client Portal as acme-1",
+      "Resize to 390x844",
+      "Open My orders",
+      "Header row and first row are covered by the toolbar; totals show clipped (e.g. $1,05); table scrolls sideways (460 vs 359px)"
+    ],
+    "expected": "All columns readable and reachable on a phone",
+    "actual": "Overlap and clipped columns",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/client-orders-mobile.png",
+      "evidence/page-audit-notes.txt"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "Toolbar and table wrapper layout overlap at narrow widths",
+    "regression_test": {
+      "description": "Visual check of My orders at 390px: no covered elements, totals visible",
+      "location": "e2e/client-orders.spec.js"
+    },
+    "plain": {
+      "title": "On a phone the My orders list is overlapped and totals are cut off",
+      "where": "Client Portal → My orders",
+      "what_happens": "On a narrow screen the first order is partly hidden behind the Status and New order buttons, totals are cut off at the edge and the View link cannot be seen without scrolling sideways.",
+      "who_is_affected": "Customers using a phone.",
+      "how_to_see_it": [
+        "Sign in to the Client Portal as a customer",
+        "Make the window narrow by dragging its edge, or use a phone",
+        "Click My orders",
+        "The first order is partly hidden behind the buttons and the Total column is cut off"
+      ],
+      "expected": "Every column is readable on a phone.",
+      "screenshot": "screenshots/client-orders-mobile.png"
+    },
+    "id": "ISSUE-009"
+  },
+  {
+    "title": "Some controls have no accessible name (product drop-down, search box, refresh and clear-filter buttons)",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "Forms",
+    "type": "accessibility",
+    "charter": "C5",
+    "ui": "Client Portal, Admin Portal",
+    "viewport": "desktop",
+    "summary": "New order product select has no label; Admin Orders search has only a placeholder; the refresh and clear-filters icon buttons have no name.",
+    "steps": [
+      "Open Client Portal New order and run page audit: select[name=product] unnamed",
+      "Open Admin Orders and run page audit: search input, refresh and clear-filters buttons unnamed",
+      "Repeat from a fresh load: same result"
+    ],
+    "expected": "Every control has a label",
+    "actual": "Unnamed controls",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/page-audit-notes.txt"
+    ],
+    "roles": [
+      "acme-1",
+      "admin"
+    ],
+    "suspected_cause": "Missing label / aria-label attributes",
+    "regression_test": {
+      "description": "Accessibility check: no unnamed controls on New order and Admin Orders",
+      "location": "e2e/a11y.spec.js"
+    },
+    "plain": {
+      "title": "Some buttons and fields cannot be understood by screen-reading software",
+      "where": "Client Portal → New order, and Admin Portal → Orders",
+      "what_happens": "The product drop-down, the search box and two icon buttons have no name, so software that reads the screen aloud for blind users cannot say what they do.",
+      "who_is_affected": "Users of screen-reading software.",
+      "how_to_see_it": [],
+      "expected": "Every field and button has a clear name."
+    },
+    "id": "ISSUE-010"
+  },
+  {
+    "title": "The Reports page takes about four seconds to show its numbers",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "Reports",
+    "type": "performance",
+    "charter": "C6",
+    "ui": "Admin Portal",
+    "viewport": "desktop",
+    "summary": "GET /api/admin/reports/sales took 4006 ms on both tries (limit 3000 ms); the page shows only its heading meanwhile.",
+    "steps": [
+      "Sign in as admin over the API",
+      "GET /api/admin/reports/sales: 4006 ms",
+      "Open Admin Portal Reports: wait ~4 s for data"
+    ],
+    "expected": "Under 3 seconds",
+    "actual": "About 4 seconds",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/discover-D6.json",
+      "screenshots/admin-reports-desktop.png"
+    ],
+    "roles": [
+      "admin"
+    ],
+    "suspected_cause": "Slow aggregation or deliberate delay in the report handler",
+    "regression_test": {
+      "description": "Sales report responds in under 3 s",
+      "location": "test/reports.test.js"
+    },
+    "plain": {
+      "title": "The sales report is slow to appear",
+      "where": "Admin Portal → Reports",
+      "what_happens": "After opening Reports, the page shows only its heading for about four seconds before the numbers appear.",
+      "who_is_affected": "Staff reading reports.",
+      "how_to_see_it": [
+        "Sign in to the Admin Portal",
+        "Click Reports",
+        "Only the heading is shown at first; the numbers appear after about four seconds"
+      ],
+      "expected": "The numbers appear within a couple of seconds.",
+      "screenshot": "screenshots/admin-reports-desktop.png"
+    },
+    "id": "ISSUE-011"
+  }
+]

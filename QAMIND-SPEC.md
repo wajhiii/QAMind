@@ -989,7 +989,7 @@ using only the README and `docs/HOSTS.md`.
 ## 16. Documentation deliverables
 - `README.md`: what it is, install from the Git repo per host (§5.2: Claude Code
   marketplace commands; clone + `./setup` for Codex/Cursor/others), a per-host command-name and capability table, first run,
-  commands and modes, auto-QA (`/qa-auto` and the prompt tags), what the reports look like, safety, credits (gstack MIT, others).
+  commands and modes, auto-QA (`/qa-auto` and the prompt tags), what the reports look like, safety.
 - `MAINTAINING.md`: local testing, releasing (version bump + changelog), updating the
   knowledge base, reviewing suggested improvements and pending lessons.
 - `docs/CI.md` (headless runs, PR comments, gating, schedules).

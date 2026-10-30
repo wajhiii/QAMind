@@ -1,0 +1,248 @@
+{
+  "label": "phase-3-final",
+  "mode": "full",
+  "rep": 1,
+  "date": "2026-10-30T08:19:35.804Z",
+  "settings": {
+    "prompt": "/qamind:qa-only full",
+    "qamind": {
+      "git_commit": "857073ebc81fd433f1fe8cb8193264119d97732b",
+      "plugin_tree_committed": "81d807651f95e83fd5a1994c7672934e3634ea79",
+      "plugin_content_sha256": "0777ae8552d83678bb3591c0d12c6438927d5bc04f7d58016c8ef0e3114a6b76",
+      "uncommitted_in_built_plugin": [
+        "M plugins/qamind/core/shared/reporting.md",
+        " M plugins/qamind/dist/qamind.mjs",
+        " M plugins/qamind/skills/qa-only/SKILL.md",
+        "?? plugins/qamind/core/shared/admin-report.md"
+      ],
+      "uncommitted_in_sources_not_in_plugin_unless_built": [
+        "M cli/src/main.ts",
+        " M core/lib/config.ts",
+        " M core/lib/report.ts",
+        " M core/lib/run.ts",
+        " M core/shared/reporting.md",
+        " M core/skills/qa-only/SKILL.md",
+        "?? core/lib/adminreport.ts",
+        "?? core/lib/reports.ts",
+        "?? core/lib/verdict.ts",
+        "?? core/scripts/consistency-check.ts",
+        "?? core/scripts/export-html.ts",
+        "?? core/shared/admin-report.md"
+      ]
+    },
+    "claude": {
+      "version": "2.1.312 (Claude Code)",
+      "model_requested": "claude-sonnet-5-5",
+      "model_in_session": "claude-sonnet-5-5",
+      "setting_sources": "project,local",
+      "claudeai_connectors": "disabled (ENABLE_CLAUDEAI_MCP_SERVERS=false)",
+      "permission_mode": "default",
+      "allowed_tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash(qamind *)",
+        "Bash(curl *)",
+        "Bash(git status *)",
+        "Bash(git diff *)",
+        "Bash(git log *)",
+        "Bash(ls *)",
+        "mcp__plugin_qamind_browser"
+      ],
+      "max_budget_usd": 15
+    },
+    "demo": {
+      "tree": "6b3d093a9ac6c2b918f491acb415996247ad8126",
+      "ports": "4100/4101/4102",
+      "data": "reset before the run",
+      "fixture_config_sha256": "a1e7f86727b57f659f003820cf24a61ab125debe32f4e1fafa691804075c9b3b",
+      "fixture_env_sha256": "762d8cfa6079c664d7367eab9ca600c05938707c4841c2756b732db9deb953e0",
+      "answer_key_visible_to_agent": false
+    },
+    "machine": {
+      "platform": "darwin 27.2.0",
+      "node": "v24.2.0",
+      "chrome": "Google Chrome 156.0.8078.74"
+    }
+  },
+  "results": {
+    "exit_code": 0,
+    "outcome": "success",
+    "cost_usd": 1.6945921999999995,
+    "turns": 127,
+    "wall_minutes": 6.78,
+    "findings": 12,
+    "severity": {
+      "critical": 5,
+      "important": 5,
+      "minor": 2
+    },
+    "lint_ok": true,
+    "lint_errors": [],
+    "admin": {
+      "present": true,
+      "consistency_ok": true,
+      "consistency_errors": [],
+      "plain_text_errors": 0,
+      "verdict": "⛔ **Not ready to release:** 5 critical problems found and 5 important problems, for example: Customers with discounted orders are charged too much tax."
+    },
+    "tool_calls": {
+      "Read": 21,
+      "Bash": 22,
+      "Write": 8,
+      "ToolSearch": 1,
+      "browser:browser_navigate": 17,
+      "browser:browser_snapshot": 6,
+      "browser:browser_type": 12,
+      "browser:browser_take_screenshot": 11,
+      "browser:browser_evaluate": 13,
+      "browser:browser_select_option": 1,
+      "browser:browser_click": 4,
+      "browser:browser_resize": 3,
+      "browser:browser_close": 3,
+      "browser:browser_wait_for": 1,
+      "Edit": 3
+    },
+    "page_audit_calls": 8,
+    "knowledge_files_read": [
+      "INDEX.md",
+      "api-testing.md",
+      "test-design.md",
+      "browser-testing.md"
+    ],
+    "score": {
+      "run": "run-20261030T081942Z",
+      "scored_bugs": 14,
+      "found": 12,
+      "lead_only": 1,
+      "missed": [
+        "DB-05"
+      ],
+      "recall": "12/14",
+      "findings": 12,
+      "depth": {
+        "db07_ui_double_submit_checked": false,
+        "db09_four_elements_named": false,
+        "db11_urdu_reversal_confirmed": true,
+        "db17_pii_exposure_reported": true
+      },
+      "depth_score": "2/4",
+      "decoy_hits": [],
+      "unmatched_findings_review_by_hand": [],
+      "secrets_in_run_output": "none",
+      "per_bug": [
+        {
+          "id": "DB-01",
+          "name": "Order validation accepts bad quantities / empty items",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-005"
+          ]
+        },
+        {
+          "id": "DB-02",
+          "name": "Tax computed before discount",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-001"
+          ]
+        },
+        {
+          "id": "DB-03",
+          "name": "IDOR: another company's order readable",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-003"
+          ]
+        },
+        {
+          "id": "DB-04",
+          "name": "Client can read admin customer records",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-002"
+          ]
+        },
+        {
+          "id": "DB-05",
+          "name": "Admin status change not reflected for client",
+          "status": "MISSED",
+          "by": []
+        },
+        {
+          "id": "DB-06",
+          "name": "500 on search regex chars / page_size=0",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-007"
+          ]
+        },
+        {
+          "id": "DB-07",
+          "name": "Double submit creates duplicate orders",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-008"
+          ]
+        },
+        {
+          "id": "DB-08",
+          "name": "New Order unusable at mobile width",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-009"
+          ]
+        },
+        {
+          "id": "DB-09",
+          "name": "Missing accessible names",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-012"
+          ]
+        },
+        {
+          "id": "DB-10",
+          "name": "Stack trace / file paths leaked",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-006"
+          ]
+        },
+        {
+          "id": "DB-11",
+          "name": "Urdu / long text reversed or truncated",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-010"
+          ]
+        },
+        {
+          "id": "DB-12",
+          "name": "Sessions not revoked / never expire",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-004"
+          ]
+        },
+        {
+          "id": "DB-13",
+          "name": "Reports page very slow",
+          "status": "FOUND",
+          "by": [
+            "ISSUE-011"
+          ]
+        },
+        {
+          "id": "DB-15",
+          "name": "My Orders first row covered at mobile width",
+          "status": "LEAD ONLY",
+          "by": []
+        }
+      ]
+    }
+  },
+  "note": "Single run. LLM runs vary; read differences smaller than a few bugs or about 30% cost with care."
+}

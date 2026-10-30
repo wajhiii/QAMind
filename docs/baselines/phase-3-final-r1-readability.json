@@ -1,0 +1,284 @@
+{
+  "label": "phase-3-final-r1",
+  "report": "phase-3-final-full-r1.admin.md",
+  "date": "2026-10-30T08:39:12.475Z",
+  "model": "claude-sonnet-5-5",
+  "problems_in_report": 12,
+  "problems_with_on_screen_steps": 5,
+  "reader": {
+    "answered": true,
+    "cost_usd": 0.0596912,
+    "steps_followable": 5,
+    "steps_not_followable": 0,
+    "confusing_words": [
+      "Client Portal",
+      "test login",
+      "Subtotal",
+      "Behind the screens",
+      "the part that talks to the Client Portal",
+      "the system does not refuse it",
+      "the address bar",
+      "the number at the end of the address",
+      "Company A order address",
+      "a fresh browser window",
+      "session",
+      "old sign-in is still accepted by the system",
+      "anyone holding the old sign-in",
+      "accepted and saved",
+      "distorts sales figures",
+      "malformed request",
+      "internal technical details",
+      "location of files on the server",
+      "attacker",
+      "bracket or backslash",
+      "zero orders per page",
+      "invalid page sizes",
+      "Admin Portal",
+      "sent twice at the same moment",
+      "It is not stated whether this is intended",
+      "narrow screen",
+      "make the browser window very narrow",
+      "slide the page sideways",
+      "the Urdu customer",
+      "Sales by client",
+      "letters not joined",
+      "spinner",
+      "screen-reading software",
+      "controls",
+      "two small round icon buttons",
+      "have no names",
+      "spoken name"
+    ],
+    "unclear_problems": [],
+    "overall": {
+      "would_you_know_what_to_do_next": true,
+      "verdict_clear": true,
+      "comments": "The banner 'Not ready to release', the biggest risk, and the three suggested next steps make it clear that I should have a developer fix the access, tax and quantity problems before release. Things that would trip me up: I need test logins from the colleague, and several steps are vague ('address bar', 'Client Portal', 'Admin Portal', 'narrow window'). Words like 'back-end', 'session', 'malformed request', 'screen-reading software' and 'permissions' are not all explained, and several 'Behind the screens' problems rely entirely on developers. The ticket field says 'none yet', and it is not clear who creates tickets or who the developer is. I also do not know how to prioritise among the five critical problems beyond the order given."
+    },
+    "detail": [
+      {
+        "title": "Customers with discounted orders are charged too much tax",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Client Portal",
+          "test login",
+          "Subtotal"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Steps are simple, but I need a test login and would have to ask what 'Client Portal' is and where to find it. The 'Ballpoint Pens, box of 50' choice is clear. The example numbers make the problem easy to understand: tax should be $95 and the total $1,045, not $1,050. The impact on money is obvious."
+      },
+      {
+        "title": "Any customer can see other companies' private contact and payment details",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens",
+          "the part that talks to the Client Portal",
+          "the system does not refuse it"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand that customers can get at other companies' private and card details and that this is serious. The 'Behind the screens' wording is explained in the report, but 'the part that talks to the Client Portal' is vague. I would rely on a developer to confirm it."
+      },
+      {
+        "title": "A customer can view another company's orders by changing the address",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "the address bar",
+          "the number at the end of the address",
+          "Company A order address",
+          "a fresh browser window",
+          "Client Portal"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand the problem. Step 3 is the hard one: 'Type the Company A order address ... keeping the same number at the end' is ambiguous. I would not know whether to copy and paste the whole address or only the number, and I would need two test logins from different companies. It is unclear what 'a fresh browser window' means in practice, for example a private window, which is why the second sign-in may fail. 'Address bar' is probably understood by most people, but not by everyone."
+      },
+      {
+        "title": "Signing out does not actually end the session",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "session",
+          "old sign-in is still accepted by the system",
+          "anyone holding the old sign-in",
+          "Behind the screens"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "The idea that signing out does not really log you out is clear, especially for shared computers. 'Session' and 'holding the old sign-in' are slightly technical, and it is not clear what 'holding' means in practice, for example how someone would get a copy of it. Still, the risk is understandable."
+      },
+      {
+        "title": "The system accepts impossible orders, such as minus one item or no items",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens",
+          "accepted and saved",
+          "distorts sales figures"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear: orders with -1 or 0 items, or more than 1,000, should be refused. It is not stated whether a real customer can do this through the normal screens or only through a technical route, so I cannot judge how likely it is. Minor wording issue: 'distorts' is a bit vague, but it is plainly bad for sales numbers."
+      },
+      {
+        "title": "Error messages expose the system's internal workings",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "malformed request",
+          "internal technical details",
+          "location of files on the server",
+          "attacker",
+          "Behind the screens"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I get the general idea, that error messages reveal too much and help attackers, but 'malformed request' and 'location of files on the server' mean nothing to me. The affected group is 'the company's security', which is abstract. I would treat it as a lower priority than the others, though I cannot judge how real the risk is."
+      },
+      {
+        "title": "Searching with certain characters in the orders list makes the system fail",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "bracket or backslash",
+          "zero orders per page",
+          "invalid page sizes",
+          "Behind the screens",
+          "Admin Portal"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand that typing certain symbols into search causes an error. 'Zero orders per page' and 'invalid page sizes' are confusing, because I do not know where a person would set that on screen. It also says it cannot be seen on screen, yet searching sounds like something I could try myself, which is confusing. The impact on people is unclear: how often would anyone search with a backslash?"
+      },
+      {
+        "title": "A double click on Place order may create two identical orders",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "sent twice at the same moment",
+          "Behind the screens",
+          "It is not stated whether this is intended"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "The risk of duplicate orders is understandable. However, the report admits it did not test a real double click on screen and says it is unclear whether this is intended. As a manager I would not know whether this is a real problem or a guess, and it is odd to see it rated Important."
+      },
+      {
+        "title": "On a phone, the New order form is cut off and the Place order button is out of view",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "narrow screen",
+          "make the browser window very narrow",
+          "Client Portal",
+          "slide the page sideways"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear and easy to picture. I could follow the steps on a phone. Making a browser window very narrow is harder for me, as I do not know how to do that or how narrow is narrow enough. A phone is the simpler route."
+      },
+      {
+        "title": "Urdu customer names appear reversed and broken in the Admin Portal",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Admin Portal",
+          "the Urdu customer",
+          "Sales by client",
+          "letters not joined"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Steps are easy, but I would need to be told which customer is the Urdu one and I would need to be able to read Urdu to tell whether it is wrong. 'Letters not joined' is clear enough for someone who reads Urdu. I understand why it matters for staff dealing with that customer."
+      },
+      {
+        "title": "The Reports page takes about four seconds to show its figures",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "spinner"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Simple to follow. 'Spinner' is probably understood as the turning circle, but I would have to guess. Four seconds is slow but not a disaster, so Minor seems fair."
+      },
+      {
+        "title": "Some Admin Portal buttons cannot be understood by screen-reading software",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "screen-reading software",
+          "controls",
+          "two small round icon buttons",
+          "have no names",
+          "spoken name"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand that blind users' software cannot tell what these buttons do. 'Controls' and 'spoken name' are a bit technical. The report says this cannot be seen on screen, but also gives a screenshot, which is slightly confusing. It does not say whether any staff member actually uses such software."
+      }
+    ]
+  },
+  "replay": {
+    "ran": 5,
+    "followed_all_steps": 5,
+    "saw_the_described_problem": 4,
+    "cost_usd": 0.3209157,
+    "detail": [
+      {
+        "problem": "🔴 Critical: Customers with discounted orders are charged too much tax",
+        "steps": 5,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "I placed order QA-test (80 boxes of Ballpoint Pens). The green message said Total: $1,050.00. The order page showed Subtotal $1,000.00, Discount -$50.00, Tax $100.00 and Total $1,050.00, not the expected Tax $95.00 and Total $1,045.00. For step 2 I opened the New order page by typing its address instead of clicking the link.",
+        "cost": 0.056396100000000005
+      },
+      {
+        "problem": "🔴 Critical: A customer can view another company's orders by changing the address",
+        "steps": 4,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "Signed in as Acme Buyer One and opened order PO-4430, whose address ends in id=o-1004. After closing the window and signing in as Bright Buyer (Bright Foods), I typed the same address. The full Acme Traders order was shown: items, totals of $94.03, and company name. There was no 'order does not exist' message.",
+        "cost": 0.05541
+      },
+      {
+        "problem": "🟠 Important: On a phone, the New order form is cut off and the Place order button is out of view",
+        "steps": 3,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "I set the window to phone width (375 px) and signed in as the Acme customer. On New order, the PO reference and Note boxes ran past the right edge of the screen and the quantity box next to the product dropdown was cut off. The card's right border was also out of view. I didn't scroll sideways, so I didn't see the Place order button. It wasn't visible on the screen.",
+        "cost": 0.0452251
+      },
+      {
+        "problem": "🟠 Important: Urdu customer names appear reversed and broken in the Admin Portal",
+        "steps": 4,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": false,
+        "notes": "In Orders (Client column, orders زین-1044, زین-1043 and زین-1042) and in Reports > Sales by client, the Urdu company name appears as joined, connected Urdu script. Read right to left it comes out as 'زین ٹریڈرز', with the words in the correct order, so I did not see it reversed or with unjoined letters. I'm not a fluent Urdu reader, so this is based on the letter order on screen and the page's text matching that order.",
+        "cost": 0.1022605
+      },
+      {
+        "problem": "🟡 Minor: The Reports page takes about four seconds to show its figures",
+        "steps": 3,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "After signing in and clicking Reports, only the 'Sales summary' heading and a 'Loading' spinner showed. It was still loading when I looked about 6 seconds later, so I could not time it precisely, and I only saw the figures once I checked again after a longer wait (11 billable orders, $3,008.00 gross sales). The slow load matches the report, but I did not measure the exact four seconds.",
+        "cost": 0.061624000000000005
+      }
+    ]
+  }
+}

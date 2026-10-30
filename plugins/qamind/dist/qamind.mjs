@@ -114,17 +114,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path19) {
-      const ctrl = callVisitor(key, node, visitor, path19);
+    function visit_(key, node, visitor, path22) {
+      const ctrl = callVisitor(key, node, visitor, path22);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path19, ctrl);
-        return visit_(key, ctrl, visitor, path19);
+        replaceNode(key, path22, ctrl);
+        return visit_(key, ctrl, visitor, path22);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path19 = Object.freeze(path19.concat(node));
+          path22 = Object.freeze(path22.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path19);
+            const ci = visit_(i, node.items[i], visitor, path22);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -135,13 +135,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path19 = Object.freeze(path19.concat(node));
-          const ck = visit_("key", node.key, visitor, path19);
+          path22 = Object.freeze(path22.concat(node));
+          const ck = visit_("key", node.key, visitor, path22);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path19);
+          const cv = visit_("value", node.value, visitor, path22);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -162,17 +162,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path19) {
-      const ctrl = await callVisitor(key, node, visitor, path19);
+    async function visitAsync_(key, node, visitor, path22) {
+      const ctrl = await callVisitor(key, node, visitor, path22);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path19, ctrl);
-        return visitAsync_(key, ctrl, visitor, path19);
+        replaceNode(key, path22, ctrl);
+        return visitAsync_(key, ctrl, visitor, path22);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path19 = Object.freeze(path19.concat(node));
+          path22 = Object.freeze(path22.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path19);
+            const ci = await visitAsync_(i, node.items[i], visitor, path22);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -183,13 +183,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path19 = Object.freeze(path19.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path19);
+          path22 = Object.freeze(path22.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path22);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path19);
+          const cv = await visitAsync_("value", node.value, visitor, path22);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -216,23 +216,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path19) {
+    function callVisitor(key, node, visitor, path22) {
       if (typeof visitor === "function")
-        return visitor(key, node, path19);
+        return visitor(key, node, path22);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path19);
+        return visitor.Map?.(key, node, path22);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path19);
+        return visitor.Seq?.(key, node, path22);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path19);
+        return visitor.Pair?.(key, node, path22);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path19);
+        return visitor.Scalar?.(key, node, path22);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path19);
+        return visitor.Alias?.(key, node, path22);
       return void 0;
     }
-    function replaceNode(key, path19, node) {
-      const parent = path19[path19.length - 1];
+    function replaceNode(key, path22, node) {
+      const parent = path22[path22.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -844,10 +844,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path19, value) {
+    function collectionFromPath(schema, path22, value) {
       let v = value;
-      for (let i = path19.length - 1; i >= 0; --i) {
-        const k = path19[i];
+      for (let i = path22.length - 1; i >= 0; --i) {
+        const k = path22[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -866,7 +866,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path19) => path19 == null || typeof path19 === "object" && !!path19[Symbol.iterator]().next().done;
+    var isEmptyPath = (path22) => path22 == null || typeof path22 === "object" && !!path22[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -896,11 +896,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path19, value) {
-        if (isEmptyPath(path19))
+      addIn(path22, value) {
+        if (isEmptyPath(path22))
           this.add(value);
         else {
-          const [key, ...rest] = path19;
+          const [key, ...rest] = path22;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -914,8 +914,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path19) {
-        const [key, ...rest] = path19;
+      deleteIn(path22) {
+        const [key, ...rest] = path22;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -929,8 +929,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path19, keepScalar) {
-        const [key, ...rest] = path19;
+      getIn(path22, keepScalar) {
+        const [key, ...rest] = path22;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -948,8 +948,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path19) {
-        const [key, ...rest] = path19;
+      hasIn(path22) {
+        const [key, ...rest] = path22;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -959,8 +959,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path19, value) {
-        const [key, ...rest] = path19;
+      setIn(path22, value) {
+        const [key, ...rest] = path22;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -3475,9 +3475,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path19, value) {
+      addIn(path22, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path19, value);
+          this.contents.addIn(path22, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3552,14 +3552,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path19) {
-        if (Collection.isEmptyPath(path19)) {
+      deleteIn(path22) {
+        if (Collection.isEmptyPath(path22)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path19) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path22) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3574,10 +3574,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path19, keepScalar) {
-        if (Collection.isEmptyPath(path19))
+      getIn(path22, keepScalar) {
+        if (Collection.isEmptyPath(path22))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path19, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path22, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3588,10 +3588,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path19) {
-        if (Collection.isEmptyPath(path19))
+      hasIn(path22) {
+        if (Collection.isEmptyPath(path22))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path19) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path22) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3608,13 +3608,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path19, value) {
-        if (Collection.isEmptyPath(path19)) {
+      setIn(path22, value) {
+        if (Collection.isEmptyPath(path22)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path19), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path22), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path19, value);
+          this.contents.setIn(path22, value);
         }
       }
       /**
@@ -5575,9 +5575,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path19) => {
+    visit.itemAtPath = (cst, path22) => {
       let item = cst;
-      for (const [field, index] of path19) {
+      for (const [field, index] of path22) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5586,23 +5586,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path19) => {
-      const parent = visit.itemAtPath(cst, path19.slice(0, -1));
-      const field = path19[path19.length - 1][0];
+    visit.parentCollection = (cst, path22) => {
+      const parent = visit.itemAtPath(cst, path22.slice(0, -1));
+      const field = path22[path22.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path19, item, visitor) {
-      let ctrl = visitor(item, path19);
+    function _visit(path22, item, visitor) {
+      let ctrl = visitor(item, path22);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path19.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path22.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5613,10 +5613,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path19);
+            ctrl = ctrl(item, path22);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path19) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path22) : ctrl;
     }
     exports.visit = visit;
   }
@@ -6918,14 +6918,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs15 = this.flowScalar(this.type);
+              const fs18 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map.items.push({ start, key: fs15, sep: [] });
+                map.items.push({ start, key: fs18, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs15);
+                this.stack.push(fs18);
               } else {
-                Object.assign(it, { key: fs15, sep: [] });
+                Object.assign(it, { key: fs18, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -7053,13 +7053,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs15 = this.flowScalar(this.type);
+              const fs18 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs15, sep: [] });
+                fc.items.push({ start: [], key: fs18, sep: [] });
               else if (it.sep)
-                this.stack.push(fs15);
+                this.stack.push(fs18);
               else
-                Object.assign(it, { key: fs15, sep: [] });
+                Object.assign(it, { key: fs18, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -7368,9 +7368,9 @@ var require_dist = __commonJS({
 });
 
 // cli/src/main.ts
-import fs14 from "node:fs";
+import fs17 from "node:fs";
 import os3 from "node:os";
-import path18 from "node:path";
+import path21 from "node:path";
 import { parseArgs } from "node:util";
 
 // core/lib/schema.ts
@@ -7559,7 +7559,7 @@ var notFoundValue = (p) => {
 };
 function fillPath(ep, mode, own = false) {
   const needs = [];
-  const path19 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
+  const path22 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
     const param = ep.parameters.find((p) => p.in === "path" && p.name === name) ?? { name, in: "path", required: true };
     if (mode === "not-found") return encodeURIComponent(String(notFoundValue(param)));
     const resource = lastSegment(ep.path.slice(0, offset));
@@ -7568,7 +7568,7 @@ function fillPath(ep, mode, own = false) {
     needs.push(variable);
     return `{{${variable}}}`;
   });
-  return { path: path19, needs };
+  return { path: path22, needs };
 }
 function withReferences(value, vars) {
   if (Array.isArray(value)) return value.map((v) => withReferences(v, vars));
@@ -8592,14 +8592,28 @@ function policyFromConfig(c) {
   }
   return { allowed_origins: [...origins].sort(), blocked_patterns: [...c.security.blocked_production_patterns] };
 }
+function parseCriticalFlows(body) {
+  const lines = body.split(/\r?\n/);
+  const start = lines.findIndex((l) => /^#{1,3}\s*critical\s+(flows|journeys)\b/i.test(l.trim()));
+  if (start < 0) return [];
+  const flows = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^#{1,6}\s/.test(line.trim())) break;
+    if (/^\s*<!--.*-->\s*$/.test(line)) continue;
+    const item = /^\s*\d+[.)]\s+(.+)$/.exec(line);
+    if (item) flows.push(item[1].trim());
+    else if (flows.length > 0 && /^\s{2,}\S/.test(line)) flows[flows.length - 1] += ` ${line.trim()}`;
+  }
+  return flows;
+}
 
 // core/lib/guardpolicy.ts
-import fs11 from "node:fs";
-import path13 from "node:path";
+import fs13 from "node:fs";
+import path15 from "node:path";
 
 // core/lib/run.ts
-import fs10 from "node:fs";
-import path12 from "node:path";
+import fs12 from "node:fs";
+import path14 from "node:path";
 
 // core/lib/corepath.ts
 import path6 from "node:path";
@@ -8814,8 +8828,10 @@ function readRunData(runDir) {
   }
   const meta = readJson(dataFile(runDir, "meta.json"));
   const health = readJson(dataFile(runDir, "health.json"));
+  const admin = readJson(dataFile(runDir, "admin.json"));
   return {
     ...meta ? { meta } : {},
+    ...admin ? { admin } : {},
     charters: readList(runDir, "charters.json"),
     findings: readList(runDir, "findings.json"),
     unconfirmed: readList(runDir, "unconfirmed.json"),
@@ -8869,7 +8885,7 @@ function mergedNotTested(data) {
     if (row.status === "not-tested") {
       const label = [row.surface, row.area, row.role, row.viewport].filter(Boolean).join(" / ");
       if (!seen.has(label.toLowerCase()) && !seen.has(row.area.toLowerCase())) {
-        out.push({ area: label, reason: row.note ?? "Reason not recorded" });
+        out.push({ area: label, reason: row.note ?? "Reason not recorded", fromCoverage: row });
         seen.add(label.toLowerCase());
       }
     }
@@ -8907,6 +8923,7 @@ function renderTechnicalReport(data) {
     for (const [k, v] of rows) L.push(`| ${k} | ${esc(v)} |`);
     L.push("");
   }
+  L.push("_A plain-language version of this report for managers is in `ADMIN-REPORT.md` (same problems, same severities)._", "");
   L.push("## Environment health", "");
   if (!data.health) L.push("_Health check was not run._", "");
   else {
@@ -8931,7 +8948,7 @@ function renderTechnicalReport(data) {
   const sorted = [...data.findings].sort((a, b) => sevRank(a.severity) - sevRank(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""));
   if (sorted.length === 0) L.push("_No confirmed findings._", "");
   for (const f of sorted) {
-    L.push(`### ${f.id ?? "ISSUE-???"} ${ICON[f.severity]} ${LABEL[f.severity]}: ${f.title}`, "");
+    L.push(`<a id="${f.id ?? "ISSUE-"}"></a>`, "", `### ${f.id ?? "ISSUE-???"} ${ICON[f.severity]} ${LABEL[f.severity]}: ${f.title}`, "");
     L.push(`- **Surface:** ${f.surface}${f.ui ? ` \xB7 **UI:** ${f.ui}` : ""} \xB7 **Area:** ${f.area} \xB7 **Type:** ${f.type}`);
     if (f.roles?.length) L.push(`- **Roles:** ${f.roles.join(", ")}`);
     if (f.browser || f.viewport) L.push(`- **Browser / viewport:** ${[f.browser, f.viewport].filter(Boolean).join(" / ")}`);
@@ -8955,9 +8972,9 @@ function renderTechnicalReport(data) {
   L.push("## Coverage matrix", "");
   if (data.coverage.length === 0) L.push("_No coverage recorded._", "");
   else {
-    L.push("| Surface | Area | Role | Viewport | Status | Note |", "|---|---|---|---|---|---|");
+    L.push("| Surface | Area | Role | Viewport | Key journey | Status | Note |", "|---|---|---|---|---|---|---|");
     const mark = { tested: "\u2705 tested", partial: "\u25D0 partial", "not-tested": "\u26D4 not tested" };
-    for (const r of data.coverage) L.push(`| ${esc(r.surface)} | ${esc(r.area)} | ${esc(r.role ?? "-")} | ${esc(r.viewport ?? "-")} | ${mark[r.status]} | ${esc(r.note ?? "")} |`);
+    for (const r of data.coverage) L.push(`| ${esc(r.surface)} | ${esc(r.area)} | ${esc(r.role ?? "-")} | ${esc(r.viewport ?? "-")} | ${r.critical_flow ? `#${r.critical_flow}` : "-"} | ${mark[r.status]} | ${esc(r.note ?? "")} |`);
     L.push("");
   }
   L.push("## Not tested", "", "_Nothing here is reported as passing._", "");
@@ -9013,6 +9030,40 @@ function lintRun(runDir, data, knownSecrets = []) {
     if (!f.regression_test) warnings.push(`${tag}: no regression test proposed.`);
   }
   for (const n of data.notTested) if (!n.area?.trim() || !n.reason?.trim()) errors.push("not-tested.json: every entry needs an area and a reason.");
+  for (const f of data.findings) {
+    const tag = f.id ?? f.title;
+    const p = f.plain;
+    if (!p) {
+      errors.push(`${tag}: no "plain" block (title, where, what_happens, who_is_affected, how_to_see_it, expected) for the admin report.`);
+      continue;
+    }
+    for (const k of ["title", "where", "what_happens", "who_is_affected", "expected"]) if (!String(p[k] ?? "").trim()) errors.push(`${tag}: plain.${k} is empty.`);
+    if (!Array.isArray(p.how_to_see_it)) errors.push(`${tag}: plain.how_to_see_it must be a list (an empty list means it cannot be seen on screen).`);
+    if (p.screenshot) {
+      const abs = insideRun(runDir, p.screenshot);
+      if (!abs || !fs8.existsSync(abs)) errors.push(`${tag}: plain.screenshot "${p.screenshot}" does not exist inside the run folder.`);
+    }
+  }
+  for (const n of data.notTested) if (!n.plain?.area?.trim() || !n.plain?.reason?.trim()) errors.push(`not-tested.json: "${n.area}" needs a plain { area, reason } for the admin report.`);
+  for (const n of mergedNotTested(data)) {
+    if (n.fromCoverage) warnings.push(`coverage "${n.fromCoverage.area}" is marked not-tested but has no entry in not-tested.json with the same area text: add one (with a plain wording) so the reports do not list it twice or in technical words.`);
+  }
+  if ((data.admin?.next_steps?.length ?? 0) > 3) errors.push("admin.json: at most 3 next_steps.");
+  if (!data.admin?.biggest_risk?.trim()) warnings.push("admin.json: no biggest_risk sentence (the admin report falls back to the top problem's title).");
+  const flowCount = data.meta?.critical_flows?.length ?? 0;
+  for (const row of data.coverage) {
+    if (row.critical_flow !== void 0 && (!Number.isInteger(row.critical_flow) || row.critical_flow < 1 || row.critical_flow > flowCount)) errors.push(`coverage "${row.area}": critical_flow ${String(row.critical_flow)} is not one of the ${flowCount} critical journeys in the config.`);
+    if (row.surface === "ui" && !row.ui) warnings.push(`coverage "${row.area}": a UI row without "ui" is grouped under "Web screens" in the admin report.`);
+  }
+  for (let i = 1; i <= flowCount; i++) if (!data.coverage.some((r) => r.critical_flow === i)) warnings.push(`Critical journey ${i} ("${data.meta?.critical_flows?.[i - 1]}") has no coverage row, so the verdict cannot be Ready.`);
+  const dataDir = path10.join(runDir, "data");
+  if (fs8.existsSync(dataDir)) {
+    const newestData = Math.max(0, ...fs8.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs8.statSync(path10.join(dataDir, f)).mtimeMs));
+    for (const name of ["TECHNICAL-REPORT.md", "ADMIN-REPORT.md"]) {
+      const file = path10.join(runDir, name);
+      if (fs8.existsSync(file) && fs8.statSync(file).mtimeMs + 1 < newestData) errors.push(`${name} is older than the data it is built from: run \`report build\` again.`);
+    }
+  }
   for (const row of data.coverage) {
     if (row.status === "tested" && /not tested|blocked|skipped/i.test(row.note ?? "")) errors.push(`coverage "${row.area}" is marked tested but its note says otherwise.`);
   }
@@ -9039,9 +9090,417 @@ function lintRun(runDir, data, knownSecrets = []) {
   return { ok: errors.length === 0, errors, warnings };
 }
 
-// core/lib/stack.ts
+// core/lib/reports.ts
+import fs10 from "node:fs";
+import path12 from "node:path";
+
+// core/lib/verdict.ts
+function flowStatus(data) {
+  const total = data.meta?.critical_flows?.length ?? 0;
+  const tested = [];
+  const untested = [];
+  for (let i = 1; i <= total; i++) {
+    const rows = data.coverage.filter((r) => r.critical_flow === i);
+    (rows.length > 0 && rows.every((r) => r.status === "tested") ? tested : untested).push(i);
+  }
+  return { total, tested, untested };
+}
+var isOpen = (f) => f.fix_status !== "fixed-verified";
+var plural = (n, one2, many) => `${n} ${n === 1 ? one2 : many}`;
+var sentence = (s) => s.trim().replace(/[.\s]+$/, "");
+function computeVerdict(data) {
+  const open = data.findings.filter(isOpen);
+  const critical = open.filter((f) => f.severity === "critical");
+  const important = open.filter((f) => f.severity === "important");
+  const plainTitle = (f) => sentence(f.plain?.title ?? f.title);
+  if (data.health && !data.health.environment_ok) {
+    return {
+      level: "not-ready",
+      environment_problem: true,
+      reasons: ["The test environment had a problem, so the product could not be checked."],
+      line: "\u26D4 **Not ready to release:** the test environment has a problem, so nothing could be checked (see below)."
+    };
+  }
+  if (critical.length > 0) {
+    const first = plainTitle(critical[0]);
+    const more = important.length > 2 ? ` and ${plural(important.length, "important problem", "important problems")}` : "";
+    return {
+      level: "not-ready",
+      environment_problem: false,
+      reasons: critical.map(plainTitle),
+      line: `\u26D4 **Not ready to release:** ${plural(critical.length, "critical problem", "critical problems")} found${more}, for example: ${first}.`
+    };
+  }
+  const risks = [];
+  if (important.length > 2) risks.push(`${important.length} important problems are open`);
+  const flows = flowStatus(data);
+  if (flows.total === 0) risks.push("the key journeys were not listed, so they could not be confirmed as checked");
+  else if (flows.untested.length > 0) risks.push(`${plural(flows.untested.length, "key journey was", "key journeys were")} not fully checked`);
+  if (!data.health) risks.push("the test environment was not confirmed healthy");
+  if (risks.length === 0) {
+    return {
+      level: "ready",
+      environment_problem: false,
+      reasons: [],
+      line: `\u2705 **Ready to release:** no critical problems, ${plural(important.length, "important problem", "important problems")}, and every key journey was checked.`
+    };
+  }
+  return { level: "ready-with-risks", environment_problem: false, reasons: risks, line: `\u26A0\uFE0F **Ready with risks:** ${risks.join("; ")}.` };
+}
+
+// core/lib/adminreport.ts
+var MISSING_PLAIN = "(plain-language text not written yet)";
+var TECHNICAL_FILE = "TECHNICAL-REPORT.md";
+var MAX_NEXT_STEPS = 3;
+var MAX_SUMMARY_LINES = 6;
+var ICON2 = { critical: "\u{1F534}", important: "\u{1F7E0}", minor: "\u{1F7E1}" };
+var LABEL2 = { critical: "Critical", important: "Important", minor: "Minor" };
+var SEVERITY_ORDER = ["critical", "important", "minor"];
+var CANNOT_SEE_ON_SCREEN = "This cannot be seen on screen. A developer can confirm it using the technical details linked at the end of this problem.";
+var LOGIN_NOTE = "To follow the steps you need a test login for each kind of person they mention (for example a customer or an administrator). Ask the person who ran this check to give you one.";
+var BEHIND_NOTE = 'Problems marked "Behind the screens" are in the part of the system that works out of sight, so they cannot be seen on screen; a developer confirms them.';
+var hasBehindTheScreens = (m) => m.problems.some((p) => /^behind the screens/i.test(p.where));
+var GLOSSARY = [
+  ["\u{1F534} Critical", "People are blocked, information is wrong, lost or seen by the wrong people, money is affected, or security is at risk."],
+  ["\u{1F7E0} Important", "Something works badly or confusingly, but there is a way around it."],
+  ["\u{1F7E1} Minor", "Something looks wrong or is a small annoyance."],
+  ["Behind the screens", "The part of the system that does its work out of sight. People never see it directly, but every screen depends on it."],
+  ["Seen only once", "Something we noticed but could not repeat. It is not counted as a problem until it is confirmed."],
+  ["Not tested", "Something we did not check, with the reason. It is never reported as working."]
+];
+var one = (s) => (s ?? "").replace(/\s+/g, " ").trim();
+var cell = (s) => one(s).replace(/\|/g, "\\|");
+var plural2 = (n, a, b) => `${n} ${n === 1 ? a : b}`;
+var MODE_TEXT = {
+  full: "full check (everything we could reach)",
+  quick: "quick check (key journeys and biggest risks)",
+  regression: "re-check of earlier problems",
+  diff: "check of recent changes"
+};
+function plainDate(iso) {
+  const d = iso ? new Date(iso) : void 0;
+  return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }) : "date unknown";
+}
+var SURFACE_AREA = {
+  api: "Behind the screens (the back-end system)",
+  cross: "Changes showing up correctly across screens",
+  permissions: "Who can see and do what (permissions)",
+  "business-rule": "Business rules (prices, totals, limits)",
+  other: "Other checks"
+};
+function areaOf(surface, ui) {
+  if (surface === "ui") return ui?.trim() || "Web screens";
+  return SURFACE_AREA[surface] ?? "Other checks";
+}
+function buildAreas(data) {
+  const tallies = /* @__PURE__ */ new Map();
+  const get = (k) => {
+    let t = tallies.get(k);
+    if (!t) tallies.set(k, t = { tested: 0, partial: 0, notTested: 0, findings: { critical: 0, important: 0, minor: 0 } });
+    return t;
+  };
+  for (const r of data.coverage) {
+    const t = get(areaOf(r.surface, r.ui));
+    if (r.status === "tested") t.tested++;
+    else if (r.status === "partial") t.partial++;
+    else t.notTested++;
+  }
+  for (const f of data.findings.filter(isOpen)) get(areaOf(f.surface, f.ui)).findings[f.severity]++;
+  const rows = [];
+  for (const [area, t] of tallies) {
+    const problems = t.findings.critical + t.findings.important + t.findings.minor;
+    const parts = SEVERITY_ORDER.filter((s) => t.findings[s] > 0).map((s) => `${t.findings[s]} ${s}`);
+    const partlyChecked = t.partial > 0 || t.notTested > 0;
+    let result;
+    let note;
+    if (t.findings.critical > 0) result = "\u26D4";
+    else if (t.tested === 0 && t.partial === 0 && problems === 0) result = "\u26D4";
+    else if (problems > 0 || partlyChecked) result = "\u26A0\uFE0F";
+    else result = "\u2705";
+    if (problems > 0) note = `Problems found: ${parts.join(", ")}.${partlyChecked ? " Part of this area was not fully checked." : ""}`;
+    else if (t.tested === 0 && t.partial === 0) note = "Not checked.";
+    else if (partlyChecked) note = "Nothing wrong found, but part of this area was not fully checked.";
+    else note = "Nothing wrong found in what was checked.";
+    rows.push({ area, result, note });
+  }
+  const rank = { "\u26D4": 0, "\u26A0\uFE0F": 1, "\u2705": 2 };
+  return rows.sort((a, b) => rank[a.result] - rank[b.result] || a.area.localeCompare(b.area));
+}
+function environmentLines(data) {
+  if (!data.health || data.health.environment_ok) return [];
+  const lines = [];
+  for (const c of data.health.checks.filter((x) => !x.ok && !x.skipped)) {
+    let m;
+    if (m = /^Web UI "(.+)" loads$/.exec(c.name)) lines.push(`The "${m[1]}" did not open.`);
+    else if (/^API base responds$/.test(c.name)) lines.push("The back-end system behind the screens did not respond.");
+    else if (m = /^Test account "(.+)" can sign in$/.exec(c.name)) lines.push(`The test account "${m[1]}" could not sign in.`);
+    else lines.push("A basic health check of the test system did not pass.");
+  }
+  return lines.length ? lines : ["The test environment did not pass its health check."];
+}
+function statusText(s) {
+  return s === "fixed-verified" ? "Fixed and checked" : s === "fixed-needs-confirmation" ? "Fixed, needs a human to confirm" : "Not fixed yet";
+}
+var IMAGE = /\.(png|jpe?g|webp|gif)$/i;
+function toProblem(f) {
+  const p = f.plain;
+  const complete = !!p && !!one(p.title) && !!one(p.where) && !!one(p.what_happens) && !!one(p.who_is_affected) && !!one(p.expected) && Array.isArray(p.how_to_see_it);
+  const shot = p?.screenshot ?? f.evidence.find((e) => IMAGE.test(e));
+  return {
+    id: f.id ?? "ISSUE-???",
+    severity: f.severity,
+    title: one(p?.title) || f.title,
+    where: one(p?.where) || MISSING_PLAIN,
+    what: one(p?.what_happens) || MISSING_PLAIN,
+    who: one(p?.who_is_affected) || MISSING_PLAIN,
+    steps: (p?.how_to_see_it ?? []).map(one).filter(Boolean),
+    expected: one(p?.expected) || MISSING_PLAIN,
+    ...shot ? { screenshot: shot } : {},
+    status: statusText(f.fix_status),
+    ...p?.ticket ? { ticket: p.ticket } : {},
+    missingPlain: !complete
+  };
+}
+function trendLines(data, previous) {
+  const last = previous[0];
+  if (!last) return ["This is the first check of this project, so there is nothing to compare with yet."];
+  const now = countBySeverity(data.findings.filter(isOpen));
+  const diff = (a, b) => b === a ? "same" : b > a ? `${b - a} more` : `${a - b} fewer`;
+  const lines = [
+    `Last check (${plainDate(last.started)}, ${MODE_TEXT[last.mode]?.split(" (")[0] ?? last.mode}): ${last.counts.critical} critical, ${last.counts.important} important, ${last.counts.minor} minor.`,
+    `This check: ${now.critical} critical (${diff(last.counts.critical, now.critical)}), ${now.important} important (${diff(last.counts.important, now.important)}), ${now.minor} minor (${diff(last.counts.minor, now.minor)}).`
+  ];
+  if (last.mode !== data.meta?.mode) lines.push("The two checks were not the same kind, so the numbers are not directly comparable.");
+  lines.push("We do not yet track which problems are new and which are repeats of earlier ones.");
+  return lines;
+}
+function buildAdminModel(data, previous = []) {
+  const verdict = computeVerdict(data);
+  const open = data.findings.filter(isOpen);
+  const counts = countBySeverity(open);
+  const areas = buildAreas(data);
+  const problems = [...open].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? "")).map(toProblem);
+  const notTested = mergedNotTested(data).map((n) => {
+    if (n.plain?.area?.trim() && n.plain?.reason?.trim()) return { area: one(n.plain.area), reason: one(n.plain.reason) };
+    const row = n.fromCoverage;
+    if (row) return { area: `${areaOf(row.surface, row.ui)} \u2192 ${one(row.area)}`, reason: /^(not covered|reason not recorded)\.?$/i.test(one(row.note)) || !one(row.note) ? "This was not checked in this run." : one(row.note) };
+    return { area: one(n.area), reason: one(n.reason) };
+  });
+  const fine = areas.filter((a) => a.result === "\u2705").length;
+  const withProblems = areas.filter((a) => /^Problems found/.test(a.note)).length;
+  const notChecked = areas.filter((a) => a.note === "Not checked.").length;
+  const partly = areas.length - fine - withProblems - notChecked;
+  const areaParts = [`${fine} fine`, `${withProblems} with problems`, ...partly > 0 ? [`${partly} partly checked`] : [], `${notChecked} not checked`];
+  const meta = data.meta;
+  const biggest = one(data.admin?.biggest_risk) || (problems[0] && problems[0].severity !== "minor" ? `${problems[0].title}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
+  const names = notTested.slice(0, 3).map((n) => n.area.length > 60 ? `${n.area.slice(0, 57)}...` : n.area);
+  const summary = [
+    `Checked on ${plainDate(meta?.started)} \xB7 Environment: ${meta?.environment ?? "unknown"} \xB7 Type of check: ${MODE_TEXT[meta?.mode ?? ""] ?? meta?.mode ?? "unknown"}`,
+    `We looked at ${plural2(areas.length, "area", "areas")}: ${areaParts.join(", ")}.`,
+    `Problems: \u{1F534} ${counts.critical} critical \xB7 \u{1F7E0} ${counts.important} important \xB7 \u{1F7E1} ${counts.minor} minor`,
+    `Biggest risk: ${biggest}`,
+    notTested.length ? `Not tested: ${names.join("; ")}${notTested.length > 3 ? ` and ${notTested.length - 3} more` : ""}.` : "Not tested: nothing; everything planned was checked."
+  ];
+  if (data.unconfirmed.length) summary.push(`${plural2(data.unconfirmed.length, "other thing was", "other things were")} seen only once and could not be repeated; they are not counted as problems.`);
+  const fallbackSteps = [];
+  if (counts.critical > 0) fallbackSteps.push("Have a developer fix the critical problems first.");
+  if (notTested.length > 0) fallbackSteps.push("Arrange what is needed to check the areas that were not tested (see the list below).");
+  if (problems.length > 0) fallbackSteps.push("Run the check again after the fixes to confirm them.");
+  const authored = (data.admin?.next_steps ?? []).map(one).filter(Boolean);
+  const nextSteps = (authored.length ? authored : fallbackSteps).slice(0, MAX_NEXT_STEPS);
+  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), notTested, nextSteps };
+}
+function renderAdminMarkdown(m) {
+  const L = [m.verdict.line, ""];
+  if (m.environment.length) {
+    L.push("## The test environment has a problem", "", "Nothing below can be trusted as a statement about the product until this is fixed:", "", ...m.environment.map((e) => `- ${e}`), "");
+  }
+  L.push("> **30-second summary**", ...m.summary.map((s) => `> - ${s}`), "");
+  L.push("## What we found, by area", "", "| Area | Result | Notes |", "|---|---|---|");
+  for (const a of m.areas) L.push(`| ${cell(a.area)} | ${a.result} | ${cell(a.note)} |`);
+  if (m.areas.length === 0) L.push("| (nothing was recorded) | \u26D4 | No areas were checked. |");
+  L.push("", "\u2705 nothing wrong found \xB7 \u26A0\uFE0F problems found or only partly checked \xB7 \u26D4 serious problems or not checked", "");
+  L.push("## Problems found", "");
+  if (m.problems.length === 0) L.push("No problems were confirmed in what was checked.", "");
+  else {
+    const notes = [...m.problems.some((p) => p.steps.length > 0) ? [LOGIN_NOTE] : [], ...hasBehindTheScreens(m) ? [BEHIND_NOTE] : []];
+    if (notes.length) L.push(notes.join(" "), "");
+  }
+  for (const p of m.problems) {
+    L.push(`### ${ICON2[p.severity]} ${LABEL2[p.severity]}: ${one(p.title)}`, "");
+    L.push(`- **Where:** ${p.where}`, `- **What happens:** ${p.what}`, `- **Who is affected:** ${p.who}`);
+    if (p.steps.length) {
+      L.push("- **How to see it yourself:**");
+      p.steps.forEach((s, i) => L.push(`  ${i + 1}. ${s}`));
+    } else L.push(`- **How to see it yourself:** ${CANNOT_SEE_ON_SCREEN}`);
+    L.push(`- **What should happen:** ${p.expected}`);
+    L.push(p.screenshot ? `- **Screenshot:** [view the screenshot](${p.screenshot})` : "- **Screenshot:** none (this is not visible on screen)");
+    L.push(`- **Status:** ${p.status}`, `- **Ticket:** ${p.ticket ? `[open the ticket](${p.ticket})` : "none yet"}`, "- **Your feedback (optional):** ______");
+    L.push(`- **For developers:** [${p.id}](${TECHNICAL_FILE}#${p.id})`, "");
+  }
+  L.push("## Compared with the last check", "", ...m.trend.map((t) => `- ${t}`), "");
+  L.push("## What was not tested", "");
+  if (m.notTested.length === 0) L.push("Everything planned was checked.", "");
+  else L.push(...m.notTested.map((n) => `- **${one(n.area)}**: ${one(n.reason)}`), "");
+  if (m.nextSteps.length) L.push("## Suggested next steps", "", ...m.nextSteps.map((s, i) => `${i + 1}. ${s}`), "");
+  L.push("## Words used in this report", "", ...GLOSSARY.map(([w, d]) => `- **${w}**: ${d}`), "");
+  L.push(
+    "---",
+    `The full technical details, with exact steps for developers, are in \`${TECHNICAL_FILE}\`. Feedback written in this report is read by a developer; it is not picked up automatically yet.`,
+    "Before you share this report outside your team, look at the screenshots for personal information.",
+    ""
+  );
+  return L.join("\n");
+}
+var JARGON = [
+  [/\bHTTP\b|\bstatus code\b|\b(status|code|error|returns?|responds?|got|gets|answers?)\s*:?\s*[1-5]\d\d\b/i, "a status code"],
+  [/stack\s?trace|traceback|\bexception\b/i, "a stack trace or exception"],
+  [/\b(JSON|XML|API|SQL|CSS|DOM|regex|curl|endpoint|payload|header|headers|token|cookie|selector|query string|parameter|backend|frontend)\b/i, "a technical term"],
+  [/\b(null|undefined)\b/i, "a programming word"],
+  [/\b(GET|POST|PUT|PATCH|DELETE)\b/, "a request method"],
+  [/`/, "code formatting"],
+  [/\bISSUE-\d+/, "an issue id (only allowed in the For developers line)"],
+  [/(^|[\s(])\/?[\w.-]+\/[\w./-]+\.\w{1,5}\b|\b[\w-]+\.(js|mjs|ts|py|php|rb|java|cs|json|ya?ml|html|css)\b|\bsrc\//i, "a file path"],
+  [/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/i, "an identifier"]
+];
+function lintAdminLanguage(markdown) {
+  const issues = [];
+  markdown.split("\n").forEach((raw, i) => {
+    if (/^\s*-\s+\*\*For developers:\*\*/.test(raw)) return;
+    if (raw.startsWith("The full technical details, with exact steps for developers")) return;
+    const text = raw.replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1");
+    for (const [re, label] of JARGON) if (re.test(text)) issues.push({ line: i + 1, found: label, text: raw.trim().slice(0, 110) });
+  });
+  return issues;
+}
+
+// core/scripts/consistency-check.ts
 import fs9 from "node:fs";
 import path11 from "node:path";
+var SEV_WORD = { "\u{1F534}": "critical", "\u{1F7E0}": "important", "\u{1F7E1}": "minor" };
+var VERDICT = /^(✅ \*\*Ready to release|⚠️ \*\*Ready with risks|⛔ \*\*Not ready to release)/;
+function section(text, heading) {
+  const start = text.indexOf(`
+## ${heading}`);
+  if (start < 0) return "";
+  const rest = text.slice(start + 1);
+  const next = rest.indexOf("\n## ", 4);
+  return next < 0 ? rest : rest.slice(0, next);
+}
+function checkConsistency(runDir) {
+  const errors = [];
+  const warnings = [];
+  const result = { ok: true, errors, warnings, technical: [], admin: [] };
+  const techFile = path11.join(runDir, "TECHNICAL-REPORT.md");
+  const adminFile = path11.join(runDir, "ADMIN-REPORT.md");
+  for (const f of [techFile, adminFile]) {
+    if (!fs9.existsSync(f)) {
+      errors.push(`${path11.basename(f)} does not exist: run \`report build\` first.`);
+    }
+  }
+  if (errors.length) return { ...result, ok: false };
+  const tech = fs9.readFileSync(techFile, "utf8");
+  const admin = fs9.readFileSync(adminFile, "utf8");
+  const findingsSection = section(`
+${tech}`, "Findings");
+  for (const m of findingsSection.matchAll(/^### (ISSUE-\d+) (🔴|🟠|🟡) (Critical|Important|Minor): /gm)) result.technical.push({ id: m[1], severity: SEV_WORD[m[2]] });
+  const techCounts = /🔴 Critical: \*\*(\d+)\*\*\s+🟠 Important: \*\*(\d+)\*\*\s+🟡 Minor: \*\*(\d+)\*\*/.exec(tech);
+  const techNotTested = (section(`
+${tech}`, "Not tested").match(/^- \*\*/gm) ?? []).length;
+  const lines = admin.split("\n");
+  const first = lines[0] ?? "";
+  if (!VERDICT.test(first)) errors.push("The admin report's first line must be the release verdict (Ready to release / Ready with risks / Not ready to release).");
+  const summaryLines = lines.filter((l) => l.startsWith("> - "));
+  if (summaryLines.length === 0) errors.push("The admin report has no 30-second summary.");
+  if (summaryLines.length > MAX_SUMMARY_LINES) errors.push(`The 30-second summary has ${summaryLines.length} lines (limit ${MAX_SUMMARY_LINES}).`);
+  const problemsSection = section(`
+${admin}`, "Problems found");
+  const blocks = problemsSection.split(/^### /m).slice(1);
+  for (const b of blocks) {
+    const head = /^(🔴|🟠|🟡) (Critical|Important|Minor): (.+)$/m.exec(b);
+    const dev = [...b.matchAll(/^- \*\*For developers:\*\* \[(ISSUE-\d+)\]\(TECHNICAL-REPORT\.md#(ISSUE-\d+)\)\s*$/gm)];
+    const title = head?.[3] ?? b.split("\n")[0] ?? "?";
+    if (!head) {
+      errors.push(`A problem heading is not in the form "<severity icon> <Severity>: <title>": ${title}`);
+      continue;
+    }
+    if (dev.length !== 1) {
+      errors.push(`Problem "${title}" must have exactly one "For developers" line linking to its ISSUE (found ${dev.length}).`);
+      continue;
+    }
+    const [, id, anchor] = dev[0];
+    if (id !== anchor) errors.push(`Problem "${title}": the For developers link text (${id}) and target (${anchor}) differ.`);
+    result.admin.push({ id, severity: SEV_WORD[head[1]] });
+    for (const label of ["Where", "What happens", "Who is affected", "How to see it yourself", "What should happen", "Screenshot", "Status", "Ticket"]) {
+      if (!new RegExp(`^- \\*\\*${label}:\\*\\*`, "m").test(b)) errors.push(`Problem "${title}" is missing "${label}".`);
+    }
+    if (b.includes(MISSING_PLAIN)) errors.push(`Problem "${title}" has no plain-language text yet (${id}).`);
+  }
+  const techIds = new Map(result.technical.map((x) => [x.id, x.severity]));
+  const adminIds = new Map(result.admin.map((x) => [x.id, x.severity]));
+  for (const [id, sev] of techIds) {
+    if (!adminIds.has(id)) errors.push(`${id} (${sev}) is in the technical report but missing from the admin report${sev === "minor" ? "" : ": a Critical or Important problem must never be dropped"}.`);
+    else if (adminIds.get(id) !== sev) errors.push(`${id} is ${sev} in the technical report but ${adminIds.get(id)} in the admin report.`);
+  }
+  for (const id of adminIds.keys()) if (!techIds.has(id)) errors.push(`${id} is in the admin report but not in the technical report: nothing may be added.`);
+  if (adminIds.size !== result.admin.length || techIds.size !== result.technical.length) errors.push("The same ISSUE id appears twice in one of the reports.");
+  const actual = { critical: 0, important: 0, minor: 0 };
+  for (const x of result.technical) actual[x.severity] = (actual[x.severity] ?? 0) + 1;
+  if (techCounts) {
+    const stated = { critical: Number(techCounts[1]), important: Number(techCounts[2]), minor: Number(techCounts[3]) };
+    for (const k of Object.keys(actual)) if (stated[k] !== actual[k]) errors.push(`The technical summary says ${stated[k]} ${k} but ${actual[k]} are listed.`);
+  } else errors.push("The technical report has no severity summary line.");
+  const adminCounts = /🔴 (\d+) critical · 🟠 (\d+) important · 🟡 (\d+) minor/.exec(summaryLines.join("\n"));
+  if (adminCounts) {
+    const stated = { critical: Number(adminCounts[1]), important: Number(adminCounts[2]), minor: Number(adminCounts[3]) };
+    for (const k of Object.keys(actual)) if (stated[k] !== actual[k]) errors.push(`The admin summary says ${stated[k]} ${k} but the technical report lists ${actual[k]}.`);
+  } else errors.push("The admin summary has no problem-count line.");
+  if (first.startsWith("\u2705") && (actual["critical"] !== 0 || (actual["important"] ?? 0) > 2)) errors.push("The verdict says Ready, but there are critical problems or more than 2 important ones.");
+  if (first.startsWith("\u26D4") && actual["critical"] === 0 && !/environment/i.test(first)) errors.push("The verdict says Not ready but there are no critical problems and no environment problem.");
+  if (first.startsWith("\u26A0\uFE0F") && actual["critical"] !== 0) errors.push("The verdict says Ready with risks, but there are critical problems.");
+  const adminNotTested = (section(`
+${admin}`, "What was not tested").match(/^- \*\*/gm) ?? []).length;
+  if (techNotTested !== adminNotTested) errors.push(`The technical report lists ${techNotTested} not-tested areas but the admin report lists ${adminNotTested}.`);
+  const steps = (section(`
+${admin}`, "Suggested next steps").match(/^\d+\. /gm) ?? []).length;
+  if (steps > MAX_NEXT_STEPS) errors.push(`The admin report has ${steps} suggested next steps (limit ${MAX_NEXT_STEPS}).`);
+  for (const issue of lintAdminLanguage(admin)) errors.push(`Admin report line ${issue.line} contains ${issue.found}: "${issue.text}"`);
+  if (/\*\*Not ready|Ready with risks/.test(first) === false && !first.startsWith("\u2705")) warnings.push("Unrecognised verdict wording.");
+  result.ok = errors.length === 0;
+  return result;
+}
+
+// core/lib/reports.ts
+function previousRuns(store, currentRunId, limit = 3) {
+  if (!store) return [];
+  const dir = storeSubdirs(store).runs;
+  if (!fs10.existsSync(dir)) return [];
+  return fs10.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().map((f) => readJson(path12.join(dir, f))).filter((r) => !!r && r.run_id !== currentRunId).slice(0, limit);
+}
+function renderReports(runDir, store) {
+  const first = readRunData(runDir);
+  assignIds(runDir, first);
+  const data = readRunData(runDir);
+  const model = buildAdminModel(data, previousRuns(store, data.meta?.run_id));
+  return { data, model, technical: renderTechnicalReport(data), admin: renderAdminMarkdown(model) };
+}
+function writeReports(runDir, store) {
+  const r = renderReports(runDir, store);
+  fs10.writeFileSync(path12.join(runDir, "TECHNICAL-REPORT.md"), r.technical, "utf8");
+  fs10.writeFileSync(path12.join(runDir, "ADMIN-REPORT.md"), r.admin, "utf8");
+  return r;
+}
+function lintReports(runDir, knownSecrets = []) {
+  const data = readRunData(runDir);
+  const base = lintRun(runDir, data, knownSecrets);
+  const consistency = checkConsistency(runDir);
+  const errors = [...base.errors, ...consistency.errors.filter((e) => !base.errors.includes(e))];
+  return { ok: errors.length === 0, errors, warnings: [...base.warnings, ...consistency.warnings], consistency };
+}
+
+// core/lib/stack.ts
+import fs11 from "node:fs";
+import path13 from "node:path";
 var JS_FRAMEWORKS = [
   ["next", "nextjs"],
   ["react", "react"],
@@ -9065,7 +9524,7 @@ var JS_TEST_RUNNERS = [
 ];
 function readIf(file) {
   try {
-    return fs9.readFileSync(file, "utf8");
+    return fs11.readFileSync(file, "utf8");
   } catch {
     return "";
   }
@@ -9076,14 +9535,14 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   const runners = /* @__PURE__ */ new Set();
   const commands = {};
   let packageManager;
-  const pkg = readJson(path11.join(root, "package.json"));
+  const pkg = readJson(path13.join(root, "package.json"));
   if (pkg) {
     languages.add("javascript");
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
     for (const [dep, name] of JS_FRAMEWORKS) if (deps[dep]) frameworks.add(name);
     for (const [dep, name] of JS_TEST_RUNNERS) if (deps[dep]) runners.add(name);
-    if (deps["typescript"] || exists(path11.join(root, "tsconfig.json"))) languages.add("typescript");
-    packageManager = exists(path11.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path11.join(root, "yarn.lock")) ? "yarn" : exists(path11.join(root, "bun.lock")) ? "bun" : "npm";
+    if (deps["typescript"] || exists(path13.join(root, "tsconfig.json"))) languages.add("typescript");
+    packageManager = exists(path13.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path13.join(root, "yarn.lock")) ? "yarn" : exists(path13.join(root, "bun.lock")) ? "bun" : "npm";
     const run = packageManager === "npm" ? "npm run" : packageManager;
     if (pkg.scripts?.["test"] && !/no test specified/.test(pkg.scripts["test"])) {
       commands.test = packageManager === "npm" ? "npm test" : `${packageManager} test`;
@@ -9093,7 +9552,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (pkg.scripts?.["dev"]) commands.dev = `${run} dev`;
     else if (pkg.scripts?.["start"]) commands.dev = packageManager === "npm" ? "npm start" : `${packageManager} start`;
   }
-  const composer = readIf(path11.join(root, "composer.json"));
+  const composer = readIf(path13.join(root, "composer.json"));
   if (composer) {
     languages.add("php");
     if (/laravel\/framework/.test(composer)) frameworks.add("laravel");
@@ -9101,23 +9560,23 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (/pestphp/.test(composer)) runners.add("pest");
     packageManager ??= "composer";
   }
-  const py = readIf(path11.join(root, "requirements.txt")) + readIf(path11.join(root, "pyproject.toml"));
-  if (py || exists(path11.join(root, "manage.py"))) {
+  const py = readIf(path13.join(root, "requirements.txt")) + readIf(path13.join(root, "pyproject.toml"));
+  if (py || exists(path13.join(root, "manage.py"))) {
     languages.add("python");
-    if (/django/i.test(py) || exists(path11.join(root, "manage.py"))) frameworks.add("django");
+    if (/django/i.test(py) || exists(path13.join(root, "manage.py"))) frameworks.add("django");
     if (/fastapi/i.test(py)) frameworks.add("fastapi");
     if (/flask/i.test(py)) frameworks.add("flask");
     if (/pytest/i.test(py)) runners.add("pytest");
     packageManager ??= "pip";
   }
-  if (/rails/.test(readIf(path11.join(root, "Gemfile")))) {
+  if (/rails/.test(readIf(path13.join(root, "Gemfile")))) {
     languages.add("ruby");
     frameworks.add("rails");
-    if (/rspec/.test(readIf(path11.join(root, "Gemfile")))) runners.add("rspec");
+    if (/rspec/.test(readIf(path13.join(root, "Gemfile")))) runners.add("rspec");
     packageManager ??= "bundler";
   }
   try {
-    if (fs9.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"))) {
+    if (fs11.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"))) {
       languages.add("csharp");
       frameworks.add("dotnet");
       commands.test ??= "dotnet test";
@@ -9136,7 +9595,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   };
 }
 function saveStack(memoryDir, stack) {
-  const file = path11.join(memoryDir, "stack.json");
+  const file = path13.join(memoryDir, "stack.json");
   const prev = readJson(file);
   const strip = (s) => JSON.stringify({ ...s, detected_at: void 0 });
   if (prev && strip(prev) === strip(stack)) return { changed: false };
@@ -9153,13 +9612,13 @@ var MODES = ["full", "quick", "regression", "diff"];
 var MARKER_TTL_HOURS = 8;
 function realOrResolved(p) {
   try {
-    return fs10.realpathSync(p);
+    return fs12.realpathSync(p);
   } catch {
-    return path12.resolve(p);
+    return path14.resolve(p);
   }
 }
 function browserStatus(home, projectRoot, expectedNames) {
-  const state = readJson(path12.join(home, "state", "browser-state.json"));
+  const state = readJson(path14.join(home, "state", "browser-state.json"));
   const key = Object.keys(state ?? {}).find((k) => realOrResolved(k) === realOrResolved(projectRoot));
   if (!state || !key) {
     return {
@@ -9180,12 +9639,12 @@ function browserStatus(home, projectRoot, expectedNames) {
 }
 function copyIfMissing(from, to, created) {
   if (exists(to)) return;
-  ensureDir(path12.dirname(to));
-  fs10.copyFileSync(from, to);
+  ensureDir(path14.dirname(to));
+  fs12.copyFileSync(from, to);
   created.push(to);
 }
 function markerPath(store) {
-  return path12.join(storeSubdirs(store).state, RUN_MARKER_FILE);
+  return path14.join(storeSubdirs(store).state, RUN_MARKER_FILE);
 }
 function readMarker(store) {
   return readJson(markerPath(store));
@@ -9197,9 +9656,9 @@ function findActiveMarkers(home, now = /* @__PURE__ */ new Date()) {
   const root = projectsRoot(home);
   if (!exists(root)) return [];
   const out = [];
-  for (const entry of fs10.readdirSync(root, { withFileTypes: true })) {
+  for (const entry of fs12.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const m = readJson(path12.join(root, entry.name, "state", RUN_MARKER_FILE));
+    const m = readJson(path14.join(root, entry.name, "state", RUN_MARKER_FILE));
     if (m && !isExpired(m, now)) out.push(m);
   }
   return out;
@@ -9211,9 +9670,9 @@ function scanAllMarkers(home) {
   const root = projectsRoot(home);
   if (!exists(root)) return [];
   const out = [];
-  for (const entry of fs10.readdirSync(root, { withFileTypes: true })) {
+  for (const entry of fs12.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const m = readJson(path12.join(root, entry.name, "state", RUN_MARKER_FILE));
+    const m = readJson(path14.join(root, entry.name, "state", RUN_MARKER_FILE));
     if (m) out.push(m);
   }
   return out;
@@ -9221,8 +9680,8 @@ function scanAllMarkers(home) {
 function startRun(opts2) {
   const env = opts2.env ?? process.env;
   const now = opts2.now ?? /* @__PURE__ */ new Date();
-  const root = path12.resolve(opts2.project ?? opts2.cwd);
-  if (!exists(root) || !fs10.statSync(root).isDirectory()) {
+  const root = path14.resolve(opts2.project ?? opts2.cwd);
+  if (!exists(root) || !fs12.statSync(root).isDirectory()) {
     return { status: "no-project", message: `The folder ${root} does not exist. Ask the user which project folder to test.`, known_projects: listKnownProjects(opts2.home) };
   }
   if (!opts2.project && !looksLikeProject(root)) {
@@ -9235,13 +9694,13 @@ function startRun(opts2) {
   const info = resolveProject(root);
   const { store } = ensureProjectStore(opts2.home, info, now);
   const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store };
-  const configFile = path12.join(root, ".qa", "config.md");
+  const configFile = path14.join(root, ".qa", "config.md");
   const gitignoreAdded = ensureGitignoreEntries(root);
   if (!exists(configFile)) {
     const created = [];
     const core = corePath();
-    copyIfMissing(path12.join(core, "shared", "templates", "config.md"), configFile, created);
-    copyIfMissing(path12.join(core, "shared", "templates", "env.qa.example"), path12.join(root, ".env.qa.example"), created);
+    copyIfMissing(path14.join(core, "shared", "templates", "config.md"), configFile, created);
+    copyIfMissing(path14.join(core, "shared", "templates", "env.qa.example"), path14.join(root, ".env.qa.example"), created);
     return {
       status: "needs-config",
       message: "First run in this project: QAMind created .qa/config.md and .env.qa.example and added .qa/ and .env.qa to .gitignore. Fill in .qa/config.md (every REPLACE_ME), copy .env.qa.example to .env.qa and add the TEST account logins, then run QA again. Nothing was tested.",
@@ -9293,10 +9752,11 @@ function startRun(opts2) {
     }
   }
   let runId = `run-${utcStamp(now)}`;
-  const reports = path12.join(root, ".qa", "reports");
-  for (let n = 2; exists(path12.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
-  const runDir = path12.join(reports, runId);
-  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path12.join(runDir, sub));
+  const reports = path14.join(root, ".qa", "reports");
+  for (let n = 2; exists(path14.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
+  const runDir = path14.join(reports, runId);
+  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path14.join(runDir, sub));
+  const criticalFlows = parseCriticalFlows(check.body ?? "");
   const stack = detectStack(root, now);
   saveStack(storeSubdirs(store).memory, stack);
   const git2 = gitInfo(root);
@@ -9334,25 +9794,27 @@ function startRun(opts2) {
     host: opts2.host,
     ...opts2.focus ? { focus: opts2.focus } : {},
     started: now.toISOString(),
+    critical_flows: criticalFlows,
     ...git2.branch ? { branch: git2.branch } : {},
     ...git2.commit ? { commit: git2.commit } : {},
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION
   };
-  writeJson(path12.join(runDir, "data", "meta.json"), meta);
+  writeJson(path14.join(runDir, "data", "meta.json"), meta);
   return {
     status: "ready",
     message: "Ready. Credentials are present for the roles listed (values are never shown).",
     project: projectOut,
     gitignore_added: gitignoreAdded,
-    run: { id: runId, dir: runDir, mode: opts2.mode, ...opts2.focus ? { focus: opts2.focus } : {}, readonly, report: path12.join(runDir, "TECHNICAL-REPORT.md") },
+    run: { id: runId, dir: runDir, mode: opts2.mode, ...opts2.focus ? { focus: opts2.focus } : {}, readonly, report: path14.join(runDir, "TECHNICAL-REPORT.md") },
     config: {
       environment: config.environment.name,
       web_uis: config.web_uis,
       api: { ...config.api.base_url ? { base_url: config.api.base_url } : {}, ...config.api.openapi ? { openapi: config.api.openapi } : {}, login_configured: !!config.api.login },
       roles,
       test_data_prefix: config.test_data_prefix,
-      fix_severities: config.fix_policy.fix_severities
+      fix_severities: config.fix_policy.fix_severities,
+      critical_flows: criticalFlows
     },
     ...check.missing_env.length ? { missing_env: check.missing_env } : {},
     ...check.advisories.length ? { advisories: check.advisories } : {},
@@ -9372,7 +9834,7 @@ function finishRun(opts2) {
   const notTested = mergedNotTested(data);
   const started = new Date(marker.started).getTime();
   const duration_s = Math.max(0, Math.round((now.getTime() - started) / 1e3));
-  const meta = readJson(path12.join(marker.run_dir, "data", "meta.json"));
+  const meta = readJson(path14.join(marker.run_dir, "data", "meta.json"));
   const stop_reason = opts2.stopReason ?? "completed";
   const summary = {
     schema_version: SCHEMA_VERSION,
@@ -9399,12 +9861,12 @@ function finishRun(opts2) {
     knowledge_version: KNOWLEDGE_VERSION,
     ...meta?.branch ? { branch: meta.branch } : {},
     ...meta?.commit ? { commit: meta.commit } : {},
-    report: path12.join(marker.run_dir, "TECHNICAL-REPORT.md")
+    report: path14.join(marker.run_dir, "TECHNICAL-REPORT.md")
   };
-  writeJson(path12.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
-  if (meta) writeJson(path12.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost });
-  fs10.writeFileSync(path12.join(marker.run_dir, "TECHNICAL-REPORT.md"), renderTechnicalReport(readRunData(marker.run_dir)), "utf8");
-  fs10.rmSync(markerPath(marker.store), { force: true });
+  writeJson(path14.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
+  if (meta) writeJson(path14.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost });
+  writeReports(marker.run_dir, marker.store);
+  fs12.rmSync(markerPath(marker.store), { force: true });
   return summary;
 }
 
@@ -9428,19 +9890,19 @@ function decide(url, markers) {
   return { allowed: r.allowed, reason: r.reason, internal };
 }
 function logBlocked(home, markers, entry) {
-  const targets = markers.length ? markers.map((m) => ({ file: path13.join(m.store, "state", "guard-blocked.jsonl"), run_id: m.run_id })) : [{ file: path13.join(home, "state", "guard-blocked.jsonl"), run_id: "none" }];
+  const targets = markers.length ? markers.map((m) => ({ file: path15.join(m.store, "state", "guard-blocked.jsonl"), run_id: m.run_id })) : [{ file: path15.join(home, "state", "guard-blocked.jsonl"), run_id: "none" }];
   for (const t of targets) {
     try {
-      ensureDir(path13.dirname(t.file));
-      fs11.appendFileSync(t.file, JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), run_id: t.run_id, ...entry }) + "\n", "utf8");
+      ensureDir(path15.dirname(t.file));
+      fs13.appendFileSync(t.file, JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), run_id: t.run_id, ...entry }) + "\n", "utf8");
     } catch {
     }
   }
 }
 function readBlocked(store, runId) {
-  const file = path13.join(store, "state", "guard-blocked.jsonl");
-  if (!fs11.existsSync(file)) return [];
-  return fs11.readFileSync(file, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((e) => e.run_id === runId);
+  const file = path15.join(store, "state", "guard-blocked.jsonl");
+  if (!fs13.existsSync(file)) return [];
+  return fs13.readFileSync(file, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((e) => e.run_id === runId);
 }
 function markerSource(home, ttlMs = 1e3) {
   let at = 0;
@@ -9504,7 +9966,7 @@ async function runHealthCheck(args) {
 }
 
 // core/lib/hooks.ts
-import path14 from "node:path";
+import path16 from "node:path";
 var GIT_MUTATION = /\bgit\s+(?:-[A-Za-z]\s+\S+\s+)*(add|commit|push|pull|fetch\s+--prune|merge|rebase|reset|checkout|switch|restore|stash|cherry-pick|revert|rm|mv|clean|tag|apply|am|worktree|branch\s+-[dDmM])\b/;
 var INSTALLS = /\b(npm|pnpm|yarn|bun)\s+(install|i|add|remove|uninstall|update|upgrade|ci)\b|\bpip3?\s+install\b|\bcomposer\s+(install|require|update|remove)\b|\bbundle\s+(install|update)\b|\bdotnet\s+add\b/;
 var IN_PLACE_EDIT = /\bsed\s+(?:-[A-Za-z]*i|--in-place)\b|\bperl\s+-[A-Za-z]*i\b/;
@@ -9513,11 +9975,11 @@ var AMP_REDIRECT = /&>{1,2}\s*([^\s&|;)]+)/g;
 var stripQuoted = (cmd) => cmd.replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, '""');
 var CREDENTIAL_FILE = /(^|[\\/\s"'=])\.env\.qa(?![.\w-])/;
 function inside(child, parent) {
-  const rel = path14.relative(parent, child);
-  return rel === "" || !rel.startsWith("..") && !path14.isAbsolute(rel);
+  const rel = path16.relative(parent, child);
+  return rel === "" || !rel.startsWith("..") && !path16.isAbsolute(rel);
 }
 function allowedWriteRoots(marker, home, tmpDirs) {
-  return [path14.join(marker.project_root, ".qa"), home, ...tmpDirs];
+  return [path16.join(marker.project_root, ".qa"), home, ...tmpDirs];
 }
 function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new Date()) {
   if (!input.session_id) return null;
@@ -9526,10 +9988,10 @@ function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new D
   const tool = input.tool_name ?? "";
   const ti = input.tool_input ?? {};
   const cwd = input.cwd ?? marker.project_root;
-  const abs = (p) => path14.resolve(cwd, p);
+  const abs = (p) => path16.resolve(cwd, p);
   if (tool === "Read" || tool === "Grep" || tool === "Glob") {
     const target = String(ti["file_path"] ?? ti["path"] ?? ti["pattern"] ?? "");
-    if (CREDENTIAL_FILE.test(`/${target}`) || path14.basename(target) === ".env.qa") {
+    if (CREDENTIAL_FILE.test(`/${target}`) || path16.basename(target) === ".env.qa") {
       return { decision: "deny", reason: "QAMind never reads .env.qa: credentials must not enter the conversation. Use the secret names in the roles table (the browser tool and the qamind CLI substitute the values)." };
     }
   }
@@ -9572,16 +10034,16 @@ function toHookOutput(d) {
 }
 
 // core/lib/memory.ts
-import fs12 from "node:fs";
-import path15 from "node:path";
+import fs14 from "node:fs";
+import path17 from "node:path";
 function loadMemoryContext(store, limit = 3) {
   const dirs = storeSubdirs(store);
-  const stack = readJson(path15.join(dirs.memory, "stack.json"));
+  const stack = readJson(path17.join(dirs.memory, "stack.json"));
   const runs = [];
-  if (fs12.existsSync(dirs.runs)) {
-    const files = fs12.readdirSync(dirs.runs).filter((f) => f.endsWith(".json")).sort().reverse().slice(0, limit);
+  if (fs14.existsSync(dirs.runs)) {
+    const files = fs14.readdirSync(dirs.runs).filter((f) => f.endsWith(".json")).sort().reverse().slice(0, limit);
     for (const f of files) {
-      const r = readJson(path15.join(dirs.runs, f));
+      const r = readJson(path17.join(dirs.runs, f));
       if (r) runs.push({ run_id: r.run_id, mode: r.mode, finished: r.finished, counts: r.counts, not_tested_count: r.not_tested_count, finding_ids: r.finding_ids, stop_reason: r.stop_reason });
     }
   }
@@ -9593,7 +10055,7 @@ function loadMemoryContext(store, limit = 3) {
 }
 
 // core/lib/runctx.ts
-import path16 from "node:path";
+import path18 from "node:path";
 function loadRunContext(home, runId, env = process.env) {
   if (!runId) throw new Error("--run <run-id> is required (use the id printed by `run start`).");
   const marker = findMarkerByRunId(home, runId);
@@ -9611,7 +10073,7 @@ function loadRunContext(home, runId, env = process.env) {
   return {
     marker,
     projectRoot: marker.project_root,
-    runDir: path16.resolve(marker.run_dir),
+    runDir: path18.resolve(marker.run_dir),
     config: check.config,
     policy: marker.policy,
     roles,
@@ -9621,9 +10083,9 @@ function loadRunContext(home, runId, env = process.env) {
 
 // core/scripts/browser-launcher.ts
 import { spawn } from "node:child_process";
-import fs13 from "node:fs";
+import fs15 from "node:fs";
 import os2 from "node:os";
-import path17 from "node:path";
+import path19 from "node:path";
 import { createRequire } from "node:module";
 
 // core/scripts/guard-proxy.ts
@@ -9722,15 +10184,15 @@ function startGuardProxy(home, port = 0) {
 // core/scripts/browser-launcher.ts
 var PLAYWRIGHT_MCP_VERSION = "0.0.83";
 function detectChromeChannel() {
-  const exists2 = (p) => fs13.existsSync(p);
-  const onPath = (name) => (process.env["PATH"] ?? "").split(path17.delimiter).some((d) => d && exists2(path17.join(d, name)));
+  const exists2 = (p) => fs15.existsSync(p);
+  const onPath = (name) => (process.env["PATH"] ?? "").split(path19.delimiter).some((d) => d && exists2(path19.join(d, name)));
   if (process.platform === "darwin") {
     if (exists2("/Applications/Google Chrome.app")) return "chrome";
     if (exists2("/Applications/Microsoft Edge.app")) return "msedge";
   } else if (process.platform === "win32") {
     const roots = [process.env["PROGRAMFILES"], process.env["PROGRAMFILES(X86)"], process.env["LOCALAPPDATA"]].filter((x) => !!x);
-    if (roots.some((r) => exists2(path17.join(r, "Google", "Chrome", "Application", "chrome.exe")))) return "chrome";
-    if (roots.some((r) => exists2(path17.join(r, "Microsoft", "Edge", "Application", "msedge.exe")))) return "msedge";
+    if (roots.some((r) => exists2(path19.join(r, "Google", "Chrome", "Application", "chrome.exe")))) return "chrome";
+    if (roots.some((r) => exists2(path19.join(r, "Microsoft", "Edge", "Application", "msedge.exe")))) return "msedge";
   } else {
     if (["google-chrome", "google-chrome-stable"].some(onPath)) return "chrome";
     if (onPath("microsoft-edge")) return "msedge";
@@ -9741,39 +10203,39 @@ function resolvePlaywrightMcp() {
   try {
     const req = createRequire(import.meta.url);
     const pkg = req.resolve("@playwright/mcp/package.json");
-    return { command: process.execPath, args: [path17.join(path17.dirname(pkg), "cli.js")] };
+    return { command: process.execPath, args: [path19.join(path19.dirname(pkg), "cli.js")] };
   } catch {
     return { command: process.platform === "win32" ? "npx.cmd" : "npx", args: ["--yes", `@playwright/mcp@${PLAYWRIGHT_MCP_VERSION}`] };
   }
 }
 async function runBrowserLauncher() {
   const home = qamindHome();
-  const projectRoot = fs13.realpathSync(path17.resolve(process.env["CLAUDE_PROJECT_DIR"] ?? process.cwd()));
+  const projectRoot = fs15.realpathSync(path19.resolve(process.env["CLAUDE_PROJECT_DIR"] ?? process.cwd()));
   const guard = await startGuardProxy(home);
   const secrets = {};
-  const envFile = path17.join(projectRoot, ".env.qa");
-  if (fs13.existsSync(envFile)) Object.assign(secrets, parseDotenv(fs13.readFileSync(envFile, "utf8")));
+  const envFile = path19.join(projectRoot, ".env.qa");
+  if (fs15.existsSync(envFile)) Object.assign(secrets, parseDotenv(fs15.readFileSync(envFile, "utf8")));
   try {
-    if (fs13.existsSync(path17.join(projectRoot, ".qa", "config.md"))) {
+    if (fs15.existsSync(path19.join(projectRoot, ".qa", "config.md"))) {
       const cfg = checkConfigFile(projectRoot).config;
       for (const r of cfg?.roles ?? []) for (const n of [r.username_env, r.password_env]) if (process.env[n]) secrets[n] = process.env[n];
     }
   } catch {
   }
-  const tmp = fs13.mkdtempSync(path17.join(os2.tmpdir(), "qamind-browser-"));
-  fs13.chmodSync(tmp, 448);
-  const secretsFile = path17.join(tmp, "secrets.env");
-  fs13.writeFileSync(secretsFile, Object.entries(secrets).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("\n") + "\n", { mode: 384 });
-  const outDir = path17.join(tmp, "output");
+  const tmp = fs15.mkdtempSync(path19.join(os2.tmpdir(), "qamind-browser-"));
+  fs15.chmodSync(tmp, 448);
+  const secretsFile = path19.join(tmp, "secrets.env");
+  fs15.writeFileSync(secretsFile, Object.entries(secrets).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("\n") + "\n", { mode: 384 });
+  const outDir = path19.join(tmp, "output");
   ensureDir(outDir);
-  const stateFile = path17.join(home, "state", "browser-state.json");
+  const stateFile = path19.join(home, "state", "browser-state.json");
   const state = readJson(stateFile) ?? {};
   state[projectRoot] = { secret_names: Object.keys(secrets).sort(), proxy_port: guard.port, pid: process.pid, started: (/* @__PURE__ */ new Date()).toISOString() };
   writeJson(stateFile, state);
   const auditScript = (() => {
     try {
-      const f = path17.join(corePath(), "shared", "page-audit.js");
-      return fs13.existsSync(f) ? f : void 0;
+      const f = path19.join(corePath(), "shared", "page-audit.js");
+      return fs15.existsSync(f) ? f : void 0;
     } catch {
       return void 0;
     }
@@ -9801,7 +10263,7 @@ async function runBrowserLauncher() {
   const child = spawn(mcp.command, args, { stdio: "inherit", cwd: projectRoot });
   const cleanup = async () => {
     await guard.close().catch(() => void 0);
-    fs13.rmSync(tmp, { recursive: true, force: true });
+    fs15.rmSync(tmp, { recursive: true, force: true });
   };
   for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => child.kill(sig));
   return new Promise((resolve) => {
@@ -9816,6 +10278,96 @@ async function runBrowserLauncher() {
       resolve(1);
     });
   });
+}
+
+// core/scripts/export-html.ts
+import fs16 from "node:fs";
+import path20 from "node:path";
+var esc2 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+var SEV_CLASS = { critical: "sev-critical", important: "sev-important", minor: "sev-minor" };
+var SEV_LABEL = { critical: "\u{1F534} Critical", important: "\u{1F7E0} Important", minor: "\u{1F7E1} Minor" };
+var MIME = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".gif": "image/gif" };
+var MAX_IMAGE_BYTES = 25e5;
+var MAX_TOTAL_IMAGE_BYTES = 12e6;
+var CSS = `
+:root{color-scheme:light dark;--bg:#fff;--fg:#1c2330;--muted:#5b6678;--line:#d9dee7;--card:#f6f8fb;--crit:#b3261e;--imp:#a65a00;--min:#7a6a00;--ok:#1b6e3b;--link:#1a56c4}
+@media (prefers-color-scheme:dark){:root{--bg:#10151c;--fg:#e6ebf2;--muted:#9aa6b8;--line:#2a3340;--card:#171e28;--crit:#ff8a80;--imp:#ffb74d;--min:#e6d36a;--ok:#7bd69b;--link:#8ab4ff}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:20px 16px 48px}
+h1,h2,h3{line-height:1.25}h2{margin-top:2rem;border-bottom:1px solid var(--line);padding-bottom:.3rem}
+.verdict{font-size:1.2rem;font-weight:600;padding:14px 16px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+.verdict.not-ready{border-color:var(--crit)}.verdict.risks{border-color:var(--imp)}.verdict.ready{border-color:var(--ok)}
+.summary{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 18px;margin:16px 0}
+table{width:100%;border-collapse:collapse;margin:8px 0}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.problem{border:1px solid var(--line);border-left-width:6px;border-radius:10px;padding:4px 16px 8px;margin:16px 0;background:var(--card)}
+.problem.sev-critical{border-left-color:var(--crit)}.problem.sev-important{border-left-color:var(--imp)}.problem.sev-minor{border-left-color:var(--min)}
+.problem h3{margin:.7rem 0}.problem dl{margin:0}.problem dt{font-weight:600;margin-top:.6rem}.problem dd{margin:.1rem 0 0}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;margin-top:6px}
+.muted{color:var(--muted);font-size:.9rem}a{color:var(--link)}
+@media print{body{font-size:11pt}.problem{break-inside:avoid}}
+`;
+function renderAdminHtml(m, title, opts2 = {}) {
+  const cls = m.verdict.level === "ready" ? "ready" : m.verdict.level === "ready-with-risks" ? "risks" : "not-ready";
+  const bold = (s) => esc2(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  const H = [];
+  H.push("<!doctype html>", '<html lang="en">', "<head>", '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width, initial-scale=1">', `<title>${esc2(title)}</title>`, `<style>${CSS}</style>`, "</head>", "<body>", "<main>");
+  H.push(`<h1>${esc2(title)}</h1>`, `<p class="verdict ${cls}">${bold(m.verdict.line)}</p>`);
+  if (m.environment.length) H.push("<h2>The test environment has a problem</h2>", "<p>Nothing below can be trusted as a statement about the product until this is fixed:</p>", `<ul>${m.environment.map((e) => `<li>${esc2(e)}</li>`).join("")}</ul>`);
+  H.push('<section class="summary"><strong>30-second summary</strong>', `<ul>${m.summary.map((s) => `<li>${esc2(s)}</li>`).join("")}</ul></section>`);
+  H.push("<h2>What we found, by area</h2>", "<table><thead><tr><th>Area</th><th>Result</th><th>Notes</th></tr></thead><tbody>");
+  for (const a of m.areas) H.push(`<tr><td>${esc2(a.area)}</td><td>${a.result}</td><td>${esc2(a.note)}</td></tr>`);
+  H.push("</tbody></table>", '<p class="muted">\u2705 nothing wrong found \xB7 \u26A0\uFE0F problems found or only partly checked \xB7 \u26D4 serious problems or not checked</p>');
+  H.push("<h2>Problems found</h2>");
+  if (m.problems.length === 0) H.push("<p>No problems were confirmed in what was checked.</p>");
+  else {
+    const notes = [...m.problems.some((p) => p.steps.length > 0) ? [LOGIN_NOTE] : [], ...hasBehindTheScreens(m) ? [BEHIND_NOTE] : []];
+    if (notes.length) H.push(`<p>${esc2(notes.join(" "))}</p>`);
+  }
+  for (const p of m.problems) {
+    H.push(`<article class="problem ${SEV_CLASS[p.severity]}" id="${esc2(p.id)}">`, `<h3>${SEV_LABEL[p.severity]}: ${esc2(p.title)}</h3>`, "<dl>");
+    H.push(`<dt>Where</dt><dd>${esc2(p.where)}</dd>`, `<dt>What happens</dt><dd>${esc2(p.what)}</dd>`, `<dt>Who is affected</dt><dd>${esc2(p.who)}</dd>`);
+    H.push(p.steps.length ? `<dt>How to see it yourself</dt><dd><ol>${p.steps.map((s) => `<li>${esc2(s)}</li>`).join("")}</ol></dd>` : `<dt>How to see it yourself</dt><dd>${esc2(CANNOT_SEE_ON_SCREEN)}</dd>`);
+    H.push(`<dt>What should happen</dt><dd>${esc2(p.expected)}</dd>`);
+    if (p.screenshot) {
+      const uri = opts2.embed?.(p.screenshot);
+      H.push(`<dt>Screenshot</dt><dd>${uri ? `<img alt="Screenshot showing the problem: ${esc2(p.title)}" src="${uri}">` : `<span class="muted">Not embedded in this file (${esc2(p.screenshot)}); it is in the report folder.</span>`}</dd>`);
+    } else H.push("<dt>Screenshot</dt><dd>None (this is not visible on screen).</dd>");
+    H.push(`<dt>Status</dt><dd>${esc2(p.status)}</dd>`, `<dt>Ticket</dt><dd>${p.ticket && /^https?:\/\//.test(p.ticket) ? `<a href="${esc2(p.ticket)}">open the ticket</a>` : "none yet"}</dd>`);
+    H.push(`<dt>For developers</dt><dd>${esc2(p.id)} in ${esc2(TECHNICAL_FILE)}</dd>`, "</dl>", "</article>");
+  }
+  H.push("<h2>Compared with the last check</h2>", `<ul>${m.trend.map((t) => `<li>${esc2(t)}</li>`).join("")}</ul>`);
+  H.push("<h2>What was not tested</h2>", m.notTested.length ? `<ul>${m.notTested.map((n) => `<li><strong>${esc2(n.area)}</strong>: ${esc2(n.reason)}</li>`).join("")}</ul>` : "<p>Everything planned was checked.</p>");
+  if (m.nextSteps.length) H.push("<h2>Suggested next steps</h2>", `<ol>${m.nextSteps.map((s) => `<li>${esc2(s)}</li>`).join("")}</ol>`);
+  H.push("<h2>Words used in this report</h2>", `<ul>${GLOSSARY.map(([w, d]) => `<li><strong>${esc2(w)}</strong>: ${esc2(d)}</li>`).join("")}</ul>`);
+  H.push("<hr>", `<p class="muted">The full technical details, with exact steps for developers, are in ${esc2(TECHNICAL_FILE)}. Before you share this report outside your team, look at the screenshots for personal information.</p>`, "</main>", "</body>", "</html>", "");
+  return H.join("\n");
+}
+function exportAdminHtml(runDir, store, opts2 = {}) {
+  const { model, data } = renderReports(runDir, store);
+  const embedded = [];
+  const skipped = [];
+  let total = 0;
+  const embed = (rel) => {
+    if (opts2.embedImages === false) return void 0;
+    const abs = path20.resolve(runDir, rel);
+    if (!abs.startsWith(path20.resolve(runDir) + path20.sep) || !fs16.existsSync(abs)) return void skipped.push(rel);
+    const mime = MIME[path20.extname(abs).toLowerCase()];
+    const size = fs16.statSync(abs).size;
+    if (!mime || size > MAX_IMAGE_BYTES || total + size > MAX_TOTAL_IMAGE_BYTES) return void skipped.push(rel);
+    total += size;
+    embedded.push(rel);
+    return `data:${mime};base64,${fs16.readFileSync(abs).toString("base64")}`;
+  };
+  const html = renderAdminHtml(model, `QAMind report: ${data.meta?.environment ?? "test"} check on ${plainDate(data.meta?.started)}`, { embed });
+  const file = opts2.out ? path20.resolve(opts2.out) : path20.join(runDir, "ADMIN-REPORT.html");
+  fs16.writeFileSync(file, html, "utf8");
+  return {
+    file,
+    bytes: Buffer.byteLength(html),
+    images_embedded: embedded.length,
+    images_skipped: skipped,
+    warning: embedded.length ? "Screenshots are embedded in this file and are not masked automatically. Look at them for personal information before you email it." : ""
+  };
 }
 
 // cli/src/main.ts
@@ -9838,8 +10390,10 @@ Checks and testing
                 [--max-per-endpoint N] [--max-total N]
   api run       --run ID --plan FILE_OR_NAME [--read-only] [--slow-ms N]
 Reporting and memory
-  report build --run ID        render TECHNICAL-REPORT.md from <run>/data/*.json
-  report lint  --run ID        enforce the evidence rules (exit 1 on errors)
+  report build --run ID        render TECHNICAL-REPORT.md and ADMIN-REPORT.md from <run>/data/*.json
+  report lint  --run ID        evidence rules, plain-language text, and the two reports agreeing (exit 1 on errors)
+  report check --run ID        only the consistency check of the two written reports
+  report export-html --run ID [--no-images] [--out FILE]   ADMIN-REPORT.html: one self-contained file for emailing
   memory context --run ID      stack and recent runs for this project
   memory where [--project DIR] print the project's private store path
   guard log    --run ID        origins the browser guard blocked during the run
@@ -9915,11 +10469,11 @@ async function loadInventory(ctx, specArg) {
     doc = loadSpecFile(resolveSpecPath(source, ctx.projectRoot));
   }
   const inv = buildInventory(doc, source);
-  writeJson(path18.join(ctx.runDir, "data", "api-inventory.json"), inv);
+  writeJson(path21.join(ctx.runDir, "data", "api-inventory.json"), inv);
   return inv;
 }
 function readInventory(ctx) {
-  return readJson(path18.join(ctx.runDir, "data", "api-inventory.json"));
+  return readJson(path21.join(ctx.runDir, "data", "api-inventory.json"));
 }
 async function cmdApi(sub, rest, home) {
   if (sub === "inventory") {
@@ -9964,10 +10518,10 @@ async function cmdApi(sub, rest, home) {
     });
     plan.name = values.name ?? (values.role ? `baseline-${role}` : "baseline");
     const rel = `data/plans/${plan.name}.json`;
-    writeJson(path18.join(ctx.runDir, rel), plan);
+    writeJson(path21.join(ctx.runDir, rel), plan);
     const byTag = {};
     for (const p of plan.probes) for (const t of p.tags ?? []) byTag[t] = (byTag[t] ?? 0) + 1;
-    emit({ plan_file: path18.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
+    emit({ plan_file: path21.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
     return 0;
   }
   if (sub === "run") {
@@ -9977,9 +10531,9 @@ async function cmdApi(sub, rest, home) {
     const base = ctx.config.api.base_url;
     if (!base) throw new UsageError("api.base_url is not set in .qa/config.md");
     const given = values.plan;
-    const byName = path18.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
-    const planFile = exists(path18.resolve(given)) ? path18.resolve(given) : exists(byName) ? byName : void 0;
-    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path18.join(ctx.runDir, "data", "plans")}.`);
+    const byName = path21.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
+    const planFile = exists(path21.resolve(given)) ? path21.resolve(given) : exists(byName) ? byName : void 0;
+    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path21.join(ctx.runDir, "data", "plans")}.`);
     const plan = readJson(planFile);
     const result = await runPlan(plan, {
       baseUrl: base,
@@ -10007,29 +10561,43 @@ async function cmdApi(sub, rest, home) {
   throw new UsageError("api needs a subcommand: inventory | plan | run");
 }
 async function cmdReport(sub, rest, home) {
-  const { values } = opts(rest, { run: { type: "string" } });
+  const { values } = opts(rest, { run: { type: "string" }, "no-images": { type: "boolean", default: false }, out: { type: "string" } });
   const ctx = loadRunContext(home, values.run);
   if (sub === "build") {
-    const data = readRunData(ctx.runDir);
-    assignIds(ctx.runDir, data);
-    const file = path18.join(ctx.runDir, "TECHNICAL-REPORT.md");
-    fs14.writeFileSync(file, renderTechnicalReport(readRunData(ctx.runDir)), "utf8");
-    emit({ report: file, findings: data.findings.map((f) => `${f.id} ${f.severity}: ${f.title}`), unconfirmed: data.unconfirmed.length, charters: data.charters.length });
+    const r = writeReports(ctx.runDir, ctx.marker.store);
+    emit({
+      technical_report: path21.join(ctx.runDir, "TECHNICAL-REPORT.md"),
+      admin_report: path21.join(ctx.runDir, "ADMIN-REPORT.md"),
+      verdict: r.model.verdict.line,
+      findings: r.data.findings.map((f) => `${f.id} ${f.severity}: ${f.title}`),
+      unconfirmed: r.data.unconfirmed.length,
+      charters: r.data.charters.length,
+      next: "Run `report lint`: it checks the evidence rules, that every finding has plain-language text, and that the two reports agree."
+    });
     return 0;
   }
   if (sub === "lint") {
-    const data = readRunData(ctx.runDir);
-    assignIds(ctx.runDir, data);
-    const result = lintRun(ctx.runDir, readRunData(ctx.runDir), ctx.passwords);
+    const result = lintReports(ctx.runDir, ctx.passwords);
+    const { consistency: _c, ...printable } = result;
+    emit(printable);
+    return result.ok ? 0 : 1;
+  }
+  if (sub === "check") {
+    const result = checkConsistency(ctx.runDir);
     emit(result);
     return result.ok ? 0 : 1;
   }
-  throw new UsageError("report needs a subcommand: build | lint");
+  if (sub === "export-html") {
+    const r = exportAdminHtml(ctx.runDir, ctx.marker.store, { embedImages: !values["no-images"], ...values.out ? { out: values.out } : {} });
+    emit(r);
+    return 0;
+  }
+  throw new UsageError("report needs a subcommand: build | lint | check | export-html");
 }
 async function cmdMemory(sub, rest, home) {
   if (sub === "where") {
     const { values } = opts(rest, { project: { type: "string" } });
-    const info = resolveProject(path18.resolve(values.project ?? process.cwd()));
+    const info = resolveProject(path21.resolve(values.project ?? process.cwd()));
     const { store } = ensureProjectStore(home, info);
     emit({ project_id: info.id, id_source: info.idSource, store });
     return 0;
@@ -10044,7 +10612,7 @@ async function cmdMemory(sub, rest, home) {
 }
 async function cmdHook(sub, home) {
   if (sub !== "pre-tool-use") throw new UsageError("hook needs a subcommand: pre-tool-use");
-  const raw = fs14.readFileSync(0, "utf8");
+  const raw = fs17.readFileSync(0, "utf8");
   let input;
   try {
     input = JSON.parse(raw);
@@ -10065,8 +10633,8 @@ async function main(argv) {
         return await cmdRun(sub, rest, home);
       case "config": {
         const { values } = opts(rest, { project: { type: "string" } });
-        const root = path18.resolve(values.project ?? process.cwd());
-        if (!exists(path18.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
+        const root = path21.resolve(values.project ?? process.cwd());
+        if (!exists(path21.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
         const check = checkConfigFile(root);
         const { config: _c, body: _b, ...printable } = check;
         emit(printable);
@@ -10076,8 +10644,8 @@ async function main(argv) {
         const { values } = opts(sub ? [sub, ...rest] : rest, { run: { type: "string" } });
         const ctx = loadRunContext(home, values.run);
         const result = await runHealthCheck({ config: ctx.config, policy: ctx.policy, roles: ctx.roles });
-        ensureDir(path18.join(ctx.runDir, "data"));
-        writeJson(path18.join(ctx.runDir, "data", "health.json"), result);
+        ensureDir(path21.join(ctx.runDir, "data"));
+        writeJson(path21.join(ctx.runDir, "data", "health.json"), result);
         emit(result);
         return result.environment_ok ? 0 : 7;
       }

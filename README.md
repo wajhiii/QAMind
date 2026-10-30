@@ -9,10 +9,10 @@ It tests your **API** (from its OpenAPI spec), each **web UI** per role, cross-s
 business rules, and writes a technical report with reproducible findings, evidence, and an explicit **Not tested** list.
 It works on staging or local environments only, never production.
 
-> **Status: Phase 2 of 8.** Working today: the `/qa-only` skill on **Claude Code**, API testing from OpenAPI, browser
-> testing of web UIs, safety guard, the technical report, and a built-in QA knowledge base (27 topic files, sourced in
-> [docs/KNOWLEDGE-SOURCES.md](docs/KNOWLEDGE-SOURCES.md)). Not built yet: the plain-language
-> admin report, project memory beyond run history, fix mode, auto-QA, Codex/Cursor, CI mode and the rest of the
+> **Status: Phase 3 of 8.** Working today: the `/qa-only` skill on **Claude Code**, API testing from OpenAPI, browser
+> testing of web UIs, safety guard, a built-in QA knowledge base (27 topic files, sourced in
+> [docs/KNOWLEDGE-SOURCES.md](docs/KNOWLEDGE-SOURCES.md)), and two reports per run: a technical report for developers and a
+> plain-language admin report for managers with a release verdict and an email-ready HTML export. Not built yet: project memory beyond run history, fix mode, auto-QA, Codex/Cursor, CI mode and the rest of the
 > [roadmap](#roadmap). Nothing below is claimed beyond what is built.
 
 ## Install (Claude Code)
@@ -60,6 +60,11 @@ code and what depends on it). Free text after the mode narrows the focus.
 
 Each run creates `.qa/reports/run-<timestamp>/`:
 
+- `ADMIN-REPORT.md`: **for managers, no jargon.** The first line is the release verdict (✅ Ready to release, ⚠️ Ready with risks, ⛔ Not ready
+  to release), then a six-line summary, results by area, every problem with where it happens, who is affected and steps anyone can follow on screen,
+  a comparison with the last check, what was not tested and why, and at most three next steps. It is generated from the same data as the technical
+  report and a consistency check fails if the two disagree. See [an example](docs/examples/ADMIN-REPORT.example.md). On request,
+  `report export-html` makes one self-contained `ADMIN-REPORT.html` for emailing.
 - `TECHNICAL-REPORT.md`: metadata, environment health, the test plan (charters), findings with exact reproduction steps and
   evidence, unconfirmed leads, a coverage matrix, a **Not tested** list with reasons, API results, proposed regression tests.
 - `evidence/` (sanitized API requests/responses with curl reproductions), `screenshots/`, and `data/` (the structured
@@ -99,8 +104,8 @@ Screenshot masking of personal data is not built yet (Phase 7.6).
 | Phase | Adds |
 |-------|------|
 | 1 ✅ | Core skeleton, Claude Code adapter, `/qa-only`, API + browser testing, technical report, demo app |
-| 2 ✅ (this) | Curated QA knowledge base, loaded on demand |
-| 3 | Plain-language admin report, consistency check, HTML export |
+| 2 ✅ | Curated QA knowledge base, loaded on demand |
+| 3 ✅ (this) | Plain-language admin report with release verdict, consistency check, HTML export |
 | 4 | Project memory that improves each run |
 | 5 | `qa-memory` MCP server |
 | 6 / 6.5 / 7 | `/qa` fix mode, auto-QA hooks, global lessons |

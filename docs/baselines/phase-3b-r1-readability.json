@@ -1,0 +1,189 @@
+{
+  "label": "phase-3b-r1",
+  "report": "phase-3b-full-r1.admin.md",
+  "date": "2026-10-30T08:18:41.583Z",
+  "model": "claude-sonnet-5-5",
+  "problems_in_report": 10,
+  "problems_with_on_screen_steps": 1,
+  "reader": {
+    "answered": true,
+    "cost_usd": 0.046131899999999997,
+    "steps_followable": 1,
+    "steps_not_followable": 0,
+    "confusing_words": [
+      "Behind the screens",
+      "Client Portal and Admin Portal",
+      "national ID numbers",
+      "card digits",
+      "address bar",
+      "order page (address ending in the order number)",
+      "their previous sign-in still works",
+      "Behind the screens (the part that talks to the Client Portal)",
+      "tax base",
+      "PO reference",
+      "Client Portal",
+      "fractional",
+      "distort sales figures",
+      "bracket",
+      "backslash",
+      "unusual page sizes",
+      "fail",
+      "Error responses",
+      "something unreadable is sent",
+      "internal details about how it is built",
+      "attacker",
+      "Sending the same order twice at once",
+      "flagged"
+    ],
+    "unclear_problems": [],
+    "overall": {
+      "would_you_know_what_to_do_next": true,
+      "verdict_clear": true,
+      "comments": "The 'not ready to release' verdict and the next steps (fix access and sign-out first, then tax and quantities, then retest) are clear. Weaknesses: nine of ten problems cannot be checked by me, so I must trust a developer; 'Behind the screens', 'Client Portal', 'Admin Portal' and 'environment: local demo' are jargon; the report does not say who the developer is or who should assign the work; the 'Ticket: none yet' items leave unclear who should raise them; and the summary line '0 fine, 3 with problems, 2 partly checked' does not obviously match the table."
+    },
+    "detail": [
+      {
+        "title": "Any customer who signs in can see every customer's private details",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens",
+          "Client Portal and Admin Portal",
+          "national ID numbers",
+          "card digits"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "The core issue is clear: a customer can see other customers' private data, and the legal and privacy risk is understandable. 'Behind the screens' is explained at the end of the report but not where it first appears. I cannot verify this myself and would need a developer."
+      },
+      {
+        "title": "A customer can open another company's order if they know its number",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "address bar",
+          "order page (address ending in the order number)"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "The risk is clear: one company can see another's orders. The wording about the address bar and order number in the address is a little technical, and the report says it cannot be seen on screen, which is odd since the problem is described as happening in the browser."
+      },
+      {
+        "title": "Signing out does not actually end the sign-in",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "their previous sign-in still works",
+          "Behind the screens (the part that talks to the Client Portal)"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "The shared-computer example makes it understandable. 'Previous sign-in still works' is vague to a non-technical reader."
+      },
+      {
+        "title": "Orders of $1,000 or more are overcharged",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "tax base",
+          "PO reference",
+          "Client Portal"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "The steps are doable with a test login, though 'PO reference' may need explaining and I would need to know which test login to use. The result is clear ($1,133.88 vs $1,128.47). 'Tax base' is jargon. The 5% discount and 10% tax rules are referred to as 'stated rules' but are not stated anywhere I can see."
+      },
+      {
+        "title": "The system accepts orders with impossible quantities such as minus three",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "fractional",
+          "Behind the screens (the part that talks to the Client Portal)",
+          "distort sales figures"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Understandable: nonsense quantities are accepted and create wrong totals. 'Fractional' is a bit technical."
+      },
+      {
+        "title": "The system accepts orders with nothing in them",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Simple and clear, though the impact is modest and not explained beyond clutter."
+      },
+      {
+        "title": "Searching orders for certain characters makes the system fail",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "bracket",
+          "backslash",
+          "unusual page sizes",
+          "fail"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand a search can break, but 'unusual page sizes' is unclear and 'fail' does not say what the user sees. The report says it cannot be seen on screen, yet it involves a search box, which is confusing."
+      },
+      {
+        "title": "Error responses reveal internal technical details",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Error responses",
+          "something unreadable is sent",
+          "internal details about how it is built",
+          "attacker"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I get that it is a security weakness, but it is vague on what is revealed and how likely it is to matter. 'Who is affected' is just 'the company's security'."
+      },
+      {
+        "title": "A double click can place the same order twice",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Sending the same order twice at once",
+          "flagged"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear and relatable. It is noted that a real double click was not tried, so I am unsure how likely it is for a real customer, and I would be tempted to try it myself even though the report says it cannot be seen on screen."
+      },
+      {
+        "title": "The sales report is slow to open",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear. It is odd that this is marked as not visible on screen when it is about waiting for a page to open, which I could easily see myself."
+      }
+    ]
+  },
+  "replay": {
+    "ran": 1,
+    "followed_all_steps": 1,
+    "saw_the_described_problem": 1,
+    "cost_usd": 0.0519462,
+    "detail": [
+      {
+        "problem": "🔴 Critical: Orders of $1,000 or more are overcharged",
+        "steps": 6,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "After placing order QA-001 (12 × Printer Toner Cartridge at $89.99), the green message said 'Order QA-001 placed. Total: $1,133.88.' That matches the figure in the report and is higher than the expected $1,128.47. For step 2, I opened the New order page by typing its address instead of clicking the link.",
+        "cost": 0.0519462
+      }
+    ]
+  }
+}

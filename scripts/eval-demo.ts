@@ -6,7 +6,7 @@
  *   node scripts/eval-summary.ts phase-1 full        (aggregates all repetitions of a label)
  *
  * LLM runs vary a lot, so compare phases using several repetitions (--rep 1, 2, 3 ...), not a single run.
- * Writes docs/baselines/<label>-<mode>-r<rep>.json (settings + results), .report.md and .findings.json.
+ * Writes docs/baselines/<label>-<mode>-r<rep>.json (settings + results), .report.md, .admin.md and .findings.json.
  * The agent under test never sees the answer key: the demo is copied without SEEDED-BUGS.md, eval/ and qa-fixture/.
  */
 import { spawn, spawnSync } from "node:child_process";
@@ -17,6 +17,7 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 import { lintRun, readRunData } from "../core/lib/report.ts";
+import { checkConsistency } from "../core/scripts/consistency-check.ts";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const { values } = parseArgs({
@@ -28,6 +29,7 @@ const { values } = parseArgs({
     model: { type: "string", default: "claude-sonnet-5-5" },
     out: { type: "string", default: path.join(repoRoot, "docs", "baselines") },
     rep: { type: "string", default: "1" },
+    "timeout-min": { type: "string", default: "45" },
     keep: { type: "boolean", default: false },
   },
 });
@@ -125,7 +127,7 @@ const started = Date.now();
 console.log(`Running ${prompt} (model ${model}, budget $${budget}) in ${ws} ...`);
 const exitCode: number = await new Promise((resolve) => {
   const child = spawn(claude, args, { cwd: ws, env, stdio: ["ignore", out, "ignore"] });
-  const timer = setTimeout(() => child.kill("SIGTERM"), 60 * 60 * 1000);
+  const timer = setTimeout(() => child.kill("SIGTERM"), Number(values["timeout-min"]) * 60 * 1000);
   child.on("exit", (code) => {
     clearTimeout(timer);
     resolve(code ?? 1);
@@ -163,6 +165,19 @@ for (const e of events) {
   }
 }
 
+// A run that ends without a result event (a stall, a crash, the timeout) is a failed run: keep what is needed to find out why.
+const stalled = !result;
+const diagnostics = stalled
+  ? {
+      last_tool_calls: events
+        .filter((e) => e.type === "assistant")
+        .flatMap((e) => (e.message?.content ?? []).filter((c) => c.type === "tool_use").map((c) => `${c.name} ${JSON.stringify(c.input ?? {}).slice(0, 120)}`))
+        .slice(-12),
+      stream_events: events.length,
+      stream_file_kept_at: streamFile,
+    }
+  : undefined;
+
 const reports = path.join(ws, ".qa", "reports");
 const runDirName = fs.existsSync(reports) ? fs.readdirSync(reports).filter((d) => d.startsWith("run-")).sort().pop() : undefined;
 const runDir = runDirName ? path.join(reports, runDirName) : undefined;
@@ -170,6 +185,16 @@ const score = runDir ? (JSON.parse(run(process.execPath, [path.join(repoRoot, "d
 const passwords = fs.readFileSync(path.join(ws, ".env.qa"), "utf8").split("\n").filter((l) => /PASS/.test(l)).map((l) => l.split("=")[1] ?? "");
 const lint = runDir ? lintRun(runDir, readRunData(runDir), passwords) : undefined;
 const findings = runDir ? readRunData(runDir).findings : [];
+// The admin report: do the two written reports agree, and is every plain-language field present?
+const adminFile = runDir ? path.join(runDir, "ADMIN-REPORT.md") : undefined;
+const consistency = runDir && adminFile && fs.existsSync(adminFile) ? checkConsistency(runDir) : undefined;
+const admin = {
+  present: !!consistency,
+  consistency_ok: consistency?.ok ?? false,
+  consistency_errors: (consistency?.errors ?? ["no ADMIN-REPORT.md was written"]).slice(0, 8),
+  plain_text_errors: (lint?.errors ?? []).filter((e) => /plain|admin\.json/.test(e)).length,
+  verdict: adminFile && fs.existsSync(adminFile) ? (fs.readFileSync(adminFile, "utf8").split("\n")[0] ?? "") : "",
+};
 const sev = { critical: 0, important: 0, minor: 0 };
 for (const f of findings) sev[f.severity] += 1;
 
@@ -193,7 +218,8 @@ const record = {
   },
   results: {
     exit_code: exitCode,
-    outcome: result?.subtype ?? "no result event",
+    outcome: result?.subtype ?? "no result event (the run stalled or was killed: not a bug-finding result)",
+    ...(diagnostics ? { diagnostics } : {}),
     cost_usd: result?.total_cost_usd ?? null,
     turns: result?.num_turns ?? null,
     wall_minutes: Math.round((Date.now() - started) / 600) / 100,
@@ -201,6 +227,7 @@ const record = {
     severity: sev,
     lint_ok: lint?.ok ?? null,
     lint_errors: lint?.errors ?? [],
+    admin,
     tool_calls: toolCalls,
     page_audit_calls: auditCalls,
     knowledge_files_read: knowledgeRead,
@@ -214,9 +241,10 @@ const base = path.join(values.out as string, `${label}-${mode}-r${values.rep}`);
 fs.writeFileSync(`${base}.json`, JSON.stringify(record, null, 2) + "\n");
 if (runDir) {
   fs.copyFileSync(path.join(runDir, "TECHNICAL-REPORT.md"), `${base}.report.md`);
-  fs.copyFileSync(path.join(runDir, "data", "findings.json"), `${base}.findings.json`);
+  if (fs.existsSync(path.join(runDir, "data", "findings.json"))) fs.copyFileSync(path.join(runDir, "data", "findings.json"), `${base}.findings.json`);
+  if (fs.existsSync(path.join(runDir, "ADMIN-REPORT.md"))) fs.copyFileSync(path.join(runDir, "ADMIN-REPORT.md"), `${base}.admin.md`);
 }
-console.log(JSON.stringify({ ...record.results, tool_calls: undefined, score: { recall: (score as { recall?: string }).recall, depth: (score as { depth_score?: string }).depth_score, decoy_hits: (score as { decoy_hits?: unknown[] }).decoy_hits?.length, missed: (score as { missed?: string[] }).missed, secrets: (score as { secrets_in_run_output?: unknown }).secrets_in_run_output } }, null, 2));
+console.log(JSON.stringify({ ...record.results, tool_calls: undefined, admin: { consistency_ok: admin.consistency_ok, plain_text_errors: admin.plain_text_errors, verdict: admin.verdict.slice(0, 90) }, score: { recall: (score as { recall?: string }).recall, depth: (score as { depth_score?: string }).depth_score, decoy_hits: (score as { decoy_hits?: unknown[] }).decoy_hits?.length, missed: (score as { missed?: string[] }).missed, secrets: (score as { secrets_in_run_output?: unknown }).secrets_in_run_output } }, null, 2));
 console.log(`Saved ${path.relative(repoRoot, base)}.{json,report.md,findings.json}`);
-if (values.keep) console.log(`Workspace kept at ${tmp}`);
+if (values.keep || stalled) console.log(`Workspace kept at ${tmp}`);
 else fs.rmSync(tmp, { recursive: true, force: true });

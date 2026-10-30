@@ -22,6 +22,7 @@ interface Rec {
     turns: number | null;
     findings: number;
     page_audit_calls: number;
+    admin?: { present: boolean; consistency_ok: boolean; plain_text_errors: number; verdict: string };
     knowledge_files_read: string[];
     score: { found?: number; missed?: string[]; decoy_hits?: unknown[]; depth_score?: string; lead_only?: number; per_bug?: Array<{ id: string; status: string }> };
   };
@@ -47,6 +48,11 @@ console.log(`  knowledge files read/run:  ${stat(recs.map((r) => r.results.knowl
 const perBug: Record<string, number> = {};
 for (const r of recs) for (const b of r.results.score.per_bug ?? []) if (b.status === "FOUND") perBug[b.id] = (perBug[b.id] ?? 0) + 1;
 console.log(`  per-bug detection (runs that found it, of ${recs.length}): ${Object.entries(perBug).sort().map(([k, v]) => `${k}:${v}`).join(" ")}`);
+const withAdmin = recs.filter((r) => r.results.admin);
+if (withAdmin.length) {
+  console.log(`  admin report written + consistent with the technical report: ${withAdmin.filter((r) => r.results.admin?.present && r.results.admin.consistency_ok).length}/${recs.length}`);
+  console.log(`  verdicts: ${withAdmin.map((r) => (r.results.admin?.verdict ?? "").replace(/\*\*/g, "").slice(0, 28)).join(" | ")}`);
+}
 const missedCount: Record<string, number> = {};
 for (const r of recs) for (const m of r.results.score.missed ?? []) missedCount[m] = (missedCount[m] ?? 0) + 1;
 console.log(`  missed (runs missing it):  ${Object.entries(missedCount).map(([k, v]) => `${k} x${v}`).join(", ") || "none"}`);

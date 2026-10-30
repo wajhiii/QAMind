@@ -1,0 +1,367 @@
+[
+  {
+    "title": "Any signed-in customer can open another company's order by its id",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Orders",
+    "type": "authorization",
+    "charter": "C2",
+    "summary": "GET /api/orders/{id} returns the order to any signed-in user without checking that it belongs to the caller's company. bright-1 and zain-1 (other companies) both received acme-1's order with HTTP 200.",
+    "steps": [
+      "Sign in as acme-1 over the API and POST /api/orders with reference QA-iso-1 (one unit of p-101); note the returned id",
+      "Sign in as bright-1 and GET /api/orders/<id>",
+      "Observe HTTP 200 with the order body (also for zain-1); see evidence for exact requests"
+    ],
+    "expected": "HTTP 403 or 404 for a different company; the list endpoint already scopes correctly",
+    "actual": "HTTP 200 with the full order, including the other company's name and items",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-I3.json",
+      "evidence/api/rules-I4.json"
+    ],
+    "roles": [
+      "acme-1",
+      "bright-1",
+      "zain-1"
+    ],
+    "suspected_cause": "getOrder in src/api.mjs finds the order by id only, with no client_id check (OWASP API1:2023)",
+    "regression_test": {
+      "description": "Order created by company A must return 403/404 to a company B user",
+      "location": "test/orders.test.js"
+    },
+    "plain": {
+      "title": "A customer can see another company's order if they know its number",
+      "where": "Behind the screens (the part that talks to the Client Portal)",
+      "what_happens": "Customers of one company can open the full details of orders placed by a different company, which breaks the rule that companies never see each other's data.",
+      "who_is_affected": "Every customer company; their order contents and prices are exposed to competitors.",
+      "how_to_see_it": [],
+      "expected": "A customer who asks for another company's order is refused."
+    },
+    "id": "ISSUE-001"
+  },
+  {
+    "title": "Any customer can read the full customer list, including personal details",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Customers",
+    "type": "authorization",
+    "charter": "C2",
+    "summary": "GET /api/admin/customers has no admin-only restriction; acme-1 and bright-1 (clients) receive HTTP 200 with every customer record. Fields exposed: contact_name, email, phone, cnic (national ID), address, notes, company.",
+    "steps": [
+      "Sign in as acme-1 over the API",
+      "GET /api/admin/customers",
+      "Observe HTTP 200 with all customer records; repeat as bright-1"
+    ],
+    "expected": "HTTP 403 for non-admin roles (config rule: only admins can see customers)",
+    "actual": "HTTP 200 with all customers' personal fields",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-R1.json",
+      "evidence/api/rules-R4.json"
+    ],
+    "roles": [
+      "acme-1",
+      "bright-1"
+    ],
+    "suspected_cause": "The customers route in src/api.mjs is registered without roles:['admin'] (OWASP API5:2023)",
+    "regression_test": {
+      "description": "GET /admin/customers as a client expects 403",
+      "location": "test/admin.test.js"
+    },
+    "plain": {
+      "title": "Any customer can download the list of all customers and their personal details",
+      "where": "Behind the screens (the part that talks to the Client Portal and Admin Portal)",
+      "what_happens": "A customer account can obtain every customer's contact details, phone number, national ID number and address, which only staff should see.",
+      "who_is_affected": "Every customer; their personal data is exposed to other companies' users.",
+      "how_to_see_it": [],
+      "expected": "Only staff accounts can see the customer list."
+    },
+    "id": "ISSUE-002"
+  },
+  {
+    "title": "Orders of 1,000.00 or more are charged too much tax (tax ignores the discount)",
+    "severity": "critical",
+    "surface": "business-rule",
+    "area": "Orders / pricing",
+    "type": "calculation",
+    "charter": "C1",
+    "summary": "Tax is computed on the undiscounted subtotal. 80 x 12.50 = 1,000.00; discount 50.00; expected tax 95.00 and total 1,045.00; the system gives tax 100.00 and total 1,050.00 in the API, the Client Portal confirmation and the Admin Portal order page.",
+    "steps": [
+      "Sign in as acme-1 over the API; POST /api/orders with reference QA-b1 and items [{product_id:p-102, quantity:80}]",
+      "Observe subtotal_cents 100000, discount_cents 5000, tax_cents 10000, total_cents 105000",
+      "UI: Client Portal as acme-1 → New order → reference QA-ui-1, Ballpoint Pens quantity 80 → Place order; confirmation says Total: $1,050.00"
+    ],
+    "expected": "Tax = 10% of discounted subtotal (95.00); total 1,045.00",
+    "actual": "Tax 100.00; total 1,050.00 (customer overcharged 5.00 on this order)",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-B1.json",
+      "screenshots/ui-order-confirmation.png"
+    ],
+    "roles": [
+      "acme-1",
+      "admin"
+    ],
+    "suspected_cause": "priceOrder in src/pricing.mjs computes tax = round(subtotal * 0.1) instead of (subtotal - discount) * 0.1",
+    "regression_test": {
+      "description": "Order of exactly 1000.00 expects discount 50.00, tax 95.00, total 1045.00",
+      "location": "test/pricing.test.js"
+    },
+    "plain": {
+      "title": "Customers are charged too much tax on orders of 1,000.00 or more",
+      "where": "Client Portal → New order → order confirmation (also My orders and the Admin Portal order page)",
+      "what_happens": "On large orders the 5% discount is applied but tax is still worked out on the price before the discount, so the total is too high. An order for 80 boxes of pens at 12.50 shows 1,050.00 instead of 1,045.00.",
+      "who_is_affected": "Every customer who places an order of 1,000.00 or more; the company's invoices and sales figures.",
+      "how_to_see_it": [
+        "Sign in to the Client Portal as a customer",
+        "Click New order",
+        "Type a reference starting with QA-",
+        "Choose Ballpoint Pens, box of 50 and set the quantity to 80",
+        "Click Place order",
+        "The message says the total is $1,050.00; the correct total is $1,045.00 (1,000.00 minus 50.00 discount plus 95.00 tax)"
+      ],
+      "expected": "Tax is worked out on the discounted amount, giving a total of 1,045.00.",
+      "screenshot": "screenshots/ui-order-confirmation.png"
+    },
+    "id": "ISSUE-003"
+  },
+  {
+    "title": "Signing out does not end the session on the server",
+    "severity": "critical",
+    "surface": "permissions",
+    "area": "Authentication",
+    "type": "session",
+    "charter": "C4",
+    "summary": "After POST /api/auth/logout returns 204, the same bearer token still gets HTTP 200 from GET /api/me.",
+    "steps": [
+      "Sign in as zain-1 over the API",
+      "POST /api/auth/logout (204)",
+      "GET /api/me with the same token",
+      "Observe HTTP 200 instead of 401"
+    ],
+    "expected": "HTTP 401 immediately after sign-out (config rule: signing out ends the session at once)",
+    "actual": "HTTP 200; the signed-out token keeps working",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-A2.json"
+    ],
+    "roles": [
+      "zain-1"
+    ],
+    "suspected_cause": "logout in src/api.mjs only sets session.endedAt; authenticate() never checks endedAt (or expiresAt)",
+    "regression_test": {
+      "description": "Token used after logout expects 401",
+      "location": "test/auth.test.js"
+    },
+    "plain": {
+      "title": "After signing out, the old sign-in still works",
+      "where": "Behind the screens (the part that talks to the Client Portal and Admin Portal)",
+      "what_happens": "Clicking Sign out takes the person back to the sign-in page, but anyone holding their earlier sign-in could keep using the system.",
+      "who_is_affected": "Every user, especially people on shared computers.",
+      "how_to_see_it": [],
+      "expected": "Signing out ends the sign-in immediately."
+    },
+    "id": "ISSUE-004"
+  },
+  {
+    "title": "Orders are accepted with quantity 0, negative, above 1,000, fractional, or with no items",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders",
+    "type": "validation",
+    "charter": "C1",
+    "summary": "POST /api/orders returns 201 for quantity 0, -3, 1001, 1.5 and for an empty items list. Only a type check exists. Negative quantities produce negative totals; empty orders have total 0.00.",
+    "steps": [
+      "Sign in as acme-1 over the API",
+      "POST /api/orders with reference QA-qneg and items [{product_id:p-101, quantity:-3}] (repeat with 0, 1001, 1.5, and items [])",
+      "Observe HTTP 201 each time"
+    ],
+    "expected": "HTTP 400 naming the field (whole number 1 to 1,000; at least one item)",
+    "actual": "HTTP 201, order created (orders with odd totals appear in My orders and Reports)",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-Q0.json",
+      "evidence/api/rules-Q1.json",
+      "evidence/api/rules-Q2.json",
+      "evidence/api/rules-Q3.json",
+      "evidence/api/rules-Q5.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "validateOrderInput in src/api.mjs checks only typeof quantity === 'number' and never the range, integer-ness, or minimum item count",
+    "regression_test": {
+      "description": "Quantities 0,-1,1001,1.5 and empty items each expect 400",
+      "location": "test/orders.test.js"
+    },
+    "plain": {
+      "title": "The system accepts orders with impossible quantities or no items",
+      "where": "Behind the screens (the part that talks to the Client Portal)",
+      "what_happens": "Orders with zero, negative, fractional or more than 1,000 items, or with nothing in them, are accepted and appear in order lists and reports with odd totals.",
+      "who_is_affected": "Customers and staff reading order totals; the company's sales figures.",
+      "how_to_see_it": [],
+      "expected": "Such orders are refused with a clear message."
+    },
+    "id": "ISSUE-005"
+  },
+  {
+    "title": "Customers keep seeing an old order status for up to 10 minutes after staff change it",
+    "severity": "important",
+    "surface": "cross",
+    "area": "Orders / status",
+    "type": "stale-data",
+    "charter": "C6",
+    "summary": "The client order list is cached per company for 10 minutes and is not refreshed when an admin changes status. Warm, change, re-read: after admin moved QA-ui-1 to processing, acme-2 (same company) still saw Placed in My orders on two loads. The detail endpoint shows the new status.",
+    "steps": [
+      "Sign in to the Client Portal as acme-1 and open My orders (list shows QA-ui-1 as Placed)",
+      "Sign in to the Admin Portal, open order QA-ui-1 and set New status = Processing, click Update status",
+      "As acme-2 (same company) open My orders, then refresh the page",
+      "Observe QA-ui-1 still shown as Placed; API probes S4/S5 show the same"
+    ],
+    "expected": "New status visible immediately after refresh",
+    "actual": "Old status Placed shown (list caches for ORDER_CACHE_TTL_MS = 10 minutes)",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-S4.json",
+      "evidence/api/rules-S5.json",
+      "screenshots/client-stale-status.png"
+    ],
+    "roles": [
+      "admin",
+      "acme-1",
+      "acme-2"
+    ],
+    "ui": "Client Portal",
+    "viewport": "desktop 1366x768",
+    "suspected_cause": "listClientOrders caches copied rows per client_id for 10 minutes; only addOrder invalidates it, updateOrderStatus does not",
+    "regression_test": {
+      "description": "Warm client list, admin changes status, client list shows new status",
+      "location": "test/orders.test.js"
+    },
+    "plain": {
+      "title": "Customers still see the old order status after staff update it",
+      "where": "Client Portal → My orders",
+      "what_happens": "After staff move an order forward, the customer's order list keeps showing the earlier status, even after refreshing, for up to about 10 minutes.",
+      "who_is_affected": "Every customer waiting for an order update; they may contact support unnecessarily.",
+      "how_to_see_it": [
+        "Sign in to the Client Portal as a customer and open My orders; note the status of an order that is Placed",
+        "Sign in to the Admin Portal as staff, open the same order, choose Processing and click Update status",
+        "Return to the Client Portal and refresh the page (the circular arrow next to the address bar)",
+        "The order still shows Placed instead of Processing"
+      ],
+      "expected": "The new status appears as soon as the page is refreshed.",
+      "screenshot": "screenshots/client-stale-status.png"
+    },
+    "id": "ISSUE-006"
+  },
+  {
+    "title": "Order list fails with an error on some search text and page sizes",
+    "severity": "important",
+    "surface": "api",
+    "area": "Orders list",
+    "type": "validation",
+    "charter": "C5",
+    "summary": "GET /api/orders returns HTTP 500 for q=( and q=[ (search text is used as a regular expression), and for page_size=0; page_size=-1 returns 200 contrary to the documented minimum 1. Search text such as '.*' also acts as a pattern.",
+    "steps": [
+      "Sign in as acme-1 over the API",
+      "GET /api/orders?q=(  (also q=[ and page_size=0)",
+      "Observe HTTP 500 internal_error; GET /api/orders?page_size=-1 returns 200"
+    ],
+    "expected": "Literal search; HTTP 400 for page_size outside 1..100",
+    "actual": "HTTP 500 for q=(, q=[, page_size=0; 200 for page_size=-1",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "evidence/api/rules-P4.json",
+      "evidence/api/rules-P5.json",
+      "evidence/api/rules-P1.json",
+      "evidence/api/rules-P2.json"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "suspected_cause": "listOrders builds new RegExp(q) from user input; parseListQuery lacks a pageSize >= 1 check and paginate divides by zero",
+    "regression_test": {
+      "description": "q='(' returns 200 with no match; page_size 0 and -1 return 400",
+      "location": "test/orders.test.js"
+    },
+    "plain": {
+      "title": "Searching orders for certain characters, or an invalid page size, makes the system fail",
+      "where": "Behind the screens (the part that talks to the Client Portal and Admin Portal)",
+      "what_happens": "Typing a bracket in the order search can cause an error instead of results, and some page-size values are not refused properly.",
+      "who_is_affected": "Customers and staff using order search.",
+      "how_to_see_it": [],
+      "expected": "Search treats the text literally and invalid page sizes are refused with a clear message."
+    },
+    "id": "ISSUE-007"
+  },
+  {
+    "title": "My orders on a phone: filter bar covers the first order and the Total column is cut off",
+    "severity": "minor",
+    "surface": "ui",
+    "area": "Client Portal / My orders",
+    "type": "layout",
+    "charter": "C6",
+    "summary": "At 390x844 the table (457px wide) scrolls inside a 359px box with no cue; the Total and View columns are out of sight, and the toolbar/New order button overlap the first row (audit coveredElements, twice).",
+    "steps": [
+      "Sign in as acme-1 in the Client Portal",
+      "Resize to 390x844",
+      "Open My orders and reload",
+      "Observe the first row partly under the filter bar; Total clipped at the right edge"
+    ],
+    "expected": "Rows fully visible and all columns reachable on a phone",
+    "actual": "First row overlapped; Total and View columns partly hidden in a sideways-scrolling box",
+    "reproduced": {
+      "times": 2,
+      "of": 2
+    },
+    "evidence": [
+      "screenshots/client-my-orders-mobile.png"
+    ],
+    "roles": [
+      "acme-1"
+    ],
+    "ui": "Client Portal",
+    "viewport": "mobile 390x844",
+    "suspected_cause": "Table wrapper overflow with a sticky or overlapping toolbar and no responsive table layout",
+    "regression_test": {
+      "description": "At 390px width no covered elements and Total visible",
+      "location": "test/e2e/my-orders.mobile.test.js"
+    },
+    "plain": {
+      "title": "On a phone, the My orders list overlaps and cuts off information",
+      "where": "Client Portal → My orders",
+      "what_happens": "On a narrow screen the first order is partly hidden behind the filter bar, and the Total and View columns are cut off at the edge.",
+      "who_is_affected": "Customers using a phone.",
+      "how_to_see_it": [
+        "Sign in to the Client Portal as a customer",
+        "Make the window narrow by dragging its edge, or use a phone",
+        "Click My orders",
+        "The first order is partly covered and the Total is cut off at the right edge"
+      ],
+      "expected": "Every order is fully visible and its total and View link can be reached.",
+      "screenshot": "screenshots/client-my-orders-mobile.png"
+    },
+    "id": "ISSUE-008"
+  }
+]

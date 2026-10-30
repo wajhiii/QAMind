@@ -1,0 +1,229 @@
+{
+  "label": "phase-3-final-r2-rerun",
+  "report": "phase-3-final-full-r2.admin.md",
+  "date": "2026-10-30T09:55:36.389Z",
+  "model": "claude-sonnet-5-5",
+  "problems_in_report": 12,
+  "problems_with_on_screen_steps": 4,
+  "reader": {
+    "answered": true,
+    "cost_usd": 0.0543527,
+    "steps_followable": 4,
+    "steps_not_followable": 0,
+    "confusing_words": [
+      "Behind the screens (the part that talks to the Client Portal)",
+      "national ID numbers",
+      "legal exposure",
+      "address bar",
+      "id=o-1039",
+      "worked out on the price before the discount",
+      "session",
+      "if someone copied it",
+      "stolen or shared session",
+      "fractional",
+      "the browser pages that use search would show an old value",
+      "filter bar",
+      "about 390 pixels wide",
+      "View link",
+      "nothing showing that more can be scrolled",
+      "bracket or backslash",
+      "items per page",
+      "handled gracefully",
+      "fail",
+      "badly formed request",
+      "internal technical details",
+      "location of files on the server",
+      "attacker",
+      "sent at the same moment",
+      "references",
+      "merged",
+      "screen readers",
+      "spoken name",
+      "round-arrow and clear icons"
+    ],
+    "unclear_problems": [
+      "After signing out, the old sign-in can still be used",
+      "Certain searches or page settings make the order list fail",
+      "Error messages reveal internal technical details"
+    ],
+    "overall": {
+      "would_you_know_what_to_do_next": true,
+      "verdict_clear": true,
+      "comments": "The 'not ready to release' verdict and next steps (fix access problems, then tax and quantities, then re-run) are clear. As a manager I'd hand it to a developer. Some terms ('Behind the screens', 'session', 'local demo', 'environment') and the lower-priority technical items are less clear, and I'd need to ask who owns the fixes and when."
+    },
+    "detail": [
+      {
+        "title": "Any customer who signs in can read the personal details of all other customers",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)",
+          "national ID numbers",
+          "legal exposure"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear that customers can see other customers' private data and that this is serious. 'Legal exposure' is a bit vague but understandable as a risk to the company. I can't check it myself and would need a developer."
+      },
+      {
+        "title": "A customer can view another company's order by changing the number in the page address",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "address bar",
+          "id=o-1039"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Steps are mostly followable, but step 2 is a little fiddly: I would have to know where the 'address bar' is and how to edit the end of the address. It also assumes I have a Zain Traders login and that the order 1039 exists in my environment. I understand that competitors could see each other's purchases."
+      },
+      {
+        "title": "Customers with large orders are charged too much tax",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "worked out on the price before the discount"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Steps are simple and the expected total of $1,045 versus the shown $1,050 is easy to compare. I need a test login, which the report explains how to get. The tax-versus-discount explanation is slightly abstract but the example makes it clear."
+      },
+      {
+        "title": "After signing out, the old sign-in can still be used",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)",
+          "session",
+          "if someone copied it",
+          "stolen or shared session"
+        ],
+        "clear_what_is_wrong": false,
+        "clear_who_is_affected": true,
+        "comments": "I get the gist (logging out doesn't fully log you out), but 'session' and 'copied sign-in' are not explained, so I couldn't explain it to someone else. 'Every user' is clear."
+      },
+      {
+        "title": "The system accepts orders with impossible quantities, including negative ones",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)",
+          "fractional"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Easy to understand that negative or absurd orders are being accepted and distort totals and sales figures. 'Fractional' is slightly unclear. It is not obvious whether a normal customer can do this on screen or only through technical means."
+      },
+      {
+        "title": "Searching My orders can show an old status",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)",
+          "the browser pages that use search would show an old value"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "The idea is clear: search shows an outdated status. The last part of the 'who is affected' line is confusing. How often it happens ('can show') is vague."
+      },
+      {
+        "title": "On a phone, the My orders page hides part of the first order and the Total column",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "filter bar",
+          "about 390 pixels wide",
+          "View link",
+          "nothing showing that more can be scrolled"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I could follow it by narrowing the window or using a phone, though 'pixels' means nothing to me and I'd just use my phone. The screenshot helps."
+      },
+      {
+        "title": "Certain searches or page settings make the order list fail",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)",
+          "bracket or backslash",
+          "items per page",
+          "handled gracefully",
+          "fail"
+        ],
+        "clear_what_is_wrong": false,
+        "clear_who_is_affected": true,
+        "comments": "I don't know what 'fail' looks like to a user (error page? blank?) or how likely people are to type a bracket. The 'zero items per page' setting is not something I know how to set. Why it matters is weak."
+      },
+      {
+        "title": "Error messages reveal internal technical details",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)",
+          "badly formed request",
+          "internal technical details",
+          "location of files on the server",
+          "attacker"
+        ],
+        "clear_what_is_wrong": false,
+        "clear_who_is_affected": false,
+        "comments": "'The company's security' is too general. I understand it as 'the system says too much when it breaks', but I can't judge the real risk or who is hurt."
+      },
+      {
+        "title": "A double click can place the same order twice",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)",
+          "sent at the same moment",
+          "references",
+          "merged"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "The double-billing risk is clear. However, the report says it's a 'double click' yet also says it cannot be seen on screen, which is confusing. The 'unsure about repeated references' note leaves me unsure whether this is really a problem."
+      },
+      {
+        "title": "Some buttons on the admin Orders page cannot be understood by screen readers",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "screen readers",
+          "spoken name",
+          "round-arrow and clear icons"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand that blind staff can't tell what some buttons do. 'Screen readers' is partly explained by 'software that reads the screen aloud'. I don't know whether we have such staff, so urgency is unclear."
+      },
+      {
+        "title": "The sales report is slow to appear",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Simple steps and an easy-to-observe result. Needs an admin login. There is no screenshot, but none is needed."
+      }
+    ]
+  },
+  "replay": {
+    "ran": 1,
+    "followed_all_steps": 1,
+    "saw_the_described_problem": 0,
+    "cost_usd": 0.0437055,
+    "detail": [
+      {
+        "problem": "🔴 Critical: A customer can view another company's order by changing the number in the page address",
+        "steps": 3,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": false,
+        "notes": "I signed in as the Zain Traders customer and opened order.html?id=o-1039. The page showed only \"Order not found.\" with no items, prices or totals, and nothing from Acme's order QA-iso-1. That is the correct refusal, so I did not see the reported problem. Step 2 didn't give the full address, so I used the address format from the My orders links (order.html?id=o-XXXX).",
+        "cost": 0.0437055
+      }
+    ]
+  }
+}

@@ -17,7 +17,7 @@ import { buildInventory, loadSpecFile, parseSpecText, resolveSpecPath } from "..
 import type { Inventory } from "../../core/lib/openapi.ts";
 import { qamindHome } from "../../core/lib/paths.ts";
 import { ensureProjectStore, resolveProject } from "../../core/lib/project.ts";
-import { assignIds, lintRun, readRunData, renderTechnicalReport } from "../../core/lib/report.ts";
+import { lintReports, writeReports } from "../../core/lib/reports.ts";
 import { MODES, finishRun, startRun } from "../../core/lib/run.ts";
 import type { Mode } from "../../core/lib/run.ts";
 import { loadRunContext } from "../../core/lib/runctx.ts";
@@ -25,6 +25,8 @@ import type { RunContext } from "../../core/lib/runctx.ts";
 import { isRequestAllowed } from "../../core/lib/urlpolicy.ts";
 import { KNOWLEDGE_VERSION, QAMIND_VERSION } from "../../core/lib/version.ts";
 import { runBrowserLauncher } from "../../core/scripts/browser-launcher.ts";
+import { checkConsistency } from "../../core/scripts/consistency-check.ts";
+import { exportAdminHtml } from "../../core/scripts/export-html.ts";
 
 /** All commands print one JSON document on stdout so skills can read it; human text goes to stderr. */
 function emit(value: unknown): void {
@@ -47,8 +49,10 @@ Checks and testing
                 [--max-per-endpoint N] [--max-total N]
   api run       --run ID --plan FILE_OR_NAME [--read-only] [--slow-ms N]
 Reporting and memory
-  report build --run ID        render TECHNICAL-REPORT.md from <run>/data/*.json
-  report lint  --run ID        enforce the evidence rules (exit 1 on errors)
+  report build --run ID        render TECHNICAL-REPORT.md and ADMIN-REPORT.md from <run>/data/*.json
+  report lint  --run ID        evidence rules, plain-language text, and the two reports agreeing (exit 1 on errors)
+  report check --run ID        only the consistency check of the two written reports
+  report export-html --run ID [--no-images] [--out FILE]   ADMIN-REPORT.html: one self-contained file for emailing
   memory context --run ID      stack and recent runs for this project
   memory where [--project DIR] print the project's private store path
   guard log    --run ID        origins the browser guard blocked during the run
@@ -223,24 +227,39 @@ async function cmdApi(sub: string | undefined, rest: string[], home: string): Pr
 }
 
 async function cmdReport(sub: string | undefined, rest: string[], home: string): Promise<number> {
-  const { values } = opts(rest, { run: { type: "string" } });
+  const { values } = opts(rest, { run: { type: "string" }, "no-images": { type: "boolean", default: false }, out: { type: "string" } });
   const ctx = loadRunContext(home, values.run as string | undefined);
   if (sub === "build") {
-    const data = readRunData(ctx.runDir);
-    assignIds(ctx.runDir, data);
-    const file = path.join(ctx.runDir, "TECHNICAL-REPORT.md");
-    fs.writeFileSync(file, renderTechnicalReport(readRunData(ctx.runDir)), "utf8");
-    emit({ report: file, findings: data.findings.map((f) => `${f.id} ${f.severity}: ${f.title}`), unconfirmed: data.unconfirmed.length, charters: data.charters.length });
+    const r = writeReports(ctx.runDir, ctx.marker.store);
+    emit({
+      technical_report: path.join(ctx.runDir, "TECHNICAL-REPORT.md"),
+      admin_report: path.join(ctx.runDir, "ADMIN-REPORT.md"),
+      verdict: r.model.verdict.line,
+      findings: r.data.findings.map((f) => `${f.id} ${f.severity}: ${f.title}`),
+      unconfirmed: r.data.unconfirmed.length,
+      charters: r.data.charters.length,
+      next: "Run `report lint`: it checks the evidence rules, that every finding has plain-language text, and that the two reports agree.",
+    });
     return 0;
   }
   if (sub === "lint") {
-    const data = readRunData(ctx.runDir);
-    assignIds(ctx.runDir, data);
-    const result = lintRun(ctx.runDir, readRunData(ctx.runDir), ctx.passwords);
+    // Deliberately does not rebuild: it checks the reports as they are on disk, so a hand edit or a stale file is caught.
+    const result = lintReports(ctx.runDir, ctx.passwords);
+    const { consistency: _c, ...printable } = result;
+    emit(printable);
+    return result.ok ? 0 : 1;
+  }
+  if (sub === "check") {
+    const result = checkConsistency(ctx.runDir);
     emit(result);
     return result.ok ? 0 : 1;
   }
-  throw new UsageError("report needs a subcommand: build | lint");
+  if (sub === "export-html") {
+    const r = exportAdminHtml(ctx.runDir, ctx.marker.store, { embedImages: !values["no-images"], ...(values.out ? { out: values.out as string } : {}) });
+    emit(r);
+    return 0;
+  }
+  throw new UsageError("report needs a subcommand: build | lint | check | export-html");
 }
 
 async function cmdMemory(sub: string | undefined, rest: string[], home: string): Promise<number> {

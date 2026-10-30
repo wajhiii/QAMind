@@ -232,3 +232,19 @@ export function policyFromConfig(c: QamindConfig): RunPolicy {
   }
   return { allowed_origins: [...origins].sort(), blocked_patterns: [...c.security.blocked_production_patterns] };
 }
+
+/** The numbered list under the "Critical flows" heading of config.md, in order. Used for the release verdict (§13.13). */
+export function parseCriticalFlows(body: string): string[] {
+  const lines = body.split(/\r?\n/);
+  const start = lines.findIndex((l) => /^#{1,3}\s*critical\s+(flows|journeys)\b/i.test(l.trim()));
+  if (start < 0) return [];
+  const flows: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (/^#{1,6}\s/.test(line.trim())) break;
+    if (/^\s*<!--.*-->\s*$/.test(line)) continue;
+    const item = /^\s*\d+[.)]\s+(.+)$/.exec(line);
+    if (item) flows.push((item[1] as string).trim());
+    else if (flows.length > 0 && /^\s{2,}\S/.test(line)) flows[flows.length - 1] += ` ${line.trim()}`;
+  }
+  return flows;
+}

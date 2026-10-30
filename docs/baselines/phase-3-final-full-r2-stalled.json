@@ -1,0 +1,106 @@
+{
+  "label": "phase-3-final",
+  "mode": "full",
+  "rep": 2,
+  "date": "2026-10-30T08:39:13.100Z",
+  "settings": {
+    "prompt": "/qamind:qa-only full",
+    "qamind": {
+      "git_commit": "857073ebc81fd433f1fe8cb8193264119d97732b",
+      "plugin_tree_committed": "81d807651f95e83fd5a1994c7672934e3634ea79",
+      "plugin_content_sha256": "0777ae8552d83678bb3591c0d12c6438927d5bc04f7d58016c8ef0e3114a6b76",
+      "uncommitted_in_built_plugin": [
+        "M plugins/qamind/core/shared/reporting.md",
+        " M plugins/qamind/dist/qamind.mjs",
+        " M plugins/qamind/skills/qa-only/SKILL.md",
+        "?? plugins/qamind/core/shared/admin-report.md"
+      ],
+      "uncommitted_in_sources_not_in_plugin_unless_built": [
+        "M cli/src/main.ts",
+        " M core/lib/config.ts",
+        " M core/lib/report.ts",
+        " M core/lib/run.ts",
+        " M core/shared/reporting.md",
+        " M core/skills/qa-only/SKILL.md",
+        "?? core/lib/adminreport.ts",
+        "?? core/lib/reports.ts",
+        "?? core/lib/verdict.ts",
+        "?? core/scripts/consistency-check.ts",
+        "?? core/scripts/export-html.ts",
+        "?? core/shared/admin-report.md"
+      ]
+    },
+    "claude": {
+      "version": "2.1.312 (Claude Code)",
+      "model_requested": "claude-sonnet-5-5",
+      "model_in_session": "claude-sonnet-5-5",
+      "setting_sources": "project,local",
+      "claudeai_connectors": "disabled (ENABLE_CLAUDEAI_MCP_SERVERS=false)",
+      "permission_mode": "default",
+      "allowed_tools": [
+        "Read",
+        "Glob",
+        "Grep",
+        "Write",
+        "Edit",
+        "Bash(qamind *)",
+        "Bash(curl *)",
+        "Bash(git status *)",
+        "Bash(git diff *)",
+        "Bash(git log *)",
+        "Bash(ls *)",
+        "mcp__plugin_qamind_browser"
+      ],
+      "max_budget_usd": 15
+    },
+    "demo": {
+      "tree": "6b3d093a9ac6c2b918f491acb415996247ad8126",
+      "ports": "4100/4101/4102",
+      "data": "reset before the run",
+      "fixture_config_sha256": "a1e7f86727b57f659f003820cf24a61ab125debe32f4e1fafa691804075c9b3b",
+      "fixture_env_sha256": "762d8cfa6079c664d7367eab9ca600c05938707c4841c2756b732db9deb953e0",
+      "answer_key_visible_to_agent": false
+    },
+    "machine": {
+      "platform": "darwin 27.2.0",
+      "node": "v24.2.0",
+      "chrome": "Google Chrome 156.0.8078.74"
+    }
+  },
+  "results": {
+    "exit_code": 143,
+    "outcome": "no result event",
+    "cost_usd": null,
+    "turns": null,
+    "wall_minutes": 60.05,
+    "findings": 0,
+    "severity": {
+      "critical": 0,
+      "important": 0,
+      "minor": 0
+    },
+    "lint_ok": true,
+    "lint_errors": [],
+    "admin": {
+      "present": true,
+      "consistency_ok": true,
+      "consistency_errors": [],
+      "plain_text_errors": 0,
+      "verdict": "⚠️ **Ready with risks:** 5 key journeys were not fully checked."
+    },
+    "tool_calls": {
+      "Read": 8,
+      "Bash": 13,
+      "Write": 3,
+      "Grep": 1
+    },
+    "page_audit_calls": 0,
+    "knowledge_files_read": [
+      "INDEX.md",
+      "api-testing.md",
+      "test-design.md"
+    ],
+    "score": {}
+  },
+  "note": "Single run. LLM runs vary; read differences smaller than a few bugs or about 30% cost with care."
+}

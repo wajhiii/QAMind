@@ -1,0 +1,187 @@
+{
+  "label": "phase-3-final-r3",
+  "report": "phase-3-final-full-r3.admin.md",
+  "date": "2026-10-30T09:45:28.305Z",
+  "model": "claude-sonnet-5-5",
+  "problems_in_report": 8,
+  "problems_with_on_screen_steps": 3,
+  "reader": {
+    "answered": true,
+    "cost_usd": 0.053874399999999996,
+    "steps_followable": 3,
+    "steps_not_followable": 0,
+    "confusing_words": [
+      "Behind the screens (the part that talks to the Client Portal)",
+      "Behind the screens (the part that talks to the Client Portal and Admin Portal)",
+      "download",
+      "reference starting with QA-",
+      "Ballpoint Pens, box of 50",
+      "Client Portal",
+      "Admin Portal",
+      "the old sign-in still works",
+      "anyone holding their earlier sign-in",
+      "session (in the summary: 'signing out does not really end a session')",
+      "fractional",
+      "odd totals",
+      "Placed",
+      "Processing",
+      "bracket",
+      "page size",
+      "invalid page size",
+      "treats the text literally",
+      "filter bar",
+      "Total and View columns"
+    ],
+    "unclear_problems": [
+      "Searching orders for certain characters, or an invalid page size, makes the system fail"
+    ],
+    "overall": {
+      "would_you_know_what_to_do_next": true,
+      "verdict_clear": true,
+      "comments": "The 'Not ready to release' verdict is clear and the next steps are simple: have a developer fix access and sign-out first, then tax and quantity checks, then re-test. Remaining gaps: four of the eight problems cannot be checked by me, so I must trust the report. No ticket exists yet and I am not told who should create one. The summary uses a few terms I would have to ask about: 'local demo', 'full check', 'session', and 'national ID'. The report also does not say whether release can proceed once the critical items are fixed."
+    },
+    "detail": [
+      {
+        "title": "A customer can see another company's order if they know its number",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal)"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Easy to understand and clearly serious: one company can see another's orders and prices. I would not know how a developer confirms it, but the report says one will. 'Behind the screens' is explained further down, so it only slightly slows me."
+      },
+      {
+        "title": "Any customer can download the list of all customers and their personal details",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens (the part that talks to the Client Portal and Admin Portal)",
+          "download"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear that personal data, including national ID numbers, is exposed to people who should not see it. The title says 'download' but the body says 'obtain', and I am not sure what that means in practice. That does not stop me seeing it is serious."
+      },
+      {
+        "title": "Customers are charged too much tax on orders of 1,000.00 or more",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "reference starting with QA-",
+          "Ballpoint Pens, box of 50",
+          "Client Portal",
+          "Admin Portal"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I can follow the steps if I have the test login the report tells me to ask for. Step 3 does not say which box to type the reference into, or what 'QA-' means. The tax rate is never stated, so I have to trust the 95.00 tax figure. The 5% discount and the 1,050 vs 1,045 comparison are clear, and so is the money impact."
+      },
+      {
+        "title": "After signing out, the old sign-in still works",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "the old sign-in still works",
+          "anyone holding their earlier sign-in",
+          "session (in the summary: 'signing out does not really end a session')",
+          "Behind the screens (the part that talks to the Client Portal and Admin Portal)"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I get the gist: signing out does not really log you out, which is risky on shared computers. 'Holding their earlier sign-in' is vague, since I do not know what someone would be holding or how they would get it. The summary's word 'session' is jargon."
+      },
+      {
+        "title": "The system accepts orders with impossible quantities or no items",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "fractional",
+          "Behind the screens (the part that talks to the Client Portal)",
+          "odd totals"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Understandable: orders for -5 or 0 items get accepted. The 'more than 1,000 items' limit is not explained, so I do not know whether it is a company rule. 'Odd totals' is vague about the actual damage to reports."
+      },
+      {
+        "title": "Customers still see the old order status after staff update it",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Placed",
+          "Processing"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Steps are followable, and the refresh button is described. Step 1 assumes an order in 'Placed' status exists, and does not say what to do if none does. I also would need to switch between two logins and wait up to about 10 minutes to be sure. The problem and the effect on customers and support are clear."
+      },
+      {
+        "title": "Searching orders for certain characters, or an invalid page size, makes the system fail",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "bracket",
+          "page size",
+          "invalid page size",
+          "treats the text literally",
+          "Behind the screens (the part that talks to the Client Portal and Admin Portal)"
+        ],
+        "clear_what_is_wrong": false,
+        "clear_who_is_affected": true,
+        "comments": "This is the least clear one. I understand that typing a bracket in search causes an error, but not what 'page size' means or what the customer or staff member actually sees. It is unclear why it matters beyond an annoying error, and it is rated Important."
+      },
+      {
+        "title": "On a phone, the My orders list overlaps and cuts off information",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "filter bar",
+          "Total and View columns"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I can follow the steps by narrowing the window, which is described in plain terms. 'Filter bar' is slightly unclear but the screenshot would show it. The effect is clear: phone users cannot read the totals or reach the View link."
+      }
+    ]
+  },
+  "replay": {
+    "ran": 3,
+    "followed_all_steps": 3,
+    "saw_the_described_problem": 3,
+    "cost_usd": 0.19465459999999998,
+    "detail": [
+      {
+        "problem": "🔴 Critical: Customers are charged too much tax on orders of 1,000.00 or more",
+        "steps": 6,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "I signed in as the Acme customer and placed order QA-TAX-1 for 80 boxes of Ballpoint Pens, box of 50. The confirmation message said 'Order QA-TAX-1 placed. Total: $1,050.00.' That is the wrong total the report describes, not the correct $1,045.00. I did not open the My orders list or the Admin Portal order page.",
+        "cost": 0.0836763
+      },
+      {
+        "problem": "🟠 Important: Customers still see the old order status after staff update it",
+        "steps": 4,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "Order PO-4430 showed Placed for the Acme customer. In the Admin Portal I set it to Processing, and the page confirmed 'Status updated to processing.' After I reloaded the Client Portal My orders page, PO-4430 still showed 'placed'. I reloaded by opening the same address again, not by clicking the circular arrow, which I don't have. I didn't wait or reload again to see whether it changes within 10 minutes.",
+        "cost": 0.08249829999999998
+      },
+      {
+        "problem": "🟡 Minor: On a phone, the My orders list overlaps and cuts off information",
+        "steps": 4,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "I signed in as the Acme customer and narrowed the window to 375px wide. The sign-in went straight to My orders, so I did not click the My orders link separately. The first order (PO-4430) is partly hidden behind the filter bar (Status box and New order button). The Total amounts (for example $9.., $10.., $8..) are cut off at the right edge, and the View column is not visible at all.",
+        "cost": 0.028480000000000002
+      }
+    ]
+  }
+}

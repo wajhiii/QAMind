@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { checkConfigFile, policyFromConfig } from "./config.ts";
+import { checkConfigFile, parseCriticalFlows, policyFromConfig } from "./config.ts";
 import type { ConfigCheck, QamindConfig } from "./config.ts";
 import { corePath } from "./corepath.ts";
 import { loadQaEnv } from "./dotenv.ts";
@@ -10,8 +10,9 @@ import type { GitInfo } from "./git.ts";
 import { ensureGitignoreEntries } from "./gitignore.ts";
 import { RUN_MARKER_FILE, SCHEMA_VERSION, projectsRoot, storeSubdirs } from "./paths.ts";
 import { ensureProjectStore, listKnownProjects, looksLikeProject, resolveProject } from "./project.ts";
-import { assignIds, countBySeverity, mergedNotTested, readRunData, renderTechnicalReport } from "./report.ts";
+import { assignIds, countBySeverity, mergedNotTested, readRunData } from "./report.ts";
 import type { RunMeta } from "./report.ts";
+import { writeReports } from "./reports.ts";
 import { detectStack, saveStack } from "./stack.ts";
 import type { StackInfo } from "./stack.ts";
 import type { RunPolicy } from "./urlpolicy.ts";
@@ -128,6 +129,8 @@ export interface StartResult {
     roles: Array<{ name: string; ui: string; tenant?: string; has_credentials: boolean }>;
     test_data_prefix: string;
     fix_severities: string[];
+    /** The critical journeys from the config, numbered from 1. Coverage rows reference these numbers (`critical_flow`). */
+    critical_flows: string[];
   };
   stack?: StackInfo;
   git?: GitInfo;
@@ -287,6 +290,7 @@ export function startRun(opts: StartOptions): StartResult {
   const runDir = path.join(reports, runId);
   for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path.join(runDir, sub));
 
+  const criticalFlows = parseCriticalFlows(check.body ?? "");
   const stack = detectStack(root, now);
   saveStack(storeSubdirs(store).memory, stack);
   const git = gitInfo(root);
@@ -326,6 +330,7 @@ export function startRun(opts: StartOptions): StartResult {
     host: opts.host,
     ...(opts.focus ? { focus: opts.focus } : {}),
     started: now.toISOString(),
+    critical_flows: criticalFlows,
     ...(git.branch ? { branch: git.branch } : {}),
     ...(git.commit ? { commit: git.commit } : {}),
     agent_version: QAMIND_VERSION,
@@ -346,6 +351,7 @@ export function startRun(opts: StartOptions): StartResult {
       roles,
       test_data_prefix: config.test_data_prefix,
       fix_severities: config.fix_policy.fix_severities,
+      critical_flows: criticalFlows,
     },
     ...(check.missing_env.length ? { missing_env: check.missing_env } : {}),
     ...(check.advisories.length ? { advisories: check.advisories } : {}),
@@ -405,8 +411,8 @@ export function finishRun(opts: FinishOptions): RunSummary {
   };
   writeJson(path.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
   if (meta) writeJson(path.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost });
-  // Re-render so the saved report carries the final duration and stop reason.
-  fs.writeFileSync(path.join(marker.run_dir, "TECHNICAL-REPORT.md"), renderTechnicalReport(readRunData(marker.run_dir)), "utf8");
+  // Re-render both reports so they carry the final duration and stop reason (and the admin report sees the finished run).
+  writeReports(marker.run_dir, marker.store);
   fs.rmSync(markerPath(marker.store), { force: true });
   return summary;
 }

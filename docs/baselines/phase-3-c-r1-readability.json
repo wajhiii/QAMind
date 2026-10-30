@@ -1,0 +1,238 @@
+{
+  "label": "phase-3-c-r1",
+  "report": "phase-3-c-full-r1.admin.md",
+  "date": "2026-10-30T10:02:18.005Z",
+  "model": "claude-sonnet-5-5",
+  "problems_in_report": 11,
+  "problems_with_on_screen_steps": 3,
+  "reader": {
+    "answered": true,
+    "cost_usd": 0.0515867,
+    "steps_followable": 3,
+    "steps_not_followable": 0,
+    "confusing_words": [
+      "Client Portal",
+      "Ballpoint Pens, box of 50",
+      "Behind the screens",
+      "the part that talks to the Client Portal",
+      "guess its number",
+      "fetch",
+      "the old sign-in still works",
+      "fractional",
+      "bracket or backslash",
+      "paging",
+      "items per page",
+      "fail with an error",
+      "sent twice at the same moment",
+      "broken input",
+      "internal technical details",
+      "attackers",
+      "narrow screen",
+      "Status and New order buttons",
+      "Total column",
+      "drop-down",
+      "screen-reading software",
+      "icon buttons",
+      "have no name",
+      "Admin Portal"
+    ],
+    "unclear_problems": [
+      "Order search and paging can make the system fail",
+      "Error messages reveal internal technical details"
+    ],
+    "overall": {
+      "would_you_know_what_to_do_next": true,
+      "verdict_clear": true,
+      "comments": "The 'Not ready to release' verdict and the three next steps are clear: have a developer fix access and sign-out, then tax and quantities, then re-test. Confusing points: 'Behind the screens', 'back-end system', 'Client Portal', 'Admin Portal', 'local demo', 'environment', 'permissions', 'paging', 'screen-reading software' and 'attackers'. I would need someone to get me test logins. The 'Your feedback' fields are not read automatically, so I would not know how to pass on my decisions. The tax example in the headline is a good plain-language lead. There is no mention of who owns the fixes or how long they will take."
+    },
+    "detail": [
+      {
+        "title": "Customers with large orders are charged too much tax",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Client Portal",
+          "Ballpoint Pens, box of 50"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Steps are simple, but I need a customer test login first, and the report only tells me to ask for one. Step 3 says to 'type a reference' without saying what to type, though any text probably works. The expected figures are clear: $1,050.00 shown versus $1,045.00 correct. I would not know whether 'Client Portal' means the customer website or something else until I tried it. It is clear that customers are overcharged and why that matters."
+      },
+      {
+        "title": "Customers can see other companies' orders",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens",
+          "the part that talks to the Client Portal",
+          "guess its number"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand that one customer can see another company's orders, which is a privacy problem. The location wording is vague to me, and it is not clear how easily order numbers can be guessed. A developer has to confirm it."
+      },
+      {
+        "title": "Customers can read the private records of all customers",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens",
+          "the part that talks to the Client Portal",
+          "fetch"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear that personal details (phone, ID numbers, addresses, part of card details) are exposed to any customer. Serious, and I understand why. The location wording is jargon."
+      },
+      {
+        "title": "Signing out does not really sign the user out",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens",
+          "the part that talks to the Client Portal",
+          "the old sign-in still works"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I get the gist: after signing out, someone who obtained the old session could still use the account. 'Old sign-in' is a slightly unclear way to describe it, but the shared-computer example helps."
+      },
+      {
+        "title": "The system accepts orders with impossible quantities, even negative ones",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens",
+          "the part that talks to the Client Portal",
+          "fractional"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear that nonsense quantities such as negative numbers are accepted and distort sales figures. 'Fractional' is a bit technical. Affected people are described as the company's figures and staff, which is fine but I would also wonder about customers."
+      },
+      {
+        "title": "Order search and paging can make the system fail",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens",
+          "the part that talks to the Client Portal",
+          "bracket or backslash",
+          "paging",
+          "items per page",
+          "fail with an error"
+        ],
+        "clear_what_is_wrong": false,
+        "clear_who_is_affected": true,
+        "comments": "I do not understand what 'paging' or 'items per page' means, or how often a person would type a bracket or backslash. It is unclear whether the whole system goes down or just that one search, so I cannot judge how much it matters."
+      },
+      {
+        "title": "A double click or repeated send can create duplicate orders",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens",
+          "the part that talks to the Client Portal",
+          "sent twice at the same moment"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Clear enough: duplicate orders get created. Customers are affected and staff must clean up. It is unclear whether customers are charged twice."
+      },
+      {
+        "title": "Error messages reveal internal technical details",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens",
+          "the part that talks to the Client Portal",
+          "broken input",
+          "internal technical details",
+          "attackers"
+        ],
+        "clear_what_is_wrong": false,
+        "clear_who_is_affected": false,
+        "comments": "I do not know what 'broken input' is or what details are revealed, so I cannot tell how bad this is. 'Company's security' is too general to tell me who is actually at risk."
+      },
+      {
+        "title": "On a phone the My orders list is overlapped and totals are cut off",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Client Portal",
+          "narrow screen",
+          "Status and New order buttons",
+          "Total column"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Steps are doable, but I need a test login, and dragging a window edge is not obvious to everyone. A phone is the easier route. The screenshot would help. Customers on phones are clearly affected."
+      },
+      {
+        "title": "Some buttons and fields cannot be understood by screen-reading software",
+        "can_follow_steps": "not applicable",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Behind the screens",
+          "drop-down",
+          "screen-reading software",
+          "icon buttons",
+          "have no name",
+          "Admin Portal"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "I understand the idea that blind users cannot tell what some controls do. The 'no name' wording is odd, and I would not know how serious this is legally or for the business."
+      },
+      {
+        "title": "The sales report is slow to appear",
+        "can_follow_steps": "yes",
+        "stuck_at_step": null,
+        "confusing_words": [
+          "Admin Portal"
+        ],
+        "clear_what_is_wrong": true,
+        "clear_who_is_affected": true,
+        "comments": "Simple to follow, with a clear before and after: about four seconds versus a couple. I need an admin test login first. It is clearly minor."
+      }
+    ]
+  },
+  "replay": {
+    "ran": 3,
+    "followed_all_steps": 3,
+    "saw_the_described_problem": 3,
+    "cost_usd": 0.1574984,
+    "detail": [
+      {
+        "problem": "🔴 Critical: Customers with large orders are charged too much tax",
+        "steps": 5,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "After signing in as QA_ACME1_USER, I filled the New order form with reference PO-TEST-1, Ballpoint Pens box of 50, and quantity 80. After Place order, the message read 'Order PO-TEST-1 placed. Total: $1,050.00.' That matches the report, not the expected $1,045.00. The message didn't show the discount or tax breakdown, so I couldn't check those figures. In step 2 I opened the New order page by its address, because my click on the link failed. The page was the same one the link goes to.",
+        "cost": 0.049016199999999996
+      },
+      {
+        "problem": "🟠 Important: On a phone the My orders list is overlapped and totals are cut off",
+        "steps": 4,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "At 375px wide, signing in took me straight to My orders. The first order (PO-4430) is partly hidden behind the Status dropdown and New order button. The Total amounts are cut off at the right edge (for example '$9', '$10', '$8'), and the View link isn't visible without scrolling sideways. I didn't click My orders separately because the sign-in already landed there.",
+        "cost": 0.0298155
+      },
+      {
+        "problem": "🟡 Minor: The sales report is slow to appear",
+        "steps": 3,
+        "followed_all_steps": true,
+        "stuck_at_step": null,
+        "stuck_reason": "",
+        "saw_the_described_problem": true,
+        "notes": "After I signed in and clicked Reports, the page showed only the heading 'Sales summary' and a 'Loading' indicator. It was still loading about 5 seconds after my click. The numbers (11 billable orders, $3,008.00 gross sales, orders by status, sales by client) were there a couple of seconds later. I only checked at intervals, so the wait was roughly 5 to 7 seconds, not a precise 4. It was clearly longer than a couple of seconds.",
+        "cost": 0.0786667
+      }
+    ]
+  }
+}

@@ -115,6 +115,7 @@ test("lint enforces the evidence rules and catches leaked secrets", () => {
   const finding: Finding = {
     title: "Negative quantity accepted", severity: "important", surface: "api", area: "Orders", type: "validation", summary: "s",
     steps: ["do it"], expected: "400", actual: "201", reproduced: { times: 1, of: 2 }, evidence: ["evidence/api/missing.json"],
+    plain: { title: "The system accepts a negative quantity", where: "Behind the screens", what_happens: "A negative number of items is accepted.", who_is_affected: "Customers and staff.", how_to_see_it: [], expected: "It is refused." },
   };
   writeJson(path.join(runDir, "data", "findings.json"), [finding]);
   let lint = lintRun(runDir, readRunData(runDir), [DEMO_ENV["QA_ADMIN_PASS"] as string]);

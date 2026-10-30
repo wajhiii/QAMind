@@ -40,6 +40,26 @@ template, blocked or ambiguous URLs, and a project with no usable credentials, a
 the **run marker** `<store>/state/run-marker.json`. The marker carries the session id, the mode, whether the run is
 report-only, and the **policy** (allowed origins, blocked patterns). The hook and the guard proxy both read it.
 
+## Two reports from one set of data
+
+The agent writes structured files in `<run>/data/` (findings, coverage, not-tested, charters, `admin.json`), and code renders both reports from
+them, so the problems and severities are identical by construction:
+
+- `core/lib/report.ts` renders `TECHNICAL-REPORT.md` (each finding gets an `<a id="ISSUE-001">` anchor).
+- `core/lib/verdict.ts` computes the release verdict (spec 13.13 default rules: Ready only with 0 critical, at most 2 important, a healthy
+  environment and every critical journey tested; never Ready if a journey was not tested). The critical journeys are copied from the config at
+  `run start`, and coverage rows reference them by number.
+- `core/lib/adminreport.ts` builds the admin view model (verdict first line, six-line summary, results by area, problems from each finding's
+  `plain` block, trend from earlier run summaries, plain not-tested reasons, at most three next steps) and renders Markdown;
+  `core/scripts/export-html.ts` renders the same model as one self-contained HTML file.
+- `core/scripts/consistency-check.ts` parses the two **written** files and fails if they disagree: same issue ids, same severities, nothing
+  added, no Critical or Important dropped, counts and verdict consistent, the same number of not-tested areas, at most three next steps, every
+  problem block complete with exactly one "For developers" link, and no jargon outside those lines. `report lint` runs it and does not rebuild first,
+  so a hand edit or a stale report is caught.
+
+Not yet tracked (arrive with later phases): regressed bugs and new/still-open/came-back lifecycle (7.7), per-project verdict rules (7.10),
+fix-mode status and branch line (6), tickets (8). The admin report says so in plain words where it matters.
+
 ## Knowledge, loaded on demand
 
 The skill is short; expertise lives in `core/knowledge/` and is loaded only when relevant. The agent reads `INDEX.md` while planning (a
