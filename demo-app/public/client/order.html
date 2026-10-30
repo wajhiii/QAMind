@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Order - Lumen Supplies</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="/client.css">
+<script src="/config.js"></script>
+<script src="/lumen.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="/">Lumen Supplies<span class="portal-tag">Client</span></a>
+  <nav aria-label="Main">
+    <a href="my-orders.html" aria-current="page">My orders</a>
+    <a href="new-order.html">New order</a>
+  </nav>
+  <div class="session">
+    <span id="whoami" data-testid="whoami"></span>
+    <button type="button" id="logout" class="link-button">Sign out</button>
+  </div>
+</header>
+<main>
+  <p><a href="my-orders.html">&larr; Back to my orders</a></p>
+  <p id="order-error" class="form-error hidden" role="alert" data-testid="order-error"></p>
+  <section id="order-view" class="hidden" aria-labelledby="order-title">
+    <h1 id="order-title"></h1>
+    <div class="card">
+      <dl class="facts">
+        <dt>Company</dt><dd id="o-client" class="text-cell"></dd>
+        <dt>Placed</dt><dd id="o-placed" data-testid="placed-on"></dd>
+        <dt>Status</dt><dd id="o-status" data-testid="order-status"></dd>
+        <dt>Note</dt><dd id="o-note" class="text-cell"></dd>
+      </dl>
+    </div>
+    <h2>Items</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Product</th><th scope="col" class="num">Unit price</th><th scope="col" class="num">Quantity</th><th scope="col" class="num">Line total</th></tr></thead>
+        <tbody id="o-items"></tbody>
+      </table>
+    </div>
+    <div class="totals" data-testid="order-totals">
+      <div><span>Subtotal</span><span id="t-subtotal"></span></div>
+      <div><span>Discount</span><span id="t-discount"></span></div>
+      <div><span>Tax</span><span id="t-tax"></span></div>
+      <div class="grand"><span>Total</span><span id="t-total"></span></div>
+    </div>
+  </section>
+</main>
+<script src="/order.js"></script>
+</body>
+</html>

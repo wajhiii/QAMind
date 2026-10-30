@@ -1,0 +1,72 @@
+{
+  "clients": [
+    { "id": "c-acme", "name": "Acme Traders" },
+    { "id": "c-bright", "name": "Bright Foods" },
+    { "id": "c-zain", "name": "زین ٹریڈرز" }
+  ],
+  "users": [
+    { "id": "u-admin", "email": "admin@lumen.test", "password": "Lumen-Admin-2026", "name": "Lumen Admin", "role": "admin", "client_id": null },
+    { "id": "u-a1", "email": "a1@acme.test", "password": "Acme-One-2026", "name": "Acme Buyer One", "role": "client", "client_id": "c-acme" },
+    { "id": "u-a2", "email": "a2@acme.test", "password": "Acme-Two-2026", "name": "Acme Buyer Two", "role": "client", "client_id": "c-acme" },
+    { "id": "u-b1", "email": "b1@bright.test", "password": "Bright-One-2026", "name": "Bright Buyer", "role": "client", "client_id": "c-bright" },
+    { "id": "u-z1", "email": "z1@zain.test", "password": "Zain-One-2026", "name": "Zain Ahmed", "role": "client", "client_id": "c-zain" }
+  ],
+  "products": [
+    { "id": "p-101", "sku": "PAP-A4-500", "name": "A4 Copy Paper, 500 sheets", "price_cents": 650 },
+    { "id": "p-102", "sku": "PEN-BP-50", "name": "Ballpoint Pens, box of 50", "price_cents": 1250 },
+    { "id": "p-103", "sku": "STP-HD-01", "name": "Heavy Duty Stapler", "price_cents": 1899 },
+    { "id": "p-104", "sku": "STP-5K", "name": "Staples, box of 5000", "price_cents": 350 },
+    { "id": "p-105", "sku": "DSK-ORG-02", "name": "Desk Organizer", "price_cents": 2450 },
+    { "id": "p-106", "sku": "MRK-WB-12", "name": "Whiteboard Markers, pack of 12", "price_cents": 1599 },
+    { "id": "p-107", "sku": "TNR-LJ-BK", "name": "Printer Toner Cartridge", "price_cents": 8999 },
+    { "id": "p-108", "sku": "CLP-BND-AS", "name": "Binder Clips, assorted", "price_cents": 475 },
+    { "id": "p-109", "sku": "NOT-STK-12", "name": "Sticky Notes, 12 pads", "price_cents": 1299 },
+    { "id": "p-110", "sku": "LBL-TP-12", "name": "Label Maker Tape", "price_cents": 1850 }
+  ],
+  "customers": [
+    {
+      "client_id": "c-acme",
+      "contact_name": "Hannah Brooks",
+      "email": "hannah.brooks@example.com",
+      "phone": "+1 202 555 0143",
+      "cnic": "35202-1234567-1",
+      "address": "14 Industrial Estate Road, Springfield, 62704",
+      "card_last4": "4242",
+      "notes": "Prefers invoices by email. Net 30 terms."
+    },
+    {
+      "client_id": "c-bright",
+      "contact_name": "Marcus Lindqvist",
+      "email": "marcus.lindqvist@example.org",
+      "phone": "+1 415 555 0178",
+      "cnic": "42101-7654321-9",
+      "address": "220 Harbour Street, Portside, 94105",
+      "card_last4": "5556",
+      "notes": "Deposit taken by phone on card 4000 0566 5566 5556, exp 08/28. Refund to the same card if cancelled."
+    },
+    {
+      "client_id": "c-zain",
+      "contact_name": "Zain Ahmed",
+      "email": "zain.ahmed@example.com",
+      "phone": "+92 300 5550147",
+      "cnic": "61101-2468013-5",
+      "address": "Plot 22, Quaid-e-Azam Industrial Estate, Lahore",
+      "card_last4": "4444",
+      "notes": "Contact on WhatsApp first. Delivery window mornings only."
+    }
+  ],
+  "orders": [
+    { "id": "o-1001", "client_id": "c-acme", "reference": "PO-4410", "note": "Leave at loading dock B", "status": "delivered", "created_at": "2026-09-02T10:30:00.000Z", "items": [ { "product_id": "p-101", "quantity": 20 }, { "product_id": "p-104", "quantity": 5 } ] },
+    { "id": "o-1002", "client_id": "c-acme", "reference": "PO-4417", "note": null, "status": "shipped", "created_at": "2026-09-15T11:15:00.000Z", "items": [ { "product_id": "p-102", "quantity": 4 }, { "product_id": "p-109", "quantity": 2 } ] },
+    { "id": "o-1003", "client_id": "c-acme", "reference": "PO-4421", "note": "Call before delivery", "status": "processing", "created_at": "2026-10-01T09:45:00.000Z", "items": [ { "product_id": "p-106", "quantity": 6 } ] },
+    { "id": "o-1004", "client_id": "c-acme", "reference": "PO-4430", "note": null, "status": "placed", "created_at": "2026-10-20T14:05:00.000Z", "items": [ { "product_id": "p-103", "quantity": 2 }, { "product_id": "p-108", "quantity": 10 } ] },
+    { "id": "o-1005", "client_id": "c-acme", "reference": "PO-4388", "note": "Duplicate of PO-4387", "status": "cancelled", "created_at": "2026-08-25T12:00:00.000Z", "items": [ { "product_id": "p-105", "quantity": 3 } ] },
+    { "id": "o-1006", "client_id": "c-bright", "reference": "BF-2201", "note": null, "status": "delivered", "created_at": "2026-09-05T10:00:00.000Z", "items": [ { "product_id": "p-107", "quantity": 2 }, { "product_id": "p-110", "quantity": 4 } ] },
+    { "id": "o-1007", "client_id": "c-bright", "reference": "BF-2208", "note": "Warehouse closed on Fridays", "status": "shipped", "created_at": "2026-09-28T13:20:00.000Z", "items": [ { "product_id": "p-101", "quantity": 50 } ] },
+    { "id": "o-1008", "client_id": "c-bright", "reference": "BF-2215", "note": "Quarterly toner restock", "status": "placed", "created_at": "2026-10-22T10:10:00.000Z", "items": [ { "product_id": "p-107", "quantity": 12 } ] },
+    { "id": "o-1009", "client_id": "c-bright", "reference": "BF-2216", "note": null, "status": "processing", "created_at": "2026-10-25T15:40:00.000Z", "items": [ { "product_id": "p-109", "quantity": 10 }, { "product_id": "p-106", "quantity": 4 } ] },
+    { "id": "o-1010", "client_id": "c-zain", "reference": "زین-1042", "note": "براہ کرم صبح کے وقت ڈیلیور کریں", "status": "delivered", "created_at": "2026-09-10T09:30:00.000Z", "items": [ { "product_id": "p-101", "quantity": 30 } ] },
+    { "id": "o-1011", "client_id": "c-zain", "reference": "زین-1043", "note": "کارٹن پر نمبر 118 لکھیں", "status": "shipped", "created_at": "2026-10-05T11:50:00.000Z", "items": [ { "product_id": "p-102", "quantity": 10 } ] },
+    { "id": "o-1012", "client_id": "c-zain", "reference": "زین-1044", "note": "ہنگامی آرڈر، آج ہی بھیجیں", "status": "placed", "created_at": "2026-10-27T12:25:00.000Z", "items": [ { "product_id": "p-110", "quantity": 6 }, { "product_id": "p-108", "quantity": 20 } ] }
+  ]
+}

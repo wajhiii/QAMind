@@ -1,0 +1,16 @@
+{
+  "name": "lumen-supplies-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lumen Supplies: a small B2B ordering app (admin UI, client UI, REST API) used as the QAMind test fixture.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "reset": "node scripts/reset.mjs",
+    "test": "node --test"
+  }
+}

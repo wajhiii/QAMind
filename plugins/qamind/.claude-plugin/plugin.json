@@ -1,0 +1,17 @@
+{
+  "name": "qamind",
+  "displayName": "QAMind",
+  "version": "0.1.0",
+  "description": "A reusable Senior QA Engineer agent: tests your API and web UIs, reports with evidence, and never touches production.",
+  "author": {
+    "name": "QAMind"
+  },
+  "license": "MIT",
+  "keywords": [
+    "qa",
+    "testing",
+    "playwright",
+    "api-testing",
+    "agent"
+  ]
+}

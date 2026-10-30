@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>My orders - Lumen Supplies</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="/client.css">
+<script src="/config.js"></script>
+<script src="/lumen.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="/">Lumen Supplies<span class="portal-tag">Client</span></a>
+  <nav aria-label="Main">
+    <a href="my-orders.html" aria-current="page">My orders</a>
+    <a href="new-order.html">New order</a>
+  </nav>
+  <div class="session">
+    <span id="whoami" data-testid="whoami"></span>
+    <button type="button" id="logout" class="link-button">Sign out</button>
+  </div>
+</header>
+<main class="my-orders">
+  <h1>My orders</h1>
+  <div class="toolbar">
+    <div class="field">
+      <label for="status-filter">Status</label>
+      <select id="status-filter" data-testid="status-filter">
+        <option value="">All statuses</option>
+        <option value="placed">Placed</option>
+        <option value="processing">Processing</option>
+        <option value="shipped">Shipped</option>
+        <option value="delivered">Delivered</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <a class="button" href="new-order.html" data-testid="new-order-link">New order</a>
+  </div>
+  <p id="orders-error" class="form-error hidden" role="alert" data-testid="orders-error"></p>
+  <div class="table-wrap orders-list">
+    <table data-testid="orders-table">
+      <thead>
+        <tr><th scope="col">Reference</th><th scope="col">Placed</th><th scope="col">Status</th><th scope="col" class="num">Total</th><th scope="col"><span class="sr-only">Actions</span></th></tr>
+      </thead>
+      <tbody id="orders-body"></tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <span id="pager-info" class="muted" aria-live="polite"></span>
+    <div class="buttons">
+      <button type="button" id="prev-page" class="secondary">Previous</button>
+      <button type="button" id="next-page" class="secondary">Next</button>
+    </div>
+  </div>
+</main>
+<script src="/my-orders.js"></script>
+</body>
+</html>

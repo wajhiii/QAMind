@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Reports - Lumen Supplies Admin</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="/admin.css">
+<script src="/config.js"></script>
+<script src="/lumen.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="/">Lumen Supplies<span class="portal-tag">Admin</span></a>
+  <nav aria-label="Main">
+    <a href="orders.html">Orders</a>
+    <a href="customers.html">Customers</a>
+    <a href="reports.html" aria-current="page">Reports</a>
+  </nav>
+  <div class="session">
+    <span id="whoami" data-testid="whoami"></span>
+    <button type="button" id="logout" class="link-button">Sign out</button>
+  </div>
+</header>
+<main>
+  <h1>Sales summary</h1>
+  <div id="loading" class="spinner" role="status" aria-label="Loading"></div>
+  <section id="report" class="hidden">
+    <div class="stat-grid">
+      <div class="stat"><div class="value" id="r-orders" data-testid="report-orders"></div><div class="label">Billable orders</div></div>
+      <div class="stat"><div class="value" id="r-gross" data-testid="report-gross"></div><div class="label">Gross sales</div></div>
+      <div class="stat"><div class="value" id="r-generated"></div><div class="label">Generated</div></div>
+    </div>
+    <h2>Orders by status</h2>
+    <div class="table-wrap">
+      <table><thead><tr><th scope="col">Status</th><th scope="col" class="num">Orders</th></tr></thead><tbody id="r-status"></tbody></table>
+    </div>
+    <h2>Sales by client</h2>
+    <div class="table-wrap">
+      <table><thead><tr><th scope="col">Client</th><th scope="col" class="num">Orders</th><th scope="col" class="num">Total</th></tr></thead><tbody id="r-clients"></tbody></table>
+    </div>
+    <h2>Top products</h2>
+    <div class="table-wrap">
+      <table><thead><tr><th scope="col">Product</th><th scope="col" class="num">Units</th></tr></thead><tbody id="r-products"></tbody></table>
+    </div>
+  </section>
+</main>
+<script src="/reports.js"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+.text-cell {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: ltr;
+  unicode-bidi: bidi-override;
+}
+
+dd.text-cell { max-width: 13rem; }
+
+.order-form { min-width: 520px; }
+.line-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
+.line-product { flex: 1 1 auto; }
+.line-qty { flex: 0 0 6rem; }
+.form-actions { display: flex; justify-content: flex-end; }
+
+.my-orders .toolbar {
+  position: sticky;
+  top: 3.3rem;
+  z-index: 15;
+  padding: 0.5rem 0;
+  background: var(--page);
+}
+
+@media (max-width: 480px) {
+  .my-orders .toolbar { margin-bottom: -4rem; }
+}

@@ -1,0 +1,43 @@
+{
+  "id": "claude",
+  "name": "Claude Code",
+  "tier": "full",
+  "docs_checked": {
+    "date": "2026-10-30",
+    "pages": [
+      "https://code.claude.com/docs/en/plugins-reference",
+      "https://code.claude.com/docs/en/plugin-marketplaces",
+      "https://code.claude.com/docs/en/skills",
+      "https://code.claude.com/docs/en/hooks",
+      "https://code.claude.com/docs/en/mcp"
+    ]
+  },
+  "skills": {
+    "location": "plugins/qamind/skills/<name>/SKILL.md (inside the plugin; no separate user-level folder)",
+    "naming": "namespaced by plugin name: /qamind:<skill>"
+  },
+  "mcp": {
+    "registration": "plugins/qamind/.mcp.json, wrapped form { \"mcpServers\": { ... } }",
+    "tool_prefix": "mcp__plugin_qamind_<server>__"
+  },
+  "hooks": {
+    "file": "plugins/qamind/hooks/hooks.json (wrapped form { \"hooks\": { ... } })",
+    "events_used": ["PreToolUse"],
+    "enforcement": "guardrails for an active run are enforced by the PreToolUse hook"
+  },
+  "rules_file": null,
+  "commands": {
+    "CMD_QA": "/qamind:qa",
+    "CMD_QA_ONLY": "/qamind:qa-only",
+    "CMD_QA_AUTO": "/qamind:qa-auto",
+    "CMD_QA_MEMORY_REVIEW": "/qamind:qa-memory-review",
+    "CMD_QA_FEEDBACK": "/qamind:qa-feedback",
+    "CMD_QA_TESTS": "/qamind:qa-tests"
+  },
+  "skill_frontmatter": {
+    "qa-only": {
+      "disable-model-invocation": true,
+      "allowed-tools": "Read Glob Grep Write(.qa/**) Edit(.qa/**) Bash(qamind *) Bash(curl *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(ls *) mcp__plugin_qamind_browser"
+    }
+  }
+}

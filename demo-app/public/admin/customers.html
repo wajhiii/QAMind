@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Customers - Lumen Supplies Admin</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="/admin.css">
+<script src="/config.js"></script>
+<script src="/lumen.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="/">Lumen Supplies<span class="portal-tag">Admin</span></a>
+  <nav aria-label="Main">
+    <a href="orders.html">Orders</a>
+    <a href="customers.html" aria-current="page">Customers</a>
+    <a href="reports.html">Reports</a>
+  </nav>
+  <div class="session">
+    <span id="whoami" data-testid="whoami"></span>
+    <button type="button" id="logout" class="link-button">Sign out</button>
+  </div>
+</header>
+<main>
+  <h1>Customers</h1>
+  <p id="customers-error" class="form-error hidden" role="alert"></p>
+  <div class="table-wrap">
+    <table data-testid="customers-table">
+      <thead>
+        <tr><th scope="col">Company</th><th scope="col">Contact</th><th scope="col">Email</th><th scope="col">Phone</th><th scope="col">National ID</th><th scope="col">Address</th><th scope="col">Card</th><th scope="col">Notes</th></tr>
+      </thead>
+      <tbody id="customers-body"></tbody>
+    </table>
+  </div>
+</main>
+<script src="/customers.js"></script>
+</body>
+</html>

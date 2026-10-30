@@ -1,0 +1,10 @@
+.text-cell {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: ltr;
+  unicode-bidi: bidi-override;
+}
+
+dd.text-cell { max-width: 13rem; }

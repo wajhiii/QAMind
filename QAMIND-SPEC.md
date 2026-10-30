@@ -1023,8 +1023,8 @@ using only the README and `docs/HOSTS.md`.
 **Defaults (confirm before Phase 1)**
 6. Fix policy: `/qa` fixes 🔴 Critical and 🟠 Important only; 🟡 Minor is reported.
 7. No fixed first project. QAMind is never tied to a specific project: it tests whichever
-   project the user runs it in (§9.1, Phase 0, step 0). During development, after the
-   demo app passes Phase 1, ask me which real project to try next.
+   project the user runs it in (§9.1, Phase 0, step 0). Test on a real project only after
+   all phases are complete; ask me which project at that point.
 8. Auto-QA mode when enabled: `diff`.
 9. Auto-QA never fixes on its own; fixing only via `/qa` or the `#qa-fix` tag.
 10. Hosts: Claude Code, Codex and Cursor only for now (plus the generic `AGENTS.md` option).

@@ -1,0 +1,11 @@
+{
+  "name": "qamind-plugin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Runtime dependencies of the QAMind Claude Code plugin. Claude Code installs these when it copies the plugin into its cache.",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@playwright/mcp": "0.0.83"
+  }
+}

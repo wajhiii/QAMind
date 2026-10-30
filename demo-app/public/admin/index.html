@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Sign in - Lumen Supplies Admin</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="/admin.css">
+<script src="/config.js"></script>
+<script src="/lumen.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="/">Lumen Supplies<span class="portal-tag">Admin</span></a>
+  <nav aria-label="Main">
+    <a href="orders.html">Orders</a>
+    <a href="customers.html">Customers</a>
+    <a href="reports.html">Reports</a>
+  </nav>
+</header>
+<main>
+  <section class="card narrow" aria-labelledby="signin-title">
+    <h1 id="signin-title">Admin sign in</h1>
+    <form id="login-form" novalidate>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="username" required data-testid="login-email">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required data-testid="login-password">
+      <p id="login-error" class="form-error hidden" role="alert" data-testid="login-error"></p>
+      <p><button type="submit" data-testid="login-submit">Sign in</button></p>
+    </form>
+  </section>
+</main>
+<script src="/login.js"></script>
+</body>
+</html>

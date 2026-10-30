@@ -1,0 +1,8 @@
+node_modules/
+# Generated plugin keeps its lockfile but never its installed dependencies
+plugins/qamind/node_modules/
+.DS_Store
+*.log
+# QAMind's own runtime files if it is ever run on this repo
+.qa/
+.env.qa

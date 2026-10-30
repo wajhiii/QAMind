@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>New order - Lumen Supplies</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/base.css">
+<link rel="stylesheet" href="/client.css">
+<script src="/config.js"></script>
+<script src="/lumen.js"></script>
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="/">Lumen Supplies<span class="portal-tag">Client</span></a>
+  <nav aria-label="Main">
+    <a href="my-orders.html">My orders</a>
+    <a href="new-order.html" aria-current="page">New order</a>
+  </nav>
+  <div class="session">
+    <span id="whoami" data-testid="whoami"></span>
+    <button type="button" id="logout" class="link-button">Sign out</button>
+  </div>
+</header>
+<main>
+  <h1>New order</h1>
+  <section id="confirmation" class="form-success hidden" role="status" data-testid="order-confirmation"></section>
+  <div class="card">
+    <form id="order-form" class="order-form" novalidate>
+      <label for="reference">Your PO reference</label>
+      <input id="reference" name="reference" type="text" required data-testid="order-reference">
+      <label for="note">Note (optional)</label>
+      <textarea id="note" name="note" data-testid="order-note"></textarea>
+      <h2>Items</h2>
+      <div id="lines" data-testid="order-lines"></div>
+      <p><button type="button" id="add-line" class="secondary" data-testid="add-line">Add another item</button></p>
+      <p id="order-error" class="form-error hidden" role="alert" data-testid="order-error"></p>
+      <div class="form-actions">
+        <button type="submit" id="submit-order" data-testid="submit-order">Place order</button>
+      </div>
+    </form>
+  </div>
+</main>
+<script src="/new-order.js"></script>
+</body>
+</html>

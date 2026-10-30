@@ -1,0 +1,13 @@
+{
+  "name": "qamind",
+  "description": "QAMind: a reusable Senior QA Engineer agent for AI coding tools.",
+  "owner": { "name": "QAMind" },
+  "plugins": [
+    {
+      "name": "qamind",
+      "source": "./plugins/qamind",
+      "description": "Tests your API and web UIs like a senior QA engineer and reports findings with evidence. Staging only, never production.",
+      "category": "testing"
+    }
+  ]
+}

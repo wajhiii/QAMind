@@ -1,0 +1,22 @@
+{
+  "description": "QAMind safety guard: while a QA run is active in this session, enforce report-only writes and keep credentials out of the conversation. A no-op otherwise.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(Write|Edit|MultiEdit|NotebookEdit|Bash|Read|Grep|Glob|mcp__plugin_qamind_browser__.*)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PLUGIN_ROOT}/dist/qamind.mjs",
+              "hook",
+              "pre-tool-use"
+            ],
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
