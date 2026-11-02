@@ -368,3 +368,35 @@ All ten fixes in these two sequences were classified **best-effort**, each with 
 - A run in which a fix must touch the UI (no browser-test setup) ends in a deferral, not a fix.
 - Nothing was run on Linux or Windows.
 - A single timing-based API test failed once under load during development and never again in five reruns; it is not related to this phase.
+
+## Phase 6.5: auto-QA (the end-to-end test of spec section 14)
+
+`scripts/eval-auto.ts` runs real Claude Code (2.1.314, `claude-sonnet-5-5`, headless) with the built plugin against a copy of the demo app per scenario, with a scratch `QAMIND_HOME`. The agent is asked for one small code change
+(the heading on the My orders page). Everything is then checked from files and git, not from the agent's words: the run folders and run summaries, the gate's own record, how often the internal skill was invoked (from the tool-call stream), what changed in the project, and a scan for the fixture passwords.
+Record: `docs/baselines/phase-6.5-auto.{json,md}`. Total for the five scenarios: $0.81.
+
+| Scenario | Expected QA runs | Found | Skill calls | Result |
+|---|---|---|---|---|
+| auto on, the agent changes code | 1 | 1 (trigger `auto`, diff, report only, finished) | 1 | pass |
+| auto on, same change with `#noqa` | 0 | 0 | 0 | pass |
+| auto never turned on (the default), same change | 0 | 0 | 0 | pass |
+| auto off, same change with `#qa` | 1 | 1 | 1 | pass |
+| auto on, then `/qamind:qa-auto off`, then the change in the same session | 0 | 0 | 0 | pass |
+
+- **Exactly one run, never a loop:** both runs that started finished normally (1.1 and 1.0 minutes, $0.31 and $0.32), with one skill call each, the gate recorded the one changed file and mode `diff`, and the turn ended cleanly. A diff-mode run is much cheaper than the $2 a quick run of the whole demo app cost.
+- **The default is off, and a project that never opted in is not touched**: in the "off" scenario the user store contains no project folder at all after the task.
+- **`/qa-auto off` takes effect on the next task**: the change in the second turn was not followed by QA. The toggle task itself (auto was on at its prompt) ended without QA because it changed nothing.
+- The final message was five lines or fewer each time, with the verdict, "no Critical or Important problems", what was not tested and the report paths. No line cap violation, no "skipped" message, no password in any file, message or trace; nothing committed, no remote, and the only change in the project was the requested one.
+
+### What the evaluation found in the product, and what was done
+- **The host refused the Skill call** that answers the block (first probe, $0.05: the gate blocked correctly, Claude called `qamind:qa-auto-run`, and the headless host denied the `Skill` tool; the agent honestly reported "Auto-QA skipped"). In an interactive session the same call would have asked the user to approve the internal skill on every trigger.
+  The PreToolUse hook now approves exactly that call, once, while the gate has really blocked the session in the last 30 minutes ([decision 0004](decisions/0004-auto-qa.md)). **Verified in the runs above.**
+- **A report-only run left a screenshot in the project folder.** The agent saved `my-orders-desktop.png` with a bare file name and the browser tool resolves relative names against the project: a hole in "writes only inside `.qa/` and the user store" since Phase 1, never seen because earlier runs used run-folder paths. The hook now refuses a browser `filename` outside `.qa/` and the store, in every run mode (unit-tested). **The final runs made no such file** (their only project change was the heading), but the agent was not tested against the refusal itself.
+- The unit tests found two more defects before any real run: a corrupt `auto.json` or state file made `readJson` throw (the hook would have done nothing for ever, and `auto status` would have crashed), and the gate never consulted the "this session already reported it cannot run" record, so a session whose app was down would have been asked to run QA on every turn.
+
+### What this does not show
+- **Only `diff` mode, `#qa`, `#noqa`, off, and `/qa-auto off` ran for real.** `quick`, `full`, `fix`, `ask`, `#qa-full` and `#qa-fix` are covered by the gate's unit tests (the reason Claude is given and the rules), not by a real Claude Code run. In particular, how the real agent behaves after the `ask` question, and the fix-mode consent prompts, are unseen.
+- **Headless only.** That the hook's approval also removes the permission prompt in a terminal session is expected from how hooks work, but was not seen. Nothing was run on Linux or Windows.
+- One product, one model, one small change, one run per scenario. A change that touches several flows, or an app that is down (the "Auto-QA skipped" path), was not exercised for real; the latter is unit-tested only.
+- The agent twice tried a command the host or the safety hook turned down (a `sed -n` read of a plugin file outside the project, and a `$D/charters.json` redirect the hook cannot expand) and went on without trouble; the second shows the Bash guard is conservative, not a bypass.
+- The harness proves "exactly one run" by run folders and skill calls; it does not count Stop-hook invocations directly.

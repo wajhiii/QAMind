@@ -22,7 +22,8 @@ The server needs only Node 20+ and the two files in `dist/`; it is host-neutral 
 - Install: marketplace from the Git repository (see the README). Docs consulted 2026-10-30: plugins reference, plugin
   marketplaces, skills, hooks, MCP (see `hosts/claude/host.json`).
 - Skills are namespaced by plugin: `/qamind:qa-only`. `qamind` is put on the Bash tool's PATH by the plugin's `bin/`.
-- Hooks are a no-op unless a QAMind run is active in the same session.
+- Three hooks: PreToolUse (the safety guard, a no-op unless a QAMind run is active in the same session), and Stop and UserPromptSubmit for auto-QA (silent no-ops unless the user turned auto-QA on or used a tag; [decision 0004](decisions/0004-auto-qa.md)). Facts verified with 2.1.312 are in `hosts/claude/host.json` (`hooks.verified`): both run in headless `claude -p`, what is on stdin, how `stop_hook_active` behaves, and that a block makes Claude continue and invoke a `user-invocable: false` skill.
+- Auto-QA is **enforced** on this host (the Stop hook blocks). A host with no "agent finished" hook gets a rules-file instruction instead, and `/qa-auto status` and the docs must call it **advisory** there.
 - Two MCP servers are registered by the plugin: `browser` (browser tool behind the production guard) and `qa-memory` (project memory and the run lifecycle, Phase 5;
   [decision 0002](decisions/0002-qa-memory-server.md)). Their tools are named `mcp__plugin_qamind_<server>__<tool>`, the skill pre-approves both servers, and because Claude Code
   loads MCP tools on demand the skill tells the agent to load the memory tools with one `ToolSearch` call first. The server starts in the project folder with `CLAUDE_PROJECT_DIR` set
@@ -46,6 +47,11 @@ The server needs only Node 20+ and the two files in `dist/`; it is host-neutral 
 | 2026-11-02 | same | `/qamind:qa full` on a copy of the demo app, six sequences: 45 fix commits, each re-proved red on its parent and green on the commit; full suite green; nothing pushed; no protected file touched | pass (details: [EVALUATION-LOG.md](EVALUATION-LOG.md)) |
 | 2026-11-02 | same | a skill's `allowed-tools` listing the qa-memory tools one by one is honoured in a headless run, and a tool left out (`fix_continue`) is refused by the host: the agent stopped and asked the user to approve it instead of working round it | pass (2 sequences) |
 | 2026-11-02 | same | the user is asked interactively to approve `fix_continue` and `fix_create_branch` | **not tested**: only the headless refusal was observed |
+
+| 2026-11-02 | same | probe plugin with Stop and UserPromptSubmit hooks: events fire in `claude -p`, stdin fields, `stop_hook_active`, a block makes Claude continue and invoke a model-invocable skill, `systemMessage` reaches the user | pass; facts recorded in `hosts/claude/host.json` |
+| 2026-11-02 | Claude Code 2.1.314 (VS Code extension build) | auto-QA end to end, headless, five scenarios on the demo app (auto on + change; `#noqa`; auto off; `#qa`; `/qa-auto off` then change) | pass: exactly one run where one is expected, none otherwise (details: [EVALUATION-LOG.md](EVALUATION-LOG.md)) |
+| 2026-11-02 | same | the headless host refuses the `Skill` call that answers an auto-QA block; the PreToolUse hook's `allow` for that one call is honoured | refused without the hook, pass with it |
+| 2026-11-02 | same | auto-QA in an interactive session: no permission prompt for the skill, `ask` mode, fix-mode consent prompts | **not tested** |
 
 **Not yet verified:** installing from a Git URL (where Claude Code copies the plugin and installs `@playwright/mcp` itself), Windows,
 Linux (the CI workflow runs the suite on Linux and macOS, but I cannot see its results from here; the Windows job is new in Phase 5 and has not run). Tier: **full**, for the Phase 1 feature set only (`/qa-only`); other skills arrive in later phases.

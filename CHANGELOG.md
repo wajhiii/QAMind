@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.6.5 (Phase 6.5, unreleased)
+
+- **Auto-QA** (`core/auto-qa/`, `/qamind:qa-auto`): when turned on, every task that changed code is checked before Claude Code finishes it. **Off by default**, per project (`<store>/auto.json`) or globally (`$QAMIND_HOME/auto.json`), the project winning; `QAMIND_AUTO=0` switches it off for a session.
+  A project that never opted in is not written to. See [decision 0004](docs/decisions/0004-auto-qa.md).
+- **Two hooks** run the existing bundle: `qamind hook user-prompt-submit` (reads `#qa`, `#qa-full`, `#qa-fix`, `#noqa`; snapshots the project) and `qamind hook stop` (the seven gate rules of spec 9.5 in order; answers with `{"decision":"block","reason":...}` so Claude continues).
+  They never fail a turn: any error is a silent no-op.
+- **What a task changed** is what differs from the snapshot taken when it began, plus the task's own commits, minus documentation, lock files and the configurable ignore list: work already in progress is not blamed on the task.
+- **It cannot loop**: `stop_hook_active`, a record consumed once per task, the state hash and time stored when QA is *asked for*, the QA-run check (an open marker, a `/qa` prompt, or the new `state/last-run.json` that `run finish` writes), and a cooldown (3 minutes).
+- **`qa-auto-run`**, an internal skill (`user-invocable: false`) the hook's message tells Claude to run, because the model cannot run `/qa-only` itself. Steps 1 to 5 are word for word `/qa-only`'s (tested); it never asks the user, ends with a five-line summary, and says "Auto-QA skipped: <reason>" once per session when it cannot run.
+- **`qamind auto` commands** (`status`, `on`, `off`, `mode`, `pause`, `resume`, `global`, `set cooldown|budget|ignore`, `skipped`) and the **`/qa-auto` skill** over them.
+- Modes: `diff` (default), `quick`, `full`, `fix` (only when set, or `#qa-fix` for one task; every fix rule stands), `ask`.
+- **Tests**: the settings, tags, change detection and the reason text (`auto-qa-units`), every gate rule through the real CLI with hook JSON on stdin (`auto-qa-gate`: loop prevention, cooldown, docs-only, each tag, env override, pause expiry, preconditions, corrupt files, sessions) and the static side (`auto-qa-skills`).
+  `scripts/eval-auto.ts` is the spec's end-to-end test with real Claude Code. Results: `docs/EVALUATION-LOG.md`.
+- **The PreToolUse hook approves the one Skill call that answers a block** (`approveAutoSkill`): the headless host refused it, and an interactive user would be asked every time. Only `qa-auto-run`, only while the gate really blocked this session in the last 30 minutes, once.
+- **Found by the end-to-end run and fixed:** the browser tool saved a screenshot with a bare file name into the project folder, so a report-only run could litter the user's tree (the hook now refuses a browser `filename` outside `.qa/` and the store, in every run mode); a corrupt `auto.json` or state file no longer breaks the hooks and commands.
+- **Evaluation** (real Claude Code, headless, the demo app): five scenarios, all pass: auto on and a code change gives exactly one QA run; `#noqa` none; auto off none (and nothing written to the store); `#qa` while off one; `/qa-auto off` then a change none. $0.81 in all. See `docs/EVALUATION-LOG.md`.
+- Not in this phase: Linux and Windows runs (the Windows CI job now includes the gate tests), interactive-session behaviour (the end-to-end test is headless), the `background` mode.
+
 ## 0.6.0 (Phase 6, unreleased)
 
 - **`/qa`: fix mode** (`core/skills/qa/SKILL.md`, `core/shared/fix-loop.md`). It runs the `/qa-only` steps word for word (a test fails if they drift apart), writes the baseline report, then fixes the confirmed critical and important

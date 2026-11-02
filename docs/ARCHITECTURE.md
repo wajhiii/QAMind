@@ -101,6 +101,22 @@ The agent edits files with the Edit and Write tools; everything that touches git
 The reports render the fix state, so what they say about a fix is what the tools did: every problem is listed with its status (fixed and checked, fixed and needs a human, not fixed),
 the technical report keeps the proof for each fix, and the admin report says "Fixes are on branch X; a developer must review and merge them." The verdict counts verified fixes as merged and says so.
 
+## Auto-QA (`/qa-auto`)
+
+Auto-QA is a gate in code, not an instruction the agent may skip ([decision 0004](decisions/0004-auto-qa.md)). `core/auto-qa/` is the host-neutral library: `settings.ts` (the project and global `auto.json`, precedence, pause, `QAMIND_AUTO`),
+`tags.ts`, `changes.ts` (a snapshot at the start of a task and the files it changed), `state.ts` (per-session records in `<store>/state/`), `gate.ts` (the seven rules of spec 9.5, in order), `prompt.ts` (the message Claude is given) and `commands.ts` (`qamind auto ...`).
+Claude Code reaches it through two hooks that run the existing bundle: **UserPromptSubmit** (`hook user-prompt-submit`: read the tags, take the snapshot) and **Stop** (`hook stop`: decide, and answer `{"decision":"block","reason":...}` so Claude continues).
+
+```
+prompt --UserPromptSubmit--> tags + snapshot        (nothing is written when auto-QA is off and the prompt has no tag)
+agent works ...
+agent done --Stop--> 1 #noqa  2 disabled?  3 stop_hook_active  4 was a QA run  5 no code change  6 cooldown  7 block
+                     block => Claude runs the internal skill qa-auto-run (trigger "auto") => short summary => Stop again (rule 3: skip)
+```
+
+The skill Claude is told to run, `qa-auto-run`, is the `/qa-only` procedure without the questions (Steps 1 to 5 are word for word the same, a test enforces it), because the model cannot run `/qa-only` itself. Report-only modes start the run as `qa-only`, so the safety hook keeps them read-only.
+Hooks never fail a turn: any error is a silent "no opinion". Whether a task was itself a QA run comes from the open run marker or from `state/last-run.json`, which `run finish` writes.
+
 ## Knowledge, loaded on demand
 
 The skill is short; expertise lives in `core/knowledge/` and is loaded only when relevant. The agent reads `INDEX.md` while planning (a
@@ -119,6 +135,7 @@ records how many knowledge files a run actually read. Files are never edited dur
 - **PreToolUse hook** (Claude Code): while a run marker for this session exists, report-only runs may write only under
   `.qa/` and the store, git mutations / installs / in-place edits are denied, and credentials cannot be read or dumped.
   With no marker for the session it does nothing.
+- **Stop and UserPromptSubmit hooks** (Claude Code): the auto-QA gate above. Silent no-ops unless the user turned auto-QA on or put a tag in the prompt.
 - Everything else is in the skill's instructions (`core/shared/safety.md`), which hosts without hooks rely on.
 
 ## Host adapters

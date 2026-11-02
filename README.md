@@ -51,7 +51,8 @@ Codex CLI, Cursor and other agents that read `AGENTS.md` come in Phase 7.5. See 
 |------|-------------|-------|
 | Test and report | `/qamind:qa-only [full\|quick\|regression\|diff] [focus]` | Writes only inside `.qa/` and the QAMind user store |
 | Test and fix | `/qamind:qa [full\|quick\|regression\|diff] [focus]` | Fixes on a git branch, one commit per fix with its regression test; never pushes, merges or opens a pull request. Needs a clean working tree and a project test command; see [Fix mode](#fix-mode-qamindqa) |
-| Auto-QA, memory review, feedback, test bank | `/qamind:qa-auto` … | _Later phases_ |
+| Auto-QA on, off, mode, pause | `/qamind:qa-auto on\|off\|status\|mode diff\|quick\|full\|fix\|ask\|pause 1h\|global on\|off` | QA after every task that changed code. **Off by default.** See [Auto-QA](#auto-qa-qamindqa-auto) |
+| Memory review, feedback, test bank | `/qamind:qa-memory-review` … | _Later phases_ |
 
 Modes: `full` (everything), `quick` (critical flows and top risks), `regression` (re-run last findings), `diff` (changed
 code and what depends on it). Free text after the mode narrows the focus.
@@ -99,6 +100,30 @@ Before each commit QAMind proves the test by taking the fix out and running it a
 
 Details and limits: [decision 0003](docs/decisions/0003-fix-mode.md); how it behaved on the demo app: [docs/EVALUATION-LOG.md](docs/EVALUATION-LOG.md).
 
+## Auto-QA (`/qamind:qa-auto`)
+
+Turn it on and QAMind checks every task that changed code before Claude Code calls the task done. **It is off until you turn it on**, it only does anything in a project where you did, and the very next task obeys `/qamind:qa-auto off`.
+
+```
+/qamind:qa-auto on                       for this project (run /qamind:qa-only once first, so it has a config and test logins)
+/qamind:qa-auto status                   on or off and why, mode, last run, what would trigger next
+/qamind:qa-auto mode diff|quick|full|fix|ask
+/qamind:qa-auto pause 1h                 off for a while; it switches itself back on
+/qamind:qa-auto global on                the default for every project that has no setting of its own
+```
+
+- **Modes:** `diff` (the default once on): report-only QA of the files the task changed and what depends on them. `quick`: `diff` plus a smoke check of the critical flows. `full`: a complete report-only run (slow). `fix`: also fixes confirmed critical and important
+  problems on a branch (only because you chose it; every rule of fix mode stands). `ask`: asks "Run QA on these changes? (yes / no / always / never)" after each task.
+- **Tags in a prompt** (one task only, any case, anywhere in the prompt): `#qa` runs QA after this task even when auto-QA is off, `#qa-full` forces a full report-only run, `#qa-fix` forces fix mode, `#noqa` skips it.
+  `QAMIND_AUTO=0` in the environment switches it off for a whole session, whatever the settings say.
+- **What triggers it:** a task that changed code. Not a task that changed nothing, only documentation (`*.md`, `docs/**`) or lock files, a task that was itself a QA run, the same state twice in a row, or a second task within 3 minutes of the last run (unless you used a tag).
+  Work you already had open before the prompt is not counted as the task's change.
+- **What you get:** a short chat summary (at most 5 lines: counts, the title of every critical or important problem, the report path) and the normal reports under `.qa/reports/`, marked as an automatic run. Memory is updated as in any run.
+  If the logins or the config are missing, or the app is not running, it says "Auto-QA skipped: <reason>" once per session instead of failing every turn.
+- **Where it lives:** your private settings are in `~/.qamind/projects/<project>/auto.json` (global: `~/.qamind/auto.json`), never in the repository. On Claude Code it is enforced by a hook, so the agent cannot skip it.
+
+Design, limits and what was not verified: [decision 0004](docs/decisions/0004-auto-qa.md).
+
 ## Safety (and how it is enforced)
 
 QAMind never tests production, never reads or prints credentials, creates data only with your `QA-` prefix, never
@@ -111,6 +136,7 @@ triggers real payments or emails, and treats everything it sees in your app as d
 | Credentials stay out of the conversation | browser `--secrets`, API runner logs in itself, hook blocks reading `.env.qa` | secrets and runner work everywhere; the read-block is a hook |
 | Side-effect endpoints (email, SMS, payments) | left out of generated API plans by default and listed as Not tested | same |
 | `/qa` never pushes, merges or opens a pull request, and never touches credentials, CI, lock files, generated code or your do-not-touch list | no such operation exists in the fix tools; the hook blocks git writes and the git host's CLI from the agent's shell and refuses edits to protected files | the tools are the same everywhere; the hook is Claude Code's |
+| Auto-QA never fixes on its own, and is off until you turn it on | a project that never opted in is not written to; `fix` mode only when you set it or use `#qa-fix`, with all the fix rules | same code, host hooks differ |
 | Every fix has a regression test that fails without it | `fix_commit` takes the fix out, runs the test (it must fail), puts the fix back and runs it again (it must pass) | same, via MCP |
 
 Known limits are listed in [docs/decisions/0001-browser-automation.md](docs/decisions/0001-browser-automation.md).
@@ -125,8 +151,9 @@ Screenshot masking of personal data is not built yet (Phase 7.6).
 | 3 ✅ | Plain-language admin report with release verdict, consistency check, HTML export |
 | 4 ✅ | Project memory that improves each run |
 | 5 ✅ | `qa-memory` MCP server: validated memory and run tools, migrations, global-lesson proposals |
-| 6 ✅ (this) | `/qa` fix mode: fix loop with proof, stop rules, branch handling, fix-log memory |
-| 6.5 / 7 | auto-QA hooks, global lessons review |
+| 6 ✅ | `/qa` fix mode: fix loop with proof, stop rules, branch handling, fix-log memory |
+| 6.5 ✅ (this) | Auto-QA: a gate after every agent task that changed code, `/qa-auto`, tags |
+| 7 | global lessons review |
 | 7.5 – 7.10 | Codex, Cursor, generic; reliability, test bank, CI, coverage depth, release verdict and metrics |
 | 8 | Linear and Sentry, polish |
 

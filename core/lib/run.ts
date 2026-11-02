@@ -16,6 +16,7 @@ import type { CompactFinding, RunMeta } from "./report.ts";
 import { ensureMigrated } from "./memory/migrate.ts";
 import { applyRunToMemory } from "./memory/update.ts";
 import { writeReports } from "./reports.ts";
+import { writeLastRun } from "../auto-qa/state.ts";
 import { loadFixState } from "./fix/state.ts";
 import { flowStatus } from "./verdict.ts";
 import { detectStack, saveStack } from "./stack.ts";
@@ -451,5 +452,7 @@ export function finishRun(opts: FinishOptions): RunSummary {
   // Re-render both reports so they carry the final duration, stop reason and memory updates (what changed uses the saved result).
   writeReports(marker.run_dir, marker.store);
   fs.rmSync(markerPath(marker.store), { force: true });
+  // Auto-QA's Stop hook reads this to know that the task which just ended was itself a QA run (spec 9.5 rule 4).
+  writeLastRun(marker.store, { run_id: marker.run_id, trigger: marker.trigger, kind: marker.kind, started: marker.started, finished: summary.finished, ...(marker.session_id ? { session_id: marker.session_id } : {}) });
   return summary;
 }

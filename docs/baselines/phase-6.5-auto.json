@@ -1,0 +1,348 @@
+{
+  "label": "phase-6.5",
+  "date": "2026-11-02T08:12:51.809Z",
+  "model": "claude-sonnet-5-5",
+  "claude": "2.1.314 (Claude Code)",
+  "total_cost_usd": 0.81,
+  "scenarios": [
+    {
+      "id": "on-change",
+      "title": "auto on, code change: exactly one QA run follows",
+      "prompts": [
+        "In the client portal, change the heading on the My orders page (public/client/my-orders.html) from \"My orders\" to \"Your orders\". Change only that heading text, nothing else."
+      ],
+      "turns": [
+        {
+          "turn": 1,
+          "minutes": 1.13,
+          "cost_usd": 0.3130434,
+          "result": "success",
+          "is_error": false,
+          "num_turns": 35,
+          "permission_denials": [
+            "Bash"
+          ]
+        }
+      ],
+      "checks": {
+        "qa_runs": 1,
+        "runs": [
+          {
+            "id": "run-20261102T081023Z",
+            "trigger": "auto",
+            "mode": "diff",
+            "kind": "qa-only",
+            "finished": true,
+            "counts": {
+              "critical": 0,
+              "important": 0,
+              "minor": 0,
+              "unconfirmed": 0
+            }
+          }
+        ],
+        "internal_skill_invocations": 1,
+        "project_changes": [
+          "public/client/my-orders.html"
+        ],
+        "commits_made": 0,
+        "branch": "feature/auto-eval",
+        "remotes": [],
+        "auto_last": {
+          "at": "2026-11-02T08:10:16.089Z",
+          "state_hash": "79267cd7ae007c661a01d8c830040abd30deecc34c25423958fb7f175379b12d",
+          "mode": "diff",
+          "files": [
+            "public/client/my-orders.html"
+          ],
+          "session_id": "f9ee2e51-49d9-4b6a-8961-9ab53a12c097"
+        },
+        "tool_calls": [
+          "Bash grep -n -i \"my orders\" public/client/my-orders.html",
+          "Edit <tmp>/on-change/ws/public/clie",
+          "Skill qamind:qa-auto-run",
+          "Read ~/Desktop/Sandbox/QAMind/plugins/qamind/core/shared/safety.md",
+          "ToolSearch select:mcp__plugin_qamind_qa-memory__run_start,mcp__plugin_qamind_qa-memory__run_finish,mcp__plugin_",
+          "qa:run_start",
+          "qa:memory_get_context",
+          "Bash qamind health --run run-20261102T081023Z",
+          "Read ~/Desktop/Sandbox/QAMind/plugins/qamind/core/shared/reporting.md",
+          "Read ~/Desktop/Sandbox/QAMind/plugins/qamind/core/shared/admin-report.md",
+          "ToolSearch select:mcp__plugin_qamind_browser__browser_navigate,mcp__plugin_qamind_browser__browser_snapshot,mcp",
+          "browser:browser_navigate",
+          "Read <tmp>/on-change/ws/public/clie",
+          "browser:browser_snapshot",
+          "Bash grep -n -i \"QA_\" .qa/config.md | grep -vi password | head -20; grep -n -i \"password\" .qa/config.md |",
+          "browser:browser_fill_form",
+          "browser:browser_click",
+          "browser:browser_snapshot",
+          "browser:browser_take_screenshot",
+          "browser:browser_fill_form",
+          "browser:browser_snapshot",
+          "Bash cd .qa/reports/run-20261102T081023Z/data && cat > charters.json <<'E' [{\"id\":\"C1\",\"surface\":\"ui\",\"ti",
+          "qa:memory_update_product_map",
+          "Write <tmp>/on-change/ws/.qa/reports",
+          "Write <tmp>/on-change/ws/.qa/reports",
+          "Write <tmp>/on-change/ws/.qa/reports",
+          "Write <tmp>/on-change/ws/.qa/reports",
+          "Write <tmp>/on-change/ws/.qa/reports",
+          "Write <tmp>/on-change/ws/.qa/reports",
+          "Bash qamind report build --run run-20261102T081023Z",
+          "Bash qamind report lint --run run-20261102T081023Z",
+          "qa:run_finish"
+        ],
+        "tool_errors": [
+          "Bash: PreToolUse:Bash hook error: This is a report-only QA run (qa-only), so this command is blocked: it writes to charters.json, outside .qa/ and the QAMind user store."
+        ],
+        "auto_status_enabled": true,
+        "final_message": "Auto-QA (diff, 1 changed file): 1 area passed, 0 failed. The My orders page shows \"Your orders\", and the order list and status filter work.\nNo Critical or Important problems.\nMinor note: the nav link and the page `<title>` still say \"My orders\", which is what you asked for.\nNot tested: mobile width, the Admin Portal, and the other 4 critical journeys, because this change doesn't touch them.\nReports: `.qa/reports/run-20261102T081023Z/ADMIN-REPORT.md` (managers) and `.qa/reports/run-20261102T081023Z/TECHNICAL-REPORT.md` (developers).",
+        "final_message_lines": 5,
+        "secrets_found_in": []
+      },
+      "warnings": [],
+      "problems": [],
+      "passed": true
+    },
+    {
+      "id": "noqa",
+      "title": "auto on, code change with #noqa: no QA run",
+      "prompts": [
+        "In the client portal, change the heading on the My orders page (public/client/my-orders.html) from \"My orders\" to \"Your orders\". Change only that heading text, nothing else. #noqa"
+      ],
+      "turns": [
+        {
+          "turn": 1,
+          "minutes": 0.16,
+          "cost_usd": 0.0416378,
+          "result": "success",
+          "is_error": false,
+          "num_turns": 3,
+          "permission_denials": []
+        }
+      ],
+      "checks": {
+        "qa_runs": 0,
+        "runs": [],
+        "internal_skill_invocations": 0,
+        "project_changes": [
+          "public/client/my-orders.html"
+        ],
+        "commits_made": 0,
+        "branch": "feature/auto-eval",
+        "remotes": [],
+        "auto_last": null,
+        "tool_calls": [
+          "Bash grep -n -i \"my orders\" public/client/my-orders.html",
+          "Edit <tmp>/noqa/ws/public/client/my"
+        ],
+        "tool_errors": [],
+        "auto_status_enabled": true,
+        "auto_last_absent_as_expected": true,
+        "secrets_found_in": []
+      },
+      "warnings": [],
+      "problems": [],
+      "passed": true
+    },
+    {
+      "id": "off",
+      "title": "auto never turned on (the default), code change: no QA run",
+      "prompts": [
+        "In the client portal, change the heading on the My orders page (public/client/my-orders.html) from \"My orders\" to \"Your orders\". Change only that heading text, nothing else."
+      ],
+      "turns": [
+        {
+          "turn": 1,
+          "minutes": 0.11,
+          "cost_usd": 0.041045,
+          "result": "success",
+          "is_error": false,
+          "num_turns": 3,
+          "permission_denials": []
+        }
+      ],
+      "checks": {
+        "qa_runs": 0,
+        "runs": [],
+        "internal_skill_invocations": 0,
+        "project_changes": [
+          "public/client/my-orders.html"
+        ],
+        "commits_made": 0,
+        "branch": "feature/auto-eval",
+        "remotes": [],
+        "auto_last": null,
+        "tool_calls": [
+          "Bash grep -n \"My orders\" public/client/my-orders.html",
+          "Edit <tmp>/off/ws/public/client/my-"
+        ],
+        "tool_errors": [],
+        "auto_status_enabled": false,
+        "auto_last_absent_as_expected": true,
+        "secrets_found_in": []
+      },
+      "warnings": [],
+      "problems": [],
+      "passed": true
+    },
+    {
+      "id": "tag-qa",
+      "title": "auto off, code change with #qa: exactly one QA run",
+      "prompts": [
+        "In the client portal, change the heading on the My orders page (public/client/my-orders.html) from \"My orders\" to \"Your orders\". Change only that heading text, nothing else. #qa"
+      ],
+      "turns": [
+        {
+          "turn": 1,
+          "minutes": 1.01,
+          "cost_usd": 0.31536999999999993,
+          "result": "success",
+          "is_error": false,
+          "num_turns": 40,
+          "permission_denials": [
+            "Bash",
+            "Bash"
+          ]
+        }
+      ],
+      "checks": {
+        "qa_runs": 1,
+        "runs": [
+          {
+            "id": "run-20261102T081147Z",
+            "trigger": "auto",
+            "mode": "diff",
+            "kind": "qa-only",
+            "finished": true,
+            "counts": {
+              "critical": 0,
+              "important": 0,
+              "minor": 0,
+              "unconfirmed": 0
+            }
+          }
+        ],
+        "internal_skill_invocations": 1,
+        "project_changes": [
+          "public/client/my-orders.html"
+        ],
+        "commits_made": 0,
+        "branch": "feature/auto-eval",
+        "remotes": [],
+        "auto_last": {
+          "at": "2026-11-02T08:11:42.415Z",
+          "state_hash": "873370595d4aabb6716c341b58f641a07c5066482fa5a27baa5d4cc74bdfe82b",
+          "mode": "diff",
+          "files": [
+            "public/client/my-orders.html"
+          ],
+          "session_id": "bd589f42-0997-4971-9f85-cf029a29701e",
+          "forced": "qa"
+        },
+        "tool_calls": [
+          "Bash grep -n -i \"my orders\" public/client/my-orders.html",
+          "Edit <tmp>/tag-qa/ws/public/client/",
+          "Skill qamind:qa-auto-run",
+          "Read ~/Desktop/Sandbox/QAMind/plugins/qamind/core/shared/safety.md",
+          "ToolSearch select:mcp__plugin_qamind_qa-memory__run_start,mcp__plugin_qamind_qa-memory__run_finish,mcp__plugin_",
+          "qa:run_start",
+          "qa:memory_get_context",
+          "Bash qamind health --run run-20261102T081147Z",
+          "Bash git diff --stat; grep -rn -i \"my orders\\|Your orders\" public --include=*.html --include=*.js | head",
+          "ToolSearch select:mcp__plugin_qamind_browser__browser_navigate,mcp__plugin_qamind_browser__browser_snapshot,mcp",
+          "Bash git diff; ls public/client; grep -rn -i \"orders\" public/client/*.html | head -30",
+          "Bash grep -n -i \"h1\\|textContent\\|My orders\" public/client/my-orders.js; grep -rn -i \"my orders\" tests te",
+          "browser:browser_navigate",
+          "browser:browser_navigate",
+          "browser:browser_snapshot",
+          "Bash grep -n -i \"QA_ACME_1\\|acme-1\" .qa/config.md | head",
+          "Read <tmp>/tag-qa/ws/.qa/config.md",
+          "browser:browser_fill_form",
+          "browser:browser_click",
+          "browser:browser_snapshot",
+          "browser:browser_take_screenshot",
+          "Bash sed -n 1,200p ~/Desktop/Sandbox/QAMind/plugins/qamind/core/shared/reporting.md",
+          "Bash sed -n 1,200p ~/Desktop/Sandbox/QAMind/plugins/qamind/core/shared/admin-report.md",
+          "Read ~/Desktop/Sandbox/QAMind/plugins/qamind/core/shared/reporting.md",
+          "Read ~/Desktop/Sandbox/QAMind/plugins/qamind/core/shared/admin-report.md",
+          "Bash cd .qa/reports/run-20261102T081147Z/data && ls && cat meta.json 2>/dev/null | head -30",
+          "Write <tmp>/tag-qa/ws/.qa/reports/ru",
+          "Write <tmp>/tag-qa/ws/.qa/reports/ru",
+          "Write <tmp>/tag-qa/ws/.qa/reports/ru",
+          "Write <tmp>/tag-qa/ws/.qa/reports/ru",
+          "Write <tmp>/tag-qa/ws/.qa/reports/ru",
+          "Write <tmp>/tag-qa/ws/.qa/reports/ru",
+          "qa:memory_update_product_map",
+          "Bash cd <tmp>/tag-qa/ws && qamind r",
+          "Bash qamind report lint --run run-20261102T081147Z",
+          "qa:memory_save_learning",
+          "qa:run_finish"
+        ],
+        "tool_errors": [
+          "Bash: sed in '~/Desktop/Sandbox/QAMind/plugins/qamind/core/shared/reporting.md' was blocked. For security, Claude Code may only edit files in the allowed working directories for this session: '<tmp>/tag-qa/ws'.",
+          "Bash: sed in '~/Desktop/Sandbox/QAMind/plugins/qamind/core/shared/admin-report.md' was blocked. For security, Claude Code may only edit files in the allowed working directories for this session: '<tmp>/tag-qa/ws'."
+        ],
+        "auto_status_enabled": false,
+        "final_message": "Auto-QA (diff, 1 changed file): 1 area passed, 0 failed, with no Critical or Important problems.\n- The My orders page loads after sign-in as a Client Portal user, shows the heading \"Your orders\", and lists the 5 orders.\n- Not tested: placing an order, moving an order's status, the sales report, and signing out, because this change didn't touch them. Mobile layout wasn't checked either.\n- The page title and nav links still say \"My orders\", as you asked, so the heading now differs from them.\n- Reports: `.qa/reports/run-20261102T081147Z/ADMIN-REPORT.md` and `.qa/reports/run-20261102T081147Z/TECHNICAL-REPORT.md`",
+        "final_message_lines": 5,
+        "secrets_found_in": []
+      },
+      "warnings": [],
+      "problems": [],
+      "passed": true
+    },
+    {
+      "id": "off-next",
+      "title": "auto on, then /qa-auto off, then a code change in the same session: no QA run",
+      "prompts": [
+        "/qamind:qa-auto off",
+        "In the client portal, change the heading on the My orders page (public/client/my-orders.html) from \"My orders\" to \"Your orders\". Change only that heading text, nothing else."
+      ],
+      "turns": [
+        {
+          "turn": 1,
+          "minutes": 0.09,
+          "cost_usd": 0.0421345,
+          "result": "success",
+          "is_error": false,
+          "num_turns": 2,
+          "permission_denials": []
+        },
+        {
+          "turn": 2,
+          "minutes": 0.13,
+          "cost_usd": 0.0549495,
+          "result": "success",
+          "is_error": false,
+          "num_turns": 3,
+          "permission_denials": []
+        }
+      ],
+      "checks": {
+        "qa_runs": 0,
+        "runs": [],
+        "internal_skill_invocations": 0,
+        "project_changes": [
+          "public/client/my-orders.html"
+        ],
+        "commits_made": 0,
+        "branch": "feature/auto-eval",
+        "remotes": [],
+        "auto_last": null,
+        "tool_calls": [
+          "Bash qamind auto off",
+          "Bash grep -n \"My orders\" public/client/my-orders.html",
+          "Edit <tmp>/off-next/ws/public/clien"
+        ],
+        "tool_errors": [],
+        "auto_status_enabled": false,
+        "auto_last_absent_as_expected": true,
+        "secrets_found_in": []
+      },
+      "warnings": [],
+      "problems": [],
+      "passed": true
+    }
+  ],
+  "passed": true
+}

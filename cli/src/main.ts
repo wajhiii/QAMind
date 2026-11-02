@@ -3,6 +3,9 @@ import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import type { ParseArgsOptionsConfig } from "node:util";
+import { AutoUsageError, autoCommand } from "../../core/auto-qa/commands.ts";
+import { approveAutoSkill, onPrompt, onStop, safely } from "../../core/auto-qa/gate.ts";
+import type { HookEnv, PromptInput, StopInput } from "../../core/auto-qa/gate.ts";
 import { generatePlan } from "../../core/lib/apiplan.ts";
 import type { Plan } from "../../core/lib/apiplan.ts";
 import { runPlan } from "../../core/lib/apirunner.ts";
@@ -65,9 +68,12 @@ Reporting and memory
   memory show --run ID --what learnings|false-alarms|risk|map
   memory where [--project DIR] print the project's private store path
   guard log    --run ID        origins the browser guard blocked during the run
+Auto-QA (default off; see \`qamind auto help\`)
+  auto status|on|off|mode M|pause 1h|resume|global on|off|set K V   toggle QA after every agent task
 Plumbing (started by the host, not by hand)
   browser-mcp                  browser tool behind the production guard
   hook pre-tool-use            safety hook (reads the host's hook JSON on stdin)
+  hook stop | user-prompt-submit   auto-QA gate (reads the host's hook JSON on stdin)
   version
 `;
 
@@ -334,14 +340,51 @@ async function cmdMemory(sub: string | undefined, rest: string[], home: string):
   throw new UsageError("memory needs a subcommand: context | learn | applied | false-alarm | show | where");
 }
 
+function readStdin(): string {
+  try {
+    return fs.readFileSync(0, "utf8");
+  } catch {
+    return "";
+  }
+}
+
+function parseHookInput<T>(raw: string): T | undefined {
+  try {
+    const v = JSON.parse(raw) as unknown;
+    return v && typeof v === "object" ? (v as T) : undefined;
+  } catch {
+    return undefined; // not our input: no decision
+  }
+}
+
 async function cmdHook(sub: string | undefined, home: string): Promise<number> {
-  if (sub !== "pre-tool-use") throw new UsageError("hook needs a subcommand: pre-tool-use");
-  const raw = fs.readFileSync(0, "utf8");
+  if (sub === "stop" || sub === "user-prompt-submit") {
+    // Auto-QA hooks never fail the host's turn: any error is a silent "no opinion" (exit 0, nothing printed).
+    const input = parseHookInput<StopInput & PromptInput>(readStdin());
+    if (!input) return 0;
+    const h: HookEnv = { home, env: process.env, now: new Date() };
+    if (sub === "user-prompt-submit") {
+      safely(() => onPrompt(input, h));
+      return 0;
+    }
+    const decision = safely(() => onStop(input, h));
+    if (decision?.output) process.stdout.write(JSON.stringify(decision.output) + "\n");
+    if (decision && process.env["QAMIND_DEBUG"]) process.stderr.write(`qamind auto-QA: ${decision.action} (rule ${decision.rule}): ${decision.why}\n`);
+    return 0;
+  }
+  if (sub !== "pre-tool-use") throw new UsageError("hook needs a subcommand: pre-tool-use, stop or user-prompt-submit");
+  const raw = readStdin();
   let input: PreToolUseInput & { scratchpad_dir?: string };
   try {
     input = JSON.parse(raw) as PreToolUseInput & { scratchpad_dir?: string };
   } catch {
     return 0; // not our input: no decision
+  }
+  if (input.tool_name === "Skill") {
+    // The only thing this hook does for the Skill tool: approve the one call that answers an auto-QA block.
+    const reason = safely(() => approveAutoSkill(input, { home, env: process.env, now: new Date() }));
+    if (reason) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "allow", permissionDecisionReason: reason } }) + "\n");
+    return 0;
   }
   const tmp = [os.tmpdir(), input.scratchpad_dir].filter((p): p is string => !!p);
   const decision = decidePreToolUse(input, home, tmp);
@@ -400,6 +443,12 @@ export async function main(argv: string[]): Promise<number> {
       }
       case "browser-mcp":
         return await runBrowserLauncher();
+      case "auto": {
+        const out = autoCommand(sub ? [sub, ...rest] : rest, { home, env: process.env, now: new Date() }, process.cwd());
+        if (typeof out["help"] === "string") process.stdout.write(out["help"]);
+        else emit(out);
+        return 0;
+      }
       case "hook":
         return await cmdHook(sub, home);
       case "version":
@@ -415,6 +464,11 @@ export async function main(argv: string[]): Promise<number> {
         throw new UsageError(`Unknown command "${cmd}".`);
     }
   } catch (err) {
+    if (err instanceof AutoUsageError) {
+      process.stderr.write(`qamind: ${err.message}\n`);
+      emit({ error: err.message, kind: "usage" });
+      return 2;
+    }
     if (err instanceof UsageError) {
       process.stderr.write(`qamind: ${err.message}\n\n${HELP}`);
       emit({ error: err.message, kind: "usage" });

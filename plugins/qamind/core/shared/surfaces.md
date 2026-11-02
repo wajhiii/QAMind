@@ -97,8 +97,8 @@ and operating elements; take screenshots as evidence.
 - **Errors shown to users:** wording a person can act on, no technical detail (stack traces, SQL, file paths).
 - **If something is blocked by the guard** (missing fonts, scripts, a login provider), run `qamind guard log --run <id>`.
   A legitimate asset host belongs in `security.allowed_extra_origins`; tell the user, do not edit around it silently.
-- **Evidence:** `browser_take_screenshot` with `filename` set to the run folder, for example
-  `<run.dir>/screenshots/<slug>.png`; save the console and network text you rely on to `<run.dir>/evidence/<slug>-console.txt`
+- **Evidence:** `browser_take_screenshot` with `filename` set to an absolute path in the run folder, for example
+  `<run.dir>/screenshots/<slug>.png` (a bare name such as `page.png` would be saved in the project folder, and the safety hook refuses it); save the console and network text you rely on to `<run.dir>/evidence/<slug>-console.txt`
   (redacted). Name evidence by a short slug, not an ISSUE number (numbers are assigned when the report is built).
   If saving a screenshot is refused because the path is outside the workspace, tell the user to start the agent in the
   project folder.

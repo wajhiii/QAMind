@@ -66,9 +66,19 @@ export function decidePreToolUse(input: PreToolUseInput, home: string, tmpDirs: 
     if (/^\s*(printenv|env|export\s+-p|set)\s*(\||$)/.test(cmd)) return { decision: "deny", reason: "Dumping the environment could print test credentials, so it is blocked during a QAMind run." };
   }
 
+  const roots = allowedWriteRoots(marker, home, tmpDirs);
+
+  // The browser tool saves a `filename` itself, and a relative name is resolved against the project folder (the workspace root), so a bare "page.png" would litter the project.
+  // Evidence belongs in the run folder, in every run mode: a fix run must not find stray files in its tree either.
+  if (tool.startsWith("mcp__plugin_qamind_browser__")) {
+    const name = ti["filename"];
+    if (typeof name === "string" && name.trim() !== "" && !roots.some((r) => inside(path.resolve(marker.project_root, name), r))) {
+      return { decision: "deny", reason: `The browser tool would save "${name}" in the project folder. Save evidence inside the run folder with an absolute path, for example ${path.join(marker.run_dir, "screenshots", "<slug>.png")}, so the project stays untouched.` };
+    }
+  }
+
   if (!marker.readonly) return marker.kind === "qa" ? decideFixRun(marker, tool, ti, abs, home, tmpDirs) : null;
 
-  const roots = allowedWriteRoots(marker, home, tmpDirs);
   const writable = (p: string) => roots.some((r) => inside(abs(p), r));
   if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
     const target = String(ti["file_path"] ?? ti["notebook_path"] ?? "");

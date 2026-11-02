@@ -117,14 +117,17 @@ export function renderClaude(ctx: RenderContext): void {
     path.join(out, "hooks", "hooks.json"),
     JSON.stringify(
       {
-        description: "QAMind safety guard: while a QA run is active in this session, enforce report-only writes and keep credentials out of the conversation. A no-op otherwise.",
+        description: "QAMind safety guard (while a QA run is active in this session: report-only writes, credentials kept out of the conversation; a no-op otherwise) and auto-QA (Stop and UserPromptSubmit hooks that do nothing unless the user turned auto-QA on or put a tag in a prompt).",
         hooks: {
           PreToolUse: [
             {
-              matcher: "^(Write|Edit|MultiEdit|NotebookEdit|Bash|Read|Grep|Glob|mcp__plugin_qamind_browser__.*)$",
+              matcher: "^(Write|Edit|MultiEdit|NotebookEdit|Bash|Read|Grep|Glob|Skill|mcp__plugin_qamind_browser__.*)$",
               hooks: [{ type: "command", command: "node", args: ["${CLAUDE_PLUGIN_ROOT}/dist/qamind.mjs", "hook", "pre-tool-use"], timeout: 10 }],
             },
           ],
+          // Auto-QA (spec 9.5). These two events have no matcher. Both are silent no-ops while auto-QA is off and the prompt has no tag.
+          UserPromptSubmit: [{ hooks: [{ type: "command", command: "node", args: ["${CLAUDE_PLUGIN_ROOT}/dist/qamind.mjs", "hook", "user-prompt-submit"], timeout: 20 }] }],
+          Stop: [{ hooks: [{ type: "command", command: "node", args: ["${CLAUDE_PLUGIN_ROOT}/dist/qamind.mjs", "hook", "stop"], timeout: 30 }] }],
         },
       },
       null,

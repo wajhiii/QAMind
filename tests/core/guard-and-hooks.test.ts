@@ -153,6 +153,28 @@ test("report-only run: writes are allowed only under .qa/ and the store; mutatio
   assert.equal(deny("Bash", { command: "curl -sS http://127.0.0.1:4100/api/health > /dev/null" }), undefined);
 });
 
+test("the browser tool may save evidence only in the run folder: a bare or project-relative filename is refused in every run mode", () => {
+  const home = tmp("qamind-home-");
+  const proj = tmp();
+  for (const over of [{}, { readonly: false, kind: "qa" as const }]) {
+    marker(home, proj, over);
+    const d = (tool: string, ti: Record<string, unknown>) => decidePreToolUse(input(tool, ti), home, [])?.decision;
+    const shot = "mcp__plugin_qamind_browser__browser_take_screenshot";
+    assert.equal(d(shot, { filename: "my-orders.png" }), "deny", "relative names land in the project folder");
+    assert.equal(d(shot, { filename: "screens/my-orders.png" }), "deny");
+    assert.equal(d(shot, { filename: "../x.png" }), "deny");
+    assert.equal(d(shot, { filename: path.join(proj, "src", "x.png") }), "deny");
+    assert.equal(d(shot, { filename: path.join(proj, ".qa", "reports", "run-1", "screenshots", "a.png") }), undefined, "the run folder is the place");
+    assert.equal(d(shot, { filename: ".qa/reports/run-1/screenshots/a.png" }), undefined, "and so is a project-relative path into .qa/");
+    assert.equal(d(shot, { filename: path.join(proj, ".qa", "..", "x.png") }), "deny", "traversal out of .qa/");
+    assert.equal(d(shot, {}), undefined, "no filename: the image is returned inline");
+    assert.equal(d(shot, { filename: "  " }), undefined);
+    assert.equal(d("mcp__plugin_qamind_browser__browser_console_messages", { filename: "console.txt" }), "deny", "every browser tool that saves a file");
+    assert.equal(d("mcp__plugin_qamind_browser__browser_navigate", { url: "http://localhost" }), undefined);
+    assert.match(decidePreToolUse(input(shot, { filename: "a.png" }), home, [])?.reason ?? "", /run folder/);
+  }
+});
+
 test("redirect detection ignores arrows, comparisons and quoted text, but still catches real redirects", () => {
   const home = tmp("qamind-home-");
   const proj = tmp();

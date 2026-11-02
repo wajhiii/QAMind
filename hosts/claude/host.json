@@ -39,9 +39,26 @@
   "hooks": {
     "file": "plugins/qamind/hooks/hooks.json (wrapped form { \"hooks\": { ... } })",
     "events_used": [
-      "PreToolUse"
+      "PreToolUse",
+      "UserPromptSubmit",
+      "Stop"
     ],
-    "enforcement": "guardrails for an active run are enforced by the PreToolUse hook"
+    "enforcement": "guardrails for an active run are enforced by the PreToolUse hook; auto-QA (spec 9.5) is enforced by the Stop hook (gate rules, blocks with a reason so Claude continues) and the UserPromptSubmit hook (reads #qa, #qa-full, #qa-fix and #noqa and snapshots the project)",
+    "verified": {
+      "date": "2026-11-02",
+      "how": "a probe plugin with Stop and UserPromptSubmit hooks, run with claude -p 2.1.312, plus the hooks documentation",
+      "facts": [
+        "Stop and UserPromptSubmit hooks run in headless claude -p, with no matcher",
+        "Stop stdin: session_id, transcript_path, cwd, prompt_id, permission_mode, effort, hook_event_name, stop_hook_active, last_assistant_message, background_tasks, session_crons",
+        "UserPromptSubmit stdin: session_id, transcript_path, cwd, prompt_id, permission_mode, hook_event_name, prompt (as typed, including a slash-command line)",
+        "stop_hook_active is false on the first Stop and true on the Stop that follows a block",
+        "{\"decision\":\"block\",\"reason\":...} on Stop makes Claude continue with the reason as its instruction; Claude Code stops continuing after 8 blocked stops in a row (the count resets on tool calls)",
+        "Stop does not run when the user interrupts",
+        "a skill with user-invocable: false can be invoked by the model through the Skill tool (qamind:qa-auto-run); disable-model-invocation: true cannot, so the QA skills are not model-runnable and an internal skill is needed",
+        "systemMessage in a hook's JSON output reaches the user as an informational event",
+        "the hook process runs in the project folder with CLAUDE_PROJECT_DIR set"
+      ]
+    }
   },
   "rules_file": null,
   "commands": {
@@ -59,6 +76,14 @@
     },
     "qa": {
       "disable-model-invocation": true,
+      "allowed-tools": "Read Glob Grep Write Edit Bash(qamind *) Bash(curl *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git show *) Bash(ls *) mcp__plugin_qamind_browser {{QA_TOOLS_APPROVED}}"
+    },
+    "qa-auto": {
+      "disable-model-invocation": true,
+      "allowed-tools": "Bash(qamind auto *)"
+    },
+    "qa-auto-run": {
+      "user-invocable": false,
       "allowed-tools": "Read Glob Grep Write Edit Bash(qamind *) Bash(curl *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git show *) Bash(ls *) mcp__plugin_qamind_browser {{QA_TOOLS_APPROVED}}"
     }
   }

@@ -57,7 +57,7 @@ and run `npm test` plus the learning test. The build writes `THIRD-PARTY-NOTICES
 
 **Memory formats.** Changing a memory file's format means bumping `MEMORY_SCHEMA` in `core/lib/memory/store.ts` and adding a `Migration` to `core/lib/memory/migrate.ts` (per file kind; it must keep every field it does not list in `removes`). Test it the way `tests/core/memory-infra.test.ts` does.
 
-**Windows and Linux.** The phases are built and tested on macOS only. `.github/workflows/ci.yml` runs the full suite on Linux and macOS, and a separate Windows job (allowed to fail until the owner promotes it) runs the memory and server tests. Read their results after each push.
+**Windows and Linux.** The phases are built and tested on macOS only. `.github/workflows/ci.yml` runs the full suite on Linux and macOS, and a separate Windows job (allowed to fail until the owner promotes it) runs the memory, server, fix-loop and auto-QA tests. Read their results after each push.
 
 ## Fix mode (`/qa`)
 
@@ -71,6 +71,17 @@ The fix loop is in `core/lib/fix/` (`protect.ts`, `gitops.ts`, `testrun.ts`, `st
 - **The fix test on the demo app** (spec section 14): `CLAUDE_BIN=/path/to/claude node scripts/eval-fix.ts --label <phase-name> --seq 1`. It runs `/qa` headlessly on a copy of the demo app on a feature branch, answers the stop rules as the owner
   would (same conversation, up to `--max-turns`), then checks everything from git: commit format, a test in every commit, **red on the parent and green on the fix commit re-proved in clean checkouts**, the whole suite, protected paths, no remote, unchanged
   git settings, a clean tree, no secrets, lint-clean consistent reports, and which seeded bugs are gone. Expect 30 to 60 minutes and roughly $10 to $30 for a full run (`--max-total-usd` caps it). Make sure port 4100 is free first.
+
+## Auto-QA (`/qa-auto`)
+
+The gate is `core/auto-qa/` (see [decision 0004](docs/decisions/0004-auto-qa.md) and the Auto-QA section of `docs/ARCHITECTURE.md`); the hooks and skills are `hosts/claude/adapter.ts` (hooks.json), `core/skills/qa-auto/` (the toggle) and `core/skills/qa-auto-run/` (what Claude runs when the gate blocks).
+
+- **A gate rule is a branch in `onStop` (`gate.ts`)**, in the order of spec 9.5. Add a case to `tests/core/auto-qa-gate.test.ts`: it drives the real CLI with hook JSON on stdin, so a rule is tested the way Claude Code uses it. Never write anything before rule 2 for a project that has auto-QA off.
+- **`qa-auto-run` shares Steps 1 to 5 word for word with `/qa-only`**; `auto-qa-skills.test.ts` fails if they drift. Change the shared steps in `qa-only`, `qa` and `qa-auto-run` together. Its tools are pre-approved like `/qa`'s, but a report-only mode starts the run as `qa-only`, which is what keeps it read-only.
+- **A new setting** goes in `settings.ts` (parse, validate, default) and `commands.ts` (`set`, `status`), and in the `qa-auto` skill's table. The settings file has its own `schema_version`; a newer one keeps auto-QA off and is never overwritten.
+- **Hooks must never throw or print anything unexpected.** Wrap new work in the existing `safely`; stdout is read by Claude Code as JSON.
+- **The end-to-end test** (spec section 14): `CLAUDE_BIN=/path/to/claude node scripts/eval-auto.ts --label <phase-name>`. Real Claude Code, the built plugin, a copy of the demo app per scenario (auto on and a change; `#noqa`; auto off; `#qa`; `/qa-auto off` then a change). Everything is checked from files and git, not from the agent's words.
+  Two scenarios start a real QA run: expect about 10 to 20 minutes and a few dollars each. Port 4100 must be free. Do not rebuild the plugin while it runs.
 
 ## Changing the admin report
 
