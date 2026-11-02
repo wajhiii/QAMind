@@ -84,7 +84,8 @@ test("a run teaches memory and the next run uses it: context, change detection, 
   const bad = await cli(fx.home, "memory", "applied", "--run", r2.runId, "--ids", "L-001,L-777");
   assert.equal(bad.code, 1);
   assert.match(bad.json.error, /L-777/);
-  assert.deepEqual(readMemoryLog(r2.runDir).filter((e) => e.kind === "learning-applied").map((e) => e.id), ["L-001", "L-002", "L-001"]);
+  assert.match(bad.json.error, /Nothing was recorded/);
+  assert.deepEqual(readMemoryLog(r2.runDir).filter((e) => e.kind === "learning-applied").map((e) => e.id), ["L-001", "L-002"], "a refused citation records nothing, not even the valid ids that came with it");
 
   // an owner-confirmed false alarm cannot be re-reported; the override needs a reason
   addFalseAlarm(fx.store, { area: "Orders / display", symptom: "Zero discount shown as -$0.00", reason: "Shown that way on purpose.", source: "owner" });

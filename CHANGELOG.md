@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.5.0 (Phase 5, unreleased)
+
+- **`qa-memory` MCP server** (`core/mcp/qa-memory/`, bundled as `dist/qa-memory.mjs`, registered in the plugin's `.mcp.json`). Twelve tools: `run_start`, `run_finish`, `run_history`,
+  `memory_get_context`, `memory_list`, `memory_save_learning`, `memory_adjust_learning`, `memory_record_applied`, `memory_mark_false_alarm`, `memory_update_risk`,
+  `memory_update_product_map` and `lessons_propose`. Every text field has a length limit and every list a count limit in its published schema; invalid input comes back as a result
+  flagged `isError` naming each bad field; texts that contain secrets or personal data are refused without repeating them; near copies are merged; nothing is recorded if a cited id does not exist.
+  Built on the official SDK (`@modelcontextprotocol/sdk` 1.32.1, `zod` 4.6.7, exact pins, dev dependencies bundled by esbuild). See [decision 0002](docs/decisions/0002-qa-memory-server.md).
+- **One implementation:** `core/lib/memory/service.ts` is called by both the tools and the `qamind memory ...` / `qamind run ...` commands, which remain for people, tests and hosts without MCP.
+- **The skill uses only the tools for memory and run bookkeeping.** `core/skills/qa-only` and `core/shared/*` no longer name a memory command or a memory file (a test scans for both), tell the agent to
+  load the tools with one `ToolSearch` call first (Claude Code defers MCP tools), and to stop if the server did not start.
+- **Registration is a function of the host adapter:** `core/mcp/servers.ts` lists the servers; `hosts/claude/adapter.ts` renders `.mcp.json` from it; `host.json` records what was verified with Claude Code 2.1.312
+  (tool names keep the hyphen, a bare server entry pre-approves all its tools, the server starts in the project folder with `CLAUDE_PROJECT_DIR` set).
+- **Safe sharing and upgrades (spec 13.17):** a per-store lock so several processes can change memory at once; format migrations with a backup, a log, a refusal to drop a field silently and a refusal of memory from
+  a newer QAMind as a whole (also at `run_start`). Format 1 is the first format, so no migration exists yet; the framework is tested with synthetic ones.
+- **New memory behaviour:** `memory_update_risk` flags an area that has no confirmed finding (it survives `run_finish`, and stands down when a finding covers the area); `memory_update_product_map` records pages and endpoints,
+  validated and merged (the agent no longer writes `pages.json` by hand); `lessons_propose` writes generic lessons to `~/.qamind/pending-lessons.md`, refusing project names, addresses, files, tickets, code and personal data.
+  `memory_record_applied` is now all-or-nothing.
+- **License notices:** the build generates `THIRD-PARTY-NOTICES.md` for everything bundled and fails on a non-permissive license. This also fixes a gap since Phase 1: the bundled `yaml` (ISC) shipped without its notice.
+- **Evaluation:** both evaluation scripts allow and count the new server's tools. Results: `docs/EVALUATION-LOG.md`.
+- Not in this phase: the API runner, OpenAPI parsing, report generation and the consistency check stay on the CLI (the spec says "where practical"); the review of pending lessons (Phase 7); Only macOS was run by me; the Linux and macOS CI jobs exist and a Windows job is added (its first run is yours to read).
+
 ## 0.4.0 (Phase 4, unreleased)
 
 - **Project memory, files first** (`core/lib/memory/`, private per user in `$QAMIND_HOME`): `product-map.json`, `risk-areas.json`, `learnings.jsonl`,

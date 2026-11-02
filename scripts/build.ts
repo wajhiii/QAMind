@@ -9,6 +9,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderClaude } from "../hosts/claude/adapter.ts";
+import { collectPackages, renderNotices } from "./notices.ts";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const check = process.argv.includes("--check");
@@ -17,27 +18,31 @@ const knowledgeVersion = fs.existsSync(path.join(repoRoot, "core", "knowledge", 
 
 const work = fs.mkdtempSync(path.join(os.tmpdir(), "qamind-build-"));
 try {
-  const bundleFile = path.join(work, "qamind.mjs");
-  await build({
-    entryPoints: [path.join(repoRoot, "cli", "src", "bin.ts")],
-    outfile: bundleFile,
+  // Two bundles: the small CLI (also run by the safety hook before every tool call, so it must start fast) and the qa-memory MCP server
+  // (which carries the MCP SDK). Both run on plain Node 20+ with no node_modules next to them.
+  const common = {
     bundle: true,
     platform: "node",
     format: "esm",
     target: "node20",
     legalComments: "none",
     logLevel: "warning",
+    metafile: true,
     banner: { js: "#!/usr/bin/env node\nimport { createRequire as __qamindCreateRequire } from 'node:module';\nconst require = __qamindCreateRequire(import.meta.url);" },
     define: { __QAMIND_VERSION__: JSON.stringify(pkg.version), __QAMIND_KNOWLEDGE_VERSION__: JSON.stringify(knowledgeVersion) },
-  });
+  } as const;
+  const bundles: Record<string, string> = { "qamind.mjs": path.join(work, "qamind.mjs"), "qa-memory.mjs": path.join(work, "qa-memory.mjs") };
+  const cli = await build({ ...common, entryPoints: [path.join(repoRoot, "cli", "src", "bin.ts")], outfile: bundles["qamind.mjs"] as string });
+  const memory = await build({ ...common, entryPoints: [path.join(repoRoot, "core", "mcp", "qa-memory", "main.ts")], outfile: bundles["qa-memory.mjs"] as string });
+  const notices = renderNotices(collectPackages([cli.metafile, memory.metafile], repoRoot));
 
   const target = path.join(repoRoot, "plugins", "qamind");
   if (!check) {
-    renderClaude({ repoRoot, outDir: target, version: pkg.version, bundleFile });
+    renderClaude({ repoRoot, outDir: target, version: pkg.version, bundles, notices });
     console.log(`Built plugins/qamind (qamind ${pkg.version}, knowledge ${knowledgeVersion}).`);
   } else {
     const fresh = path.join(work, "plugin");
-    renderClaude({ repoRoot, outDir: fresh, version: pkg.version, bundleFile });
+    renderClaude({ repoRoot, outDir: fresh, version: pkg.version, bundles, notices });
     const list = (root: string): Map<string, Buffer> => {
       const files = new Map<string, Buffer>();
       if (!fs.existsSync(root)) return files;

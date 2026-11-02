@@ -13,6 +13,7 @@ import { ensureProjectStore, listKnownProjects, looksLikeProject, resolveProject
 import { assignIds, countBySeverity, mergedNotTested, readRunData } from "./report.ts";
 import { compactFinding } from "./report.ts";
 import type { CompactFinding, RunMeta } from "./report.ts";
+import { ensureMigrated } from "./memory/migrate.ts";
 import { applyRunToMemory } from "./memory/update.ts";
 import { writeReports } from "./reports.ts";
 import { flowStatus } from "./verdict.ts";
@@ -227,6 +228,7 @@ export function startRun(opts: StartOptions): StartResult {
 
   const info = resolveProject(root);
   const { store } = ensureProjectStore(opts.home, info, now);
+  ensureMigrated(store); // old memory is migrated (after a backup); memory from a newer QAMind refuses the run here, before anything is written
   const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store };
 
   // First run: scaffold the config and stop. Never overwrites anything that exists.

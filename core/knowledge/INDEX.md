@@ -30,7 +30,7 @@ verify against the product, and cite the file when it shaped a check or a findin
 
 ## By detected framework
 
-`run start` reports `stack.frameworks`. Load the matching note once, when you start reading source or probing that layer.
+`run_start` reports `stack.frameworks`. Load the matching note once, when you start reading source or probing that layer.
 
 | `stack.frameworks` contains | Load |
 |---|---|

@@ -81,7 +81,7 @@ const sourceState = {
 };
 if (sourceState.uncommitted_in_built_plugin.length > 0) console.warn(`Warning: the built plugin differs from the commit:\n  ${sourceState.uncommitted_in_built_plugin.join("\n  ")}`);
 
-const ALLOWED_TOOLS = ["Read", "Glob", "Grep", "Write", "Edit", "Bash(qamind *)", "Bash(curl *)", "Bash(git status *)", "Bash(git diff *)", "Bash(git log *)", "Bash(ls *)", "mcp__plugin_qamind_browser"];
+const ALLOWED_TOOLS = ["Read", "Glob", "Grep", "Write", "Edit", "Bash(qamind *)", "Bash(curl *)", "Bash(git status *)", "Bash(git diff *)", "Bash(git log *)", "Bash(ls *)", "mcp__plugin_qamind_browser", "mcp__plugin_qamind_qa-memory"];
 const prompt = `/qamind:qa-only ${mode}`;
 const pluginDir = path.join(repoRoot, "plugins", "qamind");
 
@@ -165,7 +165,7 @@ for (const e of events) {
   if (e.type !== "assistant") continue;
   for (const c of e.message?.content ?? []) {
     if (c.type !== "tool_use" || !c.name) continue;
-    const name = c.name.replace("mcp__plugin_qamind_browser__", "browser:");
+    const name = c.name.replace("mcp__plugin_qamind_browser__", "browser:").replace("mcp__plugin_qamind_qa-memory__", "memory:");
     toolCalls[name] = (toolCalls[name] ?? 0) + 1;
     const input = JSON.stringify(c.input ?? {});
     if (input.includes("__qamindAudit")) auditCalls++;

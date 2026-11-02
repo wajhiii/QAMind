@@ -1,13 +1,25 @@
 import fs from "node:fs";
 import path from "node:path";
+import { MCP_SERVERS, QA_MEMORY_TOOLS } from "../../core/mcp/servers.ts";
+import type { McpServerDef } from "../../core/mcp/servers.ts";
 
 export interface RenderContext {
   repoRoot: string;
   outDir: string;
   version: string;
-  /** Path of the already-built bundle (dist/qamind.mjs) to place in the plugin. */
-  bundleFile: string;
+  /** Already-built bundles to place in the plugin's dist/, by file name (qamind.mjs, qa-memory.mjs). */
+  bundles: Record<string, string>;
+  /** THIRD-PARTY-NOTICES.md text for what the bundles contain. */
+  notices: string;
 }
+
+/** This host's MCP registration: the plugin's `.mcp.json` (wrapped form). Another host writes its own format from the same server list. */
+export function claudeMcpConfig(servers: readonly McpServerDef[] = MCP_SERVERS): { mcpServers: Record<string, { command: string; args: string[] }> } {
+  return { mcpServers: Object.fromEntries(servers.map((s) => [s.name, { command: "node", args: [`\${CLAUDE_PLUGIN_ROOT}/dist/${s.entry}`, ...s.args] }])) };
+}
+
+/** What Claude Code calls a tool of this plugin's server. Hyphens in server names are kept. */
+export const memoryToolName = (tool: string): string => `mcp__plugin_qamind_qa-memory__${tool}`;
 
 interface HostJson {
   commands: Record<string, string>;
@@ -27,6 +39,8 @@ export function placeholders(host: HostJson): Record<string, string> {
     SESSION_ID: "${CLAUDE_SESSION_ID}",
     ARGUMENTS: "$ARGUMENTS",
     BROWSER_TOOLS: "the browser tools (their names start with mcp__plugin_qamind_browser__)",
+    MEMORY_TOOLS: "the qa-memory tools (their names start with mcp__plugin_qamind_qa-memory__)",
+    MEMORY_TOOLS_LOAD: `Claude Code loads MCP tools on demand, so before the first call load all of them at once with ToolSearch, query \`select:${QA_MEMORY_TOOLS.map(memoryToolName).join(",")}\``,
     ...host.commands,
   };
 }
@@ -94,10 +108,7 @@ export function renderClaude(ctx: RenderContext): void {
     ) + "\n",
   );
 
-  writeFile(
-    path.join(out, ".mcp.json"),
-    JSON.stringify({ mcpServers: { browser: { command: "node", args: ["${CLAUDE_PLUGIN_ROOT}/dist/qamind.mjs", "browser-mcp"] } } }, null, 2) + "\n",
-  );
+  writeFile(path.join(out, ".mcp.json"), JSON.stringify(claudeMcpConfig(), null, 2) + "\n");
 
   writeFile(
     path.join(out, "hooks", "hooks.json"),
@@ -134,7 +145,8 @@ export function renderClaude(ctx: RenderContext): void {
   copyTree(path.join(ctx.repoRoot, "core", "shared"), path.join(out, "core", "shared"), render);
   copyTree(path.join(ctx.repoRoot, "core", "knowledge"), path.join(out, "core", "knowledge"), render);
 
-  writeFile(path.join(out, "dist", "qamind.mjs"), fs.readFileSync(ctx.bundleFile));
+  for (const [name, file] of Object.entries(ctx.bundles)) writeFile(path.join(out, "dist", name), fs.readFileSync(file));
+  writeFile(path.join(out, "THIRD-PARTY-NOTICES.md"), ctx.notices);
   writeFile(path.join(out, "bin", "qamind"), `#!/usr/bin/env node\nimport("../dist/qamind.mjs");\n`, 0o755);
   writeFile(path.join(out, "bin", "qamind.cmd"), `@echo off\r\nnode "%~dp0..\\dist\\qamind.mjs" %*\r\n`);
 

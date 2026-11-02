@@ -3,13 +3,14 @@
   "name": "Claude Code",
   "tier": "full",
   "docs_checked": {
-    "date": "2026-10-30",
+    "date": "2026-11-02",
     "pages": [
       "https://code.claude.com/docs/en/plugins-reference",
       "https://code.claude.com/docs/en/plugin-marketplaces",
       "https://code.claude.com/docs/en/skills",
       "https://code.claude.com/docs/en/hooks",
-      "https://code.claude.com/docs/en/mcp"
+      "https://code.claude.com/docs/en/mcp",
+      "https://code.claude.com/docs/en/permissions"
     ]
   },
   "skills": {
@@ -17,12 +18,28 @@
     "naming": "namespaced by plugin name: /qamind:<skill>"
   },
   "mcp": {
-    "registration": "plugins/qamind/.mcp.json, wrapped form { \"mcpServers\": { ... } }",
-    "tool_prefix": "mcp__plugin_qamind_<server>__"
+    "registration": "plugins/qamind/.mcp.json, wrapped form { \"mcpServers\": { ... } }, generated from core/mcp/servers.ts by hosts/claude/adapter.ts (claudeMcpConfig)",
+    "servers": [
+      "browser",
+      "qa-memory"
+    ],
+    "tool_prefix": "mcp__plugin_qamind_<server>__",
+    "verified": {
+      "date": "2026-11-02",
+      "how": "a probe plugin with a stdio server named qa-memory, run with claude -p 2.1.312 from a separate project folder",
+      "facts": [
+        "tool names keep the hyphen: mcp__plugin_<plugin>_qa-memory__<tool>",
+        "a bare server-level entry in allowed-tools / --allowedTools (mcp__plugin_<plugin>_qa-memory) pre-approves every tool of the server",
+        "the server process starts in the project folder and has CLAUDE_PROJECT_DIR set",
+        "MCP tools are deferred: the agent loads them with one ToolSearch call before the first use"
+      ]
+    }
   },
   "hooks": {
     "file": "plugins/qamind/hooks/hooks.json (wrapped form { \"hooks\": { ... } })",
-    "events_used": ["PreToolUse"],
+    "events_used": [
+      "PreToolUse"
+    ],
     "enforcement": "guardrails for an active run are enforced by the PreToolUse hook"
   },
   "rules_file": null,
@@ -37,7 +54,7 @@
   "skill_frontmatter": {
     "qa-only": {
       "disable-model-invocation": true,
-      "allowed-tools": "Read Glob Grep Write(.qa/**) Edit(.qa/**) Bash(qamind *) Bash(curl *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(ls *) mcp__plugin_qamind_browser"
+      "allowed-tools": "Read Glob Grep Write(.qa/**) Edit(.qa/**) Bash(qamind *) Bash(curl *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(ls *) mcp__plugin_qamind_browser mcp__plugin_qamind_qa-memory"
     }
   }
 }

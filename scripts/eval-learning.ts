@@ -110,7 +110,7 @@ interface AgentRun {
 const env = { ...process.env, QAMIND_HOME: home, ENABLE_CLAUDEAI_MCP_SERVERS: "false" } as NodeJS.ProcessEnv;
 delete env["CLAUDECODE"];
 delete env["CLAUDE_CODE_ENTRYPOINT"];
-const TOOLS = ["Read", "Glob", "Grep", "Write", "Edit", "Bash(qamind *)", "Bash(curl *)", "Bash(git status *)", "Bash(git diff *)", "Bash(git log *)", "Bash(ls *)", "mcp__plugin_qamind_browser"];
+const TOOLS = ["Read", "Glob", "Grep", "Write", "Edit", "Bash(qamind *)", "Bash(curl *)", "Bash(git status *)", "Bash(git diff *)", "Bash(git log *)", "Bash(ls *)", "mcp__plugin_qamind_browser", "mcp__plugin_qamind_qa-memory"];
 
 function runAgent(): Promise<AgentRun> {
   return new Promise((resolve) => {
@@ -148,7 +148,7 @@ function runAgent(): Promise<AgentRun> {
 }
 
 const toolCalls = (run: AgentRun): Array<{ name: string; input: Record<string, unknown>; t: number }> =>
-  run.events.flatMap((e) => (e.type === "assistant" ? (e.message?.content ?? []).filter((c) => c.type === "tool_use").map((c) => ({ name: (c.name ?? "").replace("mcp__plugin_qamind_browser__", "browser:"), input: c.input ?? {}, t: e._t })) : []));
+  run.events.flatMap((e) => (e.type === "assistant" ? (e.message?.content ?? []).filter((c) => c.type === "tool_use").map((c) => ({ name: (c.name ?? "").replace("mcp__plugin_qamind_browser__", "browser:").replace("mcp__plugin_qamind_qa-memory__", "memory:"), input: c.input ?? {}, t: e._t })) : []));
 
 const redact = (text: string): string => passwords.reduce((t, p) => t.split(p).join("***"), text);
 /** Every tool call with its time, trimmed and with test passwords masked: enough to see where a run spent its first minutes. */
@@ -185,7 +185,9 @@ const firstUiInteraction = (run: AgentRun) => firstCall(run, (c) => /^browser:br
 /** The first execution of an API test plan (`qamind api run`). */
 const firstApiRun = (run: AgentRun) => firstCall(run, (c) => c.name === "Bash" && /\bapi run\b/.test(c.command));
 const notSlower = (a?: { calls: number; seconds: number }, b?: { calls: number; seconds: number }): boolean | null => (a && b ? b.calls <= a.calls * 1.1 && b.seconds <= a.seconds * 1.1 : null);
-const memoryCalls = (run: AgentRun, sub: string): number => toolCalls(run).filter((c) => c.name === "Bash" && new RegExp(`\\bmemory ${sub}\\b`).test(String(c.input["command"] ?? ""))).length;
+/** How many times the agent called a qa-memory tool: "context" is memory_get_context, "learn" memory_save_learning, "applied" memory_record_applied. */
+const MEMORY_TOOL: Record<string, string> = { context: "memory:memory_get_context", learn: "memory:memory_save_learning", applied: "memory:memory_record_applied", start: "memory:run_start", finish: "memory:run_finish" };
+const memoryCalls = (run: AgentRun, sub: keyof typeof MEMORY_TOOL): number => toolCalls(run).filter((c) => c.name === MEMORY_TOOL[sub]).length;
 
 const latestRunDir = (): string | undefined => {
   const reports = path.join(ws, ".qa", "reports");
@@ -289,8 +291,8 @@ const record = {
   prompt,
   model,
   between_runs: { ...DEMO_CHANGE, seeded_false_alarm: seeded, seeded_false_alarm_covers_scored_bugs: suppressedBugs },
-  run1: { cost_usd: run1.cost, turns: run1.turns, minutes: run1.minutes, result: resultInfo(run1), first_ui_interaction: ui1, first_api_run: api1, found: s1["found"], found_excluding_suppressed: foundWithout(s1), missed: s1["missed"], findings: data1.findings.length, memory_calls: { learn: memoryCalls(run1, "learn"), applied: memoryCalls(run1, "applied"), context: memoryCalls(run1, "context") } },
-  run2: { cost_usd: run2.cost, turns: run2.turns, minutes: run2.minutes, result: resultInfo(run2), first_ui_interaction: ui2, first_api_run: api2, found: s2["found"], found_excluding_suppressed: foundWithout(s2), missed: s2["missed"], findings: data2.findings.length, memory_calls: { learn: memoryCalls(run2, "learn"), applied: memoryCalls(run2, "applied"), context: memoryCalls(run2, "context") }, memory_applied: data2.meta?.memory_applied ?? [], lint_errors: lint2.errors, changes },
+  run1: { cost_usd: run1.cost, turns: run1.turns, minutes: run1.minutes, result: resultInfo(run1), first_ui_interaction: ui1, first_api_run: api1, found: s1["found"], found_excluding_suppressed: foundWithout(s1), missed: s1["missed"], findings: data1.findings.length, memory_calls: { learn: memoryCalls(run1, "learn"), applied: memoryCalls(run1, "applied"), context: memoryCalls(run1, "context"), start: memoryCalls(run1, "start"), finish: memoryCalls(run1, "finish") } },
+  run2: { cost_usd: run2.cost, turns: run2.turns, minutes: run2.minutes, result: resultInfo(run2), first_ui_interaction: ui2, first_api_run: api2, found: s2["found"], found_excluding_suppressed: foundWithout(s2), missed: s2["missed"], findings: data2.findings.length, memory_calls: { learn: memoryCalls(run2, "learn"), applied: memoryCalls(run2, "applied"), context: memoryCalls(run2, "context"), start: memoryCalls(run2, "start"), finish: memoryCalls(run2, "finish") }, memory_applied: data2.meta?.memory_applied ?? [], lint_errors: lint2.errors, changes },
   bug_finding_expected_suppressed: suppressedBugs,
   checks,
   secrets_found_in: leaks,

@@ -21,7 +21,7 @@ technical report, so the problems and severities are identical. You write the pl
    technical words. One entry per thing: do not describe the same gap twice.
 3. **`data/admin.json`**: `{ "biggest_risk": "<one plain sentence>", "next_steps": ["<at most three plain steps>"] }`.
 4. **Tag every `coverage.json` row**: `ui` (the web UI's name from the config) on UI rows, and `critical_flow` (1, 2, 3 ... as numbered in
-   `config.critical_flows` from `run start`) on rows that cover a critical journey. The verdict can be "Ready" only if every journey has
+   `config.critical_flows` from `run_start`) on rows that cover a critical journey. The verdict can be "Ready" only if every journey has
    rows and all of them are `tested`.
 
 ## How to write `how_to_see_it`

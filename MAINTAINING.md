@@ -43,7 +43,21 @@ Releases are Git tags (`vX.Y.Z`); there is no npm package. Bump `version` in `pa
 
 ## Not verified yet
 
-Windows (the code avoids POSIX-only APIs where it can, but nothing has been run there), and Linux outside CI.
+Windows (the code avoids POSIX-only APIs where it can, but nothing has been run there), and Linux outside CI. Check the CI results for Linux and macOS, and for the new Windows job, after each push; they are not visible from the environment the phases are built in.
+
+## The qa-memory server
+
+`core/mcp/qa-memory/tools.ts` defines the tools (zod schema, description, annotations, handler); `server.ts` registers them with the SDK; `core/mcp/servers.ts` is the one list of server and tool names that the adapter, the skill, the host's
+pre-approval and the tests all check against. **To add or change a tool:** edit `tools.ts`, add the name to `QA_MEMORY_TOOLS`, mention it in `core/skills/qa-only/SKILL.md`, put the logic in `core/lib/memory/service.ts` (not in the tool),
+then `npm run build` and `npm test`. The tests refuse a tool that is missing from the skill, has an unbounded text field or list, is not annotated, or is named in the instructions but does not exist; and they refuse an instruction that names a memory
+command or memory file. Keep tool descriptions short and in terms of when to call the tool: they are what the model reads.
+
+**Dependencies.** `@modelcontextprotocol/sdk` and `zod` are pinned exactly and bundled by esbuild (`dist/qa-memory.mjs`), so nothing is installed next to the plugin. Move a pin only after reading the release notes, choose a version at least two weeks old,
+and run `npm test` plus the learning test. The build writes `THIRD-PARTY-NOTICES.md` from the bundle's input list and **fails if a bundled package is not under a permissive license** (MIT, ISC, BSD-2/3, Apache-2.0, 0BSD, BlueOak, CC0): ask the owner before adding such a dependency.
+
+**Memory formats.** Changing a memory file's format means bumping `MEMORY_SCHEMA` in `core/lib/memory/store.ts` and adding a `Migration` to `core/lib/memory/migrate.ts` (per file kind; it must keep every field it does not list in `removes`). Test it the way `tests/core/memory-infra.test.ts` does.
+
+**Windows and Linux.** The phases are built and tested on macOS only. `.github/workflows/ci.yml` runs the full suite on Linux and macOS, and a separate Windows job (allowed to fail until the owner promotes it) runs the memory and server tests. Read their results after each push.
 
 ## Changing the admin report
 

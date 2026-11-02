@@ -9,10 +9,10 @@ It tests your **API** (from its OpenAPI spec), each **web UI** per role, cross-s
 business rules, and writes a technical report with reproducible findings, evidence, and an explicit **Not tested** list.
 It works on staging or local environments only, never production.
 
-> **Status: Phase 4 of 8.** Working today: the `/qa-only` skill on **Claude Code**, API testing from OpenAPI, browser
+> **Status: Phase 5 of 8.** Working today: the `/qa-only` skill on **Claude Code**, API testing from OpenAPI, browser
 > testing of web UIs, safety guard, a built-in QA knowledge base (27 topic files, sourced in
 > [docs/KNOWLEDGE-SOURCES.md](docs/KNOWLEDGE-SOURCES.md)), and two reports per run: a technical report for developers and a
-> plain-language admin report for managers with a release verdict and an email-ready HTML export, and **project memory** that each run loads and applies (risk areas, learnings, known false alarms, a product map, and a "what changed since the last run" section in both reports). Not built yet: fix mode, auto-QA, Codex/Cursor, CI mode and the rest of the
+> plain-language admin report for managers with a release verdict and an email-ready HTML export, and **project memory** that each run loads and applies (risk areas, learnings, known false alarms, a product map, and a "what changed since the last run" section in both reports), served by a validated **`qa-memory` MCP server** that the skill uses for all memory and run bookkeeping. Not built yet: fix mode, auto-QA, Codex/Cursor, CI mode and the rest of the
 > [roadmap](#roadmap). Nothing below is claimed beyond what is built.
 
 ## Install (Claude Code)
@@ -79,7 +79,8 @@ anything not tested is listed with the reason. Nothing untested is ever reported
 |-------|------|
 | `<project>/.qa/` (git-ignored) | `config.md`, `reports/`, `suggested-improvements.md` |
 | `<project>/.env.qa` (git-ignored) | test credentials only |
-| `~/.qamind/projects/<id>/` (private, per user) | project identity, detected stack, run history, product map, risk areas, learnings, known false alarms, run marker. Never committed, never uploaded. Override with `QAMIND_HOME`. |
+| `~/.qamind/projects/<id>/` (private, per user) | project identity, detected stack, run history, product map, risk areas, learnings, known false alarms, run marker, migration backups. Never committed, never uploaded. Override with `QAMIND_HOME`. |
+| `~/.qamind/pending-lessons.md` (private) | generic lessons the agent proposed for any project; nothing uses them until you approve one |
 
 The project id comes from the git `origin` URL, so two clones of one repo share memory; without a remote it is a hash of
 the path. Details in [docs/MEMORY.md](docs/MEMORY.md).
@@ -106,8 +107,8 @@ Screenshot masking of personal data is not built yet (Phase 7.6).
 | 1 ✅ | Core skeleton, Claude Code adapter, `/qa-only`, API + browser testing, technical report, demo app |
 | 2 ✅ | Curated QA knowledge base, loaded on demand |
 | 3 ✅ | Plain-language admin report with release verdict, consistency check, HTML export |
-| 4 ✅ (this) | Project memory that improves each run |
-| 5 | `qa-memory` MCP server |
+| 4 ✅ | Project memory that improves each run |
+| 5 ✅ (this) | `qa-memory` MCP server: validated memory and run tools, migrations, global-lesson proposals |
 | 6 / 6.5 / 7 | `/qa` fix mode, auto-QA hooks, global lessons |
 | 7.5 – 7.10 | Codex, Cursor, generic; reliability, test bank, CI, coverage depth, release verdict and metrics |
 | 8 | Linear and Sentry, polish |

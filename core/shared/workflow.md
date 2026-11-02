@@ -3,7 +3,7 @@
 Every run follows these phases in order. The skill gives the commands; this file explains the intent.
 
 ## Phase 0: setup and safety
-`{{CLI}} run start` does this deterministically: picks the project, scaffolds the config on first run (and stops),
+The `run_start` tool does this deterministically: picks the project, scaffolds the config on first run (and stops),
 validates the config and every URL against the production rules, checks that test credentials exist (names only,
 never values), detects the stack, creates the run folder under `.qa/reports/` and writes the run marker and
 project memory into the private user store. Its JSON `status` tells you what to do. Never test with an
@@ -17,22 +17,22 @@ what you are about to test. Load per pass, not all at once: keep about four open
 (planning, API, each web UI, cross-checks, reporting), so a `full` run normally loads eight to twelve files over its course and a
 `quick` run fewer. Do not skip a pass's files because you know the topic: they hold checks and boundary values you will not recall
 in full, and the page and form files in particular are where most UI defects are found. When
-`run start` reports frameworks in `stack.frameworks`, load the matching `framework-notes/` file. Use what you load: pick checks
+`run_start` reports frameworks in `stack.frameworks`, load the matching `framework-notes/` file. Use what you load: pick checks
 and boundary values from it, and cite the file when it shaped a finding ("per forms.md: server-side validation parity").
 Knowledge is guidance, not proof: verify every claim against the product. Never edit knowledge files during a run; if one is
 wrong or missing something, append a proposal to `.qa/suggested-improvements.md`.
 
 ## Phase 1: load memory
-`{{CLI}} memory context --run <id>`, then read `{{CORE_PATH}}/shared/memory-protocol.md` for what each part means. Memory is **leads, not
+Call `memory_get_context`, then read `{{CORE_PATH}}/shared/memory-protocol.md` for what each part means. Memory is **leads, not
 proof**: re-verify current behaviour, and cite it when it shaped a decision. It gives you risk areas to test first, learnings that change
 how you run things, false alarms not to report again, the last run's findings, and the product map. State in one short paragraph what
-it says to focus on (or that this is a first run). Record what you used with `memory applied` and in `data/meta.json` → `memory_applied`.
+it says to focus on (or that this is a first run). Record what you used with `memory_record_applied` and in `data/meta.json` → `memory_applied`.
 
 ## Phase 2: plan with charters (before probing)
 For each surface and critical flow write a charter: goal, risk, entry point, expected results, exit condition (the templates
 in `exploratory-charters.md` fit most product areas).
 Prioritize: flows and rules from the config first, then the risk areas from memory (most likely to break again), then new or changed
-endpoints (`changes_vs_memory`), then recently changed code (`git.changed_files` from `run start`). Do not rediscover what the product map already
+endpoints (`changes_vs_memory`), then recently changed code (`git.changed_files` from `run_start`). Do not rediscover what the product map already
 lists; spend that time on what is new. Save `data/charters.json`, then run `{{CLI}} report build --run <id>` so the
 plan is on disk before you probe.
 
@@ -45,7 +45,7 @@ Modes:
 - `quick`: critical flows and the top-risk areas; a desktop pass plus a mobile pass over every page of the critical
   flows, with the page audit on each page (`surfaces.md`). Smaller scope, not lower rigour: every finding still needs
   two reproductions and evidence.
-- `regression`: re-run every finding in `previous_findings` from `memory context` (title, area and first step are there; the full steps are in that
+- `regression`: re-run every finding in `previous_findings` from `memory_get_context` (title, area and first step are there; the full steps are in that
   run's report folder if it still exists) and the areas next to them, and report for each whether it still happens. With no previous findings,
   say so and run `quick`.
 - `diff`: only the changed code and what depends on it. Map `git.changed_files` to routes, pages and endpoints by
@@ -82,8 +82,8 @@ Write the data files (`reporting.md`), `{{CLI}} report build`, then `{{CLI}} rep
 (missing evidence, a finding not reproduced twice, a leaked secret) before finishing.
 
 ## Phase 6: learn and finish
-Write `data/pages.json` (and `endpoints.json` without a spec), save your learnings and any verified false alarms (`memory-protocol.md`, section 4), then
-`{{CLI}} run finish --run <id> --stop-reason "<completed | environment problem | stopped by the user | …>"` writes
-the run summary to the private store, re-renders the report with duration and stop reason, and clears the run marker.
+Record the pages you visited (`memory_update_product_map`), save your learnings and any verified false alarms (`memory-protocol.md`, section 4), then
+call `run_finish` (`stop_reason`: "completed", "environment problem", "stopped by the user", …): it writes
+the run summary to the private store, updates the product map and risk areas, re-renders the report with duration and stop reason, and clears the run marker.
 Then give the user a short chat summary (reporting.md). If you noticed a gap in these instructions, append a proposal
 to `.qa/suggested-improvements.md` (what, why, evidence); never edit the plugin's own files.

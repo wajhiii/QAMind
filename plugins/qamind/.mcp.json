@@ -6,6 +6,12 @@
         "${CLAUDE_PLUGIN_ROOT}/dist/qamind.mjs",
         "browser-mcp"
       ]
+    },
+    "qa-memory": {
+      "command": "node",
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/dist/qa-memory.mjs"
+      ]
     }
   }
 }

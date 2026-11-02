@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]  # Windows is not verified yet (see MAINTAINING.md)
+        os: [ubuntu-latest, macos-latest]  # Windows: see the separate job below
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,3 +20,17 @@ jobs:
       - run: npm test
       - name: Generated plugin is up to date with core/
         run: npm run check:generated
+  # The memory and MCP server tests on Windows. Allowed to fail until the owner has read the first results and decided to promote it
+  # (see MAINTAINING.md). It skips the generated-plugin check: that compares bytes, and Windows checkouts may change line endings.
+  windows-memory-server:
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: node --test --test-reporter=spec tests/core/memory.test.ts tests/core/memory-infra.test.ts tests/core/memory-lifecycle.test.ts tests/core/mcp-server.test.ts tests/core/mcp-stdio.test.ts tests/core/skills-use-tools.test.ts

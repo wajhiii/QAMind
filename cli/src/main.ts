@@ -12,20 +12,17 @@ import { readBlocked } from "../../core/lib/guardpolicy.ts";
 import { runHealthCheck } from "../../core/lib/health.ts";
 import { decidePreToolUse, toHookOutput } from "../../core/lib/hooks.ts";
 import type { PreToolUseInput } from "../../core/lib/hooks.ts";
-import { loadFalseAlarms, addFalseAlarm } from "../../core/lib/memory/falsealarms.ts";
 import type { FalseAlarmSource } from "../../core/lib/memory/falsealarms.ts";
-import { LEARNING_TYPES, adjustLearning, learn, loadLearnings, markApplied } from "../../core/lib/memory/learnings.ts";
+import { LEARNING_TYPES } from "../../core/lib/memory/learnings.ts";
 import type { LearningType } from "../../core/lib/memory/learnings.ts";
-import { loadMemoryContext } from "../../core/lib/memory/context.ts";
-import { appendMemoryLog } from "../../core/lib/memory/memorylog.ts";
 import { loadMap } from "../../core/lib/memory/productmap.ts";
-import { loadRisk, scoreAreas } from "../../core/lib/memory/risk.ts";
+import { changeLearningConfidence, finishRunTracked, getContext, listMemory, markFalseAlarm, recordApplied, runScope, saveLearning } from "../../core/lib/memory/service.ts";
 import { buildInventory, loadSpecFile, parseSpecText, resolveSpecPath } from "../../core/lib/openapi.ts";
 import type { Inventory } from "../../core/lib/openapi.ts";
 import { qamindHome } from "../../core/lib/paths.ts";
 import { ensureProjectStore, resolveProject } from "../../core/lib/project.ts";
 import { lintReports, writeReports } from "../../core/lib/reports.ts";
-import { MODES, finishRun, startRun } from "../../core/lib/run.ts";
+import { MODES, startRun } from "../../core/lib/run.ts";
 import type { Mode } from "../../core/lib/run.ts";
 import { loadRunContext } from "../../core/lib/runctx.ts";
 import type { RunContext } from "../../core/lib/runctx.ts";
@@ -123,7 +120,7 @@ async function cmdRun(sub: string | undefined, rest: string[], home: string): Pr
   if (sub === "finish") {
     const { values } = opts(rest, { run: { type: "string" }, "stop-reason": { type: "string" }, cost: { type: "string" } });
     if (!values.run) throw new UsageError("--run is required");
-    const summary = finishRun({ home, runId: values.run as string, ...(values["stop-reason"] ? { stopReason: values["stop-reason"] as string } : {}), ...(values.cost ? { cost: values.cost as string } : {}) });
+    const summary = finishRunTracked(home, values.run as string, { ...(values["stop-reason"] ? { stopReason: values["stop-reason"] as string } : {}), ...(values.cost ? { cost: values.cost as string } : {}) });
     emit(summary);
     return 0;
   }
@@ -300,64 +297,38 @@ async function cmdMemory(sub: string | undefined, rest: string[], home: string):
     confirms: { type: "string" }, contradicts: { type: "string" }, ids: { type: "string" }, symptom: { type: "string" }, reason: { type: "string" },
     source: { type: "string" }, what: { type: "string" },
   });
-  const ctx = loadRunContext(home, values.run as string | undefined);
-  const store = ctx.marker.store;
-  const runId = ctx.marker.run_id;
-  const secrets = ctx.passwords;
+  const scope = runScope(home, values.run as string | undefined);
   if (sub === "context") {
-    emit(loadMemoryContext(store));
+    emit(getContext(scope));
     return 0;
   }
   if (sub === "learn") {
     if (values.confirms || values.contradicts) {
-      const id = (values.confirms ?? values.contradicts) as string;
-      const direction = values.confirms ? "confirm" : "contradict";
-      const r = adjustLearning(store, id, direction, runId);
-      const l = r.learning;
-      appendMemoryLog(ctx.runDir, { kind: direction === "confirm" ? "learning-merged" : "learning-contradicted", id: l.id, text: l.text });
-      emit({ action: direction === "confirm" ? "confirmed" : r.archived ? "contradicted-and-archived" : "contradicted", id: l.id, confidence: l.confidence });
+      emit(changeLearningConfidence(scope, (values.confirms ?? values.contradicts) as string, values.confirms ? "confirm" : "contradict"));
       return 0;
     }
     const type = values.type as LearningType | undefined;
     if (!type || !values.area || !values.text) throw new UsageError(`memory learn needs --type (${LEARNING_TYPES.join("|")}), --area and --text (or --confirms/--contradicts <id>)`);
-    const r = learn(store, { type, area: values.area as string, text: values.text as string, run: runId, ...(values.confidence ? { confidence: num(values.confidence, "confidence", 5) } : {}) }, { knownSecrets: secrets });
-    appendMemoryLog(ctx.runDir, { kind: r.action === "created" ? "learning-created" : "learning-merged", id: r.learning.id, text: r.learning.text });
-    emit({ action: r.action, id: r.learning.id, confidence: r.learning.confidence, archived: r.archived.map((a) => a.id), warnings: r.warnings });
+    emit(saveLearning(scope, { type, area: values.area as string, text: values.text as string, ...(values.confidence ? { confidence: num(values.confidence, "confidence", 5) } : {}) }));
     return 0;
   }
   if (sub === "applied") {
     const ids = String(values.ids ?? "").split(",").map((x) => x.trim()).filter(Boolean);
     if (ids.length === 0) throw new UsageError("memory applied needs --ids L-001,FA-002 (learnings you used, false alarms you skipped)");
-    const learningIds = ids.filter((i) => i.startsWith("L-"));
-    const alarmIds = ids.filter((i) => i.startsWith("FA-"));
-    const applied = markApplied(store, learningIds);
-    const alarms = loadFalseAlarms(store).alarms;
-    const unknown = [...applied.unknown, ...alarmIds.filter((id) => !alarms.some((a) => a.id === id)), ...ids.filter((i) => !/^(L|FA)-\d+$/.test(i))];
-    for (const l of applied.applied) appendMemoryLog(ctx.runDir, { kind: "learning-applied", id: l.id, text: `(${l.area}) ${l.text}` });
-    for (const id of alarmIds) {
-      const a = alarms.find((x) => x.id === id);
-      if (a) appendMemoryLog(ctx.runDir, { kind: "false-alarm-skipped", id, text: a.symptom });
-    }
-    if (unknown.length) throw new Error(`These ids do not exist in this project's memory: ${unknown.join(", ")}. Cite only what memory context gave you.`);
-    emit({ applied: ids });
+    emit(recordApplied(scope, ids));
     return 0;
   }
   if (sub === "false-alarm") {
     if (!values.area || !values.symptom || !values.reason) throw new UsageError("memory false-alarm needs --area, --symptom (what was seen) and --reason (why it is not a bug)");
     const source = (values.source ?? "reproduction") as FalseAlarmSource;
     if (!["owner", "reproduction", "spec"].includes(source)) throw new UsageError("--source must be owner, reproduction or spec");
-    const r = addFalseAlarm(store, { area: values.area as string, symptom: values.symptom as string, reason: values.reason as string, source, run: runId }, { knownSecrets: secrets });
-    if (r.action === "created") appendMemoryLog(ctx.runDir, { kind: "false-alarm-created", id: r.alarm.id, text: r.alarm.symptom });
-    emit({ action: r.action, id: r.alarm.id, warnings: r.warnings });
+    emit(markFalseAlarm(scope, { area: values.area as string, symptom: values.symptom as string, reason: values.reason as string, source }));
     return 0;
   }
   if (sub === "show") {
     const what = values.what as string | undefined;
-    if (what === "learnings") emit(loadLearnings(store));
-    else if (what === "false-alarms") emit(loadFalseAlarms(store));
-    else if (what === "risk") emit({ areas: scoreAreas(loadRisk(store)) });
-    else if (what === "map") emit(loadMap(store) ?? { note: "no product map yet" });
-    else throw new UsageError("memory show needs --what learnings|false-alarms|risk|map");
+    if (what !== "learnings" && what !== "false-alarms" && what !== "risk" && what !== "map") throw new UsageError("memory show needs --what learnings|false-alarms|risk|map");
+    emit(listMemory(scope, what, 1000));
     return 0;
   }
   throw new UsageError("memory needs a subcommand: context | learn | applied | false-alarm | show | where");

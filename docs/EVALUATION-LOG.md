@@ -275,3 +275,42 @@ Cold runs (run 1) cost and found what the Phase 3 full runs did (about $1.4 and 
   findings already persist as `previous_findings`. Not changed; tighten the protocol if it recurs.
 - Learning confidence moves on the agent's say-so (one learning about the report's 4-second delay was marked contradicted in sequence 2), which is why learnings stay
   "leads, not proof".
+
+
+## Phase 5: the qa-memory MCP server (the learning test again, through the tools)
+
+Phase 5 changes how the agent reaches memory (twelve MCP tools instead of `qamind memory ...` commands) but not what memory does, so the questions are: does the whole run still work through
+the tools with a real agent, does the agent use only the tools, and what does the extra layer cost. The harness is the Phase 4 one (`scripts/eval-learning.ts`, same pinned settings, mode `full`, same
+demo-app change and owner-confirmed false alarm between the runs), now allowing and counting `mcp__plugin_qamind_qa-memory`. Two sequences, label `phase-5`, files `docs/baselines/phase-5-learning-r<n>.*`
+(with call traces). **Four runs started, four valid, none failed.** The build under test is the one committed apart from tests, docs and CI (no source, instruction or tool text was changed after these runs).
+
+### Does it work, and does the agent stay inside the tools?
+- **Every check of the learning test passes in both sequences**, as in Phase 4: memory loaded, the three learnings cited exist, the seeded false alarm is not reported again and is logged as skipped, the new page, the new endpoint and the
+  removed endpoint are reported (technical and plain), reports lint clean, no fixture password anywhere in the store or the run folders.
+- **Zero accesses outside the tools.** I read all four call traces: no Bash, Read, Write, Edit, Glob or Grep call touched a memory file, the user store, `pages.json` or `endpoints.json`, or ran `qamind memory` / `qamind run`.
+- **The agent used 8 of the 12 tools without being told which:** `run_start`, `memory_get_context`, `memory_update_product_map`, `memory_save_learning` (3 per run), `memory_update_risk`, `run_finish` in every run, and, in run 2, `memory_record_applied` (once) and
+  `memory_adjust_learning` (2 or 3 times). Not used: `memory_mark_false_alarm` (the harness seeds it), `memory_list`, `run_history`, `lessons_propose` (optional by design).
+- `memory_update_risk` was used as intended: "Password reset email link (important): source reading shows the link uses a field that is never set; not run because it sends email". There was no finding, so without the tool that suspicion would have been lost.
+
+### What the extra layer costs
+Claude Code loads MCP tools on demand, so every run now starts with one extra `ToolSearch` call (call 2 in all four traces): **+1 call, 1.6 to 1.8 s**. The tool calls themselves take about as long as the commands did
+(`run_start` 1.6 to 2.0 s, `memory_get_context` 1.3 to 1.8 s).
+
+| | Seq 1 run 1 / run 2 | Seq 2 run 1 / run 2 | Mean run 1 | Mean run 2 | Phase 4 means (3 seq.) run 1 / run 2 |
+|---|---|---|---|---|---|
+| First API test (calls, seconds) | 20, 36.4 / 23, 46.6 | 19, 25.1 / 22, 68.1 | 19.5, 30.8 | 22.5, 57.4 | 18.7, 25.2 / 22.0, 39.3 |
+| First UI interaction (calls, seconds) | 39, 156 / 34, 127 | 42, 156 / 33, 149 | 40.5, 156 | 33.5, 138 | 36.0, 124 / 37.3, 135 |
+| Wall time, minutes | 7.0 / 6.3 | 5.6 / 8.4 | 6.3 | 7.4 | 5.4 / 6.4 |
+| Cost, USD | 1.83 / 1.56 | 1.41 / 2.14 | 1.62 | 1.85 | 1.37 / 1.68 |
+| Seeded bugs found, of 14, without the bug(s) the false alarm covers | 11 / 12 | 9 / 12 | 10.0 | 12.0 | 11.7 / 12.0 |
+
+- **Honest reading:** a cold run (run 1) is a little slower, dearer and found fewer bugs than the Phase 4 average (+5.6 s to the first API test, +$0.25, +0.9 min, 10.0 against 11.7 bugs). One `ToolSearch` explains only 1.7 s of that, and every figure sits inside the spread
+  Phase 4 already showed (run 1 found 12, 13 and 12 there; two earlier phases had runs at 10). But all four figures lean the same way, with two sequences, so a small real cost (the tools' descriptions occupy context) cannot be ruled out. Judge it with more runs before tuning anything.
+- **The strict timing check still fails, for the same reason as in Phase 4:** run 2 reached its first API test slower in both sequences (+10 s and +43 s). The traces show run 2 reading the product change (`git diff`, the new page) first; in sequence 2 it also
+  hand-wrote its own API plan (about a minute). The first UI interaction was no slower in either sequence. Across Phase 4 and Phase 5 that is **5 of 5 valid sequences with a slower first API test in run 2**, which is now a pattern: the change-reading step is real and
+  is not paid back before the first probe. It is not a memory-loading cost.
+- Learning quality is as uneven as in Phase 4: most saved learnings are useful test advice (the 1,000.00 threshold, warm then change then re-read, a 4-second report, "compare the route table with the spec in both directions"), but several still restate a defect
+  ("order detail by id and the admin customers endpoint were not scoped"), although the protocol and the tool description say not to save bugs. They are phrased as what to test next, so they do work as leads. Not changed.
+
+### Platforms
+Everything above ran on macOS (Claude Code 2.1.312, Node 24.2.0). **Linux and Windows were not run by me.** The CI workflow runs the suite on Linux and macOS (I cannot see its results from here), and a Windows job for the memory and server tests was added in this phase and has not run.

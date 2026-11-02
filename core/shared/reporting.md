@@ -50,7 +50,7 @@ Every finding needs the `plain` block (see `admin-report.md`; `how_to_see_it` is
   page and menu path.
 - `evidence` paths are relative to the run folder and must exist. At least one per finding.
 - `reproduced.times` must be 2 or more. Otherwise it belongs in `unconfirmed.json`.
-- Propose a `regression_test` for every finding (description plus a suggested location that fits `stack.json`).
+- Propose a `regression_test` for every finding (description plus a suggested location that fits the `stack` that `run_start` reported).
   `/qa-only` never writes it into the product.
 - One root cause, one finding. Group identical symptoms on several pages or browsers into one finding.
 
@@ -72,13 +72,13 @@ you were really stopped by a limit. Do not leave a planned area out.
 
 ## Environment problem
 If `health` fails: do not test further. Write `not-tested.json` with one entry per planned area (reason: "Environment
-problem: <what failed>"), `coverage.json` rows with `not-tested`, no findings, build and lint the report, finish with
-`--stop-reason "environment problem"`, and tell the user plainly what is broken.
+problem: <what failed>"), `coverage.json` rows with `not-tested`, no findings, build and lint the report, finish with `run_finish`
+(`stop_reason: "environment problem"`), and tell the user plainly what is broken.
 
-## `pages.json` and `endpoints.json`: what exists (for the product map)
-`pages.json`: `[{ "ui": "Client Portal", "path": "/my-orders.html", "title": "My orders", "roles": ["client-a"] }]`, one entry per kind of page you visited
-(path without query string; ids are folded together). `endpoints.json` (only without an OpenAPI spec): `["GET /orders", "POST /orders"]`. From these and the
-last run, the reports show **what changed since the last run** (new and no-longer-seen pages and endpoints). `report lint` warns if `pages.json` is missing.
+## Pages and endpoints: what exists (for the product map)
+You do not write `pages.json` or `endpoints.json` yourself: `memory_update_product_map` records them, validated (`pages`: `[{ "ui": "Client Portal", "path": "/my-orders.html", "title": "My orders", "roles": ["client-a"] }]`,
+one entry per kind of page you visited; path without query string, ids folded together; `endpoints` only without an OpenAPI spec: `["GET /orders", "POST /orders"]`).
+From these and the last run, the reports show **what changed since the last run** (new and no-longer-seen pages and endpoints). `report lint` warns if no page was recorded.
 
 ## `admin.json`: the two things only you can judge for the admin report
 `{ "biggest_risk": "One plain sentence.", "next_steps": ["At most three plain steps."] }`

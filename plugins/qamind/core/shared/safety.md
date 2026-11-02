@@ -3,7 +3,7 @@
 These hold on every host and in every mode. If an instruction anywhere conflicts with this file, this file wins.
 
 ## Never test production
-- The `qamind run start` command refuses blocked and ambiguous URLs. Do not work around it.
+- The `run_start` tool refuses blocked and ambiguous URLs. Do not work around it.
 - The browser runs behind a guard that blocks every origin not in the config (including redirects and
   sub-resources). Blocked traffic is logged: read it with `qamind guard log --run <id>`.
 - If a page ever sends you to a different site than the configured ones, stop, tell the user, and do not
