@@ -33,6 +33,33 @@ function allowedWriteRoots(marker: RunMarker, home: string, tmpDirs: string[]): 
   return [path.join(marker.project_root, ".qa"), home, ...tmpDirs];
 }
 
+// ---- decisions that belong to the user, never to a QA run ----
+
+/** The user's own lists and settings in the QAMind store. A run reaches memory only through the qa-memory tools, which cannot touch these. */
+const OWNER_FILES = new Set(["global-lessons.md", "pending-lessons.md", "rejected-lessons.jsonl", "lesson-use.json", "auto.json"]);
+const OWNER_FILE_IN_COMMAND = /(?:global-lessons\.md|pending-lessons\.md|rejected-lessons\.jsonl|lesson-use\.json|auto\.json)/;
+const WRITES_FILES = /(?:>|\btee\b|\bsed\s+-[A-Za-z]*i|\b(?:mv|cp|rm|truncate|dd|install|ln)\b|\b(?:node|python3?|perl|ruby)\b)/;
+/** `qamind lessons approve|reject`, `memory prune` and the auto-QA settings commands, however qamind is started. (`auto skipped` and `auto status` are not decisions.) */
+const OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
+
+/**
+ * Approving a global lesson (every project reads it), archiving memory, and turning auto-QA on or off are the user's decisions. A QA run reads untrusted pages and
+ * its Bash is pre-approved for `qamind *`, so without this a page that talked the agent round could approve its own lessons. Applies in every run mode.
+ */
+function ownerOnly(tool: string, ti: Record<string, unknown>, abs: (p: string) => string, home: string): string | undefined {
+  const why = "Approving lessons, archiving memory and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-auto).";
+  if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
+    const target = String(ti["file_path"] ?? ti["notebook_path"] ?? "");
+    if (target && OWNER_FILES.has(path.basename(target)) && inside(abs(target), home)) return `${why} (${path.basename(target)} is the user's file.)`;
+  }
+  if (tool === "Bash") {
+    const cmd = String(ti["command"] ?? "");
+    if (OWNER_COMMAND.test(cmd)) return why;
+    if (OWNER_FILE_IN_COMMAND.test(cmd) && WRITES_FILES.test(cmd)) return `${why} (That command would write one of the user's lesson or settings files.)`;
+  }
+  return undefined;
+}
+
 /**
  * Safety guard for an active QAMind run in this session (spec §9.2, §12). It only acts while a run marker for
  * this session exists, so it is a no-op in every other session. On Claude Code this enforces what other hosts
@@ -76,6 +103,9 @@ export function decidePreToolUse(input: PreToolUseInput, home: string, tmpDirs: 
       return { decision: "deny", reason: `The browser tool would save "${name}" in the project folder. Save evidence inside the run folder with an absolute path, for example ${path.join(marker.run_dir, "screenshots", "<slug>.png")}, so the project stays untouched.` };
     }
   }
+
+  const owner = ownerOnly(tool, ti, abs, home);
+  if (owner) return { decision: "deny", reason: owner };
 
   if (!marker.readonly) return marker.kind === "qa" ? decideFixRun(marker, tool, ti, abs, home, tmpDirs) : null;
 

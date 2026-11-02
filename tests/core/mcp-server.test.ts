@@ -275,3 +275,33 @@ test("parallel calls do not lose or duplicate anything", async () => {
   assert.equal((await call("memory_list", { what: "learnings", run: fx.runId })).json.learnings.total, 10);
   await close();
 });
+
+test("global lessons through the server: only approved ones reach a run, a rejected near copy is refused, an approved one can be cited, nothing can approve", async () => {
+  const fx = makeRunWithData();
+  const { client, call, close } = await connect({ home: fx.home, cwd: fx.proj });
+  const text = "Date pickers often break across time zones: test a booking made near midnight.";
+  assert.equal((await call("lessons_propose", { run: fx.runId, text, reason: "Seen as an off-by-one-day order date." })).json.id, "P-001");
+  assert.equal((await call("lessons_propose", { run: fx.runId, text: "Search boxes should treat punctuation as plain text, never as a pattern.", reason: "A bracket crashed one." })).json.id, "P-002");
+
+  const before = await call("memory_get_context", { run: fx.runId });
+  assert.deepEqual(before.json.global_lessons, [], "pending proposals are not lessons yet");
+  assert.ok(!before.text.includes("Date pickers"), "and not in the answer anywhere");
+  assert.equal((await call("memory_record_applied", { run: fx.runId, ids: ["G-001"] })).isError, true, "nothing approved yet, nothing to cite");
+
+  // the owner decides, outside the server
+  const { approveLesson, rejectLesson } = await import("../../core/lib/memory/lessons.ts");
+  approveLesson(fx.home, "P-001", { now: NOW });
+  rejectLesson(fx.home, "P-002", "not useful", NOW);
+  const after = await call("memory_get_context", { run: fx.runId });
+  assert.deepEqual(after.json.global_lessons, [{ id: "G-001", text }]);
+  assert.ok(!after.text.includes("Search boxes"));
+  assert.deepEqual((await call("memory_record_applied", { run: fx.runId, ids: ["G-001"] })).json, { applied: ["G-001"] });
+
+  const again = await call("lessons_propose", { run: fx.runId, text: "Search boxes should treat punctuation as plain text and never as a pattern.", reason: "Seen again on another product." });
+  assert.deepEqual([again.json.action, again.json.id], ["rejected-before", "P-002"]);
+  assert.equal((await call("lessons_propose", { run: fx.runId, text, reason: "Seen again." })).json.action, "existing", "an approved lesson is not proposed again");
+
+  const names = (await client.listTools()).tools.map((t) => t.name);
+  assert.deepEqual(names.filter((n) => /approve|reject|prune|retire|archive/i.test(n)), [], "the server has no tool that approves, rejects or removes anything: that is the owner's");
+  await close();
+});

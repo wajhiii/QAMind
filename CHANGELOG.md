@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.7.0 (Phase 7, unreleased)
+
+- **Global lessons you approve** (`core/lib/memory/lessons.ts`, [decision 0005](docs/decisions/0005-global-lessons.md)): pending lessons (`P-001`) are used by nothing; approved ones (`G-001`) in `global-lessons.md` are given to **every** project's runs as `global_lessons` in `memory_get_context` (the 25 best-used and newest at most);
+  rejected or retired ones are remembered (`rejected-lessons.jsonl`) so a near copy is not proposed again (`lessons_propose` answers `rejected-before`). A run cites an approved lesson in `memory_record_applied` (`G-001`); the technical report says "Applied global lesson G-001" and `lesson-use.json` counts it.
+- **Generic, checked at three points**: when proposed, when approved (against every project known on the machine, and as the owner reworded it) and every time it is loaded, because the files are plain Markdown the owner may edit by hand (a bullet line is enough; notes and headings survive every rewrite). A hand edit that names a project,
+  a web address, a file or code is not loaded and the run's context says why.
+- **`/qamind:qa-memory-review [lessons|prune|stats]`** and the commands under it: `qamind lessons list|approve|reject`, `qamind memory review|stats|prune`. The review marks stale learnings, false alarms and risk areas with the reason; `prune` archives (never deletes) one named entry with the owner's reason;
+  `stats` gives runs by mode and trigger, a trend only with six or more runs, memory use and lesson use, and lists precision and escaped bugs as **not available yet** instead of guessing them.
+- **No run can decide for the owner**: the qa-memory server has no approve, reject or remove tool; the PreToolUse hook refuses `lessons approve|reject`, `memory prune`, the auto-QA settings commands and any write to the lesson files and `auto.json` in every run mode; the review skill pre-approves only reading commands,
+  so Claude Code asks the user for each decision.
+- Step 1 of `/qa-only`, `/qa` and `qa-auto-run` now names the approved global lessons and `G-` ids (found by the evaluation: without it the agent loaded a relevant lesson and never cited it).
+- **Tests**: `lessons-review` (approve, reject, hand edits, caps, the review, prune, stats, the CLI), `review-skill` (static: only reading commands pre-approved, every command real, the decisions are the ones the hook refuses in a run), more hook and server cases. `scripts/eval-lessons.ts` is the real-agent end-to-end test. Results: `docs/EVALUATION-LOG.md`.
+- Not in this phase: the "Agent performance" section of the technical report (7.10), feedback verdicts and so precision (7.7), escaped bugs (Sentry, phase 8), interactive-session behaviour, Linux and Windows runs (the Windows CI job now includes the lesson tests).
+
 ## 0.6.5 (Phase 6.5, unreleased)
 
 - **Auto-QA** (`core/auto-qa/`, `/qamind:qa-auto`): when turned on, every task that changed code is checked before Claude Code finishes it. **Off by default**, per project (`<store>/auto.json`) or globally (`$QAMIND_HOME/auto.json`), the project winning; `QAMIND_AUTO=0` switches it off for a session.

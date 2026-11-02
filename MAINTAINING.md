@@ -83,6 +83,17 @@ The gate is `core/auto-qa/` (see [decision 0004](docs/decisions/0004-auto-qa.md)
 - **The end-to-end test** (spec section 14): `CLAUDE_BIN=/path/to/claude node scripts/eval-auto.ts --label <phase-name>`. Real Claude Code, the built plugin, a copy of the demo app per scenario (auto on and a change; `#noqa`; auto off; `#qa`; `/qa-auto off` then a change). Everything is checked from files and git, not from the agent's words.
   Two scenarios start a real QA run: expect about 10 to 20 minutes and a few dollars each. Port 4100 must be free. Do not rebuild the plugin while it runs.
 
+## Global lessons and the memory review
+
+The lesson logic is `core/lib/memory/lessons.ts` and the review is `core/lib/memory/review.ts` ([decision 0005](docs/decisions/0005-global-lessons.md)); the owner's interface is the `qa-memory-review` skill over `qamind lessons ...` and `qamind memory review|stats|prune`.
+
+- **Reviewing pending lessons** (spec section 16): run `/qamind:qa-memory-review lessons`, or read `~/.qamind/pending-lessons.md` and move an entry you accept into `~/.qamind/global-lessons.md` by hand (a `- ` bullet of at least 20 characters is enough). Only approved lessons are ever loaded, and a hand-edited one that names a project, a web address, a file or code is skipped with a reason in the next run's context.
+- **The decision commands must never be pre-approved** by any skill (`lessons approve|reject`, `memory prune`): the host asking the user is the consent step. `review-skill.test.ts` checks it. If you add another owner-only command, add it to `OWNER_COMMAND` in `core/lib/hooks.ts` too, so a QA run cannot run it, and to the hook test.
+- **Do not add an MCP tool that approves, rejects or removes** a lesson or memory: a test refuses one by name.
+- **A new genericity rule** goes in `NOT_GENERIC` in `lessons.ts`; it then applies at proposal, approval and load. Add a case to `lessons-review.test.ts`.
+- **The end-to-end test**: `CLAUDE_BIN=/path/to/claude node scripts/eval-lessons.ts --label <phase-name>`. Real Claude Code, five scenarios (a run is given only the approved lesson; a relevant lesson is used (observation); the review without consent changes nothing; with consent it decides correctly; a QA run told to approve is refused). About $3 and 15 minutes.
+  Port 4100 must be free; do not rebuild the plugin while it runs.
+
 ## Changing the admin report
 
 The admin report is rendered by `core/lib/adminreport.ts` (Markdown) and `core/scripts/export-html.ts` (HTML) from the same model; the consistency check

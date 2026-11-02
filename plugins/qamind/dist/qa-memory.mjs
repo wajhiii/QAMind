@@ -8551,9 +8551,9 @@ ${indent}`) + "'";
         start = start.replace(/\n+/g, `$&${indent}`);
       }
       const indentSize = indent ? "2" : "1";
-      let header2 = (startWithSpace ? indentSize : "") + chomp;
+      let header = (startWithSpace ? indentSize : "") + chomp;
       if (comment) {
-        header2 += " " + commentString(comment.replace(/ ?[\r\n]+/g, " "));
+        header += " " + commentString(comment.replace(/ ?[\r\n]+/g, " "));
         if (onComment)
           onComment();
       }
@@ -8568,11 +8568,11 @@ ${indent}`) + "'";
         }
         const body = foldFlowLines.foldFlowLines(`${start}${foldedValue}${end}`, indent, foldFlowLines.FOLD_BLOCK, foldOptions);
         if (!literalFallback)
-          return `>${header2}
+          return `>${header}
 ${indent}${body}`;
       }
       value = value.replace(/\n+/g, `$&${indent}`);
-      return `|${header2}
+      return `|${header}
 ${indent}${start}${value}${end}`;
     }
     function plainString(item, ctx, onComment, onChompKeep) {
@@ -11675,10 +11675,10 @@ var require_resolve_block_scalar = __commonJS({
     var Scalar = require_Scalar();
     function resolveBlockScalar(ctx, scalar, onError) {
       const start = scalar.offset;
-      const header2 = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
-      if (!header2)
+      const header = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
+      if (!header)
         return { value: "", type: null, comment: "", range: [start, start, start] };
-      const type = header2.mode === ">" ? Scalar.Scalar.BLOCK_FOLDED : Scalar.Scalar.BLOCK_LITERAL;
+      const type = header.mode === ">" ? Scalar.Scalar.BLOCK_FOLDED : Scalar.Scalar.BLOCK_LITERAL;
       const lines = scalar.source ? splitLines(scalar.source) : [];
       let chompStart = lines.length;
       for (let i = lines.length - 1; i >= 0; --i) {
@@ -11689,26 +11689,26 @@ var require_resolve_block_scalar = __commonJS({
           break;
       }
       if (chompStart === 0) {
-        const value2 = header2.chomp === "+" && lines.length > 0 ? "\n".repeat(Math.max(1, lines.length - 1)) : "";
-        let end2 = start + header2.length;
+        const value2 = header.chomp === "+" && lines.length > 0 ? "\n".repeat(Math.max(1, lines.length - 1)) : "";
+        let end2 = start + header.length;
         if (scalar.source)
           end2 += scalar.source.length;
-        return { value: value2, type, comment: header2.comment, range: [start, end2, end2] };
+        return { value: value2, type, comment: header.comment, range: [start, end2, end2] };
       }
-      let trimIndent = scalar.indent + header2.indent;
-      let offset = scalar.offset + header2.length;
+      let trimIndent = scalar.indent + header.indent;
+      let offset = scalar.offset + header.length;
       let contentStart = 0;
       for (let i = 0; i < chompStart; ++i) {
         const [indent, content] = lines[i];
         if (content === "" || content === "\r") {
-          if (header2.indent === 0 && indent.length > trimIndent)
+          if (header.indent === 0 && indent.length > trimIndent)
             trimIndent = indent.length;
         } else {
           if (indent.length < trimIndent) {
             const message = "Block scalars with more-indented leading empty lines must use an explicit indentation indicator";
             onError(offset + indent.length, "MISSING_CHAR", message);
           }
-          if (header2.indent === 0)
+          if (header.indent === 0)
             trimIndent = indent.length;
           contentStart = i;
           if (trimIndent === 0 && !ctx.atRoot) {
@@ -11735,7 +11735,7 @@ var require_resolve_block_scalar = __commonJS({
         if (crlf)
           content = content.slice(0, -1);
         if (content && indent.length < trimIndent) {
-          const src = header2.indent ? "explicit indentation indicator" : "first line";
+          const src = header.indent ? "explicit indentation indicator" : "first line";
           const message = `Block scalar lines must not be less indented than their ${src}`;
           onError(offset - content.length - (crlf ? 2 : 1), "BAD_INDENT", message);
           indent = "";
@@ -11762,7 +11762,7 @@ var require_resolve_block_scalar = __commonJS({
           prevMoreIndented = false;
         }
       }
-      switch (header2.chomp) {
+      switch (header.chomp) {
         case "-":
           break;
         case "+":
@@ -11774,8 +11774,8 @@ var require_resolve_block_scalar = __commonJS({
         default:
           value += "\n";
       }
-      const end = start + header2.length + scalar.source.length;
-      return { value, type, comment: header2.comment, range: [start, end, end] };
+      const end = start + header.length + scalar.source.length;
+      return { value, type, comment: header.comment, range: [start, end, end] };
     }
     function parseBlockScalarHeader({ offset, props }, strict, onError) {
       if (props[0].type !== "block-scalar-header") {
@@ -12614,10 +12614,10 @@ var require_cst_scalar = __commonJS({
             type = "QUOTE_DOUBLE";
             break;
           case "block-scalar": {
-            const header2 = token.props[0];
-            if (header2.type !== "block-scalar-header")
+            const header = token.props[0];
+            if (header.type !== "block-scalar-header")
               throw new Error("Invalid block scalar header");
-            type = header2.source[0] === ">" ? "BLOCK_FOLDED" : "BLOCK_LITERAL";
+            type = header.source[0] === ">" ? "BLOCK_FOLDED" : "BLOCK_LITERAL";
             break;
           }
           default:
@@ -12649,10 +12649,10 @@ var require_cst_scalar = __commonJS({
       const head = source.substring(0, he);
       const body = source.substring(he + 1) + "\n";
       if (token.type === "block-scalar") {
-        const header2 = token.props[0];
-        if (header2.type !== "block-scalar-header")
+        const header = token.props[0];
+        if (header.type !== "block-scalar-header")
           throw new Error("Invalid block scalar header");
-        header2.source = head;
+        header.source = head;
         token.source = body;
       } else {
         const { offset } = token;
@@ -15479,10 +15479,10 @@ function isValidJWT(jwt2, alg) {
   if (!jwtRegex.test(jwt2))
     return false;
   try {
-    const [header2] = jwt2.split(".");
-    if (!header2)
+    const [header] = jwt2.split(".");
+    if (!header)
       return false;
-    const base643 = header2.replace(/-/g, "+").replace(/_/g, "/").padEnd(header2.length + (4 - header2.length % 4) % 4, "=");
+    const base643 = header.replace(/-/g, "+").replace(/_/g, "/").padEnd(header.length + (4 - header.length % 4) % 4, "=");
     const decoded = JSON.parse(atob(base643));
     if (typeof decoded !== "object" || decoded === null)
       return false;
@@ -21360,10 +21360,10 @@ function isValidJWT2(token, algorithm = null) {
     const tokensParts = token.split(".");
     if (tokensParts.length !== 3)
       return false;
-    const [header2] = tokensParts;
-    if (!header2)
+    const [header] = tokensParts;
+    if (!header)
       return false;
-    const parsedHeader = JSON.parse(atob(header2));
+    const parsedHeader = JSON.parse(atob(header));
     if ("typ" in parsedHeader && parsedHeader?.typ !== "JWT")
       return false;
     if (!parsedHeader.alg)
@@ -45097,9 +45097,10 @@ function renderTechnicalReport(data, ctx = {}) {
     L.push("");
   }
   L.push("## Memory", "");
-  const applied = data.memoryLog.filter((e) => e.kind === "learning-applied" || e.kind === "false-alarm-skipped");
-  const saved = data.memoryLog.filter((e) => !["learning-applied", "false-alarm-skipped"].includes(e.kind));
-  const verb = { "learning-applied": "Applied learning", "false-alarm-skipped": "Skipped known false alarm", "learning-created": "New learning", "learning-merged": "Confirmed again", "learning-contradicted": "Contradicted learning", "false-alarm-created": "New false alarm", "risk-flagged": "Flagged risk area" };
+  const APPLIED_KINDS = ["learning-applied", "false-alarm-skipped", "global-lesson-applied"];
+  const applied = data.memoryLog.filter((e) => APPLIED_KINDS.includes(e.kind));
+  const saved = data.memoryLog.filter((e) => !APPLIED_KINDS.includes(e.kind));
+  const verb = { "learning-applied": "Applied learning", "false-alarm-skipped": "Skipped known false alarm", "global-lesson-applied": "Applied global lesson", "learning-created": "New learning", "learning-merged": "Confirmed again", "learning-contradicted": "Contradicted learning", "false-alarm-created": "New false alarm", "risk-flagged": "Flagged risk area" };
   L.push("**Applied this run** (memory is leads, not proof; each was re-verified)", "");
   if (applied.length === 0 && !m?.memory_applied?.length) L.push("_No project memory was applied (first run, or memory held nothing relevant)._");
   const agentLines = [...m?.memory_applied ?? []];
@@ -47612,55 +47613,19 @@ function loadRunContext(home, runId, env = process.env) {
 }
 
 // core/lib/memory/context.ts
-import fs16 from "node:fs";
-import path24 from "node:path";
-var PER_TYPE = 6;
-var MAX_PAGES_SHOWN = 40;
-function recentRunSummaries(store, limit = 3) {
-  const dir = memoryPaths(store).runs;
-  if (!fs16.existsSync(dir)) return [];
-  return fs16.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().slice(0, limit).map((f) => readJson(path24.join(dir, f))).filter((r) => !!r);
-}
-function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date()) {
-  const paths2 = memoryPaths(store);
-  const stack = readJson(paths2.stack);
-  const runs = recentRunSummaries(store, limit);
-  const risk = scoreAreas(loadRisk(store), now).slice(0, 8);
-  const learned = loadLearnings(store, now);
-  const alarms = loadFalseAlarms(store, now);
-  const map2 = loadMap(store);
-  const learnings = {};
-  for (const type of LEARNING_TYPES) {
-    const best = learned.active.filter((l) => l.type === type).sort((a, b) => learningScore(b, now) - learningScore(a, now)).slice(0, PER_TYPE).map((l) => ({ id: l.id, area: l.area, text: l.text, confidence: l.confidence, last_confirmed: l.last_confirmed.slice(0, 10) }));
-    if (best.length) learnings[type] = best;
-  }
-  const focus = risk.filter((r) => r.score > 0.5).slice(0, 5).map((r) => `${r.area}: ${r.occurrences} earlier run${r.occurrences === 1 ? "" : "s"} with problems (worst: ${r.worst_severity}, last ${r.last_seen.slice(0, 10)}). Test it early.`);
-  const last = runs[0];
-  if (last && last.counts.critical + last.counts.important > 0) focus.push(`The last run (${last.run_id}) found ${last.counts.critical} critical and ${last.counts.important} important problems: re-verify them first.`);
-  if ((learnings["env-quirk"]?.length ?? 0) > 0) focus.push("Known environment quirks exist: read them before running anything slow or order-dependent.");
-  const uis = {};
-  if (map2) for (const [ui, entry] of Object.entries(map2.uis)) uis[ui] = Object.keys(entry.pages).sort().slice(0, MAX_PAGES_SHOWN);
-  return {
-    note: runs.length === 0 && !map2 ? "No memory for this project yet: treat this as a first run." : `Memory from ${runs.length} earlier run(s). It is leads, not proof: re-verify current behaviour and say when it shaped a decision.`,
-    ...stack ? { stack } : {},
-    last_runs: runs.map((r) => ({ run_id: r.run_id, mode: r.mode, finished: r.finished, counts: r.counts, not_tested_count: r.not_tested_count, finding_ids: r.finding_ids, stop_reason: r.stop_reason })),
-    focus,
-    risk_areas: risk,
-    learnings,
-    false_alarms: alarms.alarms.slice(0, 30).map((a) => ({ id: a.id, area: a.area, symptom: a.symptom, reason: a.reason, source: a.source })),
-    previous_findings: { ...last ? { from_run: last.run_id } : {}, findings: (last?.findings ?? []).slice(0, 25) },
-    product_map: { pages: pageCount(map2), endpoints: map2 ? Object.keys(map2.api.endpoints).length : 0, ...map2 ? { last_run: map2.last_run } : {}, uis },
-    fix_log: recentFixes(store),
-    warnings: [...learned.warnings, ...alarms.warnings, ...loadFixLog(store).warnings]
-  };
-}
-
-// core/lib/memory/lessons.ts
 import fs17 from "node:fs";
 import path25 from "node:path";
+
+// core/lib/memory/lessons.ts
+import crypto2 from "node:crypto";
+import fs16 from "node:fs";
+import path24 from "node:path";
 var PENDING_FILE = "pending-lessons.md";
 var APPROVED_FILE = "global-lessons.md";
+var REJECTED_FILE = "rejected-lessons.jsonl";
+var USE_FILE = "lesson-use.json";
 var MAX_PENDING = 100;
+var MAX_LOADED = 25;
 var MERGE_AT2 = 0.6;
 var one4 = (s) => s.replace(/\s+/g, " ").trim();
 var NOT_GENERIC = [
@@ -47682,23 +47647,94 @@ function genericProblems(text2, ctx = {}) {
   }
   return [...new Set(problems)];
 }
-function readEntries(file3) {
-  if (!fs17.existsSync(file3)) return [];
-  const out = [];
-  let id = "";
-  for (const line2 of fs17.readFileSync(file3, "utf8").split(/\r?\n/)) {
-    const h = /^##\s+([A-Z]-\d+)\b/.exec(line2);
-    if (h) id = h[1];
-    const t = /^-\s+\*\*Lesson:\*\*\s*(.+)$/.exec(line2) ?? (id ? null : /^-\s+(.{20,})$/.exec(line2));
-    if (t) out.push({ id: id || "approved", text: t[1].trim() });
+function knownProjectNames(home, extra = []) {
+  const names = new Set(extra);
+  for (const p of listKnownProjects(home)) {
+    names.add(p.name);
+    for (const seen of p.paths_seen) names.add(path24.basename(seen));
   }
-  return out;
+  return [...names].filter((n) => n.trim().length > 0);
 }
-var header = `# Pending lessons
-
-Lessons QAMind proposes for any project. **Nothing here is used until you approve it**: move an entry to \`${APPROVED_FILE}\` (or ask for a memory review), or delete it.
-Each one is generic by rule: no project names, web addresses, files, tickets or code.
+var hashId = (text2) => `H-${crypto2.createHash("sha1").update(one4(text2).toLowerCase()).digest("hex").slice(0, 6)}`;
+var HEADER = /^##\s+(.*)$/;
+var LESSON_LINE = /^-\s+\*\*Lesson:\*\*\s*(.+)$/;
+var WHY_LINE = /^-\s+\*\*Why:\*\*\s*(.+)$/;
+var PLAIN_BULLET = /^-\s+(?!\*\*)(.{20,})$/;
+function parseLessons(text2) {
+  const preamble = [];
+  const blocks = [];
+  let cur;
+  let prevBlank = false;
+  const flush = () => {
+    if (!cur) return;
+    while (cur.lines.length > 1 && (cur.lines[cur.lines.length - 1] ?? "").trim() === "") cur.lines.pop();
+    if (cur.text) blocks.push(cur);
+    else preamble.push(...cur.lines);
+    cur = void 0;
+  };
+  for (const line2 of text2.split(/\r?\n/)) {
+    const h = HEADER.exec(line2);
+    if (h) {
+      flush();
+      const parts = h[1].split("\xB7").map((s) => s.trim());
+      const id = /^[A-Za-z]+-\d+$/.test(parts[0] ?? "") ? parts[0] : "";
+      cur = { id, text: "", lines: [line2], ...parts[1] ? { date: parts[1] } : {}, ...parts[2] ? { area: parts[2] } : {} };
+      if (!id) cur.hand = true;
+      continue;
+    }
+    const lonely = cur && cur.text !== "" && prevBlank ? PLAIN_BULLET.exec(line2) : null;
+    if (lonely) {
+      flush();
+      const t = lonely[1].trim();
+      blocks.push({ id: hashId(t), text: t, hand: true, lines: [line2] });
+      prevBlank = false;
+      continue;
+    }
+    prevBlank = line2.trim() === "";
+    if (cur) {
+      cur.lines.push(line2);
+      const l = LESSON_LINE.exec(line2) ?? (cur.text ? null : PLAIN_BULLET.exec(line2));
+      if (l && !cur.text) cur.text = l[1].trim();
+      const w = WHY_LINE.exec(line2);
+      if (w) cur.reason = w[1].trim();
+      continue;
+    }
+    const lone = LESSON_LINE.exec(line2) ?? PLAIN_BULLET.exec(line2);
+    if (lone) {
+      const t = lone[1].trim();
+      blocks.push({ id: hashId(t), text: t, hand: true, lines: [line2] });
+    } else preamble.push(line2);
+  }
+  flush();
+  for (const b of blocks) if (!b.id) b.id = hashId(b.text);
+  return { preamble, blocks };
+}
+var readFile = (file3) => parseLessons(fs16.existsSync(file3) ? fs16.readFileSync(file3, "utf8") : "");
+function writeText(file3, text2) {
+  ensureDir(path24.dirname(file3));
+  const tmp = `${file3}.${process.pid}.tmp`;
+  fs16.writeFileSync(tmp, text2, "utf8");
+  fs16.renameSync(tmp, file3);
+}
+var render = (p, extra = []) => {
+  const body = [...p.preamble.join("\n").replace(/\s*$/, "").split("\n"), "", ...p.blocks.flatMap((b) => [...b.lines, ""]), ...extra].join("\n");
+  return `${body.replace(/\n{3,}/g, "\n\n").replace(/\s*$/, "")}
 `;
+};
+var pendingHeader = `# Pending lessons
+
+Lessons QAMind proposes for any project. **Nothing here is used until you approve it**: ask for a memory review (\`/qa-memory-review lessons\`), or move an entry to \`${APPROVED_FILE}\` yourself, or delete it.
+Each one is generic by rule: no project names, web addresses, files, tickets or code.`;
+var approvedHeader = `# Global lessons
+
+Lessons you approved. **Every QAMind project reads this file** (the newest ${MAX_LOADED} at most, best-used first), so each entry must help on any project: no project names, web addresses, files, tickets or code.
+An entry that breaks that rule is not loaded, and the review says why. You can add, edit or delete entries by hand.`;
+var rejectedRecords = (home) => readJsonl(path24.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
+var allIds = (home) => {
+  const approved = readFile(path24.join(home, APPROVED_FILE)).blocks;
+  const origins = approved.flatMap((b) => b.lines.flatMap((l) => [...l.matchAll(/\(was ([A-Z]-\d+)\)/g)].map((m) => m[1])));
+  return [...readFile(path24.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
+};
 function proposeLesson(home, input2, ctx = {}) {
   const text2 = one4(input2.text);
   const reason = one4(input2.reason);
@@ -47710,23 +47746,114 @@ function proposeLesson(home, input2, ctx = {}) {
   if (problems.length) throw new Error(`This lesson is not generic: it ${problems.join("; ")}. A global lesson must help on any project, so rewrite it without those (describe the kind of problem, not this product).`);
   assertSafeText("this lesson", `${area} ${text2} ${reason}`, ctx.knownSecrets ?? []);
   ensureDir(home);
-  const pendingFile = path25.join(home, PENDING_FILE);
+  const pendingFile = path24.join(home, PENDING_FILE);
   return withStoreLock(home, () => {
-    const pending = readEntries(pendingFile);
-    const known = [...pending, ...readEntries(path25.join(home, APPROVED_FILE))];
+    const pending = readFile(pendingFile);
+    const known = [...pending.blocks, ...readFile(path24.join(home, APPROVED_FILE)).blocks];
     const dup = known.map((e) => ({ e, s: similarity(e.text, text2) })).filter((x) => x.s >= MERGE_AT2).sort((a, b) => b.s - a.s)[0];
-    if (dup) return { action: "existing", id: dup.e.id, file: pendingFile, pending: pending.length, matches: dup.e.text };
-    if (pending.length >= MAX_PENDING) throw new Error(`There are already ${MAX_PENDING} pending lessons. Ask the user to review them (approve or delete) before proposing more.`);
-    const id = nextId("P", pending.map((e) => e.id));
+    if (dup) return { action: "existing", id: dup.e.id, file: pendingFile, pending: pending.blocks.length, matches: dup.e.text };
+    const turned = rejectedRecords(home).map((r) => ({ r, s: similarity(r.text, text2) })).filter((x) => x.s >= MERGE_AT2).sort((a, b) => b.s - a.s)[0];
+    if (turned) return { action: "rejected-before", id: turned.r.id, file: pendingFile, pending: pending.blocks.length, matches: turned.r.text };
+    if (pending.blocks.length >= MAX_PENDING) throw new Error(`There are already ${MAX_PENDING} pending lessons. Ask the user to review them (approve or delete) before proposing more.`);
+    const id = nextId("P", allIds(home));
     const date5 = (ctx.now ?? /* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-    const entry = [`## ${id} \xB7 ${date5}${area ? ` \xB7 ${area}` : ""}`, `- **Lesson:** ${text2}`, `- **Why:** ${reason}`, ""].join("\n");
-    const body = fs17.existsSync(pendingFile) ? fs17.readFileSync(pendingFile, "utf8").replace(/\s*$/, "\n\n") : `${header}
-`;
-    const tmp = `${pendingFile}.${process.pid}.tmp`;
-    fs17.writeFileSync(tmp, `${body}${entry}`, "utf8");
-    fs17.renameSync(tmp, pendingFile);
-    return { action: "proposed", id, file: pendingFile, pending: pending.length + 1 };
+    const entry = [`## ${id} \xB7 ${date5}${area ? ` \xB7 ${area}` : ""}`, `- **Lesson:** ${text2}`, `- **Why:** ${reason}`];
+    pending.blocks.push({ id, text: text2, reason, date: date5, ...area ? { area } : {}, lines: entry });
+    if (pending.preamble.join("").trim() === "") pending.preamble = pendingHeader.split("\n");
+    writeText(pendingFile, render(pending));
+    return { action: "proposed", id, file: pendingFile, pending: pending.blocks.length };
   });
+}
+var readLessonUse = (home) => {
+  try {
+    const v = readJson(path24.join(home, USE_FILE));
+    return v && typeof v === "object" && !Array.isArray(v) ? v : {};
+  } catch {
+    return {};
+  }
+};
+function loadApprovedLessons(home, ctx = {}) {
+  const entries = readFile(path24.join(home, APPROVED_FILE)).blocks;
+  const use = readLessonUse(home);
+  const ok = [];
+  const skipped = [];
+  for (const b of entries) {
+    const problems = [...genericProblems(`${b.text} ${b.area ?? ""}`, { projectNames: ctx.projectNames ?? [] }), ...screenForSecretsAndPii(b.text)];
+    if (b.text.length < 20) problems.push("is shorter than 20 characters");
+    if (b.text.length > 280) problems.push("is longer than 280 characters");
+    if (problems.length) skipped.push({ id: b.id, text: b.text.slice(0, 120), problems: [...new Set(problems)] });
+    else ok.push(b);
+  }
+  const ranked = ok.map((b, i) => ({ b, i })).sort((x, y) => (use[y.b.id]?.hits ?? 0) - (use[x.b.id]?.hits ?? 0) || (y.b.date ?? "").localeCompare(x.b.date ?? "") || y.i - x.i).map((x) => x.b);
+  return {
+    lessons: ranked.slice(0, MAX_LOADED).map((b) => ({ id: b.id, text: b.text, ...b.area ? { area: b.area } : {} })),
+    skipped,
+    total_approved: entries.length,
+    truncated: ranked.length > MAX_LOADED
+  };
+}
+function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
+  const approved = new Set(readFile(path24.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
+  const unique = [...new Set(ids)];
+  const recorded = unique.filter((i) => approved.has(i));
+  const unknown2 = unique.filter((i) => !approved.has(i));
+  if (recorded.length) {
+    ensureDir(home);
+    withStoreLock(home, () => {
+      const use = readLessonUse(home);
+      for (const id of recorded) use[id] = { hits: (use[id]?.hits ?? 0) + 1, last_applied: now.toISOString() };
+      writeJson(path24.join(home, USE_FILE), use);
+    });
+  }
+  return { recorded, unknown: unknown2 };
+}
+
+// core/lib/memory/context.ts
+var PER_TYPE = 6;
+var MAX_PAGES_SHOWN = 40;
+function recentRunSummaries(store, limit = 3) {
+  const dir = memoryPaths(store).runs;
+  if (!fs17.existsSync(dir)) return [];
+  return fs17.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().slice(0, limit).map((f) => readJson(path25.join(dir, f))).filter((r) => !!r);
+}
+function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), opts = {}) {
+  const paths2 = memoryPaths(store);
+  const stack = readJson(paths2.stack);
+  const runs = recentRunSummaries(store, limit);
+  const risk = scoreAreas(loadRisk(store), now).slice(0, 8);
+  const learned = loadLearnings(store, now);
+  const alarms = loadFalseAlarms(store, now);
+  const map2 = loadMap(store);
+  const learnings = {};
+  for (const type of LEARNING_TYPES) {
+    const best = learned.active.filter((l) => l.type === type).sort((a, b) => learningScore(b, now) - learningScore(a, now)).slice(0, PER_TYPE).map((l) => ({ id: l.id, area: l.area, text: l.text, confidence: l.confidence, last_confirmed: l.last_confirmed.slice(0, 10) }));
+    if (best.length) learnings[type] = best;
+  }
+  const focus = risk.filter((r) => r.score > 0.5).slice(0, 5).map((r) => `${r.area}: ${r.occurrences} earlier run${r.occurrences === 1 ? "" : "s"} with problems (worst: ${r.worst_severity}, last ${r.last_seen.slice(0, 10)}). Test it early.`);
+  const last = runs[0];
+  if (last && last.counts.critical + last.counts.important > 0) focus.push(`The last run (${last.run_id}) found ${last.counts.critical} critical and ${last.counts.important} important problems: re-verify them first.`);
+  if ((learnings["env-quirk"]?.length ?? 0) > 0) focus.push("Known environment quirks exist: read them before running anything slow or order-dependent.");
+  const lessons = opts.home ? loadApprovedLessons(opts.home, { projectNames: opts.projectNames ?? [] }) : void 0;
+  const lessonWarnings = [
+    ...(lessons?.skipped ?? []).map((s) => `The approved lesson ${s.id} was not loaded: it ${s.problems.join("; ")}. The owner can reword or remove it in /qa-memory-review.`),
+    ...lessons?.truncated ? [`More than the newest ${lessons.lessons.length} approved lessons exist; only the best-used and newest are shown.`] : []
+  ];
+  const uis = {};
+  if (map2) for (const [ui, entry] of Object.entries(map2.uis)) uis[ui] = Object.keys(entry.pages).sort().slice(0, MAX_PAGES_SHOWN);
+  return {
+    note: runs.length === 0 && !map2 ? "No memory for this project yet: treat this as a first run." : `Memory from ${runs.length} earlier run(s). It is leads, not proof: re-verify current behaviour and say when it shaped a decision.`,
+    ...stack ? { stack } : {},
+    last_runs: runs.map((r) => ({ run_id: r.run_id, mode: r.mode, finished: r.finished, counts: r.counts, not_tested_count: r.not_tested_count, finding_ids: r.finding_ids, stop_reason: r.stop_reason })),
+    focus,
+    risk_areas: risk,
+    learnings,
+    false_alarms: alarms.alarms.slice(0, 30).map((a) => ({ id: a.id, area: a.area, symptom: a.symptom, reason: a.reason, source: a.source })),
+    previous_findings: { ...last ? { from_run: last.run_id } : {}, findings: (last?.findings ?? []).slice(0, 25) },
+    product_map: { pages: pageCount(map2), endpoints: map2 ? Object.keys(map2.api.endpoints).length : 0, ...map2 ? { last_run: map2.last_run } : {}, uis },
+    fix_log: recentFixes(store),
+    global_lessons: lessons?.lessons ?? [],
+    warnings: [...learned.warnings, ...alarms.warnings, ...loadFixLog(store).warnings, ...lessonWarnings]
+  };
 }
 
 // core/lib/memory/observations.ts
@@ -47819,8 +47946,11 @@ function scopeFor(home, opts) {
   return opts.run ? runScope(home, opts.run, opts.env) : projectScope(home, opts);
 }
 var secretsOf = (s) => s.ctx.passwords;
+function projectNamesOf(scope) {
+  return scope.kind === "run" ? [path27.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path27.basename(scope.project.root)];
+}
 function getContext(scope, limit = 3) {
-  const ctx = loadMemoryContext(scope.store, limit);
+  const ctx = loadMemoryContext(scope.store, limit, /* @__PURE__ */ new Date(), { home: scope.home, projectNames: projectNamesOf(scope) });
   return scope.kind === "project" ? { ...ctx, project: scope.project } : ctx;
 }
 function listMemory(scope, what, limit = 50) {
@@ -47884,11 +48014,14 @@ function recordApplied(scope, ids, now = /* @__PURE__ */ new Date()) {
   return withStoreLock(scope.store, () => {
     const learnings = loadLearnings(scope.store, now).active;
     const alarms = loadFalseAlarms(scope.store, now).alarms;
-    const unknown2 = ids.filter((id) => !learnings.some((l) => l.id === id) && !alarms.some((a) => a.id === id));
-    if (unknown2.length) throw new Error(`These ids do not exist in this project's memory: ${unknown2.join(", ")}. Cite only what the memory context gave you. Nothing was recorded.`);
-    const applied = markApplied(scope.store, ids.filter((i) => i.startsWith("L-")), now);
+    const globals = loadApprovedLessons(scope.home, { projectNames: projectNamesOf(scope) }).lessons;
+    const unknown2 = ids.filter((id) => !learnings.some((l) => l.id === id) && !alarms.some((a) => a.id === id) && !globals.some((g) => g.id === id));
+    if (unknown2.length) throw new Error(`These ids do not exist in this project's memory or in the approved global lessons: ${unknown2.join(", ")}. Cite only what the memory context gave you. Nothing was recorded.`);
+    const applied = markApplied(scope.store, ids.filter((i) => learnings.some((l) => l.id === i)), now);
+    const usedGlobals = recordLessonUse(scope.home, ids.filter((i) => globals.some((g) => g.id === i)), now).recorded;
+    for (const id of usedGlobals) appendMemoryLog(scope.runDir, { kind: "global-lesson-applied", id, text: globals.find((g) => g.id === id)?.text ?? "" }, now);
     for (const l of applied.applied) appendMemoryLog(scope.runDir, { kind: "learning-applied", id: l.id, text: `(${l.area}) ${l.text}` }, now);
-    for (const id of ids.filter((i) => i.startsWith("FA-"))) {
+    for (const id of ids.filter((i) => alarms.some((a) => a.id === i))) {
       const a = alarms.find((x) => x.id === id);
       if (a) appendMemoryLog(scope.runDir, { kind: "false-alarm-skipped", id, text: a.symptom }, now);
     }
@@ -47923,8 +48056,7 @@ function updateProductMap(scope, input2, now = /* @__PURE__ */ new Date()) {
   });
 }
 function proposeGlobalLesson(scope, input2, now = /* @__PURE__ */ new Date()) {
-  const names = [path27.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)];
-  return proposeLesson(scope.home, input2, { projectNames: names, knownSecrets: secretsOf(scope), run: scope.runId, now });
+  return proposeLesson(scope.home, input2, { projectNames: knownProjectNames(scope.home, projectNamesOf(scope)), knownSecrets: secretsOf(scope), run: scope.runId, now });
 }
 function startRunTracked(opts) {
   return startRun(opts);
@@ -48110,7 +48242,7 @@ var TOOLS = [
   define({
     name: "memory_get_context",
     title: "What memory knows",
-    description: "Everything memory knows that should shape this run, bounded in size: what to focus on, risk areas (most likely to break again), learnings by type, known false alarms (do not report them again), the previous run's findings (for regression checks), a product-map summary, and any warnings about unreadable lines. Memory is leads, not proof: re-verify before relying on it.",
+    description: "Everything memory knows that should shape this run, bounded in size: what to focus on, risk areas (most likely to break again), learnings by type, known false alarms (do not report them again), the previous run's findings (for regression checks), a product-map summary, the global lessons the owner approved (they help on any project; never pending proposals), and any warnings about unreadable lines. Memory is leads, not proof: re-verify before relying on it.",
     annotations: READ,
     input: { run: optionalRun, project },
     run: (a, c) => getContext(scopeFor(c.home, { env: c.env, cwd: c.cwd, ...a.run ? { run: a.run } : {}, ...a.project ? { project: a.project } : {} }))
@@ -48148,9 +48280,9 @@ var TOOLS = [
   define({
     name: "memory_record_applied",
     title: "Record memory you used",
-    description: "Record the learnings you applied and the known false alarms you skipped in this run, so the reports can cite them. Only ids that exist are accepted, and if any id does not exist nothing is recorded: never invent or guess an id.",
+    description: "Record the learnings you applied, the known false alarms you skipped and the approved global lessons you used in this run, so the reports can cite them. Only ids that exist are accepted, and if any id does not exist nothing is recorded: never invent or guess an id.",
     annotations: SET,
-    input: { run: runField, ids: external_exports.array(external_exports.string().regex(/^(L|FA)-\d{3,}$/, "An id such as L-012 or FA-003.")).min(1).max(50).describe("Learning ids (L-...) and false-alarm ids (FA-...).") },
+    input: { run: runField, ids: external_exports.array(external_exports.string().regex(/^(L|FA|G)-\d{3,}$|^H-[0-9a-f]{6}$/, "An id such as L-012, FA-003 or G-001.")).min(1).max(50).describe("Learning ids (L-...), false-alarm ids (FA-...) and approved global lesson ids (G-..., or H-... for one the owner wrote by hand).") },
     run: (a, c) => recordApplied(runScope(c.home, a.run, c.env), [...new Set(a.ids)], c.now())
   }),
   define({
@@ -48186,7 +48318,7 @@ var TOOLS = [
   define({
     name: "lessons_propose",
     title: "Propose a global lesson",
-    description: "Propose ONE lesson that would help on ANY project (for example: date pickers often break across time zones). It goes to the owner's pending list and is not used until they approve it. It must be generic: no project or product names, web addresses, files, ticket ids or code, and no data from this product. A near copy of an existing lesson is not added twice.",
+    description: "Propose ONE lesson that would help on ANY project (for example: date pickers often break across time zones). It goes to the owner's pending list and is not used until they approve it. It must be generic: no project or product names, web addresses, files, ticket ids or code, and no data from this product. A near copy of an existing lesson is not added twice, and one the owner already turned down is not accepted again (do not try to reword it). You cannot approve a lesson: only the owner can, in /qa-memory-review.",
     annotations: ADD,
     input: { run: runField, text: line(20, 280, "text").describe("The generic lesson, one statement."), reason: line(10, 280, "reason").describe("What you saw that makes this true on any project."), area: line(1, 60, "area").optional() },
     run: (a, c) => proposeGlobalLesson(runScope(c.home, a.run, c.env), { text: a.text, reason: a.reason, ...a.area ? { area: a.area } : {} }, c.now())

@@ -1,5 +1,5 @@
 import type { Severity } from "../config.ts";
-import { daysBetween, memoryPaths, readMemoryJson, writeMemoryJson } from "./store.ts";
+import { appendArchive, daysBetween, memoryPaths, readMemoryJson, writeMemoryJson } from "./store.ts";
 
 /** Areas with past bugs, scored by frequency x severity x recency (spec 10.1). */
 
@@ -121,4 +121,17 @@ export function scoreAreas(file: RiskFile, now = new Date()): ScoredArea[] {
       last_seen: a.events[0]?.date ?? "",
     }))
     .sort((a, b) => b.score - a.score || a.area.localeCompare(b.area));
+}
+
+/** The owner clears a risk area in a memory review (a fixed product, a renamed area): it moves to the archive with its history. */
+export function archiveRiskArea(store: string, area: string, reason: string, now = new Date()): RiskArea {
+  const file = loadRisk(store);
+  const key = areaKey(area);
+  const found = file.areas.find((a) => areaKey(a.area) === key);
+  if (!found) throw new Error(`No risk area "${area}". Use \`qamind memory review\` to see the exact names.`);
+  appendArchive(store, "risk-areas", [{ ...found, archived_at: now.toISOString(), archived_reason: reason }]);
+  file.areas = file.areas.filter((a) => a !== found);
+  file.updated = now.toISOString();
+  writeMemoryJson(memoryPaths(store).riskAreas, file as unknown as Record<string, unknown>);
+  return found;
 }

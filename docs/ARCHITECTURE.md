@@ -117,6 +117,12 @@ agent done --Stop--> 1 #noqa  2 disabled?  3 stop_hook_active  4 was a QA run  5
 The skill Claude is told to run, `qa-auto-run`, is the `/qa-only` procedure without the questions (Steps 1 to 5 are word for word the same, a test enforces it), because the model cannot run `/qa-only` itself. Report-only modes start the run as `qa-only`, so the safety hook keeps them read-only.
 Hooks never fail a turn: any error is a silent "no opinion". Whether a task was itself a QA run comes from the open run marker or from `state/last-run.json`, which `run finish` writes.
 
+## Global lessons and the owner's review
+
+Lessons the agent proposes for any project wait in `~/.qamind/pending-lessons.md`; the owner approves them into `global-lessons.md`, the only lesson file runs read ([decision 0005](decisions/0005-global-lessons.md)). `core/lib/memory/lessons.ts` holds all of it: proposing, the three-point genericity check (proposal, approval against
+every known project, and every load), approval and rejection, and what a run is shown (`loadApprovedLessons`, at most 25, only approved). `core/lib/memory/review.ts` is the review of one project's memory (stale marks, archiving, statistics). The CLI (`qamind lessons ...`, `qamind memory review|stats|prune`) is the owner's interface;
+the qa-memory server deliberately has no tool that decides anything, the `qa-memory-review` skill pre-approves only the reading commands (so the host asks the user for each decision), and the PreToolUse hook refuses the deciding commands and writes to these files while a QA run is active.
+
 ## Knowledge, loaded on demand
 
 The skill is short; expertise lives in `core/knowledge/` and is loaded only when relevant. The agent reads `INDEX.md` while planning (a

@@ -14,7 +14,7 @@ import { loadFixLog } from "./fixlog.ts";
 import type { FalseAlarmSource } from "./falsealarms.ts";
 import { LEARNING_TYPES, adjustLearning, learn, loadLearnings, markApplied } from "./learnings.ts";
 import type { LearningType } from "./learnings.ts";
-import { proposeLesson } from "./lessons.ts";
+import { knownProjectNames, loadApprovedLessons, proposeLesson, recordLessonUse } from "./lessons.ts";
 import type { ProposeResult } from "./lessons.ts";
 import { withStoreLock } from "./lock.ts";
 import { appendMemoryLog } from "./memorylog.ts";
@@ -88,8 +88,13 @@ const secretsOf = (s: RunScope): string[] => s.ctx.passwords;
 
 // ------------------------------------------------------------------------------------------------ reads
 
+/** What identifies the project a scope is about: a lesson that names it is not generic. */
+export function projectNamesOf(scope: Scope): string[] {
+  return scope.kind === "run" ? [path.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path.basename(scope.project.root)];
+}
+
 export function getContext(scope: Scope, limit = 3): MemoryContext & { project?: ProjectScope["project"] } {
-  const ctx = loadMemoryContext(scope.store, limit);
+  const ctx = loadMemoryContext(scope.store, limit, new Date(), { home: scope.home, projectNames: projectNamesOf(scope) });
   return scope.kind === "project" ? { ...ctx, project: scope.project } : ctx;
 }
 
@@ -180,11 +185,15 @@ export function recordApplied(scope: RunScope, ids: string[], now = new Date()) 
   return withStoreLock(scope.store, () => {
     const learnings = loadLearnings(scope.store, now).active;
     const alarms = loadFalseAlarms(scope.store, now).alarms;
-    const unknown = ids.filter((id) => !learnings.some((l) => l.id === id) && !alarms.some((a) => a.id === id));
-    if (unknown.length) throw new Error(`These ids do not exist in this project's memory: ${unknown.join(", ")}. Cite only what the memory context gave you. Nothing was recorded.`);
-    const applied = markApplied(scope.store, ids.filter((i) => i.startsWith("L-")), now);
+    // Approved global lessons are cited the same way, but only the ones a run is actually given (approved, and still generic here).
+    const globals = loadApprovedLessons(scope.home, { projectNames: projectNamesOf(scope) }).lessons;
+    const unknown = ids.filter((id) => !learnings.some((l) => l.id === id) && !alarms.some((a) => a.id === id) && !globals.some((g) => g.id === id));
+    if (unknown.length) throw new Error(`These ids do not exist in this project's memory or in the approved global lessons: ${unknown.join(", ")}. Cite only what the memory context gave you. Nothing was recorded.`);
+    const applied = markApplied(scope.store, ids.filter((i) => learnings.some((l) => l.id === i)), now);
+    const usedGlobals = recordLessonUse(scope.home, ids.filter((i) => globals.some((g) => g.id === i)), now).recorded;
+    for (const id of usedGlobals) appendMemoryLog(scope.runDir, { kind: "global-lesson-applied", id, text: globals.find((g) => g.id === id)?.text ?? "" }, now);
     for (const l of applied.applied) appendMemoryLog(scope.runDir, { kind: "learning-applied", id: l.id, text: `(${l.area}) ${l.text}` }, now);
-    for (const id of ids.filter((i) => i.startsWith("FA-"))) {
+    for (const id of ids.filter((i) => alarms.some((a) => a.id === i))) {
       const a = alarms.find((x) => x.id === id);
       if (a) appendMemoryLog(scope.runDir, { kind: "false-alarm-skipped", id, text: a.symptom }, now);
     }
@@ -229,8 +238,7 @@ export function updateProductMap(scope: RunScope, input: ObservationInput, now =
 }
 
 export function proposeGlobalLesson(scope: RunScope, input: { text: string; reason: string; area?: string }, now = new Date()): ProposeResult {
-  const names = [path.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)];
-  return proposeLesson(scope.home, input, { projectNames: names, knownSecrets: secretsOf(scope), run: scope.runId, now });
+  return proposeLesson(scope.home, input, { projectNames: knownProjectNames(scope.home, projectNamesOf(scope)), knownSecrets: secretsOf(scope), run: scope.runId, now });
 }
 
 // ------------------------------------------------------------------------------------------------ run lifecycle

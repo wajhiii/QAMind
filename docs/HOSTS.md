@@ -52,6 +52,9 @@ The server needs only Node 20+ and the two files in `dist/`; it is host-neutral 
 | 2026-11-02 | Claude Code 2.1.314 (VS Code extension build) | auto-QA end to end, headless, five scenarios on the demo app (auto on + change; `#noqa`; auto off; `#qa`; `/qa-auto off` then change) | pass: exactly one run where one is expected, none otherwise (details: [EVALUATION-LOG.md](EVALUATION-LOG.md)) |
 | 2026-11-02 | same | the headless host refuses the `Skill` call that answers an auto-QA block; the PreToolUse hook's `allow` for that one call is honoured | refused without the hook, pass with it |
 | 2026-11-02 | same | auto-QA in an interactive session: no permission prompt for the skill, `ask` mode, fix-mode consent prompts | **not tested** |
+| 2026-11-02 | same | `/qamind:qa-memory-review` headless: the pre-approved reading command runs; approve and reject are refused by the host when not allowed, and the agent stops and says so; allowed, they work | pass (details: [EVALUATION-LOG.md](EVALUATION-LOG.md)) |
+| 2026-11-02 | same | a QA run told to run `qamind lessons approve`: the PreToolUse hook refuses it | pass |
+| 2026-11-02 | same | the interactive approval prompt for the review's deciding commands | **not tested**: only the headless refusal was observed |
 
 **Not yet verified:** installing from a Git URL (where Claude Code copies the plugin and installs `@playwright/mcp` itself), Windows,
 Linux (the CI workflow runs the suite on Linux and macOS, but I cannot see its results from here; the Windows job is new in Phase 5 and has not run). Tier: **full**, for the Phase 1 feature set only (`/qa-only`); other skills arrive in later phases.

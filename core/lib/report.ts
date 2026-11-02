@@ -512,9 +512,10 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
   }
 
   L.push("## Memory", "");
-  const applied = data.memoryLog.filter((e) => e.kind === "learning-applied" || e.kind === "false-alarm-skipped");
-  const saved = data.memoryLog.filter((e) => !["learning-applied", "false-alarm-skipped"].includes(e.kind));
-  const verb: Record<string, string> = { "learning-applied": "Applied learning", "false-alarm-skipped": "Skipped known false alarm", "learning-created": "New learning", "learning-merged": "Confirmed again", "learning-contradicted": "Contradicted learning", "false-alarm-created": "New false alarm", "risk-flagged": "Flagged risk area" };
+  const APPLIED_KINDS = ["learning-applied", "false-alarm-skipped", "global-lesson-applied"];
+  const applied = data.memoryLog.filter((e) => APPLIED_KINDS.includes(e.kind));
+  const saved = data.memoryLog.filter((e) => !APPLIED_KINDS.includes(e.kind));
+  const verb: Record<string, string> = { "learning-applied": "Applied learning", "false-alarm-skipped": "Skipped known false alarm", "global-lesson-applied": "Applied global lesson", "learning-created": "New learning", "learning-merged": "Confirmed again", "learning-contradicted": "Contradicted learning", "false-alarm-created": "New false alarm", "risk-flagged": "Flagged risk area" };
   L.push("**Applied this run** (memory is leads, not proof; each was re-verified)", "");
   if (applied.length === 0 && !m?.memory_applied?.length) L.push("_No project memory was applied (first run, or memory held nothing relevant)._");
   // The log holds the exact text of what was applied (checked against memory); the agent's own line says how it changed this run.

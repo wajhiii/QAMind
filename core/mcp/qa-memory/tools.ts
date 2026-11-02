@@ -90,7 +90,7 @@ export const TOOLS: ToolDef[] = [
     name: "memory_get_context",
     title: "What memory knows",
     description:
-      "Everything memory knows that should shape this run, bounded in size: what to focus on, risk areas (most likely to break again), learnings by type, known false alarms (do not report them again), the previous run's findings (for regression checks), a product-map summary, and any warnings about unreadable lines. Memory is leads, not proof: re-verify before relying on it.",
+      "Everything memory knows that should shape this run, bounded in size: what to focus on, risk areas (most likely to break again), learnings by type, known false alarms (do not report them again), the previous run's findings (for regression checks), a product-map summary, the global lessons the owner approved (they help on any project; never pending proposals), and any warnings about unreadable lines. Memory is leads, not proof: re-verify before relying on it.",
     annotations: READ,
     input: { run: optionalRun, project },
     run: (a, c) => getContext(scopeFor(c.home, { env: c.env, cwd: c.cwd, ...(a.run ? { run: a.run } : {}), ...(a.project ? { project: a.project } : {}) })),
@@ -135,9 +135,9 @@ export const TOOLS: ToolDef[] = [
     name: "memory_record_applied",
     title: "Record memory you used",
     description:
-      "Record the learnings you applied and the known false alarms you skipped in this run, so the reports can cite them. Only ids that exist are accepted, and if any id does not exist nothing is recorded: never invent or guess an id.",
+      "Record the learnings you applied, the known false alarms you skipped and the approved global lessons you used in this run, so the reports can cite them. Only ids that exist are accepted, and if any id does not exist nothing is recorded: never invent or guess an id.",
     annotations: SET,
-    input: { run, ids: z.array(z.string().regex(/^(L|FA)-\d{3,}$/, "An id such as L-012 or FA-003.")).min(1).max(50).describe("Learning ids (L-...) and false-alarm ids (FA-...).") },
+    input: { run, ids: z.array(z.string().regex(/^(L|FA|G)-\d{3,}$|^H-[0-9a-f]{6}$/, "An id such as L-012, FA-003 or G-001.")).min(1).max(50).describe("Learning ids (L-...), false-alarm ids (FA-...) and approved global lesson ids (G-..., or H-... for one the owner wrote by hand).") },
     run: (a, c) => recordApplied(runScope(c.home, a.run, c.env), [...new Set(a.ids)], c.now()),
   }),
 
@@ -181,7 +181,7 @@ export const TOOLS: ToolDef[] = [
     name: "lessons_propose",
     title: "Propose a global lesson",
     description:
-      "Propose ONE lesson that would help on ANY project (for example: date pickers often break across time zones). It goes to the owner's pending list and is not used until they approve it. It must be generic: no project or product names, web addresses, files, ticket ids or code, and no data from this product. A near copy of an existing lesson is not added twice.",
+      "Propose ONE lesson that would help on ANY project (for example: date pickers often break across time zones). It goes to the owner's pending list and is not used until they approve it. It must be generic: no project or product names, web addresses, files, ticket ids or code, and no data from this product. A near copy of an existing lesson is not added twice, and one the owner already turned down is not accepted again (do not try to reword it). You cannot approve a lesson: only the owner can, in /qa-memory-review.",
     annotations: ADD,
     input: { run, text: line(20, 280, "text").describe("The generic lesson, one statement."), reason: line(10, 280, "reason").describe("What you saw that makes this true on any project."), area: line(1, 60, "area").optional() },
     run: (a, c) => proposeGlobalLesson(runScope(c.home, a.run, c.env), { text: a.text, reason: a.reason, ...(a.area ? { area: a.area } : {}) }, c.now()),

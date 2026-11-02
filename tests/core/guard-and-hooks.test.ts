@@ -175,6 +175,39 @@ test("the browser tool may save evidence only in the run folder: a bare or proje
   }
 });
 
+test("approving lessons, archiving memory and changing auto-QA settings belong to the user: no run mode may do them", () => {
+  const home = tmp("qamind-home-");
+  const proj = tmp();
+  for (const over of [{}, { readonly: false, kind: "qa" as const }]) {
+    marker(home, proj, over);
+    const d = (tool: string, ti: Record<string, unknown>) => decidePreToolUse(input(tool, ti), home, [])?.decision;
+    const bash = (command: string) => d("Bash", { command });
+    for (const c of [
+      "qamind lessons approve P-001", "qamind lessons reject P-002 --reason x", "qamind memory prune --learning L-001", "qamind auto off", "qamind auto on", "qamind auto mode full", "qamind auto global on", "qamind auto pause 1h", "qamind auto set cooldown 0",
+      'node "${CLAUDE_PLUGIN_ROOT}/dist/qamind.mjs" lessons approve P-001', "/plugin/bin/qamind auto off", "cd /tmp && qamind lessons approve P-001", "git status; qamind memory prune --risk x",
+    ]) assert.equal(bash(c), "deny", c);
+    for (const c of ["qamind lessons list", "qamind memory review", "qamind memory stats", "qamind auto status", "qamind auto skipped --session s1 --reason x", "qamind report build --run r", "qamind health --run r", "git status && git diff --stat"]) assert.equal(bash(c), undefined, c);
+    for (const f of ["global-lessons.md", "pending-lessons.md", "rejected-lessons.jsonl", "lesson-use.json", "auto.json", path.join("projects", "p1", "auto.json")]) {
+      for (const tool of ["Write", "Edit", "MultiEdit"]) assert.equal(d(tool, { file_path: path.join(home, f) }), "deny", `${tool} ${f}`);
+    }
+    assert.equal(bash(`echo "x" >> ${path.join(home, "global-lessons.md")}`), "deny");
+    assert.equal(bash(`sed -i 's/a/b/' ${path.join(home, "pending-lessons.md")}`), "deny");
+    assert.equal(bash(`cp /tmp/x ${path.join(home, "global-lessons.md")}`), "deny");
+    assert.equal(bash(`node -e "require('fs').writeFileSync('${path.join(home, "auto.json")}', '{}')"`), "deny");
+    assert.equal(bash(`cat ${path.join(home, "global-lessons.md")}`), undefined, "reading is not a decision");
+    assert.match(decidePreToolUse(input("Bash", { command: "qamind lessons approve P-001" }), home, [])?.reason ?? "", /user's decisions[\s\S]*qa-memory-review/);
+  }
+  // an auto.json or a lesson file that merely lives in the project is the project's file, not the user's
+  marker(home, proj, { readonly: false, kind: "qa" });
+  assert.equal(decidePreToolUse(input("Write", { file_path: path.join(proj, "config", "auto.json") }), home, [])?.decision, undefined);
+});
+
+test("the owner's own review is not a run: with no active run for the session the hook has no opinion on approving", () => {
+  const home = tmp("qamind-home-");
+  assert.equal(decidePreToolUse(input("Bash", { command: "qamind lessons approve P-001" }), home, []), null);
+  assert.equal(decidePreToolUse(input("Write", { file_path: path.join(home, "global-lessons.md") }), home, []), null);
+});
+
 test("redirect detection ignores arrows, comparisons and quoted text, but still catches real redirects", () => {
   const home = tmp("qamind-home-");
   const proj = tmp();

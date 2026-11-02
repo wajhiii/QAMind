@@ -19,7 +19,9 @@ import type { FalseAlarmSource } from "../../core/lib/memory/falsealarms.ts";
 import { LEARNING_TYPES } from "../../core/lib/memory/learnings.ts";
 import type { LearningType } from "../../core/lib/memory/learnings.ts";
 import { loadMap } from "../../core/lib/memory/productmap.ts";
-import { changeLearningConfidence, finishRunTracked, getContext, listMemory, markFalseAlarm, recordApplied, runScope, saveLearning } from "../../core/lib/memory/service.ts";
+import { approveLesson, lessonOverview, rejectLesson } from "../../core/lib/memory/lessons.ts";
+import { memoryStats, pruneMemory, reviewOverview } from "../../core/lib/memory/review.ts";
+import { changeLearningConfidence, finishRunTracked, getContext, listMemory, markFalseAlarm, projectNamesOf, projectScope, recordApplied, runScope, saveLearning } from "../../core/lib/memory/service.ts";
 import { buildInventory, loadSpecFile, parseSpecText, resolveSpecPath } from "../../core/lib/openapi.ts";
 import type { Inventory } from "../../core/lib/openapi.ts";
 import { qamindHome } from "../../core/lib/paths.ts";
@@ -67,6 +69,13 @@ Reporting and memory
   memory false-alarm --run ID --area A --symptom S --reason R [--source reproduction|owner|spec]
   memory show --run ID --what learnings|false-alarms|risk|map
   memory where [--project DIR] print the project's private store path
+  memory review [--project DIR]   what memory holds, with entries that look stale marked (owner's review)
+  memory stats  [--project DIR]   run history trend and memory use, and what cannot be measured yet
+  memory prune  --learning L-001 | --false-alarm FA-001 | --risk AREA [--reason TEXT] [--project DIR]   archive one entry (owner action)
+Global lessons (owner's list; see \`/qa-memory-review\`)
+  lessons list [--project DIR]              pending, approved (and whether each is loaded here) and rejected lessons
+  lessons approve ID [--text REWORDING]     pending lesson -> approved: every project reads it from then on (owner action)
+  lessons reject ID [--reason TEXT]         turn a pending lesson down, or retire an approved one (owner action)
   guard log    --run ID        origins the browser guard blocked during the run
 Auto-QA (default off; see \`qamind auto help\`)
   auto status|on|off|mode M|pause 1h|resume|global on|off|set K V   toggle QA after every agent task
@@ -298,6 +307,17 @@ async function cmdMemory(sub: string | undefined, rest: string[], home: string):
     emit({ project_id: info.id, id_source: info.idSource, store });
     return 0;
   }
+  if (sub === "review" || sub === "stats" || sub === "prune") {
+    const { values } = opts(rest, { project: { type: "string" }, learning: { type: "string" }, "false-alarm": { type: "string" }, risk: { type: "string" }, reason: { type: "string" } });
+    const scope = projectScope(home, { ...(values.project ? { project: values.project as string } : {}) });
+    if (sub === "review") emit(reviewOverview(scope));
+    else if (sub === "stats") emit(memoryStats(scope));
+    else {
+      const target = { ...(values.learning ? { learning: values.learning as string } : {}), ...(values["false-alarm"] ? { falseAlarm: values["false-alarm"] as string } : {}), ...(values.risk ? { risk: values.risk as string } : {}) };
+      emit(pruneMemory(scope, target, values.reason as string | undefined));
+    }
+    return 0;
+  }
   const { values } = opts(rest, {
     run: { type: "string" }, type: { type: "string" }, area: { type: "string" }, text: { type: "string" }, confidence: { type: "string" },
     confirms: { type: "string" }, contradicts: { type: "string" }, ids: { type: "string" }, symptom: { type: "string" }, reason: { type: "string" },
@@ -337,7 +357,32 @@ async function cmdMemory(sub: string | undefined, rest: string[], home: string):
     emit(listMemory(scope, what, 1000));
     return 0;
   }
-  throw new UsageError("memory needs a subcommand: context | learn | applied | false-alarm | show | where");
+  throw new UsageError("memory needs a subcommand: context | learn | applied | false-alarm | show | where | review | stats | prune");
+}
+
+function cmdLessons(sub: string | undefined, rest: string[], home: string): number {
+  const { values, positionals } = opts(rest, { project: { type: "string" }, text: { type: "string" }, reason: { type: "string" } });
+  if (sub === "list") {
+    let names: string[] = [];
+    try {
+      names = projectNamesOf(projectScope(home, { ...(values.project ? { project: values.project as string } : {}) }));
+    } catch {
+      /* not inside a project: "loaded here" is checked without a project's own names */
+    }
+    emit(lessonOverview(home, { projectNames: names }));
+    return 0;
+  }
+  const id = positionals[0];
+  if ((sub === "approve" || sub === "reject") && !id) throw new UsageError(`lessons ${sub} needs a lesson id (see \`lessons list\`)`);
+  if (sub === "approve") {
+    emit(approveLesson(home, id as string, values.text ? { text: values.text as string } : {}));
+    return 0;
+  }
+  if (sub === "reject") {
+    emit(rejectLesson(home, id as string, values.reason as string | undefined));
+    return 0;
+  }
+  throw new UsageError("lessons needs a subcommand: list | approve | reject");
 }
 
 function readStdin(): string {
@@ -423,6 +468,8 @@ export async function main(argv: string[]): Promise<number> {
         return await cmdReport(sub, rest, home);
       case "memory":
         return await cmdMemory(sub, rest, home);
+      case "lessons":
+        return cmdLessons(sub, rest, home);
       case "guard": {
         if (sub !== "log") throw new UsageError("guard needs a subcommand: log");
         const { values } = opts(rest, { run: { type: "string" } });

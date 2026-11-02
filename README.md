@@ -52,7 +52,8 @@ Codex CLI, Cursor and other agents that read `AGENTS.md` come in Phase 7.5. See 
 | Test and report | `/qamind:qa-only [full\|quick\|regression\|diff] [focus]` | Writes only inside `.qa/` and the QAMind user store |
 | Test and fix | `/qamind:qa [full\|quick\|regression\|diff] [focus]` | Fixes on a git branch, one commit per fix with its regression test; never pushes, merges or opens a pull request. Needs a clean working tree and a project test command; see [Fix mode](#fix-mode-qamindqa) |
 | Auto-QA on, off, mode, pause | `/qamind:qa-auto on\|off\|status\|mode diff\|quick\|full\|fix\|ask\|pause 1h\|global on\|off` | QA after every task that changed code. **Off by default.** See [Auto-QA](#auto-qa-qamindqa-auto) |
-| Memory review, feedback, test bank | `/qamind:qa-memory-review` … | _Later phases_ |
+| Review what QAMind remembers | `/qamind:qa-memory-review [lessons\|prune\|stats]` | Approve or reject the generic lessons it proposed for all projects, archive stale memory, see run statistics. Only you decide. See [Memory review](#memory-review-qamindqa-memory-review) |
+| Feedback, test bank | `/qamind:qa-feedback`, `/qamind:qa-tests` | _Later phases_ |
 
 Modes: `full` (everything), `quick` (critical flows and top risks), `regression` (re-run last findings), `diff` (changed
 code and what depends on it). Free text after the mode narrows the focus.
@@ -124,6 +125,23 @@ Turn it on and QAMind checks every task that changed code before Claude Code cal
 
 Design, limits and what was not verified: [decision 0004](docs/decisions/0004-auto-qa.md).
 
+## Memory review (`/qamind:qa-memory-review`)
+
+QAMind keeps private memory per project (what it learned, known false alarms, where problems were found) and, across projects, a short list of **global lessons**: generic observations (for example "date pickers often break across time zones") that would help on any product.
+A run may *propose* a lesson; **nothing uses it until you approve it**, and no QA run can approve one for you.
+
+```
+/qamind:qa-memory-review              overview: what waits for you, what looks stale, what to do first
+/qamind:qa-memory-review lessons      go through the proposed lessons one at a time: approve, reword, reject or skip
+/qamind:qa-memory-review prune        archive stale learnings, false alarms and risk areas of this project (nothing is deleted)
+/qamind:qa-memory-review stats        runs over time, how much memory is used, and what cannot be measured yet
+```
+
+- **Approved lessons are read by every project** on this machine (the 25 best-used and newest at most). Each must be generic: no project names, web addresses, files, tickets or code. That is checked when it is proposed, when you approve it (against every project QAMind has seen) and each time a run loads it, because you can also edit the files by hand.
+- **Claude Code asks you to approve each deciding command** (approve, reject, archive) on top of your answer in chat; that is intended. Reading is not asked about.
+- **Rejected lessons are remembered**, so a near copy is not proposed again. Memory you archive is moved to the project's archive with your reason, never deleted.
+- Files: `~/.qamind/pending-lessons.md`, `~/.qamind/global-lessons.md` (plain Markdown you can edit), `~/.qamind/rejected-lessons.jsonl`. Details: [docs/MEMORY.md](docs/MEMORY.md) and [decision 0005](docs/decisions/0005-global-lessons.md).
+
 ## Safety (and how it is enforced)
 
 QAMind never tests production, never reads or prints credentials, creates data only with your `QA-` prefix, never
@@ -136,6 +154,7 @@ triggers real payments or emails, and treats everything it sees in your app as d
 | Credentials stay out of the conversation | browser `--secrets`, API runner logs in itself, hook blocks reading `.env.qa` | secrets and runner work everywhere; the read-block is a hook |
 | Side-effect endpoints (email, SMS, payments) | left out of generated API plans by default and listed as Not tested | same |
 | `/qa` never pushes, merges or opens a pull request, and never touches credentials, CI, lock files, generated code or your do-not-touch list | no such operation exists in the fix tools; the hook blocks git writes and the git host's CLI from the agent's shell and refuses edits to protected files | the tools are the same everywhere; the hook is Claude Code's |
+| A QA run cannot approve lessons, archive memory or change auto-QA settings | the hook refuses those commands and writes to those files in every run mode; the review's deciding commands are not pre-approved, so the host asks you | the hook is Claude Code's |
 | Auto-QA never fixes on its own, and is off until you turn it on | a project that never opted in is not written to; `fix` mode only when you set it or use `#qa-fix`, with all the fix rules | same code, host hooks differ |
 | Every fix has a regression test that fails without it | `fix_commit` takes the fix out, runs the test (it must fail), puts the fix back and runs it again (it must pass) | same, via MCP |
 
@@ -152,8 +171,8 @@ Screenshot masking of personal data is not built yet (Phase 7.6).
 | 4 ✅ | Project memory that improves each run |
 | 5 ✅ | `qa-memory` MCP server: validated memory and run tools, migrations, global-lesson proposals |
 | 6 ✅ | `/qa` fix mode: fix loop with proof, stop rules, branch handling, fix-log memory |
-| 6.5 ✅ (this) | Auto-QA: a gate after every agent task that changed code, `/qa-auto`, tags |
-| 7 | global lessons review |
+| 6.5 ✅ | Auto-QA: a gate after every agent task that changed code, `/qa-auto`, tags |
+| 7 ✅ (this) | Global lessons you approve, `/qa-memory-review` (lessons, prune, stats) |
 | 7.5 – 7.10 | Codex, Cursor, generic; reliability, test bank, CI, coverage depth, release verdict and metrics |
 | 8 | Linear and Sentry, polish |
 

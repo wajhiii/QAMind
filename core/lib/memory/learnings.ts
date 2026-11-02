@@ -173,3 +173,13 @@ export function markApplied(store: string, ids: string[], now = new Date()): { a
   if (applied.length) save(store, loaded.active, loaded.unparsed, now);
   return { applied, unknown };
 }
+
+/** The owner retires a learning in a memory review: it moves to the archive (with the reason), it is never deleted. */
+export function archiveLearning(store: string, id: string, reason: string, now = new Date()): Learning {
+  const loaded = loadLearnings(store, now);
+  const l = loaded.active.find((x) => x.id === id);
+  if (!l) throw new Error(`No active learning ${id}.`);
+  appendArchive(store, "learnings", [{ ...l, archived_at: now.toISOString(), archived_reason: reason }]);
+  save(store, loaded.active.filter((x) => x.id !== id), loaded.unparsed, now);
+  return l;
+}

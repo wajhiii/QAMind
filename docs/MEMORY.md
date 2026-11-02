@@ -1,4 +1,4 @@
-# Memory and state (Phases 1, 4, 5 and 6)
+# Memory and state (Phases 1, 4, 5, 6 and 7)
 
 All of this is **private to the user and the machine**: it lives in `$QAMIND_HOME` (default `~/.qamind`), never in the
 project's git, and is never uploaded. One store serves every host on the machine.
@@ -6,8 +6,11 @@ project's git, and is never uploaded. One store serves every host on the machine
 ```
 $QAMIND_HOME/
 ├── state/browser-state.json          which credential NAMES each project's browser tool started with (no values)
-├── pending-lessons.md                generic lessons the agent proposed for any project; unused until you approve one (Phase 5)
-├── global-lessons.md                 the lessons you approved (read by later phases; you create it by moving an entry)
+├── pending-lessons.md                generic lessons the agent proposed for any project; used by nothing until you approve one (Phase 5)
+├── global-lessons.md                 the lessons you approved: the ONLY lesson file every project reads (Phase 7; approve in /qa-memory-review, or edit by hand)
+├── rejected-lessons.jsonl            lessons you turned down or retired, so a near copy is not proposed again (Phase 7)
+├── lesson-use.json                   how often runs applied each approved lesson (Phase 7)
+├── auto.json                         the global auto-QA default (Phase 6.5)
 └── projects/<project-id>/
     ├── project.json                  identity: id, id_source, name, git_remote, paths_seen, created, last_seen
     ├── memory/
@@ -108,8 +111,7 @@ blocked_areas, cost, stop_reason, agent_version, knowledge_version, branch, comm
 - `schema_version` is checked **before anything is written**: if any memory file was written by a newer QAMind, the run
   does not start (or finishes without touching memory) and says why, so memory is never half-updated.
 - Memory is private per user: not in git, not uploaded, shared across hosts on the same machine.
-- **Not yet:** fix log (Phase 6), bug lifecycle and feedback (7.7), performance and metrics (7.9, 7.10), the review of pending lessons (Phase 7).
-  The folders for them exist.
+- **Not yet:** bug lifecycle and feedback (7.7), performance and metrics (7.9, 7.10). The folders for them exist.
 
 ## The qa-memory tools (Phase 5)
 
@@ -121,11 +123,11 @@ two cannot disagree. Every text field has a length limit and every list a count 
 | `run_start` | gate and setup of a run; returns run id/folder, config summary, stack, git changes, browser status | focus 300, session 200 |
 | `run_finish` | summary, product map, risk areas, history, both reports; ends the run | stop reason 200 |
 | `run_history` | recent finished runs (counts, journeys, coverage); findings on request | 1 to 20 runs |
-| `memory_get_context` | what memory knows, bounded; works in a run or by project folder | about 40,000 characters at most |
+| `memory_get_context` | what memory knows, bounded, including the approved global lessons; works in a run or by project folder | about 40,000 characters at most |
 | `memory_list` | learnings, false alarms, scored risk areas or the product map in full | `limit` 1 to 200 per list |
 | `memory_save_learning` | one atomic learning; a near copy (60% similar) is merged | text 12 to 400, area 120 |
 | `memory_adjust_learning` | confirm (+1) or contradict (-2; below 3 it is archived) | id `L-nnn` |
-| `memory_record_applied` | cite learnings used and false alarms skipped; **nothing is recorded if any id does not exist** | 1 to 50 ids |
+| `memory_record_applied` | cite learnings used, false alarms skipped and approved global lessons used (`G-nnn`); **nothing is recorded if any id does not exist** | 1 to 50 ids |
 | `memory_mark_false_alarm` | something that is not a bug, with who established it; a near copy (70%) is not saved twice | symptom 12 to 300, reason 8 to 300 |
 | `memory_update_risk` | flag an area with no confirmed finding; once per run and area; stands down when a finding covers the area | note 200 |
 | `memory_update_product_map` | record pages (and endpoints without a spec); paths lose host, query and hash, ids collapse; returns what differs from the map | 100 pages, 500 endpoints per call; 300 pages, 1,000 endpoints per run |
@@ -135,7 +137,7 @@ two cannot disagree. Every text field has a length limit and every list a count 
 Redaction applies to every text that is saved: a refusal names the kind of data found and never repeats it. A page title that fails is dropped with a warning (the page is still recorded).
 
 **Global lessons.** `lessons_propose` appends to `pending-lessons.md` in the store (a plain Markdown list you can edit). A lesson that names the project or one of its UIs, a web address, a host or IP, a file, a ticket id, code or personal data is refused with every reason at once.
-Near copies of pending or approved lessons are not added again, and at most 100 can wait. Nothing reads the list until a later phase adds the review.
+Near copies of pending, approved or rejected lessons are not added again (a rejected one answers `rejected-before`: do not reword and retry), and at most 100 can wait.
 
 **Concurrency.** Each change runs under a lock file in the store (`state/memory.lock`): processes wait up to 10 seconds, and a lock left by a crashed process is taken over. Writes are replace-by-rename, so a reader never sees half a file.
 
@@ -163,3 +165,33 @@ qamind memory where
 `data/` holds `meta.json`, `charters.json`, `findings.json`, `unconfirmed.json`, `not-tested.json`, `coverage.json`,
 `health.json`, `api-inventory.json`, `endpoints.json`, `pages.json`, `changes.json`, `memory-log.json`, `admin.json`,
 `plans/`, `api-results/`.
+
+## Global lessons and the owner's review (Phase 7)
+
+A lesson goes through three states, and only the last one reaches a run ([decision 0005](decisions/0005-global-lessons.md)).
+
+| State | Where | Who moves it | Does any run read it? |
+|---|---|---|---|
+| pending (`P-001`) | `pending-lessons.md` | the agent proposes it (`lessons_propose`) | **no** |
+| approved (`G-001`; `H-xxxxxx` for a line you wrote by hand) | `global-lessons.md` | **you**, with `qamind lessons approve` (through `/qa-memory-review`) or by editing the file | yes, every project, at most the 25 best-used and newest |
+| rejected or retired | `rejected-lessons.jsonl` | you, with `qamind lessons reject` | no, and a near copy is not proposed again |
+
+- **Generic by rule, checked three times:** when proposed (against the current project's names), when approved (against **every project this machine has seen**, and as you reworded it), and every time a run loads it, because you may edit the files by hand.
+  A lesson that names a project, a web address, a host or IP, a file, a ticket, code or personal data is refused or, for a hand edit, not loaded; the run's context and the review say which one and why. The name check is an exact match on a project's name or folder name
+  (four characters or more), so it is a safety net, not a judge: read what you approve.
+- **No run can approve.** The server has no approve tool; the safety hook refuses `qamind lessons approve|reject`, `memory prune`, the auto-QA settings commands and any write to these files while a QA run is active; and the review skill leaves the deciding commands out of its pre-approved tools, so the host asks you each time.
+- **Your own edits are kept.** The files are plain Markdown: `## G-001 · date · area` blocks with `- **Lesson:**` and `- **Why:**`, or just a bullet line of at least 20 characters. Notes and headings you add survive every rewrite.
+- **Citing:** a run lists an approved lesson that shaped a decision in `memory_record_applied` (`G-001`); the technical report then shows "Applied global lesson G-001: ...", and `lesson-use.json` counts it (best-used lessons are loaded first).
+
+**The review** (`/qamind:qa-memory-review`, or `qamind lessons ...` and `qamind memory review|stats|prune`):
+
+| Command | What it does |
+|---|---|
+| `lessons list` | pending, approved (with times applied, and whether each is loaded here, with the reason if not) and rejected lessons |
+| `lessons approve ID [--text "reworded"]` | pending to approved; checked again first |
+| `lessons reject ID [--reason ...]` | turn a pending lesson down, or retire an approved one |
+| `memory review [--project DIR]` | this project's learnings, false alarms and risk areas; entries that look stale are marked with why (low confidence, not confirmed for 180 days, never used, never matched, an old problem). A mark is a suggestion |
+| `memory prune --learning L-001 \| --false-alarm FA-001 \| --risk AREA [--reason ...]` | **archive** one entry with your reason (`memory/archive/`); nothing is deleted, so a mistake is undone by moving the line back |
+| `memory stats [--project DIR]` | runs by mode and trigger, the last ten, a trend (latest three runs against the three before, only with six or more), memory use, and the global lessons |
+
+`memory stats` says what it cannot tell yet: **precision** needs your verdicts on findings (a later phase) and **escaped bugs** need Sentry or labelled tickets (a later phase). It does not guess.

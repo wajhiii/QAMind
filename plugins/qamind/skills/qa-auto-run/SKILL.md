@@ -57,8 +57,8 @@ Skip anything under "Known issues to skip".
 
 ## Step 1: load memory
 Call `memory_get_context` (with `run`), and read `${CLAUDE_PLUGIN_ROOT}/core/shared/memory-protocol.md`. In one short paragraph, tell the user what memory says to focus on
-(risk areas, known quirks, the last run's problems), or that this is a first run. Memory is leads, not proof. When you use a learning or skip a
-known false alarm, record it with `memory_record_applied` (only real ids) and in `data/meta.json` → `memory_applied`.
+(risk areas, known quirks, the last run's problems, any approved global lesson in `global_lessons` that fits this product), or that this is a first run. Memory is leads, not proof. When you use a learning or an approved
+global lesson, or skip a known false alarm, record it with `memory_record_applied` (only real ids, including `G-` lesson ids) and in `data/meta.json` → `memory_applied`.
 
 ## Step 2: health check
 `qamind health --run <id>`. If `environment_ok` is false, follow "Environment problem" in `reporting.md`: do not test

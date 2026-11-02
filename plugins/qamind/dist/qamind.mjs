@@ -114,17 +114,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path35) {
-      const ctrl = callVisitor(key, node, visitor, path35);
+    function visit_(key, node, visitor, path38) {
+      const ctrl = callVisitor(key, node, visitor, path38);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path35, ctrl);
-        return visit_(key, ctrl, visitor, path35);
+        replaceNode(key, path38, ctrl);
+        return visit_(key, ctrl, visitor, path38);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path35 = Object.freeze(path35.concat(node));
+          path38 = Object.freeze(path38.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path35);
+            const ci = visit_(i, node.items[i], visitor, path38);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -135,13 +135,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path35 = Object.freeze(path35.concat(node));
-          const ck = visit_("key", node.key, visitor, path35);
+          path38 = Object.freeze(path38.concat(node));
+          const ck = visit_("key", node.key, visitor, path38);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path35);
+          const cv = visit_("value", node.value, visitor, path38);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -162,17 +162,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path35) {
-      const ctrl = await callVisitor(key, node, visitor, path35);
+    async function visitAsync_(key, node, visitor, path38) {
+      const ctrl = await callVisitor(key, node, visitor, path38);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path35, ctrl);
-        return visitAsync_(key, ctrl, visitor, path35);
+        replaceNode(key, path38, ctrl);
+        return visitAsync_(key, ctrl, visitor, path38);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path35 = Object.freeze(path35.concat(node));
+          path38 = Object.freeze(path38.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path35);
+            const ci = await visitAsync_(i, node.items[i], visitor, path38);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -183,13 +183,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path35 = Object.freeze(path35.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path35);
+          path38 = Object.freeze(path38.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path38);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path35);
+          const cv = await visitAsync_("value", node.value, visitor, path38);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -216,23 +216,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path35) {
+    function callVisitor(key, node, visitor, path38) {
       if (typeof visitor === "function")
-        return visitor(key, node, path35);
+        return visitor(key, node, path38);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path35);
+        return visitor.Map?.(key, node, path38);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path35);
+        return visitor.Seq?.(key, node, path38);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path35);
+        return visitor.Pair?.(key, node, path38);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path35);
+        return visitor.Scalar?.(key, node, path38);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path35);
+        return visitor.Alias?.(key, node, path38);
       return void 0;
     }
-    function replaceNode(key, path35, node) {
-      const parent = path35[path35.length - 1];
+    function replaceNode(key, path38, node) {
+      const parent = path38[path38.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -844,10 +844,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path35, value) {
+    function collectionFromPath(schema, path38, value) {
       let v = value;
-      for (let i = path35.length - 1; i >= 0; --i) {
-        const k = path35[i];
+      for (let i = path38.length - 1; i >= 0; --i) {
+        const k = path38[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -866,7 +866,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path35) => path35 == null || typeof path35 === "object" && !!path35[Symbol.iterator]().next().done;
+    var isEmptyPath = (path38) => path38 == null || typeof path38 === "object" && !!path38[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -896,11 +896,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path35, value) {
-        if (isEmptyPath(path35))
+      addIn(path38, value) {
+        if (isEmptyPath(path38))
           this.add(value);
         else {
-          const [key, ...rest] = path35;
+          const [key, ...rest] = path38;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -914,8 +914,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path35) {
-        const [key, ...rest] = path35;
+      deleteIn(path38) {
+        const [key, ...rest] = path38;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -929,8 +929,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path35, keepScalar) {
-        const [key, ...rest] = path35;
+      getIn(path38, keepScalar) {
+        const [key, ...rest] = path38;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -948,8 +948,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path35) {
-        const [key, ...rest] = path35;
+      hasIn(path38) {
+        const [key, ...rest] = path38;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -959,8 +959,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path35, value) {
-        const [key, ...rest] = path35;
+      setIn(path38, value) {
+        const [key, ...rest] = path38;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -1325,9 +1325,9 @@ ${indent}`) + "'";
         start = start.replace(/\n+/g, `$&${indent}`);
       }
       const indentSize = indent ? "2" : "1";
-      let header2 = (startWithSpace ? indentSize : "") + chomp;
+      let header = (startWithSpace ? indentSize : "") + chomp;
       if (comment) {
-        header2 += " " + commentString(comment.replace(/ ?[\r\n]+/g, " "));
+        header += " " + commentString(comment.replace(/ ?[\r\n]+/g, " "));
         if (onComment)
           onComment();
       }
@@ -1342,11 +1342,11 @@ ${indent}`) + "'";
         }
         const body = foldFlowLines.foldFlowLines(`${start}${foldedValue}${end}`, indent, foldFlowLines.FOLD_BLOCK, foldOptions);
         if (!literalFallback)
-          return `>${header2}
+          return `>${header}
 ${indent}${body}`;
       }
       value = value.replace(/\n+/g, `$&${indent}`);
-      return `|${header2}
+      return `|${header}
 ${indent}${start}${value}${end}`;
     }
     function plainString(item, ctx, onComment, onChompKeep) {
@@ -3475,9 +3475,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path35, value) {
+      addIn(path38, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path35, value);
+          this.contents.addIn(path38, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3552,14 +3552,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path35) {
-        if (Collection.isEmptyPath(path35)) {
+      deleteIn(path38) {
+        if (Collection.isEmptyPath(path38)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path35) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path38) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3574,10 +3574,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path35, keepScalar) {
-        if (Collection.isEmptyPath(path35))
+      getIn(path38, keepScalar) {
+        if (Collection.isEmptyPath(path38))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path35, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path38, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3588,10 +3588,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path35) {
-        if (Collection.isEmptyPath(path35))
+      hasIn(path38) {
+        if (Collection.isEmptyPath(path38))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path35) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path38) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3608,13 +3608,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path35, value) {
-        if (Collection.isEmptyPath(path35)) {
+      setIn(path38, value) {
+        if (Collection.isEmptyPath(path38)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path35), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path38), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path35, value);
+          this.contents.setIn(path38, value);
         }
       }
       /**
@@ -4449,10 +4449,10 @@ var require_resolve_block_scalar = __commonJS({
     var Scalar = require_Scalar();
     function resolveBlockScalar(ctx, scalar, onError) {
       const start = scalar.offset;
-      const header2 = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
-      if (!header2)
+      const header = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
+      if (!header)
         return { value: "", type: null, comment: "", range: [start, start, start] };
-      const type = header2.mode === ">" ? Scalar.Scalar.BLOCK_FOLDED : Scalar.Scalar.BLOCK_LITERAL;
+      const type = header.mode === ">" ? Scalar.Scalar.BLOCK_FOLDED : Scalar.Scalar.BLOCK_LITERAL;
       const lines = scalar.source ? splitLines(scalar.source) : [];
       let chompStart = lines.length;
       for (let i = lines.length - 1; i >= 0; --i) {
@@ -4463,26 +4463,26 @@ var require_resolve_block_scalar = __commonJS({
           break;
       }
       if (chompStart === 0) {
-        const value2 = header2.chomp === "+" && lines.length > 0 ? "\n".repeat(Math.max(1, lines.length - 1)) : "";
-        let end2 = start + header2.length;
+        const value2 = header.chomp === "+" && lines.length > 0 ? "\n".repeat(Math.max(1, lines.length - 1)) : "";
+        let end2 = start + header.length;
         if (scalar.source)
           end2 += scalar.source.length;
-        return { value: value2, type, comment: header2.comment, range: [start, end2, end2] };
+        return { value: value2, type, comment: header.comment, range: [start, end2, end2] };
       }
-      let trimIndent = scalar.indent + header2.indent;
-      let offset = scalar.offset + header2.length;
+      let trimIndent = scalar.indent + header.indent;
+      let offset = scalar.offset + header.length;
       let contentStart = 0;
       for (let i = 0; i < chompStart; ++i) {
         const [indent, content] = lines[i];
         if (content === "" || content === "\r") {
-          if (header2.indent === 0 && indent.length > trimIndent)
+          if (header.indent === 0 && indent.length > trimIndent)
             trimIndent = indent.length;
         } else {
           if (indent.length < trimIndent) {
             const message = "Block scalars with more-indented leading empty lines must use an explicit indentation indicator";
             onError(offset + indent.length, "MISSING_CHAR", message);
           }
-          if (header2.indent === 0)
+          if (header.indent === 0)
             trimIndent = indent.length;
           contentStart = i;
           if (trimIndent === 0 && !ctx.atRoot) {
@@ -4509,7 +4509,7 @@ var require_resolve_block_scalar = __commonJS({
         if (crlf)
           content = content.slice(0, -1);
         if (content && indent.length < trimIndent) {
-          const src = header2.indent ? "explicit indentation indicator" : "first line";
+          const src = header.indent ? "explicit indentation indicator" : "first line";
           const message = `Block scalar lines must not be less indented than their ${src}`;
           onError(offset - content.length - (crlf ? 2 : 1), "BAD_INDENT", message);
           indent = "";
@@ -4536,7 +4536,7 @@ var require_resolve_block_scalar = __commonJS({
           prevMoreIndented = false;
         }
       }
-      switch (header2.chomp) {
+      switch (header.chomp) {
         case "-":
           break;
         case "+":
@@ -4548,8 +4548,8 @@ var require_resolve_block_scalar = __commonJS({
         default:
           value += "\n";
       }
-      const end = start + header2.length + scalar.source.length;
-      return { value, type, comment: header2.comment, range: [start, end, end] };
+      const end = start + header.length + scalar.source.length;
+      return { value, type, comment: header.comment, range: [start, end, end] };
     }
     function parseBlockScalarHeader({ offset, props }, strict, onError) {
       if (props[0].type !== "block-scalar-header") {
@@ -5388,10 +5388,10 @@ var require_cst_scalar = __commonJS({
             type = "QUOTE_DOUBLE";
             break;
           case "block-scalar": {
-            const header2 = token.props[0];
-            if (header2.type !== "block-scalar-header")
+            const header = token.props[0];
+            if (header.type !== "block-scalar-header")
               throw new Error("Invalid block scalar header");
-            type = header2.source[0] === ">" ? "BLOCK_FOLDED" : "BLOCK_LITERAL";
+            type = header.source[0] === ">" ? "BLOCK_FOLDED" : "BLOCK_LITERAL";
             break;
           }
           default:
@@ -5423,10 +5423,10 @@ var require_cst_scalar = __commonJS({
       const head = source.substring(0, he);
       const body = source.substring(he + 1) + "\n";
       if (token.type === "block-scalar") {
-        const header2 = token.props[0];
-        if (header2.type !== "block-scalar-header")
+        const header = token.props[0];
+        if (header.type !== "block-scalar-header")
           throw new Error("Invalid block scalar header");
-        header2.source = head;
+        header.source = head;
         token.source = body;
       } else {
         const { offset } = token;
@@ -5575,9 +5575,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path35) => {
+    visit.itemAtPath = (cst, path38) => {
       let item = cst;
-      for (const [field, index] of path35) {
+      for (const [field, index] of path38) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5586,23 +5586,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path35) => {
-      const parent = visit.itemAtPath(cst, path35.slice(0, -1));
-      const field = path35[path35.length - 1][0];
+    visit.parentCollection = (cst, path38) => {
+      const parent = visit.itemAtPath(cst, path38.slice(0, -1));
+      const field = path38[path38.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path35, item, visitor) {
-      let ctrl = visitor(item, path35);
+    function _visit(path38, item, visitor) {
+      let ctrl = visitor(item, path38);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path35.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path38.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5613,10 +5613,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path35);
+            ctrl = ctrl(item, path38);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path35) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path38) : ctrl;
     }
     exports.visit = visit;
   }
@@ -6918,14 +6918,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs23 = this.flowScalar(this.type);
+              const fs25 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map.items.push({ start, key: fs23, sep: [] });
+                map.items.push({ start, key: fs25, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs23);
+                this.stack.push(fs25);
               } else {
-                Object.assign(it, { key: fs23, sep: [] });
+                Object.assign(it, { key: fs25, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -7053,13 +7053,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs23 = this.flowScalar(this.type);
+              const fs25 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs23, sep: [] });
+                fc.items.push({ start: [], key: fs25, sep: [] });
               else if (it.sep)
-                this.stack.push(fs23);
+                this.stack.push(fs25);
               else
-                Object.assign(it, { key: fs23, sep: [] });
+                Object.assign(it, { key: fs25, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -7368,9 +7368,9 @@ var require_dist = __commonJS({
 });
 
 // cli/src/main.ts
-import fs22 from "node:fs";
+import fs24 from "node:fs";
 import os3 from "node:os";
-import path34 from "node:path";
+import path37 from "node:path";
 import { parseArgs as parseArgs2 } from "node:util";
 
 // core/auto-qa/commands.ts
@@ -8313,7 +8313,7 @@ function flowStatus(data) {
   return { total, tested, untested };
 }
 var isOpen = (f) => f.fix_status !== "fixed-verified";
-var plural = (n, one4, many) => `${n} ${n === 1 ? one4 : many}`;
+var plural = (n, one5, many) => `${n} ${n === 1 ? one5 : many}`;
 var sentence = (s) => s.trim().replace(/[.\s]+$/, "");
 function computeVerdict(data) {
   const v = verdictFromOpenFindings(data);
@@ -8636,9 +8636,10 @@ function renderTechnicalReport(data, ctx = {}) {
     L.push("");
   }
   L.push("## Memory", "");
-  const applied = data.memoryLog.filter((e) => e.kind === "learning-applied" || e.kind === "false-alarm-skipped");
-  const saved = data.memoryLog.filter((e) => !["learning-applied", "false-alarm-skipped"].includes(e.kind));
-  const verb = { "learning-applied": "Applied learning", "false-alarm-skipped": "Skipped known false alarm", "learning-created": "New learning", "learning-merged": "Confirmed again", "learning-contradicted": "Contradicted learning", "false-alarm-created": "New false alarm", "risk-flagged": "Flagged risk area" };
+  const APPLIED_KINDS = ["learning-applied", "false-alarm-skipped", "global-lesson-applied"];
+  const applied = data.memoryLog.filter((e) => APPLIED_KINDS.includes(e.kind));
+  const saved = data.memoryLog.filter((e) => !APPLIED_KINDS.includes(e.kind));
+  const verb = { "learning-applied": "Applied learning", "false-alarm-skipped": "Skipped known false alarm", "global-lesson-applied": "Applied global lesson", "learning-created": "New learning", "learning-merged": "Confirmed again", "learning-contradicted": "Contradicted learning", "false-alarm-created": "New false alarm", "risk-flagged": "Flagged risk area" };
   L.push("**Applied this run** (memory is leads, not proof; each was re-verified)", "");
   if (applied.length === 0 && !m?.memory_applied?.length) L.push("_No project memory was applied (first run, or memory held nothing relevant)._");
   const agentLines = [...m?.memory_applied ?? []];
@@ -9032,6 +9033,14 @@ function markFalseAlarmsSeen(store, ids, now = /* @__PURE__ */ new Date()) {
   if (touched.length) writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", loaded.alarms, loaded.unparsed);
   return touched;
 }
+function archiveFalseAlarm(store, id, reason, now = /* @__PURE__ */ new Date()) {
+  const loaded = loadFalseAlarms(store, now);
+  const a = loaded.alarms.find((x) => x.id === id);
+  if (!a) throw new Error(`No false alarm ${id}.`);
+  appendArchive(store, "false-alarms", [{ ...a, archived_at: now.toISOString(), archived_reason: reason }]);
+  writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", loaded.alarms.filter((x) => x.id !== id), loaded.unparsed);
+  return a;
+}
 
 // core/lib/memory/learnings.ts
 var LEARNING_TYPES = ["behavior", "pitfall", "test-tip", "fix-pattern", "env-quirk"];
@@ -9153,6 +9162,14 @@ function markApplied(store, ids, now = /* @__PURE__ */ new Date()) {
   if (applied.length) save(store, loaded.active, loaded.unparsed, now);
   return { applied, unknown };
 }
+function archiveLearning(store, id, reason, now = /* @__PURE__ */ new Date()) {
+  const loaded = loadLearnings(store, now);
+  const l = loaded.active.find((x) => x.id === id);
+  if (!l) throw new Error(`No active learning ${id}.`);
+  appendArchive(store, "learnings", [{ ...l, archived_at: now.toISOString(), archived_reason: reason }]);
+  save(store, loaded.active.filter((x) => x.id !== id), loaded.unparsed, now);
+  return l;
+}
 
 // core/lib/memory/memorylog.ts
 import path15 from "node:path";
@@ -9207,6 +9224,17 @@ function scoreAreas(file2, now = /* @__PURE__ */ new Date()) {
     worst_severity: a.events.map((e) => e.severity).sort((x, y) => order.indexOf(x) - order.indexOf(y))[0],
     last_seen: a.events[0]?.date ?? ""
   })).sort((a, b) => b.score - a.score || a.area.localeCompare(b.area));
+}
+function archiveRiskArea(store, area, reason, now = /* @__PURE__ */ new Date()) {
+  const file2 = loadRisk(store);
+  const key = areaKey(area);
+  const found = file2.areas.find((a) => areaKey(a.area) === key);
+  if (!found) throw new Error(`No risk area "${area}". Use \`qamind memory review\` to see the exact names.`);
+  appendArchive(store, "risk-areas", [{ ...found, archived_at: now.toISOString(), archived_reason: reason }]);
+  file2.areas = file2.areas.filter((a) => a !== found);
+  file2.updated = now.toISOString();
+  writeMemoryJson(memoryPaths(store).riskAreas, file2);
+  return found;
 }
 
 // core/lib/memory/update.ts
@@ -10942,7 +10970,7 @@ var notFoundValue = (p) => {
 };
 function fillPath(ep, mode, own = false) {
   const needs = [];
-  const path35 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
+  const path38 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
     const param = ep.parameters.find((p) => p.in === "path" && p.name === name) ?? { name, in: "path", required: true };
     if (mode === "not-found") return encodeURIComponent(String(notFoundValue(param)));
     const resource = lastSegment(ep.path.slice(0, offset));
@@ -10951,7 +10979,7 @@ function fillPath(ep, mode, own = false) {
     needs.push(variable);
     return `{{${variable}}}`;
   });
-  return { path: path35, needs };
+  return { path: path38, needs };
 }
 function withReferences(value, vars) {
   if (Array.isArray(value)) return value.map((v) => withReferences(v, vars));
@@ -11756,6 +11784,23 @@ function inside(child, parent) {
 function allowedWriteRoots(marker, home, tmpDirs) {
   return [path29.join(marker.project_root, ".qa"), home, ...tmpDirs];
 }
+var OWNER_FILES = /* @__PURE__ */ new Set(["global-lessons.md", "pending-lessons.md", "rejected-lessons.jsonl", "lesson-use.json", "auto.json"]);
+var OWNER_FILE_IN_COMMAND = /(?:global-lessons\.md|pending-lessons\.md|rejected-lessons\.jsonl|lesson-use\.json|auto\.json)/;
+var WRITES_FILES = /(?:>|\btee\b|\bsed\s+-[A-Za-z]*i|\b(?:mv|cp|rm|truncate|dd|install|ln)\b|\b(?:node|python3?|perl|ruby)\b)/;
+var OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
+function ownerOnly(tool, ti, abs, home) {
+  const why = "Approving lessons, archiving memory and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-auto).";
+  if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
+    const target = String(ti["file_path"] ?? ti["notebook_path"] ?? "");
+    if (target && OWNER_FILES.has(path29.basename(target)) && inside(abs(target), home)) return `${why} (${path29.basename(target)} is the user's file.)`;
+  }
+  if (tool === "Bash") {
+    const cmd = String(ti["command"] ?? "");
+    if (OWNER_COMMAND.test(cmd)) return why;
+    if (OWNER_FILE_IN_COMMAND.test(cmd) && WRITES_FILES.test(cmd)) return `${why} (That command would write one of the user's lesson or settings files.)`;
+  }
+  return void 0;
+}
 function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new Date()) {
   if (!input.session_id) return null;
   const marker = findActiveMarkers(home, now).find((m) => m.session_id === input.session_id);
@@ -11787,6 +11832,8 @@ function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new D
       return { decision: "deny", reason: `The browser tool would save "${name}" in the project folder. Save evidence inside the run folder with an absolute path, for example ${path29.join(marker.run_dir, "screenshots", "<slug>.png")}, so the project stays untouched.` };
     }
   }
+  const owner = ownerOnly(tool, ti, abs, home);
+  if (owner) return { decision: "deny", reason: owner };
   if (!marker.readonly) return marker.kind === "qa" ? decideFixRun(marker, tool, ti, abs, home, tmpDirs) : null;
   const writable = (p) => roots.some((r) => inside(abs(p), r));
   if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
@@ -11860,8 +11907,253 @@ function toHookOutput(d) {
   return { hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: d.decision, permissionDecisionReason: d.reason } };
 }
 
-// core/lib/runctx.ts
+// core/lib/memory/lessons.ts
+import crypto3 from "node:crypto";
+import fs19 from "node:fs";
 import path30 from "node:path";
+var PENDING_FILE = "pending-lessons.md";
+var APPROVED_FILE = "global-lessons.md";
+var REJECTED_FILE = "rejected-lessons.jsonl";
+var USE_FILE = "lesson-use.json";
+var MAX_PENDING = 100;
+var MAX_LOADED = 25;
+var MERGE_AT2 = 0.6;
+var one4 = (s) => s.replace(/\s+/g, " ").trim();
+var NOT_GENERIC = [
+  [/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/, "an email address"],
+  [/https?:\/\/|\bwww\./i, "a web address"],
+  [/\b(?:\d{1,3}\.){3}\d{1,3}\b|\blocalhost\b|\b[\w-]+\.(?:com|org|net|io|dev|app|test|local|internal|co|ai)\b/i, "a host name or IP address"],
+  [/(?:^|[\s(])[\w.-]*\/[\w.-]+\/[\w./-]+|\b[\w-]+\.(?:js|mjs|ts|tsx|py|php|rb|java|cs|json|ya?ml|html|css|sql|md)\b/i, "a file path or file name"],
+  [/`|=>|\{[^}]*:|\b\w+\([^)]*\)\s*[;{]|<\/?\w+[^>]*>/, "code"],
+  [/\b[A-Z][A-Z0-9]{1,9}-\d{1,6}\b/, "a ticket or issue id"],
+  [/\b(?:ISSUE|RUN|run)-\d+|\brun-\d{8}T/i, "a QAMind run or issue id"]
+];
+function genericProblems(text2, ctx = {}) {
+  const problems = [];
+  for (const [re, what] of NOT_GENERIC) if (re.test(text2)) problems.push(`mentions ${what}`);
+  const lower = text2.toLowerCase();
+  for (const name of ctx.projectNames ?? []) {
+    const n = name.trim().toLowerCase();
+    if (n.length >= 4 && new RegExp(`(^|[^\\p{L}\\p{N}])${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^\\p{L}\\p{N}]|$)`, "u").test(lower)) problems.push(`names this project ("${name.trim()}")`);
+  }
+  return [...new Set(problems)];
+}
+function knownProjectNames(home, extra = []) {
+  const names = new Set(extra);
+  for (const p of listKnownProjects(home)) {
+    names.add(p.name);
+    for (const seen of p.paths_seen) names.add(path30.basename(seen));
+  }
+  return [...names].filter((n) => n.trim().length > 0);
+}
+var hashId = (text2) => `H-${crypto3.createHash("sha1").update(one4(text2).toLowerCase()).digest("hex").slice(0, 6)}`;
+var HEADER = /^##\s+(.*)$/;
+var LESSON_LINE = /^-\s+\*\*Lesson:\*\*\s*(.+)$/;
+var WHY_LINE = /^-\s+\*\*Why:\*\*\s*(.+)$/;
+var PLAIN_BULLET = /^-\s+(?!\*\*)(.{20,})$/;
+function parseLessons(text2) {
+  const preamble = [];
+  const blocks = [];
+  let cur;
+  let prevBlank = false;
+  const flush = () => {
+    if (!cur) return;
+    while (cur.lines.length > 1 && (cur.lines[cur.lines.length - 1] ?? "").trim() === "") cur.lines.pop();
+    if (cur.text) blocks.push(cur);
+    else preamble.push(...cur.lines);
+    cur = void 0;
+  };
+  for (const line of text2.split(/\r?\n/)) {
+    const h = HEADER.exec(line);
+    if (h) {
+      flush();
+      const parts = h[1].split("\xB7").map((s) => s.trim());
+      const id = /^[A-Za-z]+-\d+$/.test(parts[0] ?? "") ? parts[0] : "";
+      cur = { id, text: "", lines: [line], ...parts[1] ? { date: parts[1] } : {}, ...parts[2] ? { area: parts[2] } : {} };
+      if (!id) cur.hand = true;
+      continue;
+    }
+    const lonely = cur && cur.text !== "" && prevBlank ? PLAIN_BULLET.exec(line) : null;
+    if (lonely) {
+      flush();
+      const t = lonely[1].trim();
+      blocks.push({ id: hashId(t), text: t, hand: true, lines: [line] });
+      prevBlank = false;
+      continue;
+    }
+    prevBlank = line.trim() === "";
+    if (cur) {
+      cur.lines.push(line);
+      const l = LESSON_LINE.exec(line) ?? (cur.text ? null : PLAIN_BULLET.exec(line));
+      if (l && !cur.text) cur.text = l[1].trim();
+      const w = WHY_LINE.exec(line);
+      if (w) cur.reason = w[1].trim();
+      continue;
+    }
+    const lone = LESSON_LINE.exec(line) ?? PLAIN_BULLET.exec(line);
+    if (lone) {
+      const t = lone[1].trim();
+      blocks.push({ id: hashId(t), text: t, hand: true, lines: [line] });
+    } else preamble.push(line);
+  }
+  flush();
+  for (const b of blocks) if (!b.id) b.id = hashId(b.text);
+  return { preamble, blocks };
+}
+var readFile = (file2) => parseLessons(fs19.existsSync(file2) ? fs19.readFileSync(file2, "utf8") : "");
+var entryOf = ({ lines: _l, ...e }) => e;
+function writeText(file2, text2) {
+  ensureDir(path30.dirname(file2));
+  const tmp = `${file2}.${process.pid}.tmp`;
+  fs19.writeFileSync(tmp, text2, "utf8");
+  fs19.renameSync(tmp, file2);
+}
+var render = (p, extra = []) => {
+  const body = [...p.preamble.join("\n").replace(/\s*$/, "").split("\n"), "", ...p.blocks.flatMap((b) => [...b.lines, ""]), ...extra].join("\n");
+  return `${body.replace(/\n{3,}/g, "\n\n").replace(/\s*$/, "")}
+`;
+};
+var pendingHeader = `# Pending lessons
+
+Lessons QAMind proposes for any project. **Nothing here is used until you approve it**: ask for a memory review (\`/qa-memory-review lessons\`), or move an entry to \`${APPROVED_FILE}\` yourself, or delete it.
+Each one is generic by rule: no project names, web addresses, files, tickets or code.`;
+var approvedHeader = `# Global lessons
+
+Lessons you approved. **Every QAMind project reads this file** (the newest ${MAX_LOADED} at most, best-used first), so each entry must help on any project: no project names, web addresses, files, tickets or code.
+An entry that breaks that rule is not loaded, and the review says why. You can add, edit or delete entries by hand.`;
+var rejectedRecords = (home) => readJsonl(path30.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
+function appendRejected(home, rec) {
+  const file2 = path30.join(home, REJECTED_FILE);
+  const prior = readJsonl(file2);
+  writeJsonl(file2, "rejected-lessons", [...prior.records, rec], prior.unparsed);
+}
+var allIds = (home) => {
+  const approved = readFile(path30.join(home, APPROVED_FILE)).blocks;
+  const origins = approved.flatMap((b) => b.lines.flatMap((l) => [...l.matchAll(/\(was ([A-Z]-\d+)\)/g)].map((m) => m[1])));
+  return [...readFile(path30.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
+};
+function listPendingLessons(home) {
+  return readFile(path30.join(home, PENDING_FILE)).blocks.map(entryOf);
+}
+function approveLesson(home, id, opts2 = {}) {
+  const pendingFile = path30.join(home, PENDING_FILE);
+  const approvedFile = path30.join(home, APPROVED_FILE);
+  return withStoreLock(home, () => {
+    const pending = readFile(pendingFile);
+    const at = pending.blocks.findIndex((b) => b.id === id);
+    if (at < 0) throw new Error(`No pending lesson ${id}.${pending.blocks.length ? ` Pending: ${pending.blocks.map((b) => b.id).join(", ")}.` : " Nothing is pending."}`);
+    const block = pending.blocks[at];
+    const text2 = one4(opts2.text ?? block.text);
+    if (text2.length < 20 || text2.length > 280) throw new Error("A lesson is one generic statement of 20 to 280 characters.");
+    const problems = [...genericProblems(`${text2} ${block.reason ?? ""} ${block.area ?? ""}`, { projectNames: knownProjectNames(home) }), ...screenForSecretsAndPii(text2).map((p) => p)];
+    if (problems.length) throw new Error(`${id} cannot be approved as written: it ${[...new Set(problems)].join("; ")}. Every project reads approved lessons, so reword it (describe the kind of problem, not this product) and approve it again with the new text.`);
+    const approved = readFile(approvedFile);
+    const dup = approved.blocks.map((b) => ({ b, s: similarity(b.text, text2) })).filter((x) => x.s >= MERGE_AT2).sort((a, b) => b.s - a.s)[0];
+    if (dup) throw new Error(`${id} is a near copy of the approved lesson ${dup.b.id} ("${dup.b.text}"). Reject ${id} instead of approving it twice.`);
+    const newId = nextId("G", allIds(home));
+    const date = (opts2.now ?? /* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const lines = [`## ${newId} \xB7 ${date}${block.area ? ` \xB7 ${block.area}` : ""}`, `- **Lesson:** ${text2}`, ...block.reason ? [`- **Why:** ${block.reason}`] : [], `- **Approved:** ${date} (was ${id})`];
+    approved.blocks.push({ id: newId, text: text2, ...block.reason ? { reason: block.reason } : {}, date, ...block.area ? { area: block.area } : {}, lines });
+    if (approved.preamble.join("").trim() === "") approved.preamble = approvedHeader.split("\n");
+    writeText(approvedFile, render(approved));
+    pending.blocks.splice(at, 1);
+    writeText(pendingFile, render(pending));
+    return { action: "approved", id, new_id: newId, text: text2, file: approvedFile };
+  });
+}
+function rejectLesson(home, id, reason, now = /* @__PURE__ */ new Date()) {
+  const pendingFile = path30.join(home, PENDING_FILE);
+  const approvedFile = path30.join(home, APPROVED_FILE);
+  return withStoreLock(home, () => {
+    for (const [file2, was] of [[pendingFile, "pending"], [approvedFile, "approved"]]) {
+      const parsed = readFile(file2);
+      const at = parsed.blocks.findIndex((b) => b.id === id);
+      if (at < 0) continue;
+      const block = parsed.blocks[at];
+      const why = reason ? one4(reason).slice(0, 280) : void 0;
+      parsed.blocks.splice(at, 1);
+      writeText(file2, render(parsed));
+      appendRejected(home, { id, text: block.text, ...why ? { reason: why } : {}, was, rejected_at: now.toISOString() });
+      return { action: "rejected", id, text: block.text, file: file2 };
+    }
+    throw new Error(`No pending or approved lesson ${id}. Use \`qamind lessons list\` to see the ids.`);
+  });
+}
+var readLessonUse = (home) => {
+  try {
+    const v = readJson(path30.join(home, USE_FILE));
+    return v && typeof v === "object" && !Array.isArray(v) ? v : {};
+  } catch {
+    return {};
+  }
+};
+function loadApprovedLessons(home, ctx = {}) {
+  const entries = readFile(path30.join(home, APPROVED_FILE)).blocks;
+  const use = readLessonUse(home);
+  const ok = [];
+  const skipped = [];
+  for (const b of entries) {
+    const problems = [...genericProblems(`${b.text} ${b.area ?? ""}`, { projectNames: ctx.projectNames ?? [] }), ...screenForSecretsAndPii(b.text)];
+    if (b.text.length < 20) problems.push("is shorter than 20 characters");
+    if (b.text.length > 280) problems.push("is longer than 280 characters");
+    if (problems.length) skipped.push({ id: b.id, text: b.text.slice(0, 120), problems: [...new Set(problems)] });
+    else ok.push(b);
+  }
+  const ranked = ok.map((b, i) => ({ b, i })).sort((x, y) => (use[y.b.id]?.hits ?? 0) - (use[x.b.id]?.hits ?? 0) || (y.b.date ?? "").localeCompare(x.b.date ?? "") || y.i - x.i).map((x) => x.b);
+  return {
+    lessons: ranked.slice(0, MAX_LOADED).map((b) => ({ id: b.id, text: b.text, ...b.area ? { area: b.area } : {} })),
+    skipped,
+    total_approved: entries.length,
+    truncated: ranked.length > MAX_LOADED
+  };
+}
+function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
+  const approved = new Set(readFile(path30.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
+  const unique = [...new Set(ids)];
+  const recorded = unique.filter((i) => approved.has(i));
+  const unknown = unique.filter((i) => !approved.has(i));
+  if (recorded.length) {
+    ensureDir(home);
+    withStoreLock(home, () => {
+      const use = readLessonUse(home);
+      for (const id of recorded) use[id] = { hits: (use[id]?.hits ?? 0) + 1, last_applied: now.toISOString() };
+      writeJson(path30.join(home, USE_FILE), use);
+    });
+  }
+  return { recorded, unknown };
+}
+function lessonOverview(home, ctx = {}) {
+  const loaded = loadApprovedLessons(home, ctx);
+  const use = readLessonUse(home);
+  const skipped = new Map(loaded.skipped.map((s) => [s.id, s.problems]));
+  return {
+    pending: listPendingLessons(home),
+    approved: readFile(path30.join(home, APPROVED_FILE)).blocks.map((b) => ({ ...entryOf(b), hits: use[b.id]?.hits ?? 0, ...use[b.id]?.last_applied ? { last_applied: use[b.id]?.last_applied } : {}, loaded: !skipped.has(b.id) && loaded.lessons.some((l) => l.id === b.id), ...skipped.has(b.id) ? { not_loaded_because: skipped.get(b.id) } : {} })),
+    rejected: rejectedRecords(home).map((r) => ({ id: r.id, text: r.text, ...r.reason ? { reason: r.reason } : {}, was: r.was, rejected_at: r.rejected_at })),
+    limits: { max_pending: MAX_PENDING, max_loaded: MAX_LOADED }
+  };
+}
+
+// core/lib/memory/review.ts
+import fs21 from "node:fs";
+import path34 from "node:path";
+
+// core/lib/memory/fixlog.ts
+function loadFixLog(store) {
+  const r = readJsonl(memoryPaths(store).fixLog);
+  const entries = r.records.filter((e) => typeof e.id === "string" && typeof e.issue === "string");
+  const dropped = r.records.length - entries.length;
+  return { entries, warnings: [...r.warnings, ...dropped ? [`fix-log.jsonl: ${dropped} entr${dropped === 1 ? "y" : "ies"} without an id or issue were ignored (kept in the file).`] : []], unparsed: r.unparsed };
+}
+function recentFixes(store, limit = 8) {
+  return loadFixLog(store).entries.slice(-limit).reverse().map((e) => ({ issue: e.issue, severity: e.severity, area: e.area, title: e.title, outcome: e.outcome, files: e.files, test_files: e.test_files, ...e.root_cause ? { root_cause: e.root_cause } : {} }));
+}
+
+// core/lib/memory/service.ts
+import path33 from "node:path";
+
+// core/lib/runctx.ts
+import path31 from "node:path";
 function loadRunContext(home, runId, env = process.env) {
   if (!runId) throw new Error("--run <run-id> is required (use the id printed by `run start`).");
   const marker = findMarkerByRunId(home, runId);
@@ -11879,7 +12171,7 @@ function loadRunContext(home, runId, env = process.env) {
   return {
     marker,
     projectRoot: marker.project_root,
-    runDir: path30.resolve(marker.run_dir),
+    runDir: path31.resolve(marker.run_dir),
     config: check.config,
     policy: marker.policy,
     roles,
@@ -11888,29 +12180,16 @@ function loadRunContext(home, runId, env = process.env) {
 }
 
 // core/lib/memory/context.ts
-import fs19 from "node:fs";
-import path31 from "node:path";
-
-// core/lib/memory/fixlog.ts
-function loadFixLog(store) {
-  const r = readJsonl(memoryPaths(store).fixLog);
-  const entries = r.records.filter((e) => typeof e.id === "string" && typeof e.issue === "string");
-  const dropped = r.records.length - entries.length;
-  return { entries, warnings: [...r.warnings, ...dropped ? [`fix-log.jsonl: ${dropped} entr${dropped === 1 ? "y" : "ies"} without an id or issue were ignored (kept in the file).`] : []], unparsed: r.unparsed };
-}
-function recentFixes(store, limit = 8) {
-  return loadFixLog(store).entries.slice(-limit).reverse().map((e) => ({ issue: e.issue, severity: e.severity, area: e.area, title: e.title, outcome: e.outcome, files: e.files, test_files: e.test_files, ...e.root_cause ? { root_cause: e.root_cause } : {} }));
-}
-
-// core/lib/memory/context.ts
+import fs20 from "node:fs";
+import path32 from "node:path";
 var PER_TYPE = 6;
 var MAX_PAGES_SHOWN = 40;
 function recentRunSummaries(store, limit = 3) {
   const dir = memoryPaths(store).runs;
-  if (!fs19.existsSync(dir)) return [];
-  return fs19.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().slice(0, limit).map((f) => readJson(path31.join(dir, f))).filter((r) => !!r);
+  if (!fs20.existsSync(dir)) return [];
+  return fs20.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().slice(0, limit).map((f) => readJson(path32.join(dir, f))).filter((r) => !!r);
 }
-function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date()) {
+function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), opts2 = {}) {
   const paths = memoryPaths(store);
   const stack = readJson(paths.stack);
   const runs = recentRunSummaries(store, limit);
@@ -11927,6 +12206,11 @@ function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date()) {
   const last = runs[0];
   if (last && last.counts.critical + last.counts.important > 0) focus.push(`The last run (${last.run_id}) found ${last.counts.critical} critical and ${last.counts.important} important problems: re-verify them first.`);
   if ((learnings["env-quirk"]?.length ?? 0) > 0) focus.push("Known environment quirks exist: read them before running anything slow or order-dependent.");
+  const lessons = opts2.home ? loadApprovedLessons(opts2.home, { projectNames: opts2.projectNames ?? [] }) : void 0;
+  const lessonWarnings = [
+    ...(lessons?.skipped ?? []).map((s) => `The approved lesson ${s.id} was not loaded: it ${s.problems.join("; ")}. The owner can reword or remove it in /qa-memory-review.`),
+    ...lessons?.truncated ? [`More than the newest ${lessons.lessons.length} approved lessons exist; only the best-used and newest are shown.`] : []
+  ];
   const uis = {};
   if (map) for (const [ui, entry] of Object.entries(map.uis)) uis[ui] = Object.keys(entry.pages).sort().slice(0, MAX_PAGES_SHOWN);
   return {
@@ -11940,17 +12224,10 @@ function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date()) {
     previous_findings: { ...last ? { from_run: last.run_id } : {}, findings: (last?.findings ?? []).slice(0, 25) },
     product_map: { pages: pageCount(map), endpoints: map ? Object.keys(map.api.endpoints).length : 0, ...map ? { last_run: map.last_run } : {}, uis },
     fix_log: recentFixes(store),
-    warnings: [...learned.warnings, ...alarms.warnings, ...loadFixLog(store).warnings]
+    global_lessons: lessons?.lessons ?? [],
+    warnings: [...learned.warnings, ...alarms.warnings, ...loadFixLog(store).warnings, ...lessonWarnings]
   };
 }
-
-// core/lib/memory/lessons.ts
-var APPROVED_FILE = "global-lessons.md";
-var header = `# Pending lessons
-
-Lessons QAMind proposes for any project. **Nothing here is used until you approve it**: move an entry to \`${APPROVED_FILE}\` (or ask for a memory review), or delete it.
-Each one is generic by rule: no project names, web addresses, files, tickets or code.
-`;
 
 // core/lib/memory/service.ts
 function runScope(home, runId, env = process.env) {
@@ -11958,9 +12235,28 @@ function runScope(home, runId, env = process.env) {
   ensureMigrated(ctx.marker.store);
   return { kind: "run", home, store: ctx.marker.store, runId: ctx.marker.run_id, runDir: ctx.runDir, mode: ctx.marker.mode, ctx };
 }
+function defaultProjectDir(env = process.env, cwd = process.cwd()) {
+  return env["QAMIND_PROJECT_DIR"] || env["CLAUDE_PROJECT_DIR"] || cwd;
+}
+function projectScope(home, opts2 = {}) {
+  const env = opts2.env ?? process.env;
+  const root = path33.resolve(opts2.project ?? defaultProjectDir(env, opts2.cwd ?? process.cwd()));
+  let info;
+  try {
+    info = resolveProject(root);
+  } catch {
+    throw new Error(`The folder ${root} does not exist, so there is no project to read memory for. Pass the project folder.`);
+  }
+  const store = storeDir(home, info.id);
+  ensureMigrated(store);
+  return { kind: "project", home, store, project: { id: info.id, name: info.name, root: info.root } };
+}
 var secretsOf = (s) => s.ctx.passwords;
+function projectNamesOf(scope) {
+  return scope.kind === "run" ? [path33.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path33.basename(scope.project.root)];
+}
 function getContext(scope, limit = 3) {
-  const ctx = loadMemoryContext(scope.store, limit);
+  const ctx = loadMemoryContext(scope.store, limit, /* @__PURE__ */ new Date(), { home: scope.home, projectNames: projectNamesOf(scope) });
   return scope.kind === "project" ? { ...ctx, project: scope.project } : ctx;
 }
 function listMemory(scope, what, limit = 50) {
@@ -12007,11 +12303,14 @@ function recordApplied(scope, ids, now = /* @__PURE__ */ new Date()) {
   return withStoreLock(scope.store, () => {
     const learnings = loadLearnings(scope.store, now).active;
     const alarms = loadFalseAlarms(scope.store, now).alarms;
-    const unknown = ids.filter((id) => !learnings.some((l) => l.id === id) && !alarms.some((a) => a.id === id));
-    if (unknown.length) throw new Error(`These ids do not exist in this project's memory: ${unknown.join(", ")}. Cite only what the memory context gave you. Nothing was recorded.`);
-    const applied = markApplied(scope.store, ids.filter((i) => i.startsWith("L-")), now);
+    const globals = loadApprovedLessons(scope.home, { projectNames: projectNamesOf(scope) }).lessons;
+    const unknown = ids.filter((id) => !learnings.some((l) => l.id === id) && !alarms.some((a) => a.id === id) && !globals.some((g) => g.id === id));
+    if (unknown.length) throw new Error(`These ids do not exist in this project's memory or in the approved global lessons: ${unknown.join(", ")}. Cite only what the memory context gave you. Nothing was recorded.`);
+    const applied = markApplied(scope.store, ids.filter((i) => learnings.some((l) => l.id === i)), now);
+    const usedGlobals = recordLessonUse(scope.home, ids.filter((i) => globals.some((g) => g.id === i)), now).recorded;
+    for (const id of usedGlobals) appendMemoryLog(scope.runDir, { kind: "global-lesson-applied", id, text: globals.find((g) => g.id === id)?.text ?? "" }, now);
     for (const l of applied.applied) appendMemoryLog(scope.runDir, { kind: "learning-applied", id: l.id, text: `(${l.area}) ${l.text}` }, now);
-    for (const id of ids.filter((i) => i.startsWith("FA-"))) {
+    for (const id of ids.filter((i) => alarms.some((a) => a.id === i))) {
       const a = alarms.find((x) => x.id === id);
       if (a) appendMemoryLog(scope.runDir, { kind: "false-alarm-skipped", id, text: a.symptom }, now);
     }
@@ -12035,11 +12334,98 @@ function finishRunTracked(home, runId, opts2 = {}) {
   return withStoreLock(marker.store, () => finishRun({ home, runId, ...opts2 }));
 }
 
+// core/lib/memory/review.ts
+var LOW_CONFIDENCE = 4;
+var STALE_DAYS = 180;
+var UNUSED_DAYS = 90;
+var UNUSED_ALARM_DAYS = 120;
+var OLD_RISK_DAYS = 365;
+var archivedCounts = (store) => {
+  const dir = memoryPaths(store).archiveDir;
+  if (!fs21.existsSync(dir)) return {};
+  return Object.fromEntries(fs21.readdirSync(dir).filter((f) => f.endsWith(".jsonl")).map((f) => [f.replace(/\.jsonl$/, ""), readJsonl(path34.join(dir, f)).records.length]));
+};
+var projectOf = (scope) => scope.kind === "project" ? { id: scope.project.id, name: scope.project.name } : { id: path34.basename(scope.store), name: path34.basename(scope.ctx.projectRoot) };
+function reviewOverview(scope, now = /* @__PURE__ */ new Date()) {
+  const learned = loadLearnings(scope.store, now);
+  const alarms = loadFalseAlarms(scope.store, now);
+  const risk = scoreAreas(loadRisk(scope.store), now);
+  const learnings = learned.active.map((l) => {
+    const age = Math.round(daysBetween(l.created, now));
+    const since = daysBetween(l.last_confirmed, now);
+    const why = [];
+    if (l.confidence <= LOW_CONFIDENCE) why.push(`low confidence (${l.confidence} of 10)`);
+    if (since >= STALE_DAYS) why.push(`not confirmed for ${Math.round(since)} days`);
+    if (l.hits === 0 && age >= UNUSED_DAYS && l.confidence <= 5) why.push(`never used in ${age} days and only moderately trusted`);
+    return { id: l.id, type: l.type, area: l.area, text: l.text, confidence: l.confidence, hits: l.hits, last_confirmed: l.last_confirmed.slice(0, 10), age_days: age, ...why.length ? { prune_because: why } : {} };
+  });
+  const falseAlarms = alarms.alarms.map((a) => {
+    const age = Math.round(daysBetween(a.created, now));
+    return { id: a.id, area: a.area, symptom: a.symptom, reason: a.reason, source: a.source, hits: a.hits, created: a.created.slice(0, 10), ...a.hits === 0 && age >= UNUSED_ALARM_DAYS ? { prune_because: [`never matched a later finding in ${age} days`] } : {} };
+  });
+  const areas = risk.map((r) => ({ area: r.area, score: r.score, occurrences: r.occurrences, worst_severity: r.worst_severity, last_seen: r.last_seen.slice(0, 10), ...daysBetween(r.last_seen, now) >= OLD_RISK_DAYS ? { prune_because: [`last problem seen ${Math.round(daysBetween(r.last_seen, now))} days ago`] } : {} }));
+  const sorted = [...learnings].sort((a, b) => Number(!!b.prune_because) - Number(!!a.prune_because) || a.confidence - b.confidence);
+  return {
+    project: projectOf(scope),
+    learnings: { total: learnings.length, by_type: Object.fromEntries(LEARNING_TYPES.map((t) => [t, learnings.filter((l) => l.type === t).length]).filter(([, n]) => n > 0)), items: sorted.slice(0, 150) },
+    false_alarms: { total: falseAlarms.length, items: falseAlarms },
+    risk_areas: areas,
+    lessons: lessonOverview(scope.home, { projectNames: projectNamesOf(scope) }),
+    archived: archivedCounts(scope.store),
+    prune_candidates: learnings.filter((l) => l.prune_because).length + falseAlarms.filter((a) => a.prune_because).length + areas.filter((a) => a.prune_because).length,
+    warnings: [...learned.warnings, ...alarms.warnings]
+  };
+}
+function pruneMemory(scope, target, reason, now = /* @__PURE__ */ new Date()) {
+  const picked = [target.learning, target.falseAlarm, target.risk].filter((x) => x !== void 0);
+  if (picked.length !== 1) throw new Error("Name exactly one thing to archive: --learning ID, --false-alarm ID or --risk AREA.");
+  const why = `owner review${reason ? `: ${reason.replace(/\s+/g, " ").trim().slice(0, 200)}` : ""}`;
+  return withStoreLock(scope.store, () => {
+    if (target.learning) return { archived: archiveLearning(scope.store, target.learning, why, now).id, kind: "learning", reason: why };
+    if (target.falseAlarm) return { archived: archiveFalseAlarm(scope.store, target.falseAlarm, why, now).id, kind: "false alarm", reason: why };
+    return { archived: archiveRiskArea(scope.store, target.risk, why, now).area, kind: "risk area", reason: why };
+  });
+}
+var avg = (xs) => xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length * 10) / 10 : 0;
+function memoryStats(scope, now = /* @__PURE__ */ new Date()) {
+  const all = recentRunSummaries(scope.store, 1e3).reverse();
+  const point = (r) => ({ run_id: r.run_id, finished: r.finished, mode: r.mode, trigger: r.trigger, critical: r.counts.critical, important: r.counts.important, minor: r.counts.minor, minutes: Math.round(r.duration_s / 60 * 10) / 10, tested: r.coverage.tested, not_tested: r.coverage.not_tested });
+  const pts = all.map(point);
+  const count = (key) => all.reduce((m, r) => ({ ...m, [key(r)]: (m[key(r)] ?? 0) + 1 }), {});
+  const earlier = pts.slice(-6, -3);
+  const latest = pts.slice(-3);
+  const trend = pts.length >= 6 ? {
+    available: true,
+    note: "The average of the latest 3 runs against the 3 before them. Runs of different modes are mixed, so read it as a direction, not a measurement.",
+    serious_problems_per_run: { earlier: avg(earlier.map((p) => p.critical + p.important)), latest: avg(latest.map((p) => p.critical + p.important)) },
+    minutes_per_run: { earlier: avg(earlier.map((p) => p.minutes)), latest: avg(latest.map((p) => p.minutes)) },
+    tested_areas_per_run: { earlier: avg(earlier.map((p) => p.tested)), latest: avg(latest.map((p) => p.tested)) }
+  } : { available: false, note: `A trend needs at least 6 finished runs; this project has ${pts.length}.` };
+  const learned = loadLearnings(scope.store, now).active;
+  const alarms = loadFalseAlarms(scope.store, now).alarms;
+  const fixes = loadFixLog(scope.store).entries.reduce((m, f) => ({ ...m, [f.outcome]: (m[f.outcome] ?? 0) + 1 }), {});
+  const lessons = lessonOverview(scope.home, { projectNames: projectNamesOf(scope) });
+  const use = readLessonUse(scope.home);
+  return {
+    project: projectOf(scope),
+    runs: { total: pts.length, ...pts[0] ? { first: pts[0].finished.slice(0, 10) } : {}, ...pts.length ? { last: pts[pts.length - 1].finished.slice(0, 10) } : {}, by_mode: count((r) => r.mode), by_trigger: count((r) => r.trigger), recent: pts.slice(-10) },
+    trend,
+    memory: {
+      learnings: { active: learned.length, archived: archivedCounts(scope.store)["learnings"] ?? 0, used_at_least_once: learned.filter((l) => l.hits > 0).length, times_applied: learned.reduce((n, l) => n + l.hits, 0), average_confidence: avg(learned.map((l) => l.confidence)) },
+      false_alarms: { active: alarms.length, times_skipped: alarms.reduce((n, a) => n + a.hits, 0) },
+      risk_areas: loadRisk(scope.store).areas.filter((a) => a.events.length > 0).length,
+      fixes
+    },
+    global_lessons: { pending: lessons.pending.length, approved: lessons.approved.length, loaded_here: lessons.approved.filter((a) => a.loaded).length, rejected: lessons.rejected.length, times_applied: Object.values(use).reduce((n, u) => n + (u?.hits ?? 0), 0) },
+    not_available_yet: ["Precision (true findings out of all findings): it needs your verdicts on findings, which arrive with /qa-feedback in a later phase.", "Escaped bugs (production errors in areas marked as passing): they need Sentry or labelled tickets, which arrive in a later phase."]
+  };
+}
+
 // core/scripts/browser-launcher.ts
 import { spawn } from "node:child_process";
-import fs20 from "node:fs";
+import fs22 from "node:fs";
 import os2 from "node:os";
-import path32 from "node:path";
+import path35 from "node:path";
 import { createRequire } from "node:module";
 
 // core/scripts/guard-proxy.ts
@@ -12138,15 +12524,15 @@ function startGuardProxy(home, port = 0) {
 // core/scripts/browser-launcher.ts
 var PLAYWRIGHT_MCP_VERSION = "0.0.83";
 function detectChromeChannel() {
-  const exists2 = (p) => fs20.existsSync(p);
-  const onPath = (name) => (process.env["PATH"] ?? "").split(path32.delimiter).some((d) => d && exists2(path32.join(d, name)));
+  const exists2 = (p) => fs22.existsSync(p);
+  const onPath = (name) => (process.env["PATH"] ?? "").split(path35.delimiter).some((d) => d && exists2(path35.join(d, name)));
   if (process.platform === "darwin") {
     if (exists2("/Applications/Google Chrome.app")) return "chrome";
     if (exists2("/Applications/Microsoft Edge.app")) return "msedge";
   } else if (process.platform === "win32") {
     const roots = [process.env["PROGRAMFILES"], process.env["PROGRAMFILES(X86)"], process.env["LOCALAPPDATA"]].filter((x) => !!x);
-    if (roots.some((r) => exists2(path32.join(r, "Google", "Chrome", "Application", "chrome.exe")))) return "chrome";
-    if (roots.some((r) => exists2(path32.join(r, "Microsoft", "Edge", "Application", "msedge.exe")))) return "msedge";
+    if (roots.some((r) => exists2(path35.join(r, "Google", "Chrome", "Application", "chrome.exe")))) return "chrome";
+    if (roots.some((r) => exists2(path35.join(r, "Microsoft", "Edge", "Application", "msedge.exe")))) return "msedge";
   } else {
     if (["google-chrome", "google-chrome-stable"].some(onPath)) return "chrome";
     if (onPath("microsoft-edge")) return "msedge";
@@ -12157,39 +12543,39 @@ function resolvePlaywrightMcp() {
   try {
     const req = createRequire(import.meta.url);
     const pkg = req.resolve("@playwright/mcp/package.json");
-    return { command: process.execPath, args: [path32.join(path32.dirname(pkg), "cli.js")] };
+    return { command: process.execPath, args: [path35.join(path35.dirname(pkg), "cli.js")] };
   } catch {
     return { command: process.platform === "win32" ? "npx.cmd" : "npx", args: ["--yes", `@playwright/mcp@${PLAYWRIGHT_MCP_VERSION}`] };
   }
 }
 async function runBrowserLauncher() {
   const home = qamindHome();
-  const projectRoot = fs20.realpathSync(path32.resolve(process.env["CLAUDE_PROJECT_DIR"] ?? process.cwd()));
+  const projectRoot = fs22.realpathSync(path35.resolve(process.env["CLAUDE_PROJECT_DIR"] ?? process.cwd()));
   const guard = await startGuardProxy(home);
   const secrets = {};
-  const envFile = path32.join(projectRoot, ".env.qa");
-  if (fs20.existsSync(envFile)) Object.assign(secrets, parseDotenv(fs20.readFileSync(envFile, "utf8")));
+  const envFile = path35.join(projectRoot, ".env.qa");
+  if (fs22.existsSync(envFile)) Object.assign(secrets, parseDotenv(fs22.readFileSync(envFile, "utf8")));
   try {
-    if (fs20.existsSync(path32.join(projectRoot, ".qa", "config.md"))) {
+    if (fs22.existsSync(path35.join(projectRoot, ".qa", "config.md"))) {
       const cfg = checkConfigFile(projectRoot).config;
       for (const r of cfg?.roles ?? []) for (const n of [r.username_env, r.password_env]) if (process.env[n]) secrets[n] = process.env[n];
     }
   } catch {
   }
-  const tmp = fs20.mkdtempSync(path32.join(os2.tmpdir(), "qamind-browser-"));
-  fs20.chmodSync(tmp, 448);
-  const secretsFile = path32.join(tmp, "secrets.env");
-  fs20.writeFileSync(secretsFile, Object.entries(secrets).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("\n") + "\n", { mode: 384 });
-  const outDir = path32.join(tmp, "output");
+  const tmp = fs22.mkdtempSync(path35.join(os2.tmpdir(), "qamind-browser-"));
+  fs22.chmodSync(tmp, 448);
+  const secretsFile = path35.join(tmp, "secrets.env");
+  fs22.writeFileSync(secretsFile, Object.entries(secrets).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("\n") + "\n", { mode: 384 });
+  const outDir = path35.join(tmp, "output");
   ensureDir(outDir);
-  const stateFile2 = path32.join(home, "state", "browser-state.json");
+  const stateFile2 = path35.join(home, "state", "browser-state.json");
   const state = readJson(stateFile2) ?? {};
   state[projectRoot] = { secret_names: Object.keys(secrets).sort(), proxy_port: guard.port, pid: process.pid, started: (/* @__PURE__ */ new Date()).toISOString() };
   writeJson(stateFile2, state);
   const auditScript = (() => {
     try {
-      const f = path32.join(corePath(), "shared", "page-audit.js");
-      return fs20.existsSync(f) ? f : void 0;
+      const f = path35.join(corePath(), "shared", "page-audit.js");
+      return fs22.existsSync(f) ? f : void 0;
     } catch {
       return void 0;
     }
@@ -12217,7 +12603,7 @@ async function runBrowserLauncher() {
   const child = spawn(mcp.command, args, { stdio: "inherit", cwd: projectRoot });
   const cleanup = async () => {
     await guard.close().catch(() => void 0);
-    fs20.rmSync(tmp, { recursive: true, force: true });
+    fs22.rmSync(tmp, { recursive: true, force: true });
   };
   for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => child.kill(sig));
   return new Promise((resolve) => {
@@ -12235,8 +12621,8 @@ async function runBrowserLauncher() {
 }
 
 // core/scripts/export-html.ts
-import fs21 from "node:fs";
-import path33 from "node:path";
+import fs23 from "node:fs";
+import path36 from "node:path";
 var esc2 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 var SEV_CLASS = { critical: "sev-critical", important: "sev-important", minor: "sev-minor" };
 var SEV_LABEL = { critical: "\u{1F534} Critical", important: "\u{1F7E0} Important", minor: "\u{1F7E1} Minor" };
@@ -12308,18 +12694,18 @@ function exportAdminHtml(runDir, store, opts2 = {}) {
   let total = 0;
   const embed = (rel) => {
     if (opts2.embedImages === false) return void 0;
-    const abs = path33.resolve(runDir, rel);
-    if (!abs.startsWith(path33.resolve(runDir) + path33.sep) || !fs21.existsSync(abs)) return void skipped.push(rel);
-    const mime = MIME[path33.extname(abs).toLowerCase()];
-    const size = fs21.statSync(abs).size;
+    const abs = path36.resolve(runDir, rel);
+    if (!abs.startsWith(path36.resolve(runDir) + path36.sep) || !fs23.existsSync(abs)) return void skipped.push(rel);
+    const mime = MIME[path36.extname(abs).toLowerCase()];
+    const size = fs23.statSync(abs).size;
     if (!mime || size > MAX_IMAGE_BYTES || total + size > MAX_TOTAL_IMAGE_BYTES) return void skipped.push(rel);
     total += size;
     embedded.push(rel);
-    return `data:${mime};base64,${fs21.readFileSync(abs).toString("base64")}`;
+    return `data:${mime};base64,${fs23.readFileSync(abs).toString("base64")}`;
   };
   const html = renderAdminHtml(model, `QAMind report: ${data.meta?.environment ?? "test"} check on ${plainDate(data.meta?.started)}`, { embed });
-  const file2 = opts2.out ? path33.resolve(opts2.out) : path33.join(runDir, "ADMIN-REPORT.html");
-  fs21.writeFileSync(file2, html, "utf8");
+  const file2 = opts2.out ? path36.resolve(opts2.out) : path36.join(runDir, "ADMIN-REPORT.html");
+  fs23.writeFileSync(file2, html, "utf8");
   return {
     file: file2,
     bytes: Buffer.byteLength(html),
@@ -12360,6 +12746,13 @@ Reporting and memory
   memory false-alarm --run ID --area A --symptom S --reason R [--source reproduction|owner|spec]
   memory show --run ID --what learnings|false-alarms|risk|map
   memory where [--project DIR] print the project's private store path
+  memory review [--project DIR]   what memory holds, with entries that look stale marked (owner's review)
+  memory stats  [--project DIR]   run history trend and memory use, and what cannot be measured yet
+  memory prune  --learning L-001 | --false-alarm FA-001 | --risk AREA [--reason TEXT] [--project DIR]   archive one entry (owner action)
+Global lessons (owner's list; see \`/qa-memory-review\`)
+  lessons list [--project DIR]              pending, approved (and whether each is loaded here) and rejected lessons
+  lessons approve ID [--text REWORDING]     pending lesson -> approved: every project reads it from then on (owner action)
+  lessons reject ID [--reason TEXT]         turn a pending lesson down, or retire an approved one (owner action)
   guard log    --run ID        origins the browser guard blocked during the run
 Auto-QA (default off; see \`qamind auto help\`)
   auto status|on|off|mode M|pause 1h|resume|global on|off|set K V   toggle QA after every agent task
@@ -12436,11 +12829,11 @@ async function loadInventory(ctx, specArg) {
     doc = loadSpecFile(resolveSpecPath(source, ctx.projectRoot));
   }
   const inv = buildInventory(doc, source);
-  writeJson(path34.join(ctx.runDir, "data", "api-inventory.json"), inv);
+  writeJson(path37.join(ctx.runDir, "data", "api-inventory.json"), inv);
   return inv;
 }
 function readInventory(ctx) {
-  return readJson(path34.join(ctx.runDir, "data", "api-inventory.json"));
+  return readJson(path37.join(ctx.runDir, "data", "api-inventory.json"));
 }
 async function cmdApi(sub, rest, home) {
   if (sub === "inventory") {
@@ -12488,10 +12881,10 @@ async function cmdApi(sub, rest, home) {
     });
     plan.name = values.name ?? (values.role ? `baseline-${role}` : "baseline");
     const rel = `data/plans/${plan.name}.json`;
-    writeJson(path34.join(ctx.runDir, rel), plan);
+    writeJson(path37.join(ctx.runDir, rel), plan);
     const byTag = {};
     for (const p of plan.probes) for (const t of p.tags ?? []) byTag[t] = (byTag[t] ?? 0) + 1;
-    emit({ plan_file: path34.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
+    emit({ plan_file: path37.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
     return 0;
   }
   if (sub === "run") {
@@ -12501,9 +12894,9 @@ async function cmdApi(sub, rest, home) {
     const base = ctx.config.api.base_url;
     if (!base) throw new UsageError("api.base_url is not set in .qa/config.md");
     const given = values.plan;
-    const byName = path34.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
-    const planFile = exists(path34.resolve(given)) ? path34.resolve(given) : exists(byName) ? byName : void 0;
-    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path34.join(ctx.runDir, "data", "plans")}.`);
+    const byName = path37.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
+    const planFile = exists(path37.resolve(given)) ? path37.resolve(given) : exists(byName) ? byName : void 0;
+    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path37.join(ctx.runDir, "data", "plans")}.`);
     const plan = readJson(planFile);
     const result = await runPlan(plan, {
       baseUrl: base,
@@ -12542,8 +12935,8 @@ async function cmdReport(sub, rest, home) {
       refreshChanges: true
     });
     emit({
-      technical_report: path34.join(ctx.runDir, "TECHNICAL-REPORT.md"),
-      admin_report: path34.join(ctx.runDir, "ADMIN-REPORT.md"),
+      technical_report: path37.join(ctx.runDir, "TECHNICAL-REPORT.md"),
+      admin_report: path37.join(ctx.runDir, "ADMIN-REPORT.md"),
       verdict: r.model.verdict.line,
       findings: r.data.findings.map((f) => `${f.id} ${f.severity}: ${f.title}`),
       unconfirmed: r.data.unconfirmed.length,
@@ -12573,9 +12966,20 @@ async function cmdReport(sub, rest, home) {
 async function cmdMemory(sub, rest, home) {
   if (sub === "where") {
     const { values: values2 } = opts(rest, { project: { type: "string" } });
-    const info = resolveProject(path34.resolve(values2.project ?? process.cwd()));
+    const info = resolveProject(path37.resolve(values2.project ?? process.cwd()));
     const { store } = ensureProjectStore(home, info);
     emit({ project_id: info.id, id_source: info.idSource, store });
+    return 0;
+  }
+  if (sub === "review" || sub === "stats" || sub === "prune") {
+    const { values: values2 } = opts(rest, { project: { type: "string" }, learning: { type: "string" }, "false-alarm": { type: "string" }, risk: { type: "string" }, reason: { type: "string" } });
+    const scope2 = projectScope(home, { ...values2.project ? { project: values2.project } : {} });
+    if (sub === "review") emit(reviewOverview(scope2));
+    else if (sub === "stats") emit(memoryStats(scope2));
+    else {
+      const target = { ...values2.learning ? { learning: values2.learning } : {}, ...values2["false-alarm"] ? { falseAlarm: values2["false-alarm"] } : {}, ...values2.risk ? { risk: values2.risk } : {} };
+      emit(pruneMemory(scope2, target, values2.reason));
+    }
     return 0;
   }
   const { values } = opts(rest, {
@@ -12626,11 +13030,34 @@ async function cmdMemory(sub, rest, home) {
     emit(listMemory(scope, what, 1e3));
     return 0;
   }
-  throw new UsageError("memory needs a subcommand: context | learn | applied | false-alarm | show | where");
+  throw new UsageError("memory needs a subcommand: context | learn | applied | false-alarm | show | where | review | stats | prune");
+}
+function cmdLessons(sub, rest, home) {
+  const { values, positionals } = opts(rest, { project: { type: "string" }, text: { type: "string" }, reason: { type: "string" } });
+  if (sub === "list") {
+    let names = [];
+    try {
+      names = projectNamesOf(projectScope(home, { ...values.project ? { project: values.project } : {} }));
+    } catch {
+    }
+    emit(lessonOverview(home, { projectNames: names }));
+    return 0;
+  }
+  const id = positionals[0];
+  if ((sub === "approve" || sub === "reject") && !id) throw new UsageError(`lessons ${sub} needs a lesson id (see \`lessons list\`)`);
+  if (sub === "approve") {
+    emit(approveLesson(home, id, values.text ? { text: values.text } : {}));
+    return 0;
+  }
+  if (sub === "reject") {
+    emit(rejectLesson(home, id, values.reason));
+    return 0;
+  }
+  throw new UsageError("lessons needs a subcommand: list | approve | reject");
 }
 function readStdin() {
   try {
-    return fs22.readFileSync(0, "utf8");
+    return fs24.readFileSync(0, "utf8");
   } catch {
     return "";
   }
@@ -12685,8 +13112,8 @@ async function main(argv) {
         return await cmdRun(sub, rest, home);
       case "config": {
         const { values } = opts(rest, { project: { type: "string" } });
-        const root = path34.resolve(values.project ?? process.cwd());
-        if (!exists(path34.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
+        const root = path37.resolve(values.project ?? process.cwd());
+        if (!exists(path37.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
         const check = checkConfigFile(root);
         const { config: _c, body: _b, ...printable } = check;
         emit(printable);
@@ -12696,8 +13123,8 @@ async function main(argv) {
         const { values } = opts(sub ? [sub, ...rest] : rest, { run: { type: "string" } });
         const ctx = loadRunContext(home, values.run);
         const result = await runHealthCheck({ config: ctx.config, policy: ctx.policy, roles: ctx.roles });
-        ensureDir(path34.join(ctx.runDir, "data"));
-        writeJson(path34.join(ctx.runDir, "data", "health.json"), result);
+        ensureDir(path37.join(ctx.runDir, "data"));
+        writeJson(path37.join(ctx.runDir, "data", "health.json"), result);
         emit(result);
         return result.environment_ok ? 0 : 7;
       }
@@ -12707,6 +13134,8 @@ async function main(argv) {
         return await cmdReport(sub, rest, home);
       case "memory":
         return await cmdMemory(sub, rest, home);
+      case "lessons":
+        return cmdLessons(sub, rest, home);
       case "guard": {
         if (sub !== "log") throw new UsageError("guard needs a subcommand: log");
         const { values } = opts(rest, { run: { type: "string" } });

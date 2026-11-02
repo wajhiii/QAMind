@@ -77,6 +77,11 @@ to come up again: `memory_mark_false_alarm` with `area`, `symptom` (what was see
 
 If you noticed something that would help on **any** project (not this one), you may propose at most one global lesson with `lessons_propose`. It must be
 generic: no product or project names, addresses, files, tickets or code. It waits for the owner's approval and nothing uses it until then.
+You cannot approve, reject or change a lesson, and a run must never try (the safety hook refuses): the owner does it in the memory review. If `lessons_propose` answers `rejected-before`, the owner
+already turned a near copy down: do not reword it and try again.
+
+**Approved global lessons** arrive in the context as `global_lessons`. They are generic observations the owner approved for every project: leads, not proof, like the rest of memory.
+When one shaped a decision, cite its id (`G-001`) in `memory_record_applied` and in the run's `memory_applied` line, like a learning.
 
 ## 5. "What I learned this run"
 

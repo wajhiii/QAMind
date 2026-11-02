@@ -25,11 +25,17 @@ test("no instruction tells the agent to run a memory or run-lifecycle command, o
     [/write\s+`?data\/pages\.json|write\s+`?data\/endpoints\.json/i, "writing the page files by hand (memory_update_product_map does it)"],
   ];
   const problems: string[] = [];
+  // The owner's memory review is not a run: it has no run to hold the qa-memory tools, so it is the one instruction that uses the `memory` commands of the CLI
+  // (review, stats, prune), which need no run. Every other rule, including the memory files and the store's location, still applies to it.
+  const OWNER_REVIEW = rel(path.join(repoRoot, "core", "skills", "qa-memory-review", "SKILL.md"));
   for (const f of [...instructions, ...knowledge]) {
     const text = read(f);
-    for (const [re, what] of forbidden) if (re.test(text)) problems.push(`${rel(f)} mentions ${what}`);
+    for (const [i, [re, what]] of forbidden.entries()) if (re.test(text) && !(i === 0 && rel(f) === OWNER_REVIEW)) problems.push(`${rel(f)} mentions ${what}`);
   }
   assert.deepEqual(problems, []);
+  const review = read(path.join(repoRoot, "core", "skills", "qa-memory-review", "SKILL.md"));
+  assert.doesNotMatch(review, /\{\{CLI\}\}\s+run\b|\bqamind\s+run\b/, "even the review never starts or finishes a run by hand");
+  assert.ok(!/\{\{CLI\}\}\s+memory\s+(learn|applied|false-alarm|context)\b/.test(review), "and never uses the commands that write memory from a run");
 });
 
 test("every qa-memory tool the instructions name exists, and the skill names all of them", () => {

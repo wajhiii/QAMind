@@ -1,4 +1,4 @@
-import { assertSafeText, coverage, memoryPaths, nextId, readJsonl, similarity, tokens, writeJsonl } from "./store.ts";
+import { appendArchive, assertSafeText, coverage, memoryPaths, nextId, readJsonl, similarity, tokens, writeJsonl } from "./store.ts";
 
 export type FalseAlarmSource = "owner" | "reproduction" | "spec";
 
@@ -117,4 +117,14 @@ export function markFalseAlarmsSeen(store: string, ids: string[], now = new Date
   }
   if (touched.length) writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", loaded.alarms, loaded.unparsed);
   return touched;
+}
+
+/** The owner retires a false alarm in a memory review (it would be reported again next time): it moves to the archive with the reason. */
+export function archiveFalseAlarm(store: string, id: string, reason: string, now = new Date()): FalseAlarm {
+  const loaded = loadFalseAlarms(store, now);
+  const a = loaded.alarms.find((x) => x.id === id);
+  if (!a) throw new Error(`No false alarm ${id}.`);
+  appendArchive(store, "false-alarms", [{ ...a, archived_at: now.toISOString(), archived_reason: reason }]);
+  writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", loaded.alarms.filter((x) => x.id !== id), loaded.unparsed);
+  return a;
 }

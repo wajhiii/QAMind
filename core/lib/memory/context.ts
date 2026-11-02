@@ -6,6 +6,7 @@ import type { RunSummary } from "../run.ts";
 import type { StackInfo } from "../stack.ts";
 import { loadFalseAlarms } from "./falsealarms.ts";
 import { loadFixLog, recentFixes } from "./fixlog.ts";
+import { loadApprovedLessons } from "./lessons.ts";
 import type { FixLogEntry } from "./fixlog.ts";
 import type { FalseAlarm } from "./falsealarms.ts";
 import { LEARNING_TYPES, learningScore, loadLearnings } from "./learnings.ts";
@@ -32,6 +33,11 @@ export interface MemoryContext {
   product_map: { pages: number; endpoints: number; last_run?: string; uis: Record<string, string[]> };
   /** Fixes `/qa` made in earlier runs (newest first): what was fixed, where, with which test, and what was reverted or deferred. */
   fix_log: Array<Pick<FixLogEntry, "issue" | "severity" | "area" | "title" | "outcome" | "files" | "test_files" | "root_cause">>;
+  /**
+   * Lessons the owner approved that help on ANY project (newest and best-used first). Only approved ones are ever here; pending proposals are never loaded.
+   * Leads, not proof, like the rest of memory: cite the id in memory_applied when one shaped a decision.
+   */
+  global_lessons: Array<{ id: string; text: string; area?: string }>;
   warnings: string[];
 }
 
@@ -52,7 +58,7 @@ export function recentRunSummaries(store: string, limit = 3): RunSummary[] {
 }
 
 /** Everything the agent should know before planning. Bounded in size; memory is leads, not proof. */
-export function loadMemoryContext(store: string, limit = 3, now = new Date()): MemoryContext {
+export function loadMemoryContext(store: string, limit = 3, now = new Date(), opts: { home?: string; projectNames?: string[] } = {}): MemoryContext {
   const paths = memoryPaths(store);
   const stack = readJson<StackInfo>(paths.stack);
   const runs = recentRunSummaries(store, limit);
@@ -79,6 +85,12 @@ export function loadMemoryContext(store: string, limit = 3, now = new Date()): M
   if (last && last.counts.critical + last.counts.important > 0) focus.push(`The last run (${last.run_id}) found ${last.counts.critical} critical and ${last.counts.important} important problems: re-verify them first.`);
   if ((learnings["env-quirk"]?.length ?? 0) > 0) focus.push("Known environment quirks exist: read them before running anything slow or order-dependent.");
 
+  const lessons = opts.home ? loadApprovedLessons(opts.home, { projectNames: opts.projectNames ?? [] }) : undefined;
+  const lessonWarnings = [
+    ...(lessons?.skipped ?? []).map((s) => `The approved lesson ${s.id} was not loaded: it ${s.problems.join("; ")}. The owner can reword or remove it in /qa-memory-review.`),
+    ...(lessons?.truncated ? [`More than the newest ${lessons.lessons.length} approved lessons exist; only the best-used and newest are shown.`] : []),
+  ];
+
   const uis: Record<string, string[]> = {};
   if (map) for (const [ui, entry] of Object.entries(map.uis)) uis[ui] = Object.keys(entry.pages).sort().slice(0, MAX_PAGES_SHOWN);
 
@@ -93,6 +105,7 @@ export function loadMemoryContext(store: string, limit = 3, now = new Date()): M
     previous_findings: { ...(last ? { from_run: last.run_id } : {}), findings: (last?.findings ?? []).slice(0, 25) },
     product_map: { pages: pageCount(map), endpoints: map ? Object.keys(map.api.endpoints).length : 0, ...(map ? { last_run: map.last_run } : {}), uis },
     fix_log: recentFixes(store),
-    warnings: [...learned.warnings, ...alarms.warnings, ...loadFixLog(store).warnings],
+    global_lessons: lessons?.lessons ?? [],
+    warnings: [...learned.warnings, ...alarms.warnings, ...loadFixLog(store).warnings, ...lessonWarnings],
   };
 }
