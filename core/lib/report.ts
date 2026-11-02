@@ -1,3 +1,4 @@
+import type { Usage } from "./budget.ts";
 import fs from "node:fs";
 import path from "node:path";
 import { SEVERITIES } from "./config.ts";
@@ -138,6 +139,15 @@ export interface CoverageRow {
   critical_flow?: number;
 }
 
+export interface RunBudgetOutcome {
+  time_minutes?: number;
+  max_cost?: number;
+  used_minutes: number;
+  /** The deadline passed before the run finished. */
+  reached: boolean;
+  source: string;
+}
+
 export interface RunMeta {
   schema_version: number;
   run_id: string;
@@ -158,6 +168,12 @@ export interface RunMeta {
   knowledge_version: string;
   stop_reason?: string;
   cost?: string;
+  /** Structured usage written by `run finish`: the measured duration, and cost or tokens when the host or agent gave them. */
+  usage?: Usage;
+  /** The run's time budget and how it ended (written by `run finish`). */
+  budget?: RunBudgetOutcome;
+  /** Test data preparation and restore (spec 13.1), from data/env-prep.json. */
+  environment_prep?: { prepared: boolean; why: string; steps: string[]; snapshot_taken: boolean; restored?: boolean };
   memory_applied?: string[];
   notes?: string[];
   /** The critical journeys from the config, in order (copied at run start). */
@@ -176,7 +192,7 @@ export interface AdminNotes {
 
 export interface HealthResult {
   environment_ok: boolean;
-  checks: Array<{ name: string; ok: boolean; detail: string; ms?: number; skipped?: boolean }>;
+  checks: Array<{ name: string; ok: boolean; detail: string; ms?: number; skipped?: boolean; /** Failed once, then answered: the environment is up but unreliable. */ flaky?: boolean; /** Answered, but slowly. */ slow?: boolean }>;
   ran_at: string;
 }
 
@@ -326,6 +342,19 @@ export function mergedNotTested(data: RunData): MergedNotTested[] {
 
 const esc = (s: string) => s.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
 
+function budgetLine(m: RunMeta): string {
+  const b = m.budget;
+  if (!b || b.time_minutes === undefined) return b?.max_cost !== undefined ? `no time limit; a cost limit of ${b.max_cost} was set (told to the agent, not enforced)` : "none set";
+  return b.reached ? `**${b.time_minutes} minutes: reached** (${b.used_minutes} used): exploring stopped and the rest is under Not tested ("time budget reached")` : `${b.time_minutes} minutes (${b.used_minutes} used)`;
+}
+
+function usageLine(m: RunMeta): string {
+  const u = m.usage;
+  if (!u) return m.cost ?? "not available on this host";
+  const parts = [u.cost_usd !== undefined ? `$${u.cost_usd}` : undefined, u.tokens !== undefined ? `${u.tokens.toLocaleString("en-US")} tokens` : undefined].filter(Boolean);
+  return parts.length ? `${parts.join(", ")} (${u.note})` : u.note;
+}
+
 function duration(seconds?: number): string {
   if (seconds === undefined) return "in progress";
   const m = Math.floor(seconds / 60);
@@ -410,7 +439,8 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
       ["Scope", m.focus ? `focus: ${m.focus}` : m.mode === "diff" ? "changed code and its neighbours" : "whole product"],
       ["Host", m.host],
       ["Duration", duration(m.duration_s)],
-      ["Cost / usage", m.cost ?? "not available on this host"],
+      ["Time budget", budgetLine(m)],
+      ["Cost / usage", usageLine(m)],
       ["QAMind / knowledge version", `${m.agent_version} / ${m.knowledge_version}`],
       ["Stop reason", m.stop_reason ?? "run not finished"],
     ];
@@ -561,6 +591,9 @@ export function lintRun(runDir: string, data: RunData, knownSecrets: string[] = 
   const errors: string[] = [];
   const warnings: string[] = [];
   if (data.charters.length === 0) errors.push("No charters recorded: write the test plan before reporting (data/charters.json).");
+  if (data.health && !data.health.environment_ok && data.findings.length > 0) {
+    errors.push(`The health check failed (Environment problem), so there can be no product findings: ${data.findings.length} are listed. A broken environment produces fake bugs. Remove them (findings.json must be empty), list every planned area under Not tested with the reason "Environment problem: <what failed>", and finish with stop_reason "environment problem".`);
+  }
   const ids = new Set<string>();
   for (const [i, f] of data.findings.entries()) {
     const tag = f.id ?? `findings[${i}]`;

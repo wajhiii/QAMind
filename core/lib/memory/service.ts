@@ -7,6 +7,8 @@ import type { RunSummary, StartOptions, StartResult } from "../run.ts";
 import { loadRunContext } from "../runctx.ts";
 import type { RunContext } from "../runctx.ts";
 import { loadFixState } from "../fix/state.ts";
+import { restoreEnvironment } from "../envprep.ts";
+import { makeRedactor } from "../redact.ts";
 import { loadMemoryContext, recentRunSummaries } from "./context.ts";
 import type { MemoryContext } from "./context.ts";
 import { addFalseAlarm, loadFalseAlarms } from "./falsealarms.ts";
@@ -261,3 +263,15 @@ export function finishRunTracked(home: string, runId: string, opts: { stopReason
 }
 
 export { LEARNING_TYPES };
+
+/**
+ * What the CLI and the server call to end a run: the environment is put back first when this run took a snapshot (spec 13.1; a restore that fails is recorded in the run, never hidden),
+ * then the run is finished as `finishRunTracked` does.
+ */
+export async function finishRunAndRestore(home: string, runId: string, opts: { stopReason?: string; cost?: string; now?: Date } = {}): Promise<RunSummary> {
+  const marker = findMarkerByRunId(home, runId);
+  if (!marker) throw new Error(`No run ${runId} found in the user store (already finished, or wrong id).`);
+  const ctx = loadRunContext(home, runId);
+  await restoreEnvironment({ config: ctx.config, projectRoot: marker.project_root, runDir: marker.run_dir, redact: makeRedactor(ctx.passwords).text, ...(opts.now ? { now: opts.now } : {}) });
+  return finishRunTracked(home, runId, opts);
+}

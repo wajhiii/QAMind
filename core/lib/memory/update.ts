@@ -1,7 +1,8 @@
 import type { Severity } from "../config.ts";
 import { readRunData } from "../report.ts";
 import { loadFalseAlarms, markFalseAlarmsSeen } from "./falsealarms.ts";
-import { loadLearnings } from "./learnings.ts";
+import { learn, loadLearnings } from "./learnings.ts";
+import type { HealthResult } from "../report.ts";
 import { readMemoryLog } from "./memorylog.ts";
 import { applyObserved, computeChanges, describeChanges, hasChanges, loadChanges, loadMap, readObserved, saveChanges, saveMap } from "./productmap.ts";
 import type { Changes } from "./productmap.ts";
@@ -56,6 +57,9 @@ export function applyRunToMemory(input: RunMemoryInput): { updated: string[]; ch
   const touched = markFalseAlarmsSeen(input.store, skipped, input.now);
   if (touched.length) updated.push(`Known false alarms skipped: ${touched.join(", ")}.`);
 
+  const quirks = recordEnvQuirks(input.store, input.runId, data.health, input.now);
+  if (quirks > 0) updated.push(`Environment quirks noted: ${quirks} (slow or flaky parts of the test environment), so the next run waits and retries where it matters.`);
+
   const log = readMemoryLog(input.runDir);
   const count = (k: string) => log.filter((e) => e.kind === k).length;
   if (count("learning-created") + count("learning-merged") + count("learning-applied") + count("false-alarm-created") > 0) {
@@ -66,4 +70,27 @@ export function applyRunToMemory(input: RunMemoryInput): { updated: string[]; ch
 
 export function knownFalseAlarmIds(store: string): string[] {
   return loadFalseAlarms(store).alarms.map((a) => a.id);
+}
+
+/**
+ * A part of the environment that answered only on the second try, or answered slowly, is an `env-quirk` learning (spec 13.1), saved without the agent having to
+ * notice: the check passed, but the next run should know. Near copies merge into the existing learning (its confidence rises each time it is seen again).
+ */
+export function recordEnvQuirks(store: string, runId: string, health: HealthResult | undefined, now: Date): number {
+  let n = 0;
+  for (const c of health?.checks ?? []) {
+    const text = c.flaky
+      ? `${c.name}: failed on the first try and answered on the second, so expect an occasional first-request failure and retry before calling it down.`
+      : c.slow
+        ? `${c.name} answered slowly (${Math.round((c.ms ?? 0) / 100) / 10} s), so give it time before treating a wait as a failure.`
+        : undefined;
+    if (!text) continue;
+    try {
+      learn(store, { type: "env-quirk", area: "Environment", text, run: runId, confidence: 4 }, { now });
+      n++;
+    } catch {
+      /* a quirk that cannot be saved (for example, text the screen refuses) must never stop a run from finishing */
+    }
+  }
+  return n;
 }

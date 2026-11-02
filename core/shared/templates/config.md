@@ -75,6 +75,31 @@ fix_policy:
 # Extra addresses (beyond each web UI and the API) that must respond before testing starts, e.g. "/healthz".
 health:
   checks: []
+
+# Test data (optional). Each command runs on this machine, in this project folder, only against the environment above, and never when it mentions an address
+# listed under blocked_production_patterns. Output is saved masked in the run's folder.
+# setup:
+#   run_before: never             # never (default), full_runs (before full runs only) or always
+#   reset_command: npm run reset  # puts the test environment back to a known state
+#   seed_command: npm run seed    # puts the test data in place (runs after the reset)
+#   snapshot_command: ./scripts/db-snapshot.sh   # optional: a snapshot before testing ...
+#   restore_command: ./scripts/db-restore.sh     # ... and its restore when the run ends (both or neither)
+#   timeout_s: 120
+
+# Time budget (optional). When it is used up QAMind stops exploring, finishes the report and lists what it did not get to as "time budget reached".
+# budget:
+#   time_minutes: 30              # default for every mode (leave out for no limit)
+#   max_cost: 10                  # told to the agent and recorded; QAMind cannot see a host's spending, so it cannot enforce it
+#   daily_max: 120                # minutes of auto-QA and CI per day; after that auto-QA pauses itself for the day and says so once
+#   modes:                        # limits for one mode override the defaults above: diff, quick, regression, full, ticket, ci, auto
+#     quick: { time_minutes: 10 }
+#     auto: { time_minutes: 5 }
+
+# Private data (optional). Emails, phone numbers, ID and card numbers are always masked; test accounts and test-reserved addresses (example.com, .test) stay readable.
+# privacy:
+#   mask_patterns: ["ORD-\\d{6}"]      # more things that must never be saved (regular expressions)
+#   mask_selectors: [".customer-address", "[data-private]"]   # screen elements blurred before screenshots
+#   mask_fields: [name, address]    # fields whose values are masked in saved API evidence
 ---
 
 # Critical flows

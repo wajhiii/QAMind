@@ -1,0 +1,2 @@
+{"_meta":{"schema_version":1,"kind":"false-alarms"}}
+{"id":"FA-001","area":"Orders / display","symptom":"A zero discount is shown as -$0.00 in the order totals","reason":"The owner says it is shown that way on purpose.","source":"owner","evidence_run":"run-20261102T102723Z","created":"2026-11-02T10:27:23.459Z","hits":0}

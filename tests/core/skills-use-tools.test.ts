@@ -40,7 +40,7 @@ test("no instruction tells the agent to run a memory or run-lifecycle command, o
 
 test("every qa-memory tool the instructions name exists, and the skill names all of them", () => {
   const known = new Set<string>(ALL_QA_TOOLS);
-  const notTools = new Set(["memory_applied", "memory_updated", "fix_policy", "fix_severities"]); // fields in the run's meta.json and the config, not tools
+  const notTools = new Set(["memory_applied", "memory_updated", "fix_policy", "fix_severities", "run_before"]); // fields in the run's meta.json and the config, not tools
   const unknown: string[] = [];
   for (const f of [...instructions, ...knowledge]) {
     for (const m of read(f).matchAll(/\b((?:run|memory|lessons|fix)_[a-z_]+)\b/g)) {

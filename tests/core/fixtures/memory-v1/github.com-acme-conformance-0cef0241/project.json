@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "github.com-acme-conformance-0cef0241",
+  "id_source": "git-remote",
+  "name": "conformance",
+  "git_remote": "github.com/acme/conformance",
+  "paths_seen": [
+    "/work/conformance"
+  ],
+  "created": "2026-11-02T10:27:23.267Z",
+  "last_seen": "2026-11-02T10:27:24.721Z"
+}

@@ -87,6 +87,22 @@ export async function runBrowserLauncher(): Promise<number> {
     }
   })();
 
+  // Private data on the page is blurred before any screenshot (spec 13.8): the project's settings go in front of the masking script, which is injected like the audit script.
+  const maskScript = (() => {
+    try {
+      const f = path.join(corePath(), "shared", "page-mask.js");
+      if (!fs.existsSync(f)) return undefined;
+      const config = fs.existsSync(path.join(projectRoot, ".qa", "config.md")) ? checkConfigFile(projectRoot).config : undefined;
+      const names = config?.roles.map((r) => secrets[r.username_env]).filter((v): v is string => !!v) ?? [];
+      const cfg = { selectors: config?.privacy.mask_selectors ?? [], patterns: config?.privacy.mask_patterns ?? [], prefix: config?.test_data_prefix ?? "QA-", allow: names };
+      const out = path.join(tmp, "page-mask.js");
+      fs.writeFileSync(out, `globalThis.__QAMIND_MASK_CONFIG = ${JSON.stringify(cfg)};\n${fs.readFileSync(f, "utf8")}`, { mode: 0o600 });
+      return out;
+    } catch {
+      return undefined;
+    }
+  })();
+
   const channel = (process.env["QAMIND_BROWSER_CHANNEL"] as "chrome" | "msedge" | "chromium" | undefined) ?? detectChromeChannel();
   const mcp = resolvePlaywrightMcp();
   const args = [
@@ -102,6 +118,7 @@ export async function runBrowserLauncher(): Promise<number> {
     outDir,
     "--block-service-workers",
     ...(auditScript ? ["--init-script", auditScript] : []),
+    ...(maskScript ? ["--init-script", maskScript] : []),
     "--viewport-size",
     "1366x768",
     ...(process.env["QAMIND_BROWSER_IGNORE_HTTPS_ERRORS"] === "1" ? ["--ignore-https-errors"] : []),

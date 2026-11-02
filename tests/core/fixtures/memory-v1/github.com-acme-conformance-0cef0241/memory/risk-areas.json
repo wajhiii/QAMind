@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "updated": "2026-11-02T10:27:24.937Z",
+  "areas": [
+    {
+      "area": "Reports / totals",
+      "events": [
+        {
+          "run": "run-20261102T102724Z",
+          "date": "2026-11-02T10:27:24.926Z",
+          "severity": "important",
+          "source": "agent",
+          "note": "Figures flicker before settling."
+        },
+        {
+          "run": "run-20261102T102723Z",
+          "date": "2026-11-02T10:27:23.463Z",
+          "severity": "important",
+          "source": "agent",
+          "note": "Figures flicker before settling."
+        }
+      ]
+    },
+    {
+      "area": "Orders / access",
+      "surface": "permissions",
+      "events": [
+        {
+          "run": "run-20261102T102724Z",
+          "date": "2026-11-02T10:27:24.937Z",
+          "severity": "critical"
+        },
+        {
+          "run": "run-20261102T102723Z",
+          "date": "2026-11-02T10:27:23.465Z",
+          "severity": "critical"
+        }
+      ]
+    },
+    {
+      "area": "Errors",
+      "surface": "api",
+      "events": [
+        {
+          "run": "run-20261102T102724Z",
+          "date": "2026-11-02T10:27:24.937Z",
+          "severity": "important"
+        },
+        {
+          "run": "run-20261102T102723Z",
+          "date": "2026-11-02T10:27:23.465Z",
+          "severity": "important"
+        }
+      ]
+    },
+    {
+      "area": "Orders / display",
+      "surface": "ui",
+      "events": [
+        {
+          "run": "run-20261102T102724Z",
+          "date": "2026-11-02T10:27:24.937Z",
+          "severity": "minor"
+        },
+        {
+          "run": "run-20261102T102723Z",
+          "date": "2026-11-02T10:27:23.465Z",
+          "severity": "minor"
+        }
+      ]
+    }
+  ]
+}

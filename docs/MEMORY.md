@@ -1,4 +1,4 @@
-# Memory and state (Phases 1, 4, 5, 6 and 7)
+# Memory and state (Phases 1, 4, 5, 6, 7 and 7.6)
 
 All of this is **private to the user and the machine**: it lives in `$QAMIND_HOME` (default `~/.qamind`), never in the
 project's git, and is never uploaded. One store serves every host on the machine.
@@ -100,7 +100,7 @@ new pages, endpoints added or removed, and pages not seen. Two guards avoid fals
 `run_id, mode, trigger, kind, host, started, finished, duration_s, counts {critical, important, minor, unconfirmed},
 finding_ids, findings (compact: id, severity, area, title), coverage {tested, partial, not_tested}, journeys {total, tested} (key journeys from the config; the number to
 compare runs by), not_tested_count,
-blocked_areas, cost, stop_reason, agent_version, knowledge_version, branch, commit, report, memory_updated` plus
+blocked_areas, cost, usage {duration_s, cost_usd?, tokens?, note} (schema 2: what the host said, or "not available on this host"), budget {time_minutes?, max_cost?, used_minutes, reached, source} (when the run had one), stop_reason, agent_version, knowledge_version, branch, commit, report, memory_updated` plus
 `schema_version`. Summaries are computed from the run's data files by `run finish`, not typed by the agent.
 
 ## Rules
@@ -108,6 +108,8 @@ blocked_areas, cost, stop_reason, agent_version, knowledge_version, branch, comm
 - No secrets, tokens, passwords or real people's data are ever stored. Every saved text is screened (the project's known test
   passwords, tokens and keys, email addresses other than reserved test domains, national-ID-, card- and phone-number-like
   values); a failing text is refused, not trimmed. The screen is best-effort, which is why the learning test also scans the whole store.
+- **Migrations** (Phase 7.6): memory is at `schema_version` 2 (the run summary gained `usage`; every other file kind moved with its content unchanged, so a store is at one version). A store at an older version is copied byte for byte to `backups/<time>-schema-1-to-2/` first, then migrated file by file;
+  `backups/migrations.log.jsonl` has a line per file (what, from, to, which migrations). It happens on a run's first use of the store, with the lock held. `tests/core/fixtures/memory-v1/` is a real format 1 store written by QAMind 0.7.5.
 - `schema_version` is checked **before anything is written**: if any memory file was written by a newer QAMind, the run
   does not start (or finishes without touching memory) and says why, so memory is never half-updated.
 - Memory is private per user: not in git, not uploaded, shared across hosts on the same machine.
@@ -163,7 +165,7 @@ qamind memory where
 
 `config.md`, `reports/run-<timestamp>/{TECHNICAL-REPORT.md, ADMIN-REPORT.md, data/, evidence/, screenshots/}`, `suggested-improvements.md`.
 `data/` holds `meta.json`, `charters.json`, `findings.json`, `unconfirmed.json`, `not-tested.json`, `coverage.json`,
-`health.json`, `api-inventory.json`, `endpoints.json`, `pages.json`, `changes.json`, `memory-log.json`, `admin.json`,
+`health.json`, `env-prep.json` (setup commands, when configured), `api-inventory.json`, `endpoints.json`, `pages.json`, `changes.json`, `memory-log.json`, `admin.json`,
 `plans/`, `api-results/`.
 
 ## Global lessons and the owner's review (Phase 7)

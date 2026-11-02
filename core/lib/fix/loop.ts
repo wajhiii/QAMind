@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Severity } from "../config.ts";
+import { budgetStatus } from "../budget.ts";
 import { ensureDir, readJson, writeJson } from "../fsutil.ts";
 import { appendFixLog } from "../memory/fixlog.ts";
 import type { RunScope } from "../memory/service.ts";
@@ -249,6 +250,8 @@ export function begin(scope: RunScope, input: BeginInput, now = new Date()) {
     saveFixState(scope.runDir, state);
     return fail("stopped", `A stop rule is in force: ${stop.reason}`, { stop: stopPayload(state) });
   }
+  const budget = budgetStatus(scope.ctx.marker.budget, scope.ctx.marker.started, now);
+  if (budget.state === "over") return fail("time-budget-reached", `${budget.message} No new fix is started after the deadline: finish the report with what is committed, and leave the rest for a person.`);
   const open = activeAttempt(state);
   if (open) return fail("attempt-open", `${open.issue} is still being fixed. Finish it (fix_commit), undo it (fix_revert) or give it up (fix_defer) before starting another.`);
   const prior = attemptFor(state, input.issue);

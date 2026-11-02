@@ -1,3 +1,4 @@
+import { contextForRun, maskText, scanRun } from "./privacy.ts";
 import fs from "node:fs";
 import path from "node:path";
 import { buildAdminModel, renderAdminMarkdown } from "./adminreport.ts";
@@ -57,9 +58,13 @@ export function renderReports(runDir: string, store?: string, ctx?: ReportContex
 /** Write TECHNICAL-REPORT.md and ADMIN-REPORT.md from the same structured data. */
 export function writeReports(runDir: string, store?: string, ctx?: ReportContext): RenderedReports {
   const r = renderReports(runDir, store, ctx);
-  fs.writeFileSync(path.join(runDir, "TECHNICAL-REPORT.md"), r.technical, "utf8");
-  fs.writeFileSync(path.join(runDir, "ADMIN-REPORT.md"), r.admin, "utf8");
-  return r;
+  // Private data is masked in the rendered text too (spec 13.8), whatever the data files held: a report is the thing most likely to be e-mailed.
+  const privacy = contextForRun(runDir);
+  const technical = maskText(r.technical, privacy).text;
+  const admin = maskText(r.admin, privacy).text;
+  fs.writeFileSync(path.join(runDir, "TECHNICAL-REPORT.md"), technical, "utf8");
+  fs.writeFileSync(path.join(runDir, "ADMIN-REPORT.md"), admin, "utf8");
+  return { ...r, technical, admin };
 }
 
 /** In a `/qa` run, what the reports say about fixes must be what the fix tools recorded (spec 9.3). */
@@ -109,6 +114,10 @@ export function lintReports(runDir: string, knownSecrets: string[] = [], store?:
     }
   }
   lintFixRun(data, errors, warnings);
+  // Private data (spec 13.8): the same scan `run finish` gates on, so it is found while there is still time to mask it.
+  const scan = scanRun(runDir, contextForRun(runDir));
+  for (const leak of scan.leaks.slice(0, 10)) errors.push(`Privacy: ${leak.file} holds ${leak.count} unmasked item(s) (${Object.entries(leak.kinds).map(([k, n]) => `${n} ${k}`).join(", ")}). Run \`qamind privacy mask --run ${path.basename(runDir)}\`, rebuild the reports and lint again.`);
+  if (scan.leaks.length > 10) errors.push(`Privacy: ${scan.leaks.length - 10} more file(s) hold unmasked data (\`qamind privacy scan --run ${path.basename(runDir)}\` lists them all).`);
   if (!fs.existsSync(path.join(runDir, "data", "pages.json"))) warnings.push("data/pages.json was not written: the product map will not learn which screens exist, and what changed since the last run cannot be reported for screens.");
   return { ok: errors.length === 0, errors, warnings, consistency };
 }

@@ -47,6 +47,48 @@ export interface FixPolicy {
 export const DEFAULT_MAX_FIXES = 30;
 export const DEFAULT_TEST_TIMEOUT_S = 300;
 
+/** Test data setup and reset (spec 13.1). Every command is optional and runs only against the configured, non-production environment. */
+export const RUN_BEFORE = ["never", "full_runs", "always"] as const;
+export type RunBefore = (typeof RUN_BEFORE)[number];
+export interface SetupSettings {
+  /** Puts the test data in place (for example loads fixtures). */
+  seed_command?: string;
+  /** Puts the test environment back to a known state. */
+  reset_command?: string;
+  /** Takes a snapshot before testing (for example of a database), so destructive tests can be undone. */
+  snapshot_command?: string;
+  /** Restores that snapshot when the run ends. */
+  restore_command?: string;
+  /** When to snapshot, reset and seed: never (default), only before full runs, or before every run. */
+  run_before: RunBefore;
+  /** Seconds one of these commands may run before it is stopped (default 120). */
+  timeout_s: number;
+}
+export const DEFAULT_SETUP_TIMEOUT_S = 120;
+
+/** Time and cost budgets (spec 13.6). `daily_max` is minutes of auto-QA and CI per day: the unit a run can always measure. */
+export const BUDGET_MODES = ["diff", "quick", "regression", "full", "ticket", "ci", "auto"] as const;
+export type BudgetMode = (typeof BUDGET_MODES)[number];
+export interface ModeBudget {
+  time_minutes?: number;
+  /** In the host's own unit (dollars on most): QAMind cannot see a host's spending, so this is told to the agent and recorded, not enforced. */
+  max_cost?: number;
+}
+export interface BudgetSettings extends ModeBudget {
+  daily_max?: number;
+  modes: Partial<Record<BudgetMode, ModeBudget>>;
+}
+
+/** Private data masking in evidence (spec 13.8). */
+export interface PrivacySettings {
+  /** Extra regular expressions (JavaScript syntax) for data that must never be saved. */
+  mask_patterns: string[];
+  /** CSS selectors of screen elements to blur before a screenshot is taken. */
+  mask_selectors: string[];
+  /** Names of fields (in API evidence) whose values are masked: `name`, `address`, ... */
+  mask_fields: string[];
+}
+
 export interface QamindConfig {
   schema_version: number;
   environment: { name: string; confirmed_non_production: boolean };
@@ -57,6 +99,9 @@ export interface QamindConfig {
   roles: RoleConfig[];
   fix_policy: FixPolicy;
   health: { checks: string[] };
+  setup: SetupSettings;
+  budget: BudgetSettings;
+  privacy: PrivacySettings;
 }
 
 export interface ConfigCheck {
@@ -82,6 +127,118 @@ type Obj = Record<string, unknown>;
 const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !Array.isArray(v);
 const str = (v: unknown): string | undefined => (typeof v === "string" && v.trim() !== "" ? v.trim() : undefined);
 const strList = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
+
+const COMMAND_MAX = 500;
+const command = (v: unknown, name: string, problems: string[]): string | undefined => {
+  if (v === undefined || v === null || v === "") return undefined;
+  if (typeof v !== "string" || v.trim() === "" || v.length > COMMAND_MAX || /[\r\n]/.test(v)) {
+    problems.push(`setup.${name} must be one command on one line, up to ${COMMAND_MAX} characters.`);
+    return undefined;
+  }
+  return v.trim();
+};
+
+function normalizeSetup(raw: unknown, problems: string[]): SetupSettings {
+  const o = isObj(raw) ? raw : {};
+  if (raw !== undefined && raw !== null && !isObj(raw)) problems.push("setup must be a mapping (seed_command, reset_command, snapshot_command, restore_command, run_before).");
+  const runBefore = o["run_before"];
+  if (runBefore !== undefined && !(RUN_BEFORE as readonly unknown[]).includes(runBefore)) problems.push(`setup.run_before must be one of ${RUN_BEFORE.join(", ")} (found ${JSON.stringify(runBefore)}).`);
+  const timeout = o["timeout_s"];
+  if (timeout !== undefined && !(typeof timeout === "number" && timeout >= 5 && timeout <= 3600)) problems.push("setup.timeout_s must be a number of seconds from 5 to 3600.");
+  const seed = command(o["seed_command"], "seed_command", problems);
+  const reset = command(o["reset_command"], "reset_command", problems);
+  const snapshot = command(o["snapshot_command"], "snapshot_command", problems);
+  const restore = command(o["restore_command"], "restore_command", problems);
+  if (snapshot && !restore) problems.push("setup.snapshot_command needs setup.restore_command: a snapshot that is never restored would only fill the disk.");
+  if (restore && !snapshot) problems.push("setup.restore_command needs setup.snapshot_command.");
+  return {
+    ...(seed ? { seed_command: seed } : {}),
+    ...(reset ? { reset_command: reset } : {}),
+    ...(snapshot ? { snapshot_command: snapshot } : {}),
+    ...(restore ? { restore_command: restore } : {}),
+    run_before: (RUN_BEFORE as readonly unknown[]).includes(runBefore) ? (runBefore as RunBefore) : "never",
+    timeout_s: typeof timeout === "number" && timeout >= 5 && timeout <= 3600 ? timeout : DEFAULT_SETUP_TIMEOUT_S,
+  };
+}
+
+function modeBudget(raw: unknown, where: string, problems: string[]): ModeBudget {
+  if (raw === undefined || raw === null) return {};
+  if (!isObj(raw)) {
+    problems.push(`${where} must be a mapping with time_minutes and/or max_cost.`);
+    return {};
+  }
+  const t = raw["time_minutes"];
+  const c = raw["max_cost"];
+  if (t !== undefined && !(typeof t === "number" && t >= 1 && t <= 1440)) problems.push(`${where}.time_minutes must be a number of minutes from 1 to 1440.`);
+  if (c !== undefined && !(typeof c === "number" && c > 0 && c <= 100000)) problems.push(`${where}.max_cost must be a positive number.`);
+  return { ...(typeof t === "number" && t >= 1 && t <= 1440 ? { time_minutes: t } : {}), ...(typeof c === "number" && c > 0 && c <= 100000 ? { max_cost: c } : {}) };
+}
+
+function normalizeBudget(raw: unknown, problems: string[]): BudgetSettings {
+  if (raw === undefined || raw === null) return { modes: {} };
+  if (!isObj(raw)) {
+    problems.push("budget must be a mapping (time_minutes, max_cost, daily_max, modes).");
+    return { modes: {} };
+  }
+  const top = modeBudget(raw, "budget", problems);
+  const daily = raw["daily_max"];
+  if (daily !== undefined && !(typeof daily === "number" && daily >= 1 && daily <= 10080)) problems.push("budget.daily_max must be a number of minutes of auto-QA and CI per day, from 1 to 10080.");
+  const modes: Partial<Record<BudgetMode, ModeBudget>> = {};
+  const rawModes = raw["modes"];
+  if (rawModes !== undefined && !isObj(rawModes)) problems.push("budget.modes must be a mapping from a mode (diff, quick, full, ticket, ci, auto) to its own limits.");
+  else if (isObj(rawModes)) {
+    for (const [k, v] of Object.entries(rawModes)) {
+      if (!(BUDGET_MODES as readonly string[]).includes(k)) problems.push(`budget.modes.${k}: not a mode. Use ${BUDGET_MODES.join(", ")}.`);
+      else modes[k as BudgetMode] = modeBudget(v, `budget.modes.${k}`, problems);
+    }
+  }
+  return { ...top, ...(typeof daily === "number" && daily >= 1 && daily <= 10080 ? { daily_max: daily } : {}), modes };
+}
+
+const LIST_MAX = 30;
+function limitedStrings(raw: unknown, where: string, problems: string[], opts: { max: number; test: (s: string) => string | undefined }): string[] {
+  if (raw === undefined || raw === null) return [];
+  if (!Array.isArray(raw)) {
+    problems.push(`${where} must be a list.`);
+    return [];
+  }
+  if (raw.length > LIST_MAX) problems.push(`${where} has more than ${LIST_MAX} entries.`);
+  const out: string[] = [];
+  for (const v of raw.slice(0, LIST_MAX)) {
+    if (typeof v !== "string" || v.trim() === "" || v.length > opts.max) {
+      problems.push(`${where}: each entry is a non-empty string of up to ${opts.max} characters.`);
+      continue;
+    }
+    const bad = opts.test(v);
+    if (bad) problems.push(`${where}: "${v}" ${bad}.`);
+    else out.push(v);
+  }
+  return out;
+}
+
+function normalizePrivacy(raw: unknown, problems: string[]): PrivacySettings {
+  if (raw !== undefined && raw !== null && !isObj(raw)) {
+    problems.push("privacy must be a mapping (mask_patterns, mask_selectors, mask_fields).");
+    return { mask_patterns: [], mask_selectors: [], mask_fields: [] };
+  }
+  const o = isObj(raw) ? raw : {};
+  return {
+    mask_patterns: limitedStrings(o["mask_patterns"], "privacy.mask_patterns", problems, {
+      max: 300,
+      test: (s) => {
+        try {
+          new RegExp(s, "gu");
+          return undefined;
+        } catch (err) {
+          return `is not a valid regular expression (${(err as Error).message.split(":").pop()?.trim()})`;
+        }
+      },
+    }),
+    // A selector goes into a style sheet: braces and angle brackets could end the rule and add another, so they are refused.
+    mask_selectors: limitedStrings(o["mask_selectors"], "privacy.mask_selectors", problems, { max: 200, test: (s) => (/[{}<>;\\]/.test(s) ? "contains a character that is not allowed in a CSS selector here ({ } < > ; \\)" : undefined) }),
+    mask_fields: limitedStrings(o["mask_fields"], "privacy.mask_fields", problems, { max: 60, test: (s) => (/^[A-Za-z_][\w.-]*$/.test(s) ? undefined : "is not a field name (letters, digits, _ . -)") }),
+  };
+}
 
 export function normalizeConfig(raw: unknown, problems: string[]): QamindConfig | undefined {
   if (!isObj(raw)) {
@@ -175,6 +332,9 @@ export function normalizeConfig(raw: unknown, problems: string[]): QamindConfig 
       do_not_touch: doNotTouch,
     },
     health: { checks: isObj(raw["health"]) ? strList(raw["health"]["checks"]) : [] },
+    setup: normalizeSetup(raw["setup"], problems),
+    budget: normalizeBudget(raw["budget"], problems),
+    privacy: normalizePrivacy(raw["privacy"], problems),
   };
   return config;
 }

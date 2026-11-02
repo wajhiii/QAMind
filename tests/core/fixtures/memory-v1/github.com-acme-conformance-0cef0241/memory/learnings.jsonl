@@ -1,0 +1,4 @@
+{"_meta":{"schema_version":1,"kind":"learnings"}}
+{"id":"L-001","type":"test-tip","area":"Orders","text":"Wait for the order list to finish loading before reading its rows.","evidence_run":"run-20261102T102723Z","confidence":5,"created":"2026-11-02T10:27:23.451Z","last_confirmed":"2026-11-02T10:27:23.451Z","hits":0}
+{"id":"L-002","type":"pitfall","area":"Search","text":"Search text is used as a pattern, so punctuation can crash it.","evidence_run":"run-20261102T102723Z","confidence":8,"created":"2026-11-02T10:27:23.456Z","last_confirmed":"2026-11-02T10:27:24.920Z","hits":0}
+{"id":"L-003","type":"test-tip","area":"Orders","text":"A changed price only shows stale if the list was opened before the change.","evidence_run":"run-20261102T102724Z","confidence":5,"created":"2026-11-02T10:27:24.914Z","last_confirmed":"2026-11-02T10:27:24.914Z","hits":0}

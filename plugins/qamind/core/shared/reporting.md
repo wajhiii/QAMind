@@ -72,8 +72,14 @@ you were really stopped by a limit. Do not leave a planned area out.
 
 ## Environment problem
 If `health` fails: do not test further. Write `not-tested.json` with one entry per planned area (reason: "Environment
-problem: <what failed>"), `coverage.json` rows with `not-tested`, no findings, build and lint the report, finish with `run_finish`
-(`stop_reason: "environment problem"`), and tell the user plainly what is broken.
+problem: <what failed>"), `coverage.json` rows with `not-tested`, no findings (lint refuses them), build and lint the report, finish with `run_finish`
+(`stop_reason: "environment problem"`; it is the default when the health check failed), and tell the user plainly what is broken. A failed test data step (snapshot, reset or seed) is the same kind of problem.
+
+## Budgets and private data
+`run_start` returns `run.budget` when the config sets a time or cost budget; `qamind budget status --run <id>` says what is left. When time is `over`, every area you did not reach goes under Not tested with the reason
+"time budget reached": that reason is true only then. `run_finish` records the usage and whether the budget was reached, and the technical report shows both. The report also says how the run used cost: "not available on this host" when nobody told it.
+Private data (email addresses, phone numbers, national ID and card numbers, and anything in `privacy.*`) is masked in the evidence QAMind saves and in the reports; a scan of the whole run folder fails `report lint` and `run_finish` if any is left.
+Fix it with `qamind privacy mask --run <id>`, rebuild the reports and lint again. Test accounts' own data and addresses reserved for tests (`example.com`, `*.test`) stay readable. Screenshots are blurred in the browser before capture, so they cannot be scanned.
 
 ## Pages and endpoints: what exists (for the product map)
 You do not write `pages.json` or `endpoints.json` yourself: `memory_update_product_map` records them, validated (`pages`: `[{ "ui": "Client Portal", "path": "/my-orders.html", "title": "My orders", "roles": ["client-a"] }]`,

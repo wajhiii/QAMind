@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { exists, readJson, writeJson } from "./fsutil.ts";
-import { SCHEMA_VERSION } from "./paths.ts";
+import { MEMORY_SCHEMA } from "./memory/store.ts";
 
 export interface StackInfo {
   schema_version: number;
@@ -88,7 +88,7 @@ export function detectStack(root: string, now = new Date()): StackInfo {
   }
 
   return {
-    schema_version: SCHEMA_VERSION,
+    schema_version: MEMORY_SCHEMA,
     frameworks: [...frameworks].sort(),
     languages: [...languages].sort(),
     test_runners: [...runners].sort(),

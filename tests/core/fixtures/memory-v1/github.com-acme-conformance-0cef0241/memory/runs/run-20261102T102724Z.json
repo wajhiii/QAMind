@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "run_id": "run-20261102T102724Z",
+  "mode": "quick",
+  "trigger": "manual",
+  "kind": "qa-only",
+  "host": "cursor",
+  "started": "2026-11-02T10:27:24.721Z",
+  "finished": "2026-11-02T10:27:24.937Z",
+  "duration_s": 0,
+  "counts": {
+    "critical": 1,
+    "important": 1,
+    "minor": 1,
+    "unconfirmed": 0
+  },
+  "finding_ids": [
+    "ISSUE-001",
+    "ISSUE-002",
+    "ISSUE-003"
+  ],
+  "findings": [
+    {
+      "id": "ISSUE-001",
+      "title": "Any client can read another company's order by id",
+      "severity": "critical",
+      "surface": "permissions",
+      "area": "Orders / access",
+      "type": "validation",
+      "ui": "Client Portal",
+      "first_step": "POST /api/orders with quantity -3"
+    },
+    {
+      "id": "ISSUE-002",
+      "title": "Malformed JSON returns a stack trace",
+      "severity": "important",
+      "surface": "api",
+      "area": "Errors",
+      "type": "validation",
+      "first_step": "POST /api/orders with quantity -3"
+    },
+    {
+      "id": "ISSUE-003",
+      "title": "Zero discount shown as -$0.00",
+      "severity": "minor",
+      "surface": "ui",
+      "area": "Orders / display",
+      "type": "validation",
+      "ui": "Admin Portal",
+      "first_step": "POST /api/orders with quantity -3"
+    }
+  ],
+  "coverage": {
+    "tested": 5,
+    "partial": 0,
+    "not_tested": 1
+  },
+  "journeys": {
+    "total": 5,
+    "tested": 4
+  },
+  "not_tested_count": 2,
+  "blocked_areas": [
+    "API / password reset",
+    "ui / Customers page"
+  ],
+  "cost": "$0.31",
+  "stop_reason": "completed",
+  "agent_version": "0.1.0",
+  "knowledge_version": "0.1.1",
+  "branch": "main",
+  "commit": "d2343ec",
+  "report": "/work/conformance/.qa/reports/run-20261102T102724Z/TECHNICAL-REPORT.md",
+  "memory_updated": [
+    "Product map: 0 page(s) and 0 endpoint(s) known.",
+    "No pages were recorded for this run (data/pages.json), so the map learned no pages.",
+    "Risk areas: 4 area(s) tracked; highest now: Orders / access (score 20).",
+    "Learnings: 1 new, 1 confirmed again, 0 applied; false alarms recorded: 0."
+  ]
+}

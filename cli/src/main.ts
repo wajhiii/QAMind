@@ -13,7 +13,10 @@ import { runPlan } from "../../core/lib/apirunner.ts";
 import { checkConfigFile } from "../../core/lib/config.ts";
 import { ensureDir, exists, readJson, writeJson } from "../../core/lib/fsutil.ts";
 import { readBlocked } from "../../core/lib/guardpolicy.ts";
-import { runHealthCheck } from "../../core/lib/health.ts";
+import { budgetStatus } from "../../core/lib/budget.ts";
+import { contextFrom, contextForRun, maskRun, scanRun } from "../../core/lib/privacy.ts";
+import { healthWithPrep } from "../../core/lib/health.ts";
+import { makeRedactor } from "../../core/lib/redact.ts";
 import { decidePreToolUse, toHookOutput } from "../../core/lib/hooks.ts";
 import type { PreToolUseInput } from "../../core/lib/hooks.ts";
 import type { FalseAlarmSource } from "../../core/lib/memory/falsealarms.ts";
@@ -22,7 +25,7 @@ import type { LearningType } from "../../core/lib/memory/learnings.ts";
 import { loadMap } from "../../core/lib/memory/productmap.ts";
 import { approveLesson, lessonOverview, rejectLesson } from "../../core/lib/memory/lessons.ts";
 import { memoryStats, pruneMemory, reviewOverview } from "../../core/lib/memory/review.ts";
-import { changeLearningConfidence, finishRunTracked, getContext, listMemory, markFalseAlarm, projectNamesOf, projectScope, recordApplied, runScope, saveLearning } from "../../core/lib/memory/service.ts";
+import { changeLearningConfidence, finishRunAndRestore, getContext, listMemory, markFalseAlarm, projectNamesOf, projectScope, recordApplied, runScope, saveLearning } from "../../core/lib/memory/service.ts";
 import { buildInventory, loadSpecFile, parseSpecText, resolveSpecPath } from "../../core/lib/openapi.ts";
 import type { Inventory } from "../../core/lib/openapi.ts";
 import { qamindHome } from "../../core/lib/paths.ts";
@@ -78,6 +81,9 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
   lessons approve ID [--text REWORDING]     pending lesson -> approved: every project reads it from then on (owner action)
   lessons reject ID [--reason TEXT]         turn a pending lesson down, or retire an approved one (owner action)
   guard log    --run ID        origins the browser guard blocked during the run
+  budget status --run ID       time left in the run's budget; check it before each new area, and stop exploring when it says over
+  privacy scan --run ID        look for unmasked private data (emails, phones, ID and card numbers, your patterns) in the run's output; exit 1 if found
+  privacy mask --run ID        mask it in place (test accounts' own data stays), then rebuild the reports
 Auto-QA (default off; see \`qamind auto help\`)
   auto status|on|off|mode M|pause 1h|resume|global on|off|set K V   toggle QA after every agent task
 Plumbing (started by the host, not by hand)
@@ -136,7 +142,7 @@ async function cmdRun(sub: string | undefined, rest: string[], home: string): Pr
   if (sub === "finish") {
     const { values } = opts(rest, { run: { type: "string" }, "stop-reason": { type: "string" }, cost: { type: "string" } });
     if (!values.run) throw new UsageError("--run is required");
-    const summary = finishRunTracked(home, values.run as string, { ...(values["stop-reason"] ? { stopReason: values["stop-reason"] as string } : {}), ...(values.cost ? { cost: values.cost as string } : {}) });
+    const summary = await finishRunAndRestore(home, values.run as string, { ...(values["stop-reason"] ? { stopReason: values["stop-reason"] as string } : {}), ...(values.cost ? { cost: values.cost as string } : {}) });
     emit(summary);
     return 0;
   }
@@ -240,6 +246,8 @@ async function cmdApi(sub: string | undefined, rest: string[], home: string): Pr
       ...(readInventory(ctx) ? { inventory: readInventory(ctx) as Inventory } : {}),
       runDir: ctx.runDir,
       readOnly: values["read-only"] as boolean,
+      ...(ctx.marker.budget?.deadline ? { deadlineMs: Date.parse(ctx.marker.budget.deadline) } : {}),
+      privacy: contextFrom(ctx.config, ctx.roles.map((r) => r.username)),
       ...(values["slow-ms"] ? { slowMs: num(values["slow-ms"], "slow-ms", 3000) } : {}),
     });
     const flagged = result.results.filter((r) => !r.skipped && (r.signals.length || r.expectation_failures.length));
@@ -467,8 +475,8 @@ export async function main(argv: string[]): Promise<number> {
       case "health": {
         const { values } = opts(sub ? [sub, ...rest] : rest, { run: { type: "string" } });
         const ctx = loadRunContext(home, values.run as string | undefined);
-        const result = await runHealthCheck({ config: ctx.config, policy: ctx.policy, roles: ctx.roles });
         ensureDir(path.join(ctx.runDir, "data"));
+        const { health: result } = await healthWithPrep({ config: ctx.config, policy: ctx.policy, roles: ctx.roles, projectRoot: ctx.projectRoot, runDir: ctx.runDir, mode: ctx.marker.mode, redact: makeRedactor(ctx.passwords).text });
         writeJson(path.join(ctx.runDir, "data", "health.json"), result);
         emit(result);
         return result.environment_ok ? 0 : 7;
@@ -479,6 +487,27 @@ export async function main(argv: string[]): Promise<number> {
         return await cmdReport(sub, rest, home);
       case "memory":
         return await cmdMemory(sub, rest, home);
+      case "privacy": {
+        if (sub !== "scan" && sub !== "mask") throw new UsageError("privacy needs a subcommand: scan | mask");
+        const { values } = opts(rest, { run: { type: "string" } });
+        const ctx = loadRunContext(home, values.run as string | undefined);
+        const pc = contextForRun(ctx.runDir);
+        if (sub === "scan") {
+          const r = scanRun(ctx.runDir, pc);
+          emit(r);
+          return r.ok ? 0 : 1;
+        }
+        const done = maskRun(ctx.runDir, pc);
+        emit({ ...done, message: done.total === 0 ? "Nothing needed masking." : `Masked ${done.total} item(s) in ${done.files_changed.length} file(s). Rebuild the reports (report build, report lint) before finishing.` });
+        return 0;
+      }
+      case "budget": {
+        if (sub !== "status") throw new UsageError("budget needs a subcommand: status");
+        const { values } = opts(rest, { run: { type: "string" } });
+        const ctx = loadRunContext(home, values.run as string | undefined);
+        emit(budgetStatus(ctx.marker.budget, ctx.marker.started, new Date()));
+        return 0;
+      }
       case "lessons":
         return cmdLessons(sub, rest, home);
       case "setup":

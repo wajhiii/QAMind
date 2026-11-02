@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "updated": "2026-11-02T10:27:24.937Z",
+  "last_run": "run-20261102T102724Z",
+  "last_run_mode": "quick",
+  "uis": {
+    "Admin Portal": {
+      "pages": {},
+      "url": "http://127.0.0.1:4101"
+    },
+    "Client Portal": {
+      "pages": {},
+      "url": "http://127.0.0.1:4102"
+    }
+  },
+  "api": {
+    "source": "none",
+    "endpoints": {}
+  },
+  "roles": [
+    "acme-1",
+    "acme-2",
+    "admin",
+    "bright-1",
+    "zain-1"
+  ],
+  "flows": [
+    {
+      "n": 1,
+      "text": "A client signs in to the Client Portal, places an order (picks products and quantities, enters a reference), sees the confirmation with the total, and finds the order in My Orders.",
+      "status": "tested",
+      "last_run": "run-20261102T102724Z"
+    },
+    {
+      "n": 2,
+      "text": "An admin signs in to the Admin Portal, finds that order in the Orders list, opens it and moves its status forward (placed, processing, shipped).",
+      "status": "tested",
+      "last_run": "run-20261102T102724Z"
+    },
+    {
+      "n": 3,
+      "text": "The client reloads My Orders and the order detail and sees the new status.",
+      "status": "tested",
+      "last_run": "run-20261102T102724Z"
+    },
+    {
+      "n": 4,
+      "text": "An admin opens Reports and sees the sales summary.",
+      "status": "tested",
+      "last_run": "run-20261102T102724Z"
+    },
+    {
+      "n": 5,
+      "text": "A user signs out and can no longer use the session.",
+      "status": "partial",
+      "last_run": "run-20261102T102724Z"
+    }
+  ]
+}

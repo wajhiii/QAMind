@@ -45,7 +45,7 @@ Load the qa-memory tools, then call `run_start` with `trigger: "auto"`, {{SESSIO
 - `fix`: `mode: "diff"`, `kind: "qa"` (QA of the changed files, then the fix phase).
 
 Act on the JSON `status`:
-- `ready`: remember `run.id` and `run.dir`. Roles with `has_credentials: false` are not testable: they go to Not tested. `config.critical_flows` lists the critical journeys, numbered from 1: tag the
+- `ready`: remember `run.id` and `run.dir`. If `run.budget` names `time_minutes` or `max_cost`, that is this run's budget: keep to it (Step 4); a cost limit is for you to stay within, QAMind cannot see your spending. Roles with `has_credentials: false` are not testable: they go to Not tested. `config.critical_flows` lists the critical journeys, numbered from 1: tag the
   coverage rows that cover each one with `critical_flow`. If `browser.status` is not `ok`, continue API-only without asking: every UI area becomes Not tested, with `browser.message` as the reason.
 - anything else (`needs-config`, `unfilled`, `invalid`, `blocked-url`, `ambiguous-url`, `no-project`, `missing-env`, `busy`): **never fail the turn and never ask the user.** Say "Auto-QA skipped: <the reason, in one line>"
   (name missing variables, never values), run `{{CLI}} auto skipped {{SESSION_FLAG}}--reason "<the same reason>"` so it is not tried again in this session, and **stop**. No run exists, so do not call `run_finish`.
@@ -59,8 +59,9 @@ Call `memory_get_context` (with `run`), and read `{{CORE_PATH}}/shared/memory-pr
 global lesson, or skip a known false alarm, record it with `memory_record_applied` (only real ids, including `G-` lesson ids) and in `data/meta.json` → `memory_applied`.
 
 ## Step 2: health check
-`{{CLI}} health --run <id>`. If `environment_ok` is false, follow "Environment problem" in `reporting.md`: do not test
-further and report no product findings.
+`{{CLI}} health --run <id>`. When the config asks for it (`setup.run_before`) it first snapshots, resets and seeds the test data, and a step that fails counts as an environment problem. If `environment_ok` is false, follow
+"Environment problem" in `reporting.md`: do not test further and report no product findings (`report lint` refuses findings from a broken environment). A check that passed only on its second try, or slowly, is saved to memory as an
+environment quirk by itself: expect it, and retry or wait where it matters.
 
 ## Step 3: plan
 Read `{{CORE_PATH}}/knowledge/INDEX.md` now and choose the knowledge files this run needs. Write `<run.dir>/data/charters.json` (see `reporting.md`): a charter for each surface and critical flow, prioritized by
@@ -82,6 +83,8 @@ Keep a running list for the data files: confirmed findings, unconfirmed leads, n
 Every finding needs at least two reproductions and evidence. Report only what you verified. Never mark an untested area as passing.
 Be proportionate: `quick` covers the critical flows and top risks, thoroughly, and lists everything else as Not tested with the true
 reason. Run the page audit (`surfaces.md`) on every page you visit, on desktop and mobile.
+**Keep to the time budget** (`run.budget` from `run_start`, if one is set): before each new area or batch of probes run `{{CLI}} budget status --run <id>`. At `near`, finish what you are on and start nothing large. At `over`, stop exploring: write every area you did
+not get to under Not tested with the reason "time budget reached", and go on to the report. (`api run` stops by itself at the deadline, and the fix tools start no new fix after it.) Never exceed a budget silently.
 
 ## Step 5: report
 Read `{{CORE_PATH}}/shared/admin-report.md`. Write `findings.json` (each finding with its technical text **and** a `plain` block for the
@@ -91,7 +94,8 @@ and `admin.json` in `<run.dir>/data/`, then:
 {{CLI}} report build --run <id>      # writes TECHNICAL-REPORT.md and the plain-language ADMIN-REPORT.md
 {{CLI}} report lint --run <id>       # evidence rules, plain-language text, and the two reports agreeing
 ```
-Fix every lint error (including jargon in the plain text) and rebuild until lint passes. Only if the user asks for an email-ready copy,
+Fix every lint error (including jargon in the plain text) and rebuild until lint passes. Lint also fails while private data (email addresses, phone numbers, ID and card numbers, anything in `privacy.*`) is still in the run's output:
+mask it with `{{CLI}} privacy mask --run <id>` (a test account's own data stays), rebuild and lint again, and write evidence and findings with the test accounts' data, not a real person's. Only if the user asks for an email-ready copy,
 run `{{CLI}} report export-html --run <id>` and tell them the screenshots are not masked automatically.
 
 ## Step 6: fix (only in `fix` mode; in every other mode go straight to Step 7)

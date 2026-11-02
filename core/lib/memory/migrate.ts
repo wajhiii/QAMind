@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { parseUsage } from "../budget.ts";
 import { ensureDir } from "../fsutil.ts";
 import { storeSubdirs } from "../paths.ts";
 import { withStoreLock } from "./lock.ts";
@@ -11,7 +12,8 @@ import { MEMORY_SCHEMA, MemoryTooNewError, memoryPaths } from "./store.ts";
  * a migration that loses a field it did not declare is refused before anything is written. A file newer than this QAMind is
  * never touched (the whole store is refused, so memory is never half-updated).
  *
- * Format 1 is the first format, so there are no migrations yet; the framework is tested with synthetic ones.
+ * Format 2 (QAMind 0.7.6) is the first real migration: run summaries gain a structured `usage` block. Every other file is unchanged by it and only takes the new version
+ * number, so a store is always at one version. A test migrates a real format-1 store written by QAMind 0.7.5 (`tests/core/fixtures/memory-v1`); the framework is also tested with synthetic ones.
  */
 export type MemoryFileKind = "product-map" | "risk-areas" | "stack" | "run-summary" | "learnings" | "false-alarms" | "fix-log";
 
@@ -28,7 +30,24 @@ export interface Migration {
   removes?: string[];
 }
 
-export const MIGRATIONS: Migration[] = [];
+const unchanged = (file: MemoryFileKind): Migration => ({ id: `${file}-1-to-2`, file, from: 1, to: 2, describe: `${file}: no change to the content; the version number moves to 2 so that a store is at one version`, up: (v) => v });
+
+export const MIGRATIONS: Migration[] = [
+  {
+    id: "run-summary-1-to-2",
+    file: "run-summary",
+    from: 1,
+    to: 2,
+    describe: "run summaries: add `usage` (the measured duration, and the cost or tokens when the old `cost` text gave them); the old `cost` text is kept as it was",
+    up: (v) => ({ ...v, usage: v["usage"] ?? parseUsage(typeof v["cost"] === "string" ? (v["cost"] as string) : undefined, typeof v["duration_s"] === "number" ? (v["duration_s"] as number) : 0) }),
+  },
+  unchanged("product-map"),
+  unchanged("risk-areas"),
+  unchanged("stack"),
+  unchanged("learnings"),
+  unchanged("false-alarms"),
+  unchanged("fix-log"),
+];
 
 interface FileRef {
   kind: MemoryFileKind;

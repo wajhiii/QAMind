@@ -1,5 +1,5 @@
 import type { Severity } from "../config.ts";
-import { appendArchive, daysBetween, memoryPaths, readMemoryJson, writeMemoryJson } from "./store.ts";
+import { MEMORY_SCHEMA, appendArchive, daysBetween, memoryPaths, readMemoryJson, writeMemoryJson } from "./store.ts";
 
 /** Areas with past bugs, scored by frequency x severity x recency (spec 10.1). */
 
@@ -44,7 +44,7 @@ export const MAX_AREAS = 200;
 export const areaKey = (area: string): string => area.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 
 export function loadRisk(store: string): RiskFile {
-  return readMemoryJson<RiskFile>(memoryPaths(store).riskAreas) ?? { schema_version: 1, updated: new Date(0).toISOString(), areas: [] };
+  return readMemoryJson<RiskFile>(memoryPaths(store).riskAreas) ?? { schema_version: MEMORY_SCHEMA, updated: new Date(0).toISOString(), areas: [] };
 }
 
 export interface RiskFinding {

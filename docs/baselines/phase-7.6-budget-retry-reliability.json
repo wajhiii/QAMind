@@ -1,0 +1,67 @@
+{
+  "label": "phase-7.6-budget-retry",
+  "date": "2026-11-02T11:03:38.042Z",
+  "model": "claude-sonnet-5-5",
+  "claude": "2.1.314 (Claude Code)",
+  "total_cost_usd": 0.34,
+  "scenarios": [
+    {
+      "id": "budget",
+      "title": "a one-minute budget on a full run: the run stops exploring, says so, and still finishes its report",
+      "prompt": "/qamind:qa-only full",
+      "minutes": 1.4,
+      "cost_usd": 0.34429860000000007,
+      "result": "success",
+      "tool_errors": [
+        "Bash: Exit code 2 qamind: api needs a subcommand: inventory | plan | run qamind 0.1.0: Senior QA Engineer agent runtime Run lifecycle run start [--mode full|quick|regression|di",
+        "Bash: PreToolUse:Bash hook error: This is a report-only QA run (qa-only), so this command is blocked: it writes to findings.json, outside .qa/ and the QAMind user store."
+      ],
+      "tool_calls": [
+        "Read",
+        "ToolSearch",
+        "qa:run_start",
+        "Bash qamind health --run run-20261102T110219Z",
+        "Bash qamind budget status --run run-20261102T110219Z",
+        "Read",
+        "Read",
+        "Bash qamind budget status --run run-20261102T110219Z",
+        "Write",
+        "Bash qamind report build --run run-20261102T110219Z",
+        "Bash qamind budget status --run run-20261102T110219Z",
+        "Bash qamind api --help",
+        "Bash qamind api plan --run run-20261102T110219Z --no-writes --max-total 40",
+        "Bash qamind api run --run run-20261102T110219Z --plan baseline --read-only",
+        "Bash cd <tmp>/budg",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Bash qamind report build --run run-20261102T110219Z",
+        "Bash qamind budget status --run run-20261102T110219Z",
+        "Bash qamind report lint --run run-20261102T110219Z",
+        "Write",
+        "Bash qamind report build --run run-20261102T110219Z",
+        "qa:memory_save_learning",
+        "qa:run_finish"
+      ],
+      "notes": {
+        "summary_budget": {
+          "time_minutes": 1,
+          "used_minutes": 1.2,
+          "reached": true,
+          "source": "budget.time_minutes in the config"
+        },
+        "duration_minutes": 1.2,
+        "budget_status_calls": 4,
+        "not_tested_by_budget": 6,
+        "not_tested_with_the_exact_phrase": 6,
+        "charters": 3,
+        "final_message": "⚠️ **Ready with risks:** 5 key journeys were not fully checked.\n\n- **Findings:** 0 critical, 2 important, 2 minor.\n  - Important: order list returns a server error for `page_size=0`.\n  - Important: order search returns a server error for `(` and `\\`.\n  - Minor: negative `page_size` is accepted when the spec says the minimum is 1.\n  - Minor: the sales report takes about 4 seconds against a 3-second"
+      },
+      "problems": [],
+      "passed": true
+    }
+  ],
+  "passed": true
+}

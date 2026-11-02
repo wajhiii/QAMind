@@ -53,7 +53,7 @@ Modes:
 - Free-text focus narrows any mode to that area.
 
 ## Phase 3: test, in this order
-1. Health check (`{{CLI}} health --run <id>`). If the environment is broken, stop: write an Environment problem note
+1. Health check (`{{CLI}} health --run <id>`, which first prepares the test data when `setup.run_before` asks for it). If the environment is broken, stop: write an Environment problem note
    (see Reporting) and finish the run. Never report product bugs from a broken environment.
 2. API (`surfaces.md`, "API").
 3. Each web UI, per role (`surfaces.md`, "Web UI").

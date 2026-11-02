@@ -102,6 +102,7 @@ and operating elements; take screenshots as evidence.
   (redacted). Name evidence by a short slug, not an ISSUE number (numbers are assigned when the report is built).
   If saving a screenshot is refused because the path is outside the workspace, tell the user to start the agent in the
   project folder.
+  The browser blurs private data in the page before it takes a screenshot (emails, phone numbers, ID and card numbers, `privacy.mask_selectors`), so a screenshot rarely shows them (names and addresses only where `privacy.mask_selectors` names them: look at the image before you rely on it). The page text you read with `browser_snapshot` is not blurred, and the text you save is scanned, not blurred: keep it to test accounts' data.
 
 ## Cross-checks
 Knowledge: `permissions-and-data-isolation.md` (isolation chains), `api-testing.md` (state-changing sequences and **warm, change,

@@ -295,6 +295,7 @@ export function buildAdminModel(data: RunData, previous: RunSummary[] = []): Adm
   ];
   // The summary is at most six lines. The fix branch must be stated in it; the note about leads seen only once folds into the last line if both are present.
   const extra: string[] = [];
+  if (meta?.budget?.reached) extra.push("This check stopped early because its time limit ran out, so some areas were not checked.");
   if (fixes) extra.push(fixes.branchLine);
   if (data.unconfirmed.length) extra.push(`${plural(data.unconfirmed.length, "other thing was", "other things were")} seen only once and could not be repeated; they are not counted as problems.`);
   while (summary.length + extra.length > MAX_SUMMARY_LINES) summary[summary.length - 1] += ` ${extra.pop() as string}`;

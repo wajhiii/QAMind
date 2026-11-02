@@ -1,11 +1,12 @@
 import path from "node:path";
 import { checkConfigFile } from "../lib/config.ts";
 import { loadQaEnv } from "../lib/dotenv.ts";
-import { exists } from "../lib/fsutil.ts";
+import { dailyBudgetProblem, dayOf } from "../lib/budget.ts";
+import { ensureDir, exists, readJson, writeJson } from "../lib/fsutil.ts";
 import { isRepo } from "../lib/fix/gitops.ts";
 import { ensureProjectStore, resolveProject } from "../lib/project.ts";
 import type { ProjectInfo } from "../lib/project.ts";
-import { storeDir } from "../lib/paths.ts";
+import { storeDir, storeSubdirs } from "../lib/paths.ts";
 import { findActiveMarkers } from "../lib/run.ts";
 import { changedInTask, stateHash, takeSnapshot } from "./changes.ts";
 import { buildReason } from "./prompt.ts";
@@ -117,6 +118,25 @@ function onceNotice(where: Where, h: HookEnv, rule: string, reason: string, forc
   return skip(rule, reason, `Auto-QA skipped: ${reason}`);
 }
 
+function dailyBudget(where: Where, h: HookEnv): Decision | undefined {
+  if (!exists(path.join(where.root, ".qa", "config.md"))) return undefined;
+  const config = checkConfigFile(where.root, h.env).config;
+  const problem = config ? dailyBudgetProblem(where.store, config, h.now) : undefined;
+  if (!problem) return undefined;
+  const file = path.join(storeSubdirs(where.store).state, "budget-notice.json");
+  const today = dayOf(h.now);
+  let told: string | undefined;
+  try {
+    told = (readJson<{ day?: string }>(file) ?? {}).day;
+  } catch {
+    told = undefined;
+  }
+  if (told === today) return skip("budget", problem);
+  ensureDir(path.dirname(file));
+  writeJson(file, { day: today });
+  return skip("budget", problem, `Auto-QA paused for today: ${problem}`);
+}
+
 /** Credentials and configuration the run needs, checked without printing any value. Returns the reason it cannot run, or undefined. */
 function cannotRun(root: string, h: HookEnv): string | undefined {
   if (!exists(path.join(root, ".qa", "config.md"))) return "this project has no .qa/config.md yet. Run the QAMind qa-only skill once to set it up.";
@@ -181,6 +201,13 @@ export function onStop(input: StopInput, h: HookEnv): Decision {
   if (!forced && lastAuto && eff.cooldown_minutes > 0 && h.now.getTime() - Date.parse(lastAuto.at) < eff.cooldown_minutes * 60_000) {
     consume();
     return skip("6", `cooldown: the last auto-QA run was less than ${eff.cooldown_minutes} minutes ago`);
+  }
+
+  // The daily budget (spec 13.6): auto-QA and CI together may use `budget.daily_max` minutes a day. When it is used up auto-QA pauses itself for the day, says so once, and a #qa tag still runs.
+  const daily = forced ? undefined : dailyBudget(where, h);
+  if (daily) {
+    consume();
+    return daily;
   }
 
   // The QA skill told us earlier in this session that a run cannot happen (app not reachable, ...): it was reported once, so stay quiet. A tag tries again.

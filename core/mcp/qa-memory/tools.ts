@@ -3,7 +3,7 @@ import { LEARNING_TYPES } from "../../lib/memory/learnings.ts";
 import {
   changeLearningConfidence,
   defaultProjectDir,
-  finishRunTracked,
+  finishRunAndRestore,
   getContext,
   listMemory,
   markFalseAlarm,
@@ -71,10 +71,10 @@ export const TOOLS: ToolDef[] = [
     name: "run_finish",
     title: "Finish the QA run",
     description:
-      "Finish the run: computes the run summary from the data files, updates the product map, risk areas and false-alarm counts, saves the run to history, re-renders both reports and ends the run (the safety guards stop applying). Call it once, last, after the reports lint clean. Returns the summary, including `memory_updated`.",
+      "Finish the run: computes the run summary from the data files, updates the product map, risk areas and false-alarm counts, saves the run to history, re-renders both reports and ends the run (the safety guards stop applying). If the run took an environment snapshot (setup.snapshot_command) it is restored first. Call it once, last, after the reports lint clean. Returns the summary, including `memory_updated`.",
     annotations: SET,
     input: { run, stop_reason: line(1, 200, "stop_reason").optional().describe("completed, environment problem, stopped by the user, ..."), cost: line(1, 100, "cost").optional() },
-    run: (a, c) => finishRunTracked(c.home, a.run, { ...(a.stop_reason ? { stopReason: a.stop_reason } : {}), ...(a.cost ? { cost: a.cost } : {}), now: c.now() }),
+    run: (a, c) => finishRunAndRestore(c.home, a.run, { ...(a.stop_reason ? { stopReason: a.stop_reason } : {}), ...(a.cost ? { cost: a.cost } : {}), now: c.now() }),
   }),
 
   define({

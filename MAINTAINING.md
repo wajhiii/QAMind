@@ -57,7 +57,10 @@ and run `npm test` plus the learning test. The build writes `THIRD-PARTY-NOTICES
 
 **Memory formats.** Changing a memory file's format means bumping `MEMORY_SCHEMA` in `core/lib/memory/store.ts` and adding a `Migration` to `core/lib/memory/migrate.ts` (per file kind; it must keep every field it does not list in `removes`). Test it the way `tests/core/memory-infra.test.ts` does.
 
-**Windows and Linux.** The phases are built and tested on macOS only. `.github/workflows/ci.yml` runs the full suite on Linux and macOS, and a separate Windows job (allowed to fail until the owner promotes it) runs the memory, server, fix-loop and auto-QA tests. Read their results after each push.
+**Reliability (Phase 7.6).** The privacy detectors are `core/lib/privacy.ts` and the in-page copy of them is `core/shared/page-mask.js`: change one, change the other, and run `tests/core/page-mask-browser.test.ts` (it uses a real Chrome through `plugins/qamind/node_modules/playwright-core` and skips when none is installed; a fake DOM would not have caught the init-script timing bug it did catch).
+A new memory format means a new entry in `MIGRATIONS` and a fixture of the old format written by the old build (see `tests/core/fixtures/memory-v1/README.md`), never one typed by hand. The real-agent test is `CLAUDE_BIN=/path/to/claude node scripts/eval-reliability.ts --label <phase>` (broken environment, one-minute budget, old memory with reset and privacy; about 30 to 60 minutes and $10 to $20; port 4100 must be free; do not rebuild while it runs).
+
+**Windows and Linux.** The phases are built and tested on macOS only. `.github/workflows/ci.yml` runs the full suite on Linux and macOS, and a separate Windows job (allowed to fail until the owner promotes it) runs the memory, server, fix-loop, auto-QA, setup, conformance and reliability tests. Read their results after each push.
 
 ## Fix mode (`/qa`)
 

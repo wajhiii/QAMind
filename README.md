@@ -171,6 +171,38 @@ A run may *propose* a lesson; **nothing uses it until you approve it**, and no Q
 - **Rejected lessons are remembered**, so a near copy is not proposed again. Memory you archive is moved to the project's archive with your reason, never deleted.
 - Files: `~/.qamind/pending-lessons.md`, `~/.qamind/global-lessons.md` (plain Markdown you can edit), `~/.qamind/rejected-lessons.jsonl`. Details: [docs/MEMORY.md](docs/MEMORY.md) and [decision 0005](docs/decisions/0005-global-lessons.md).
 
+## Reliable runs: test data, time limits, private data
+
+Three optional blocks in `.qa/config.md` (commented examples are in the file QAMind creates). None is needed to get started.
+
+```yaml
+setup:                              # put the TEST environment in a known state before testing
+  run_before: full_runs             # never (default) | full_runs | always
+  reset_command: npm run reset
+  seed_command: npm run seed
+  snapshot_command: ./scripts/db-snapshot.sh   # optional, with its restore (both or neither); restored when the run ends
+  restore_command: ./scripts/db-restore.sh
+budget:
+  time_minutes: 30                  # QAMind stops exploring, finishes the report and lists the rest as "time budget reached"
+  modes: { quick: { time_minutes: 10 }, auto: { time_minutes: 5 } }
+  daily_max: 120                    # minutes per day of auto-QA and CI together; then auto-QA pauses itself for the day and says so once
+  max_cost: 10                      # told to the agent and recorded in the report; QAMind cannot see a host's spending, so it cannot enforce it
+privacy:
+  mask_patterns: ["ORD-\\d{6}"]      # more things that must never be saved (regular expressions)
+  mask_selectors: [".customer-address"]   # screen elements blurred before a screenshot is taken
+  mask_fields: [name, address]      # fields whose values are masked in saved API evidence
+```
+
+- **A broken environment is not a bug.** The health check (app opens, test accounts sign in, API answers) retries a failed check once; if it still fails the run stops as an **Environment problem**: no findings, nothing tested on top of it, the admin report says in plain words what did not work, and everything left untested says why.
+  A check that only passed on the second try, or took more than 5 seconds, is marked flaky or slow and remembered.
+- **Setup commands run on your machine, in the project folder, one line each**, and are refused if they mention an address in `blocked_production_patterns`. Their output is kept in the run folder with credentials removed and private data masked.
+- **Time limits are real**: `qamind budget status` tells the agent how long is left, the API runner stops sending requests and `/qa` starts no further fix once the deadline has passed, and the reports say what was not covered. Cost limits are advisory, because the host, not QAMind, spends the money; use the host's own limit as the hard stop.
+- **Private data is masked before it is saved and checked before a run finishes.** Email addresses, national ID and card numbers, phone numbers and your patterns are masked in saved evidence and reports; screenshots are taken with matching text and your selectors blurred; `qamind privacy scan --run ID` and the finish step refuse a run folder that still holds some.
+  Your test accounts, reserved test domains (`example.com`, `*.test`), `QA-` data and the fictional `555-01xx` numbers stay readable. Names and street addresses inside ordinary text cannot be recognised: name those fields (`mask_fields`) or elements (`mask_selectors`). Images cannot be scanned, and the blur is for what is saved: the agent still reads the page's text, and what the host keeps of the conversation is the host's.
+- **Old memory is migrated, not lost.** After an update that changes a memory format, the first run copies your store to `~/.qamind/projects/<id>/backups/<time>-schema-1-to-2/`, migrates it, and appends what it did to `backups/migrations.log.jsonl`. Memory written by a *newer* QAMind is never touched.
+
+Design, limits and what was not verified: [decision 0007](docs/decisions/0007-reliability.md).
+
 ## Safety (and how it is enforced)
 
 QAMind never tests production, never reads or prints credentials, creates data only with your `QA-` prefix, never
@@ -188,7 +220,7 @@ triggers real payments or emails, and treats everything it sees in your app as d
 | Every fix has a regression test that fails without it | `fix_commit` takes the fix out, runs the test (it must fail), puts the fix back and runs it again (it must pass) | same, via MCP |
 
 Known limits are listed in [docs/decisions/0001-browser-automation.md](docs/decisions/0001-browser-automation.md).
-Screenshot masking of personal data is not built yet (Phase 7.6).
+Private-data masking and its limits (names and addresses in free text, images) are in [Reliable runs](#reliable-runs-test-data-time-limits-private-data).
 
 ## Roadmap
 
@@ -202,8 +234,9 @@ Screenshot masking of personal data is not built yet (Phase 7.6).
 | 6 ✅ | `/qa` fix mode: fix loop with proof, stop rules, branch handling, fix-log memory |
 | 6.5 ✅ | Auto-QA: a gate after every agent task that changed code, `/qa-auto`, tags |
 | 7 ✅ | Global lessons you approve, `/qa-memory-review` (lessons, prune, stats) |
-| 7.5 ✅ (this, without Codex) | `qamind setup \| status \| update \| uninstall`; Cursor (experimental) and generic (instruction-only) hosts; conformance suite; `docs/ADDING-A-HOST.md`. Codex deferred by the owner |
-| 7.6 – 7.10 | reliability, test bank, CI, coverage depth, release verdict and metrics (Codex whenever the owner asks) |
+| 7.5 ✅ (without Codex) | `qamind setup \| status \| update \| uninstall`; Cursor (experimental) and generic (instruction-only) hosts; conformance suite; `docs/ADDING-A-HOST.md`. Codex deferred by the owner |
+| 7.6 ✅ (this) | Reliability: environment problems are not bugs, test data setup, time budgets, private-data masking and scan, memory migration with backup |
+| 7.7 – 7.10 | test bank and bug lifecycle, CI, coverage depth, release verdict and metrics (Codex whenever the owner asks) |
 | 8 | Linear and Sentry, polish |
 
 ## Development

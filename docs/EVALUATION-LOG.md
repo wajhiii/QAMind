@@ -460,3 +460,38 @@ each run saw the learnings of the earlier ones (0, 1, 2, then 3), one project id
 - Windows and Linux: `setup.cmd`, the `.cmd` launcher and the PowerShell quoting of Cursor's hook commands were not run.
 - `update` was tested against a local repository with tags, not GitHub; there are no release tags yet. `setup` builds with `npm ci` and the build script, which needs the network and was not run inside the test suite (a fresh-clone run of it is recorded when the phase is committed).
 
+
+## Phase 7.6: reliability foundations (environment, budgets, privacy, memory migration)
+
+Real Claude Code (2.1.314, `claude-sonnet-5-5`, headless `-p`), the built plugin, a **copy of the demo app per scenario** (answer key excluded), a scratch `QAMIND_HOME`. `scripts/eval-reliability.ts`; every check reads files, the store and the tool-call stream, not the agent's words. Records: `docs/baselines/phase-7.6-reliability.{json,md}` (run B below), `phase-7.6-ui-retry-*`, `phase-7.6-budget-retry-*`.
+
+| Scenario | What was set up | What the files showed |
+|---|---|---|
+| **broken-env** | demo app not running; `/qa-only quick` | Every check failed twice (retried once), stop reason `environment problem`, **0 findings**, 0 browser or API test calls, admin verdict "Not ready to release" with the failures in plain words, 6 areas under Not tested, all "Environment problem". 2 of 2 runs (about 1 minute, $0.24 to $0.30) |
+| **budget** | `budget.time_minutes: 1`, `/qa-only full` | The agent checked `budget status` 3 to 4 times, ran the API baseline, stopped, listed the UI areas as Not tested because of the budget, and finished both reports. Summary: `budget.reached: true`, 1.2 to 1.7 minutes used. The technical report says "1 minutes: reached", the admin report says the check stopped early. The baseline found real bugs (HTTP 500 on `page_size=0`) before stopping |
+| **privacy-memory** | a **real format-1 store** (written by the 0.7.5 build) in the store, `setup.reset_command`, `privacy.mask_fields: [contact_name, address]` | One backup folder (`schema-1-to-2`) holding the original learnings file **byte for byte**; a 7-line migration log; every memory file at format 2; the old learnings in the run's `memory_get_context`; history = 2 old runs + this one; the reset ran first (`data/env-prep.json`, first health check "Test data preparation"); the run folder held 6 `[masked ID]`, 2 `[masked card]` and 12 masked fields (run A's counts) and **none of the 8 seeded personal values** (CNICs, a card number, two names, two addresses) anywhere in the run folder or the store, in both runs (in run B the agent also ran `privacy mask` once as a precaution; it found nothing left to mask). 2 of 2 runs (3 to 4 minutes, $0.70 to $0.85) |
+| **privacy-ui** | Admin Portal Customers page (seeded names, addresses, CNICs, a card number in a note), two columns in `privacy.mask_selectors`; the agent opens it and takes a screenshot | The screenshot, **read by me**: names, addresses, CNICs and the card number are blurred; reserved-domain emails, the fictional `555-01xx` phones and the last four digits of a card stay readable. No seeded value in any text file of the run or the store. This is the real path: launcher, second `--init-script`, Playwright MCP, Chrome |
+
+### Four runs, and what went wrong in them (all of it)
+- **Run A** (three scenarios, before the next changes): all passed ($1.27).
+- **Run B** (four scenarios, plugin rebuilt): `broken-env` and `privacy-memory` passed. **`budget` failed my check**: the run did everything right but wrote its own reasons ("the 1-minute run budget only allowed the automated checks behind the screens") instead of the skill's exact phrase "time budget reached" (run A and run D used the phrase). Nothing reads that wording (both reports' budget rows come from the run summary), so the check was stricter than the requirement:
+  it is now on meaning, and records how many entries used the exact phrase. **`privacy-ui` failed: the run never finished.** The agent took the screenshot, then six `Write` calls into `.qa/reports/<run>/data/` (twice) were refused by Claude Code with "you haven't granted it yet", although the skill grants `Write(.qa/**)`, the path form is the same as in the runs where it worked, and no QAMind hook was involved (read from the session transcript).
+- **Run C** (`privacy-ui` alone, same prompt, same build): passed, the same six writes succeeded. **I could not reproduce the permission refusal and do not know its cause**; it looks like an intermittent behaviour of the host's non-interactive permission handling, and I did not look into what QAMind does with a run that stays open (not examined in this phase).
+- **Run D** (`budget` alone, the final check): passed, with the exact phrase on all 6 Not-tested entries.
+- Total cost of all four runs: about $3.70.
+
+### Found by this phase's own checks, and fixed
+- Setup command output was **credential-redacted but not privacy-masked**, and the stored command line was not masked either (a seed script printing the customers it made, or a command with a real address in it, would have put them in `env-prep.json` and then blocked the run at the finish scan): masked now, with a test. Found while writing the documentation, not by a run.
+- `core/shared/surfaces.md` said masked screenshots were "safe to keep"; the blur is best-effort and the agent still reads the page's text, so it now says to look at the image and that the snapshot text is not blurred.
+- Earlier in the phase (unit and browser tests, before any agent run): a stale default `schema_version` overriding the real one in `writeMemoryJson`, `stack.json` written with an old constant (re-migration on every run), the in-page script throwing before `document.documentElement` existed (**only a real Chrome showed it**), and a card number at the end of a sentence not masked.
+
+### Tests
+372 tests, 370 pass, 2 skipped by design (project-level install on hosts that have none, as before); `tsc` clean; `npm run check:generated` clean; `claude plugin validate` passes for the plugin and the marketplace; the demo app's own 44 tests pass; no fixture password in any changed or new file (bundles included). New: environment preparation, budget, privacy (detectors, scan, mask, page script) and migration tests, a migration test against the real format-1 fixture, and a real-Chrome test of the in-page mask.
+
+### What this does not show
+- **Cost limits are not enforced** (QAMind cannot see a host's spending): recorded and advisory by design. Nothing measured the host's real spend against a limit.
+- **The budget was only exercised at one minute** on the demo app, not a realistic 30-minute budget on a large product; the daily total and auto-QA pause are covered by tests, **not by an agent run**.
+- **Privacy has known gaps**: names and addresses in free text are masked only where `mask_fields`, `mask_patterns` or `mask_selectors` name them; images are not scanned; the agent still reads page text, and the host's transcript is the host's. The screenshot was checked by eye on one page of one app.
+- **Setup commands** (snapshot and restore in particular) ran only as a reset script in the demo app; a real database snapshot and restore was tested with scripted commands in unit tests, not against a real database. A command that reaches production by a name not in `blocked_production_patterns` is not detectable.
+- **Migration** was tested from one older format (1 to 2) on one real store, not from older stores written by several versions.
+- macOS only, headless only; nothing on Linux, Windows, in interactive Claude Code, Cursor or a generic agent. The intermittent write refusal above is unexplained.

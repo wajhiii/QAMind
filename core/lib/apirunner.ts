@@ -3,11 +3,14 @@ import path from "node:path";
 import { jsonPathGet, joinUrl, loginRole } from "./auth.ts";
 import type { RoleCredentials, Session } from "./auth.ts";
 import type { ApiLogin } from "./config.ts";
+import { BUDGET_REASON } from "./budget.ts";
 import { ensureDir, writeJson } from "./fsutil.ts";
 import { matchEndpoint, statusDeclared } from "./openapi.ts";
 import type { Endpoint, Inventory } from "./openapi.ts";
 import { validatePlan } from "./apiplan.ts";
 import type { JsonCheck, Plan, Probe, StatusExpectation } from "./apiplan.ts";
+import { maskBody, maskJson } from "./privacy.ts";
+import type { PrivacyContext } from "./privacy.ts";
 import { makeRedactor } from "./redact.ts";
 import type { Redactor } from "./redact.ts";
 import { validateSchema } from "./schema.ts";
@@ -28,6 +31,10 @@ export interface RunnerOptions {
   readOnly?: boolean;
   maxBodyChars?: number;
   fetchImpl?: typeof fetch;
+  /** Private data masking for saved evidence (spec 13.8): emails, phones, IDs, cards, the config's own patterns and fields. */
+  privacy?: PrivacyContext;
+  /** The run's deadline (epoch ms): no probe starts after it, and the rest are skipped as "time budget reached" (spec 13.6). */
+  deadlineMs?: number;
 }
 
 export interface Signal {
@@ -60,7 +67,7 @@ export interface ProbeResult {
 }
 
 export interface PlanResult {
-  summary: { plan: string; total: number; passed: number; failed: number; skipped: number; signals: number; ran_at: string };
+  summary: { plan: string; total: number; passed: number; failed: number; skipped: number; signals: number; ran_at: string; /** Probes not run because the run's time budget ran out. */ budget_reached?: number };
   results: ProbeResult[];
   matrix: Array<{ operation: string; statuses: Record<string, number | string> }>;
 }
@@ -235,6 +242,11 @@ export async function runPlan(plan: Plan, opts: RunnerOptions): Promise<PlanResu
     const base: Pick<ProbeResult, "id" | "title" | "role" | "tags"> & { operation?: string } = { id: raw.id, title: raw.title, role: raw.role, tags, ...(raw.operation ? { operation: raw.operation } : {}) };
     const skip = (reason: string) => results.push({ ...base, skipped: reason, statuses: [], ms: [], signals: [], expectation_failures: [] });
 
+    if (opts.deadlineMs !== undefined && Date.now() >= opts.deadlineMs) {
+      skip(BUDGET_REASON);
+      continue;
+    }
+
     if (opts.readOnly && raw.method !== "GET") {
       skip("read-only run: non-GET probes are not executed");
       continue;
@@ -289,10 +301,12 @@ export async function runPlan(plan: Plan, opts: RunnerOptions): Promise<PlanResu
     if (signals.length > 0 || failures.length > 0 || probe.keep_evidence === true) {
       ensureDir(evidenceDir);
       const file = path.join(evidenceDir, `${plan.name}-${raw.id}.json`);
-      const reqBody = probe.raw_body !== undefined ? redactor.text(probe.raw_body) : probe.body !== undefined ? JSON.stringify(redactor.json(probe.body)) : undefined;
+      const priv = opts.privacy;
+      const mask = (t: string): string => (priv ? maskBody(t, priv) : t);
+      const reqBody = probe.raw_body !== undefined ? mask(redactor.text(probe.raw_body)) : probe.body !== undefined ? mask(JSON.stringify(redactor.json(probe.body))) : undefined;
       const headerFlags = [probe.role !== "anonymous" ? `-H 'Authorization: Bearer $TOKEN'` : "", reqBody !== undefined ? `-H 'Content-Type: application/json'` : ""].filter(Boolean).join(" ");
       const curl = `curl -sS -i -X ${probe.method} '${url}' ${headerFlags}${reqBody !== undefined ? ` --data '${reqBody.replace(/'/g, "'\\''")}'` : ""}`.replace(/\s+/g, " ").trim();
-      writeJson(file, {
+      const evidenceDoc = {
         probe: { id: raw.id, title: raw.title, operation: raw.operation, role: probe.role },
         curl,
         curl_note: probe.role === "anonymous" ? "No credentials are needed." : "Set TOKEN to a valid token for this role (log in first); the real token is never saved in evidence.",
@@ -301,12 +315,14 @@ export async function runPlan(plan: Plan, opts: RunnerOptions): Promise<PlanResu
           ms: a.ms,
           ...(a.error ? { error: redactor.text(a.error) } : {}),
           request: { method: probe.method, url, headers: redactor.headers({ ...(probe.headers ?? {}), ...(probe.role !== "anonymous" ? { Authorization: "[token]" } : {}) }), ...(reqBody !== undefined ? { body: reqBody } : {}) },
-          response: { headers: redactor.headers(a.headers), body: redactor.text(a.body), ...(a.truncated ? { truncated: true } : {}) },
+          response: { headers: redactor.headers(a.headers), body: mask(redactor.text(a.body)), ...(a.truncated ? { truncated: true } : {}) },
         })),
         signals,
         expectation_failures: failures,
         reproduced,
-      });
+      };
+      // Whatever the response held, the saved evidence is masked (spec 13.8): any other string in it too, and the configured fields.
+      writeJson(file, priv ? maskJson(evidenceDoc, priv).value : evidenceDoc);
       evidence = path.relative(opts.runDir, file).split(path.sep).join("/");
     }
 
@@ -349,6 +365,7 @@ export async function runPlan(plan: Plan, opts: RunnerOptions): Promise<PlanResu
     skipped: results.length - executed.length,
     signals: executed.reduce((n, r) => n + r.signals.length + r.expectation_failures.length, 0),
     ran_at: new Date().toISOString(),
+    ...(results.some((r) => r.skipped === BUDGET_REASON) ? { budget_reached: results.filter((r) => r.skipped === BUDGET_REASON).length } : {}),
   };
   const out: PlanResult = { summary, results, matrix: [...byOp].map(([operation, statuses]) => ({ operation, statuses })) };
   const dir = path.join(opts.runDir, "data", "api-results");

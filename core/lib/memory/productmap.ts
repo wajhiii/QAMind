@@ -2,7 +2,7 @@ import path from "node:path";
 import { readJson, writeJson } from "../fsutil.ts";
 import type { Inventory } from "../openapi.ts";
 import type { CoverageRow } from "../report.ts";
-import { memoryPaths, readMemoryJson, writeMemoryJson } from "./store.ts";
+import { MEMORY_SCHEMA, memoryPaths, readMemoryJson, writeMemoryJson } from "./store.ts";
 
 /** What the product consists of: UIs, pages, API endpoints, roles and journeys, each with when it was last seen (spec 10.1). */
 
@@ -165,7 +165,7 @@ export function computeChanges(prev: ProductMap | undefined, obs: Observed, mode
 
 export function applyObserved(prev: ProductMap | undefined, obs: Observed, runId: string, mode: string, now: Date): ProductMap {
   const stamp = now.toISOString();
-  const map: ProductMap = prev ?? { schema_version: 1, updated: stamp, last_run: runId, last_run_mode: mode, uis: {}, api: { source: "none", endpoints: {} }, roles: [], flows: [] };
+  const map: ProductMap = prev ?? { schema_version: MEMORY_SCHEMA, updated: stamp, last_run: runId, last_run_mode: mode, uis: {}, api: { source: "none", endpoints: {} }, roles: [], flows: [] };
   map.updated = stamp;
   map.last_run = runId;
   map.last_run_mode = mode;

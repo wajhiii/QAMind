@@ -1,3 +1,4 @@
+import { MEMORY_SCHEMA } from "../../core/lib/memory/store.ts";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -57,8 +58,8 @@ test("a run teaches memory and the next run uses it: context, change detection, 
 
   const mem = path.join(fx.store, "memory");
   for (const f of ["product-map.json", "risk-areas.json", "learnings.jsonl", "false-alarms.jsonl", "stack.json"]) assert.ok(fs.existsSync(path.join(mem, f)), f);
-  assert.equal(JSON.parse(fs.readFileSync(path.join(mem, "product-map.json"), "utf8")).schema_version, 1);
-  assert.equal(JSON.parse(fs.readFileSync(path.join(mem, "risk-areas.json"), "utf8")).schema_version, 1);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(mem, "product-map.json"), "utf8")).schema_version, MEMORY_SCHEMA);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(mem, "risk-areas.json"), "utf8")).schema_version, MEMORY_SCHEMA);
   const tech1 = fs.readFileSync(path.join(fx.runDir, "TECHNICAL-REPORT.md"), "utf8");
   assert.match(tech1, /First run for this project/);
   assert.match(tech1, /- New learning L-001: Change the order number/);

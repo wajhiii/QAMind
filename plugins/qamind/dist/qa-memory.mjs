@@ -3270,8 +3270,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path28) {
-      let input2 = path28;
+    function removeDotSegments(path32) {
+      let input2 = path32;
       const output2 = [];
       let nextSlash = -1;
       let len = 0;
@@ -3345,11 +3345,11 @@ var require_utils = __commonJS({
       }
       return output2.join("");
     }
-    function removeDotSegmentsRelative(path28) {
-      if (path28 === "" || path28[0] === "/") {
-        return removeDotSegments(path28);
+    function removeDotSegmentsRelative(path32) {
+      if (path32 === "" || path32[0] === "/") {
+        return removeDotSegments(path32);
       }
-      const segments = path28.split("/");
+      const segments = path32.split("/");
       const last = segments.length - 1;
       const output2 = [];
       let trailingDirectory = false;
@@ -3712,8 +3712,8 @@ var require_schemes = __commonJS({
       }
       if (wsComponent.resourceName) {
         const queryIndex = wsComponent.resourceName.indexOf("?");
-        const path28 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
-        wsComponent.path = path28 && path28 !== "/" ? path28 : void 0;
+        const path32 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
+        wsComponent.path = path32 && path32 !== "/" ? path32 : void 0;
         wsComponent.query = queryIndex === -1 ? void 0 : wsComponent.resourceName.slice(queryIndex + 1);
         wsComponent.resourceName = void 0;
       }
@@ -7250,12 +7250,12 @@ var require_dist = __commonJS({
         throw new Error(`Unknown format "${name}"`);
       return f;
     };
-    function addFormats(ajv, list, fs18, exportName) {
+    function addFormats(ajv, list, fs19, exportName) {
       var _a3;
       var _b;
       (_a3 = (_b = ajv.opts.code).formats) !== null && _a3 !== void 0 ? _a3 : _b.formats = (0, codegen_1._)`require("ajv-formats/dist/formats").${exportName}`;
       for (const f of list)
-        ajv.addFormat(f, fs18[f]);
+        ajv.addFormat(f, fs19[f]);
     }
     module.exports = exports = formatsPlugin;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -7340,17 +7340,17 @@ var require_visit = __commonJS({
     visit2.BREAK = BREAK;
     visit2.SKIP = SKIP;
     visit2.REMOVE = REMOVE;
-    function visit_(key, node2, visitor, path28) {
-      const ctrl = callVisitor(key, node2, visitor, path28);
+    function visit_(key, node2, visitor, path32) {
+      const ctrl = callVisitor(key, node2, visitor, path32);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path28, ctrl);
-        return visit_(key, ctrl, visitor, path28);
+        replaceNode(key, path32, ctrl);
+        return visit_(key, ctrl, visitor, path32);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node2)) {
-          path28 = Object.freeze(path28.concat(node2));
+          path32 = Object.freeze(path32.concat(node2));
           for (let i = 0; i < node2.items.length; ++i) {
-            const ci = visit_(i, node2.items[i], visitor, path28);
+            const ci = visit_(i, node2.items[i], visitor, path32);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -7361,13 +7361,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node2)) {
-          path28 = Object.freeze(path28.concat(node2));
-          const ck = visit_("key", node2.key, visitor, path28);
+          path32 = Object.freeze(path32.concat(node2));
+          const ck = visit_("key", node2.key, visitor, path32);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node2.key = null;
-          const cv = visit_("value", node2.value, visitor, path28);
+          const cv = visit_("value", node2.value, visitor, path32);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -7388,17 +7388,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node2, visitor, path28) {
-      const ctrl = await callVisitor(key, node2, visitor, path28);
+    async function visitAsync_(key, node2, visitor, path32) {
+      const ctrl = await callVisitor(key, node2, visitor, path32);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path28, ctrl);
-        return visitAsync_(key, ctrl, visitor, path28);
+        replaceNode(key, path32, ctrl);
+        return visitAsync_(key, ctrl, visitor, path32);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node2)) {
-          path28 = Object.freeze(path28.concat(node2));
+          path32 = Object.freeze(path32.concat(node2));
           for (let i = 0; i < node2.items.length; ++i) {
-            const ci = await visitAsync_(i, node2.items[i], visitor, path28);
+            const ci = await visitAsync_(i, node2.items[i], visitor, path32);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -7409,13 +7409,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node2)) {
-          path28 = Object.freeze(path28.concat(node2));
-          const ck = await visitAsync_("key", node2.key, visitor, path28);
+          path32 = Object.freeze(path32.concat(node2));
+          const ck = await visitAsync_("key", node2.key, visitor, path32);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node2.key = null;
-          const cv = await visitAsync_("value", node2.value, visitor, path28);
+          const cv = await visitAsync_("value", node2.value, visitor, path32);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -7442,23 +7442,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node2, visitor, path28) {
+    function callVisitor(key, node2, visitor, path32) {
       if (typeof visitor === "function")
-        return visitor(key, node2, path28);
+        return visitor(key, node2, path32);
       if (identity.isMap(node2))
-        return visitor.Map?.(key, node2, path28);
+        return visitor.Map?.(key, node2, path32);
       if (identity.isSeq(node2))
-        return visitor.Seq?.(key, node2, path28);
+        return visitor.Seq?.(key, node2, path32);
       if (identity.isPair(node2))
-        return visitor.Pair?.(key, node2, path28);
+        return visitor.Pair?.(key, node2, path32);
       if (identity.isScalar(node2))
-        return visitor.Scalar?.(key, node2, path28);
+        return visitor.Scalar?.(key, node2, path32);
       if (identity.isAlias(node2))
-        return visitor.Alias?.(key, node2, path28);
+        return visitor.Alias?.(key, node2, path32);
       return void 0;
     }
-    function replaceNode(key, path28, node2) {
-      const parent = path28[path28.length - 1];
+    function replaceNode(key, path32, node2) {
+      const parent = path32[path32.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node2;
       } else if (identity.isPair(parent)) {
@@ -8070,10 +8070,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path28, value) {
+    function collectionFromPath(schema, path32, value) {
       let v = value;
-      for (let i = path28.length - 1; i >= 0; --i) {
-        const k = path28[i];
+      for (let i = path32.length - 1; i >= 0; --i) {
+        const k = path32[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -8092,7 +8092,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path28) => path28 == null || typeof path28 === "object" && !!path28[Symbol.iterator]().next().done;
+    var isEmptyPath = (path32) => path32 == null || typeof path32 === "object" && !!path32[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -8122,11 +8122,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path28, value) {
-        if (isEmptyPath(path28))
+      addIn(path32, value) {
+        if (isEmptyPath(path32))
           this.add(value);
         else {
-          const [key, ...rest] = path28;
+          const [key, ...rest] = path32;
           const node2 = this.get(key, true);
           if (identity.isCollection(node2))
             node2.addIn(rest, value);
@@ -8140,8 +8140,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path28) {
-        const [key, ...rest] = path28;
+      deleteIn(path32) {
+        const [key, ...rest] = path32;
         if (rest.length === 0)
           return this.delete(key);
         const node2 = this.get(key, true);
@@ -8155,8 +8155,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path28, keepScalar) {
-        const [key, ...rest] = path28;
+      getIn(path32, keepScalar) {
+        const [key, ...rest] = path32;
         const node2 = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node2) ? node2.value : node2;
@@ -8174,8 +8174,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path28) {
-        const [key, ...rest] = path28;
+      hasIn(path32) {
+        const [key, ...rest] = path32;
         if (rest.length === 0)
           return this.has(key);
         const node2 = this.get(key, true);
@@ -8185,8 +8185,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path28, value) {
-        const [key, ...rest] = path28;
+      setIn(path32, value) {
+        const [key, ...rest] = path32;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -10701,9 +10701,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path28, value) {
+      addIn(path32, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path28, value);
+          this.contents.addIn(path32, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -10778,14 +10778,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path28) {
-        if (Collection.isEmptyPath(path28)) {
+      deleteIn(path32) {
+        if (Collection.isEmptyPath(path32)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path28) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path32) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -10800,10 +10800,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path28, keepScalar) {
-        if (Collection.isEmptyPath(path28))
+      getIn(path32, keepScalar) {
+        if (Collection.isEmptyPath(path32))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path28, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path32, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -10814,10 +10814,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path28) {
-        if (Collection.isEmptyPath(path28))
+      hasIn(path32) {
+        if (Collection.isEmptyPath(path32))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path28) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path32) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -10834,13 +10834,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path28, value) {
-        if (Collection.isEmptyPath(path28)) {
+      setIn(path32, value) {
+        if (Collection.isEmptyPath(path32)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path28), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path32), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path28, value);
+          this.contents.setIn(path32, value);
         }
       }
       /**
@@ -12801,9 +12801,9 @@ var require_cst_visit = __commonJS({
     visit2.BREAK = BREAK;
     visit2.SKIP = SKIP;
     visit2.REMOVE = REMOVE;
-    visit2.itemAtPath = (cst, path28) => {
+    visit2.itemAtPath = (cst, path32) => {
       let item = cst;
-      for (const [field, index] of path28) {
+      for (const [field, index] of path32) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -12812,23 +12812,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit2.parentCollection = (cst, path28) => {
-      const parent = visit2.itemAtPath(cst, path28.slice(0, -1));
-      const field = path28[path28.length - 1][0];
+    visit2.parentCollection = (cst, path32) => {
+      const parent = visit2.itemAtPath(cst, path32.slice(0, -1));
+      const field = path32[path32.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path28, item, visitor) {
-      let ctrl = visitor(item, path28);
+    function _visit(path32, item, visitor) {
+      let ctrl = visitor(item, path32);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path28.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path32.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -12839,10 +12839,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path28);
+            ctrl = ctrl(item, path32);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path28) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path32) : ctrl;
     }
     exports.visit = visit2;
   }
@@ -14144,14 +14144,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs18 = this.flowScalar(this.type);
+              const fs19 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map2.items.push({ start, key: fs18, sep: [] });
+                map2.items.push({ start, key: fs19, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs18);
+                this.stack.push(fs19);
               } else {
-                Object.assign(it, { key: fs18, sep: [] });
+                Object.assign(it, { key: fs19, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -14279,13 +14279,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs18 = this.flowScalar(this.type);
+              const fs19 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs18, sep: [] });
+                fc.items.push({ start: [], key: fs19, sep: [] });
               else if (it.sep)
-                this.stack.push(fs18);
+                this.stack.push(fs19);
               else
-                Object.assign(it, { key: fs18, sep: [] });
+                Object.assign(it, { key: fs19, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -14967,8 +14967,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path28, errorMaps, issueData } = params;
-  const fullPath = [...path28, ...issueData.path || []];
+  const { data, path: path32, errorMaps, issueData } = params;
+  const fullPath = [...path32, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -15083,11 +15083,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path28, key) {
+  constructor(parent, value, path32, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path28;
+    this._path = path32;
     this._key = key;
   }
   get path() {
@@ -16052,12 +16052,12 @@ ZodString.create = (params) => {
     ...processCreateParams(params)
   });
 };
-function floatSafeRemainder(val, step) {
+function floatSafeRemainder(val, step2) {
   const valDecCount = (val.toString().split(".")[1] || "").length;
-  const stepDecCount = (step.toString().split(".")[1] || "").length;
+  const stepDecCount = (step2.toString().split(".")[1] || "").length;
   const decCount = valDecCount > stepDecCount ? valDecCount : stepDecCount;
   const valInt = Number.parseInt(val.toFixed(decCount).replace(".", ""));
-  const stepInt = Number.parseInt(step.toFixed(decCount).replace(".", ""));
+  const stepInt = Number.parseInt(step2.toFixed(decCount).replace(".", ""));
   return valInt % stepInt / 10 ** decCount;
 }
 var ZodNumber = class _ZodNumber extends ZodType {
@@ -18939,8 +18939,8 @@ function cleanRegex(source) {
   const end = source.endsWith("$") ? source.length - 1 : source.length;
   return source.slice(start, end);
 }
-function floatSafeRemainder2(val, step) {
-  const ratio = val / step;
+function floatSafeRemainder2(val, step2) {
+  const ratio = val / step2;
   const roundedRatio = Math.round(ratio);
   const tolerance = 4 * Number.EPSILON * Math.max(Math.abs(ratio), 1);
   if (Math.abs(ratio - roundedRatio) < tolerance)
@@ -19042,10 +19042,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path28) {
-  if (!path28)
+function getElementAtPath(obj, path32) {
+  if (!path32)
     return obj;
-  return path28.reduce((acc, key) => acc?.[key], obj);
+  return path32.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -19385,11 +19385,11 @@ function explicitlyAborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path28, issues) {
+function prefixIssues(path32, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path28);
+    iss.path.unshift(path32);
     return iss;
   });
 }
@@ -19851,16 +19851,16 @@ function flattenError(error62, mapper = (issue3) => issue3.message) {
 }
 function formatError(error62, mapper = (issue3) => issue3.message) {
   const fieldErrors = { _errors: [] };
-  const processError = (error63, path28 = []) => {
+  const processError = (error63, path32 = []) => {
     for (const issue3 of error63.issues) {
       if (issue3.code === "invalid_union" && issue3.errors.length) {
-        issue3.errors.map((issues) => processError({ issues }, [...path28, ...issue3.path]));
+        issue3.errors.map((issues) => processError({ issues }, [...path32, ...issue3.path]));
       } else if (issue3.code === "invalid_key") {
-        processError({ issues: issue3.issues }, [...path28, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path32, ...issue3.path]);
       } else if (issue3.code === "invalid_element") {
-        processError({ issues: issue3.issues }, [...path28, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path32, ...issue3.path]);
       } else {
-        const fullpath = [...path28, ...issue3.path];
+        const fullpath = [...path32, ...issue3.path];
         if (fullpath.length === 0) {
           fieldErrors._errors.push(mapper(issue3));
         } else {
@@ -19899,17 +19899,17 @@ function formatError(error62, mapper = (issue3) => issue3.message) {
 }
 function treeifyError(error62, mapper = (issue3) => issue3.message) {
   const result = { errors: [] };
-  const processError = (error63, path28 = []) => {
+  const processError = (error63, path32 = []) => {
     var _a3;
     for (const issue3 of error63.issues) {
       if (issue3.code === "invalid_union" && issue3.errors.length) {
-        issue3.errors.map((issues) => processError({ issues }, [...path28, ...issue3.path]));
+        issue3.errors.map((issues) => processError({ issues }, [...path32, ...issue3.path]));
       } else if (issue3.code === "invalid_key") {
-        processError({ issues: issue3.issues }, [...path28, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path32, ...issue3.path]);
       } else if (issue3.code === "invalid_element") {
-        processError({ issues: issue3.issues }, [...path28, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path32, ...issue3.path]);
       } else {
-        const fullpath = [...path28, ...issue3.path];
+        const fullpath = [...path32, ...issue3.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue3));
           continue;
@@ -19948,8 +19948,8 @@ function treeifyError(error62, mapper = (issue3) => issue3.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path28 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path28) {
+  const path32 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path32) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -35500,11 +35500,11 @@ function normalizeObjectSchema(schema) {
   }
   return void 0;
 }
-function getDotPath(path28) {
-  if (path28.length === 0) {
+function getDotPath(path32) {
+  if (path32.length === 0) {
     return "object root";
   }
-  return path28.reduce((acc, seg, index) => {
+  return path32.reduce((acc, seg, index) => {
     if (index === 0) {
       return String(seg);
     }
@@ -37731,13 +37731,13 @@ function resolveRef(ref, ctx) {
   if (!ref.startsWith("#")) {
     throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
   }
-  const path28 = ref.slice(1).split("/").filter(Boolean);
-  if (path28.length === 0) {
+  const path32 = ref.slice(1).split("/").filter(Boolean);
+  if (path32.length === 0) {
     return ctx.rootSchema;
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-  if (path28[0] === defsKey) {
-    const key = path28[1] === void 0 ? void 0 : decodeJSONPointerSegment(path28[1]);
+  if (path32[0] === defsKey) {
+    const key = path32[1] === void 0 ? void 0 : decodeJSONPointerSegment(path32[1]);
     if (!key || !ctx.defs[key]) {
       throw new Error(`Reference not found: ${ref}`);
     }
@@ -44084,7 +44084,7 @@ function findSecretLeaks(text2, knownSecrets = [], opts = {}) {
 }
 
 // core/lib/memory/store.ts
-var MEMORY_SCHEMA = 1;
+var MEMORY_SCHEMA = 2;
 function memoryPaths(store) {
   const dir = storeSubdirs(store).memory;
   return {
@@ -44110,7 +44110,7 @@ function readMemoryJson(file3) {
   return v;
 }
 function writeMemoryJson(file3, value) {
-  writeJson(file3, { schema_version: MEMORY_SCHEMA, ...value });
+  writeJson(file3, { ...value, schema_version: MEMORY_SCHEMA });
 }
 function readJsonl(file3) {
   const out = { records: [], warnings: [], unparsed: [] };
@@ -44243,8 +44243,152 @@ var QA_FIX_TOOLS = ["fix_preflight", "fix_create_branch", "fix_begin", "fix_run_
 var ALL_QA_TOOLS = [...QA_MEMORY_TOOLS, ...QA_FIX_TOOLS];
 
 // core/lib/fix/loop.ts
-import fs10 from "node:fs";
-import path15 from "node:path";
+import fs12 from "node:fs";
+import path18 from "node:path";
+
+// core/lib/budget.ts
+import path5 from "node:path";
+
+// core/lib/memory/lock.ts
+import fs3 from "node:fs";
+import path4 from "node:path";
+var WAIT_MS = 1e4;
+var STALE_MS = 3e4;
+var POLL_MS = 25;
+var held = /* @__PURE__ */ new Map();
+function sleep(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+function alive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (err) {
+    return err.code === "EPERM";
+  }
+}
+function isStale(file3) {
+  try {
+    const age = Date.now() - fs3.statSync(file3).mtimeMs;
+    if (age > STALE_MS) return true;
+    const owner = JSON.parse(fs3.readFileSync(file3, "utf8"));
+    return typeof owner.pid === "number" && !alive(owner.pid);
+  } catch {
+    return false;
+  }
+}
+function lockFile(store) {
+  return path4.join(store, "state", "memory.lock");
+}
+function withStoreLock(store, fn) {
+  const file3 = lockFile(store);
+  const depth = held.get(file3) ?? 0;
+  if (depth > 0) {
+    held.set(file3, depth + 1);
+    try {
+      return fn();
+    } finally {
+      held.set(file3, depth);
+    }
+  }
+  ensureDir(path4.dirname(file3));
+  const deadline = Date.now() + WAIT_MS;
+  for (; ; ) {
+    try {
+      const fd = fs3.openSync(file3, "wx");
+      fs3.writeSync(fd, JSON.stringify({ pid: process.pid, at: (/* @__PURE__ */ new Date()).toISOString() }));
+      fs3.closeSync(fd);
+      break;
+    } catch (err) {
+      if (err.code !== "EEXIST") throw err;
+      if (isStale(file3)) {
+        fs3.rmSync(file3, { force: true });
+        continue;
+      }
+      if (Date.now() > deadline) throw new Error("Another QAMind process is changing this project's memory and did not finish in 10 seconds. Try again in a moment.");
+      sleep(POLL_MS);
+    }
+  }
+  held.set(file3, 1);
+  try {
+    return fn();
+  } finally {
+    held.delete(file3);
+    fs3.rmSync(file3, { force: true });
+  }
+}
+
+// core/lib/budget.ts
+var BUDGET_REASON = "time budget reached";
+var DEFAULT_AUTO_MINUTES = 5;
+var budgetKey = (mode, trigger) => trigger === "auto" ? "auto" : trigger === "ci" ? "ci" : mode;
+function resolveBudget(config2, mode, trigger, now, userAutoMinutes) {
+  const key = budgetKey(mode, trigger);
+  const per = config2.budget.modes[key];
+  let minutes = per?.time_minutes;
+  let source = minutes !== void 0 ? `budget.modes.${key}.time_minutes in the config` : "";
+  if (minutes === void 0 && config2.budget.time_minutes !== void 0) {
+    minutes = config2.budget.time_minutes;
+    source = "budget.time_minutes in the config";
+  }
+  if (key === "auto") {
+    if (userAutoMinutes !== void 0) {
+      minutes = userAutoMinutes;
+      source = "your auto-QA setting";
+    } else if (minutes === void 0) {
+      minutes = DEFAULT_AUTO_MINUTES;
+      source = "the auto-QA default";
+    }
+  }
+  const cost = per?.max_cost ?? config2.budget.max_cost;
+  return {
+    ...minutes !== void 0 ? { time_minutes: minutes, deadline: new Date(now.getTime() + minutes * 6e4).toISOString() } : {},
+    ...cost !== void 0 ? { max_cost: cost } : {},
+    source: minutes !== void 0 || cost !== void 0 ? source || "budget.max_cost in the config" : "no budget is set"
+  };
+}
+function budgetStatus(budget, startedIso, now) {
+  const elapsedMs = Math.max(0, now.getTime() - Date.parse(startedIso));
+  const elapsed = Math.round(elapsedMs / 6e4 * 10) / 10;
+  const costNote = budget?.max_cost !== void 0 ? ` A cost limit of ${budget.max_cost} is set: stay within it (QAMind cannot see your spending).` : "";
+  if (!budget || budget.time_minutes === void 0 || !budget.deadline) return { state: "none", elapsed_minutes: elapsed, ...budget?.max_cost !== void 0 ? { max_cost: budget.max_cost } : {}, source: budget?.source ?? "no budget is set", message: `No time limit is set (${elapsed} minutes so far).${costNote}` };
+  const remainingMs = Date.parse(budget.deadline) - now.getTime();
+  const remaining = Math.round(remainingMs / 6e4 * 10) / 10;
+  const base = { limit_minutes: budget.time_minutes, elapsed_minutes: elapsed, remaining_minutes: Math.max(0, remaining), ...budget.max_cost !== void 0 ? { max_cost: budget.max_cost } : {}, source: budget.source };
+  if (remainingMs <= 0) return { ...base, state: "over", message: `The time budget of ${budget.time_minutes} minutes is used up (${elapsed} minutes). Stop exploring now: write every area you did not get to under Not tested with the reason "${BUDGET_REASON}", then build the report, lint it and finish the run.${costNote}` };
+  if (remainingMs <= budget.time_minutes * 6e4 * 0.2) return { ...base, state: "near", message: `${remaining} of ${budget.time_minutes} minutes left. Finish what you are on, do not start anything large, and keep time for the report.${costNote}` };
+  return { ...base, state: "ok", message: `${remaining} of ${budget.time_minutes} minutes left.${costNote}` };
+}
+function parseUsage(cost, durationS) {
+  const note = cost?.trim() || "not available on this host";
+  const usd = /\$\s*([0-9]+(?:\.[0-9]+)?)|\b([0-9]+(?:\.[0-9]+)?)\s*(?:usd|dollars)\b/i.exec(note);
+  const tokens2 = /\b([0-9][0-9,]*)\s*(?:k\s*)?tokens?\b/i.exec(note);
+  const tokenCount = tokens2 ? Number(tokens2[1].replace(/,/g, "")) * (/k\s*tokens?/i.test(tokens2[0]) ? 1e3 : 1) : void 0;
+  const usdValue = usd ? Number(usd[1] ?? usd[2]) : void 0;
+  return { duration_s: durationS, ...usdValue !== void 0 && Number.isFinite(usdValue) ? { cost_usd: usdValue } : {}, ...tokenCount !== void 0 && Number.isFinite(tokenCount) ? { tokens: tokenCount } : {}, note };
+}
+var daysFile = (store) => path5.join(storeSubdirs(store).state, "budget-days.json");
+var dayOf = (now) => `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+function readDays(store) {
+  try {
+    const v = readJson(daysFile(store));
+    return v && typeof v === "object" && !Array.isArray(v) ? v : {};
+  } catch {
+    return {};
+  }
+}
+function addToDay(store, trigger, durationS, now) {
+  if (trigger !== "auto" && trigger !== "ci") return;
+  ensureDir(storeSubdirs(store).state);
+  withStoreLock(store, () => {
+    const days = readDays(store);
+    const key = dayOf(now);
+    const cur = days[key] ?? { minutes: 0, runs: 0 };
+    days[key] = { minutes: Math.round((cur.minutes + durationS / 60) * 10) / 10, runs: cur.runs + 1 };
+    for (const d of Object.keys(days).sort().slice(0, -14)) delete days[d];
+    writeJson(daysFile(store), days);
+  });
+}
 
 // core/lib/memory/fixlog.ts
 var FIX_LOG_CAP = 300;
@@ -44290,17 +44434,17 @@ function recentFixes(store, limit = 8) {
 }
 
 // core/lib/report.ts
-import fs5 from "node:fs";
-import path8 from "node:path";
+import fs6 from "node:fs";
+import path10 from "node:path";
 
 // core/lib/config.ts
 var import_yaml = __toESM(require_dist2(), 1);
-import fs4 from "node:fs";
-import path5 from "node:path";
+import fs5 from "node:fs";
+import path7 from "node:path";
 
 // core/lib/dotenv.ts
-import fs3 from "node:fs";
-import path4 from "node:path";
+import fs4 from "node:fs";
+import path6 from "node:path";
 function parseDotenv(text2) {
   const out = {};
   for (const rawLine of text2.split(/\r?\n/)) {
@@ -44317,9 +44461,9 @@ function parseDotenv(text2) {
   return out;
 }
 function loadQaEnv(projectRoot, processEnv = process.env, names) {
-  const file3 = path4.join(projectRoot, ".env.qa");
-  const fileFound = fs3.existsSync(file3);
-  const fromFile = fileFound ? parseDotenv(fs3.readFileSync(file3, "utf8")) : {};
+  const file3 = path6.join(projectRoot, ".env.qa");
+  const fileFound = fs4.existsSync(file3);
+  const fromFile = fileFound ? parseDotenv(fs4.readFileSync(file3, "utf8")) : {};
   const values = { ...fromFile };
   for (const name of names ?? Object.keys(fromFile)) {
     const v = processEnv[name];
@@ -44392,6 +44536,9 @@ var CONFIG_SCHEMA_VERSION = 1;
 var PLACEHOLDER = "REPLACE_ME";
 var DEFAULT_MAX_FIXES = 30;
 var DEFAULT_TEST_TIMEOUT_S = 300;
+var RUN_BEFORE = ["never", "full_runs", "always"];
+var DEFAULT_SETUP_TIMEOUT_S = 120;
+var BUDGET_MODES = ["diff", "quick", "regression", "full", "ticket", "ci", "auto"];
 function splitFrontMatter(text2) {
   const m = /^﻿?---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n([\s\S]*))?$/.exec(text2);
   return m ? { yaml: m[1] ?? "", body: m[2] ?? "" } : null;
@@ -44400,6 +44547,112 @@ var ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
 var isObj = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
 var str = (v) => typeof v === "string" && v.trim() !== "" ? v.trim() : void 0;
 var strList = (v) => Array.isArray(v) ? v.filter((x) => typeof x === "string") : [];
+var COMMAND_MAX = 500;
+var command = (v, name, problems) => {
+  if (v === void 0 || v === null || v === "") return void 0;
+  if (typeof v !== "string" || v.trim() === "" || v.length > COMMAND_MAX || /[\r\n]/.test(v)) {
+    problems.push(`setup.${name} must be one command on one line, up to ${COMMAND_MAX} characters.`);
+    return void 0;
+  }
+  return v.trim();
+};
+function normalizeSetup(raw, problems) {
+  const o = isObj(raw) ? raw : {};
+  if (raw !== void 0 && raw !== null && !isObj(raw)) problems.push("setup must be a mapping (seed_command, reset_command, snapshot_command, restore_command, run_before).");
+  const runBefore = o["run_before"];
+  if (runBefore !== void 0 && !RUN_BEFORE.includes(runBefore)) problems.push(`setup.run_before must be one of ${RUN_BEFORE.join(", ")} (found ${JSON.stringify(runBefore)}).`);
+  const timeout = o["timeout_s"];
+  if (timeout !== void 0 && !(typeof timeout === "number" && timeout >= 5 && timeout <= 3600)) problems.push("setup.timeout_s must be a number of seconds from 5 to 3600.");
+  const seed = command(o["seed_command"], "seed_command", problems);
+  const reset = command(o["reset_command"], "reset_command", problems);
+  const snapshot = command(o["snapshot_command"], "snapshot_command", problems);
+  const restore = command(o["restore_command"], "restore_command", problems);
+  if (snapshot && !restore) problems.push("setup.snapshot_command needs setup.restore_command: a snapshot that is never restored would only fill the disk.");
+  if (restore && !snapshot) problems.push("setup.restore_command needs setup.snapshot_command.");
+  return {
+    ...seed ? { seed_command: seed } : {},
+    ...reset ? { reset_command: reset } : {},
+    ...snapshot ? { snapshot_command: snapshot } : {},
+    ...restore ? { restore_command: restore } : {},
+    run_before: RUN_BEFORE.includes(runBefore) ? runBefore : "never",
+    timeout_s: typeof timeout === "number" && timeout >= 5 && timeout <= 3600 ? timeout : DEFAULT_SETUP_TIMEOUT_S
+  };
+}
+function modeBudget(raw, where, problems) {
+  if (raw === void 0 || raw === null) return {};
+  if (!isObj(raw)) {
+    problems.push(`${where} must be a mapping with time_minutes and/or max_cost.`);
+    return {};
+  }
+  const t = raw["time_minutes"];
+  const c = raw["max_cost"];
+  if (t !== void 0 && !(typeof t === "number" && t >= 1 && t <= 1440)) problems.push(`${where}.time_minutes must be a number of minutes from 1 to 1440.`);
+  if (c !== void 0 && !(typeof c === "number" && c > 0 && c <= 1e5)) problems.push(`${where}.max_cost must be a positive number.`);
+  return { ...typeof t === "number" && t >= 1 && t <= 1440 ? { time_minutes: t } : {}, ...typeof c === "number" && c > 0 && c <= 1e5 ? { max_cost: c } : {} };
+}
+function normalizeBudget(raw, problems) {
+  if (raw === void 0 || raw === null) return { modes: {} };
+  if (!isObj(raw)) {
+    problems.push("budget must be a mapping (time_minutes, max_cost, daily_max, modes).");
+    return { modes: {} };
+  }
+  const top = modeBudget(raw, "budget", problems);
+  const daily = raw["daily_max"];
+  if (daily !== void 0 && !(typeof daily === "number" && daily >= 1 && daily <= 10080)) problems.push("budget.daily_max must be a number of minutes of auto-QA and CI per day, from 1 to 10080.");
+  const modes = {};
+  const rawModes = raw["modes"];
+  if (rawModes !== void 0 && !isObj(rawModes)) problems.push("budget.modes must be a mapping from a mode (diff, quick, full, ticket, ci, auto) to its own limits.");
+  else if (isObj(rawModes)) {
+    for (const [k, v] of Object.entries(rawModes)) {
+      if (!BUDGET_MODES.includes(k)) problems.push(`budget.modes.${k}: not a mode. Use ${BUDGET_MODES.join(", ")}.`);
+      else modes[k] = modeBudget(v, `budget.modes.${k}`, problems);
+    }
+  }
+  return { ...top, ...typeof daily === "number" && daily >= 1 && daily <= 10080 ? { daily_max: daily } : {}, modes };
+}
+var LIST_MAX = 30;
+function limitedStrings(raw, where, problems, opts) {
+  if (raw === void 0 || raw === null) return [];
+  if (!Array.isArray(raw)) {
+    problems.push(`${where} must be a list.`);
+    return [];
+  }
+  if (raw.length > LIST_MAX) problems.push(`${where} has more than ${LIST_MAX} entries.`);
+  const out = [];
+  for (const v of raw.slice(0, LIST_MAX)) {
+    if (typeof v !== "string" || v.trim() === "" || v.length > opts.max) {
+      problems.push(`${where}: each entry is a non-empty string of up to ${opts.max} characters.`);
+      continue;
+    }
+    const bad = opts.test(v);
+    if (bad) problems.push(`${where}: "${v}" ${bad}.`);
+    else out.push(v);
+  }
+  return out;
+}
+function normalizePrivacy(raw, problems) {
+  if (raw !== void 0 && raw !== null && !isObj(raw)) {
+    problems.push("privacy must be a mapping (mask_patterns, mask_selectors, mask_fields).");
+    return { mask_patterns: [], mask_selectors: [], mask_fields: [] };
+  }
+  const o = isObj(raw) ? raw : {};
+  return {
+    mask_patterns: limitedStrings(o["mask_patterns"], "privacy.mask_patterns", problems, {
+      max: 300,
+      test: (s) => {
+        try {
+          new RegExp(s, "gu");
+          return void 0;
+        } catch (err) {
+          return `is not a valid regular expression (${err.message.split(":").pop()?.trim()})`;
+        }
+      }
+    }),
+    // A selector goes into a style sheet: braces and angle brackets could end the rule and add another, so they are refused.
+    mask_selectors: limitedStrings(o["mask_selectors"], "privacy.mask_selectors", problems, { max: 200, test: (s) => /[{}<>;\\]/.test(s) ? "contains a character that is not allowed in a CSS selector here ({ } < > ; \\)" : void 0 }),
+    mask_fields: limitedStrings(o["mask_fields"], "privacy.mask_fields", problems, { max: 60, test: (s) => /^[A-Za-z_][\w.-]*$/.test(s) ? void 0 : "is not a field name (letters, digits, _ . -)" })
+  };
+}
 function normalizeConfig(raw, problems) {
   if (!isObj(raw)) {
     problems.push("The front matter at the top of config.md is empty or not a YAML mapping.");
@@ -44484,7 +44737,10 @@ function normalizeConfig(raw, problems) {
       test_timeout_s: typeof timeout === "number" && timeout >= 10 && timeout <= 3600 ? timeout : DEFAULT_TEST_TIMEOUT_S,
       do_not_touch: doNotTouch
     },
-    health: { checks: isObj(raw["health"]) ? strList(raw["health"]["checks"]) : [] }
+    health: { checks: isObj(raw["health"]) ? strList(raw["health"]["checks"]) : [] },
+    setup: normalizeSetup(raw["setup"], problems),
+    budget: normalizeBudget(raw["budget"], problems),
+    privacy: normalizePrivacy(raw["privacy"], problems)
   };
   return config2;
 }
@@ -44534,7 +44790,7 @@ function checkConfigText(text2, opts) {
   if (config2.roles.some((r) => r.tenant) && tenants.size < 2) {
     result.advisories.push("Only one customer (tenant) has a test account, so data-isolation between customers cannot be checked. Add a second client account.");
   }
-  if (config2.api.openapi && !parseUrl(config2.api.openapi) && !fs4.existsSync(path5.resolve(opts.projectRoot, config2.api.openapi))) {
+  if (config2.api.openapi && !parseUrl(config2.api.openapi) && !fs5.existsSync(path7.resolve(opts.projectRoot, config2.api.openapi))) {
     result.problems.push(`api.openapi points to "${config2.api.openapi}", which does not exist in the project.`);
   }
   for (const { label, url: url2 } of configUrls(config2)) {
@@ -44555,8 +44811,8 @@ function checkConfigText(text2, opts) {
   return result;
 }
 function checkConfigFile(projectRoot, env) {
-  const file3 = path5.join(projectRoot, ".qa", "config.md");
-  return checkConfigText(fs4.readFileSync(file3, "utf8"), { projectRoot, ...env ? { env } : {} });
+  const file3 = path7.join(projectRoot, ".qa", "config.md");
+  return checkConfigText(fs5.readFileSync(file3, "utf8"), { projectRoot, ...env ? { env } : {} });
 }
 function policyFromConfig(c) {
   const origins = /* @__PURE__ */ new Set();
@@ -44582,7 +44838,7 @@ function parseCriticalFlows(body) {
 }
 
 // core/lib/memory/productmap.ts
-import path6 from "node:path";
+import path8 from "node:path";
 var ID_SEGMENT = /^(?:\d+|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-z]{1,3}-\d+|[0-9a-f]{16,}|\d{4}-\d{2}-\d{2})$/i;
 function normalizePath(raw) {
   let p = raw.trim();
@@ -44607,8 +44863,8 @@ function loadMap(store) {
   return readMemoryJson(memoryPaths(store).productMap);
 }
 function readObserved(runDir, ctx) {
-  const dataDir = path6.join(runDir, "data");
-  const rawPages = readJson(path6.join(dataDir, "pages.json"));
+  const dataDir = path8.join(runDir, "data");
+  const rawPages = readJson(path8.join(dataDir, "pages.json"));
   const defaultUi = Object.keys(ctx.uiUrls)[0] ?? "Web screens";
   const pages = [];
   const seen = /* @__PURE__ */ new Set();
@@ -44625,12 +44881,12 @@ function readObserved(runDir, ctx) {
   }
   let endpoints = [];
   let endpointsSource = "none";
-  const inv = readJson(path6.join(dataDir, "api-inventory.json"));
+  const inv = readJson(path8.join(dataDir, "api-inventory.json"));
   if (inv?.endpoints?.length) {
     endpoints = inv.endpoints.map((e) => ({ op: e.operation, ...e.summary ? { summary: e.summary } : {}, auth: e.auth }));
     endpointsSource = "openapi";
   } else {
-    const rawEp = readJson(path6.join(dataDir, "endpoints.json"));
+    const rawEp = readJson(path8.join(dataDir, "endpoints.json"));
     if (Array.isArray(rawEp) && rawEp.length) {
       endpoints = rawEp.filter((x) => typeof x === "string").map((op) => ({ op: op.trim() }));
       endpointsSource = "observed";
@@ -44662,7 +44918,7 @@ function computeChanges(prev, obs, mode) {
 }
 function applyObserved(prev, obs, runId, mode, now) {
   const stamp = now.toISOString();
-  const map2 = prev ?? { schema_version: 1, updated: stamp, last_run: runId, last_run_mode: mode, uis: {}, api: { source: "none", endpoints: {} }, roles: [], flows: [] };
+  const map2 = prev ?? { schema_version: MEMORY_SCHEMA, updated: stamp, last_run: runId, last_run_mode: mode, uis: {}, api: { source: "none", endpoints: {} }, roles: [], flows: [] };
   map2.updated = stamp;
   map2.last_run = runId;
   map2.last_run_mode = mode;
@@ -44688,7 +44944,7 @@ function applyObserved(prev, obs, runId, mode, now) {
 function saveMap(store, map2) {
   writeMemoryJson(memoryPaths(store).productMap, map2);
 }
-var changesFile = (runDir) => path6.join(runDir, "data", "changes.json");
+var changesFile = (runDir) => path8.join(runDir, "data", "changes.json");
 function loadChanges(runDir) {
   return readJson(changesFile(runDir));
 }
@@ -44731,12 +44987,12 @@ function pageCount(m) {
 }
 
 // core/lib/fix/state.ts
-import path7 from "node:path";
+import path9 from "node:path";
 var FIX_STATE_SCHEMA = 1;
 var MAX_REVERTS = 2;
 var PAUSE_EVERY = 5;
 var MAX_FILES_PER_FIX = 5;
-var statePath = (runDir) => path7.join(runDir, "data", "fix-state.json");
+var statePath = (runDir) => path9.join(runDir, "data", "fix-state.json");
 function loadFixState(runDir) {
   const s = readJson(statePath(runDir));
   return s && Array.isArray(s.attempts) ? s : void 0;
@@ -44839,7 +45095,7 @@ var SURFACES = ["api", "ui", "cross", "permissions", "business-rule", "other"];
 function compactFinding(f) {
   return { id: f.id ?? "", title: f.title, severity: f.severity, surface: f.surface, area: f.area, type: f.type, ...f.ui ? { ui: f.ui } : {}, ...f.steps?.[0] ? { first_step: f.steps[0].slice(0, 200) } : {} };
 }
-var dataFile = (runDir, name) => path8.join(runDir, "data", name);
+var dataFile = (runDir, name) => path10.join(runDir, "data", name);
 function readList(runDir, name) {
   const v = readJson(dataFile(runDir, name));
   if (v === void 0) return [];
@@ -44847,11 +45103,11 @@ function readList(runDir, name) {
   return v;
 }
 function readRunData(runDir) {
-  const apiDir = path8.join(runDir, "data", "api-results");
+  const apiDir = path10.join(runDir, "data", "api-results");
   const apiSummaries = [];
-  if (fs5.existsSync(apiDir)) {
-    for (const f of fs5.readdirSync(apiDir).filter((x) => x.endsWith(".json")).sort()) {
-      const r = readJson(path8.join(apiDir, f));
+  if (fs6.existsSync(apiDir)) {
+    for (const f of fs6.readdirSync(apiDir).filter((x) => x.endsWith(".json")).sort()) {
+      const r = readJson(path10.join(apiDir, f));
       if (r?.summary) apiSummaries.push({ file: `data/api-results/${f}`, ...r.summary });
     }
   }
@@ -44866,7 +45122,7 @@ function readRunData(runDir) {
     const changed = fix.attempts.filter((a) => (a.status === "verified" || a.status === "best-effort" || a.status === "reverted") && a.finished_at).map((a) => Date.parse(a.finished_at));
     if (changed.length === 0) return false;
     try {
-      return fs5.statSync(dataFile(runDir, "admin.json")).mtimeMs < Math.max(...changed);
+      return fs6.statSync(dataFile(runDir, "admin.json")).mtimeMs < Math.max(...changed);
     } catch {
       return false;
     }
@@ -44939,6 +45195,17 @@ function mergedNotTested(data) {
   return out;
 }
 var esc2 = (s) => s.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+function budgetLine(m) {
+  const b = m.budget;
+  if (!b || b.time_minutes === void 0) return b?.max_cost !== void 0 ? `no time limit; a cost limit of ${b.max_cost} was set (told to the agent, not enforced)` : "none set";
+  return b.reached ? `**${b.time_minutes} minutes: reached** (${b.used_minutes} used): exploring stopped and the rest is under Not tested ("time budget reached")` : `${b.time_minutes} minutes (${b.used_minutes} used)`;
+}
+function usageLine(m) {
+  const u = m.usage;
+  if (!u) return m.cost ?? "not available on this host";
+  const parts = [u.cost_usd !== void 0 ? `$${u.cost_usd}` : void 0, u.tokens !== void 0 ? `${u.tokens.toLocaleString("en-US")} tokens` : void 0].filter(Boolean);
+  return parts.length ? `${parts.join(", ")} (${u.note})` : u.note;
+}
 function duration3(seconds) {
   if (seconds === void 0) return "in progress";
   const m = Math.floor(seconds / 60);
@@ -45007,7 +45274,8 @@ function renderTechnicalReport(data, ctx = {}) {
       ["Scope", m.focus ? `focus: ${m.focus}` : m.mode === "diff" ? "changed code and its neighbours" : "whole product"],
       ["Host", m.host],
       ["Duration", duration3(m.duration_s)],
-      ["Cost / usage", m.cost ?? "not available on this host"],
+      ["Time budget", budgetLine(m)],
+      ["Cost / usage", usageLine(m)],
       ["QAMind / knowledge version", `${m.agent_version} / ${m.knowledge_version}`],
       ["Stop reason", m.stop_reason ?? "run not finished"]
     ];
@@ -45126,14 +45394,17 @@ function renderTechnicalReport(data, ctx = {}) {
   return L.join("\n");
 }
 function insideRun(runDir, rel) {
-  const abs = path8.resolve(runDir, rel);
-  const root = path8.resolve(runDir) + path8.sep;
+  const abs = path10.resolve(runDir, rel);
+  const root = path10.resolve(runDir) + path10.sep;
   return abs.startsWith(root) ? abs : null;
 }
 function lintRun(runDir, data, knownSecrets = []) {
   const errors = [];
   const warnings = [];
   if (data.charters.length === 0) errors.push("No charters recorded: write the test plan before reporting (data/charters.json).");
+  if (data.health && !data.health.environment_ok && data.findings.length > 0) {
+    errors.push(`The health check failed (Environment problem), so there can be no product findings: ${data.findings.length} are listed. A broken environment produces fake bugs. Remove them (findings.json must be empty), list every planned area under Not tested with the reason "Environment problem: <what failed>", and finish with stop_reason "environment problem".`);
+  }
   const ids = /* @__PURE__ */ new Set();
   for (const [i, f] of data.findings.entries()) {
     const tag = f.id ?? `findings[${i}]`;
@@ -45153,7 +45424,7 @@ function lintRun(runDir, data, knownSecrets = []) {
     for (const e of f.evidence ?? []) {
       const abs = insideRun(runDir, e);
       if (!abs) errors.push(`${tag}: evidence path "${e}" is outside the run folder.`);
-      else if (!fs5.existsSync(abs)) errors.push(`${tag}: evidence file "${e}" does not exist.`);
+      else if (!fs6.existsSync(abs)) errors.push(`${tag}: evidence file "${e}" does not exist.`);
     }
     if (!f.regression_test) warnings.push(`${tag}: no regression test proposed.`);
   }
@@ -45169,7 +45440,7 @@ function lintRun(runDir, data, knownSecrets = []) {
     if (!Array.isArray(p.how_to_see_it)) errors.push(`${tag}: plain.how_to_see_it must be a list (an empty list means it cannot be seen on screen).`);
     if (p.screenshot) {
       const abs = insideRun(runDir, p.screenshot);
-      if (!abs || !fs5.existsSync(abs)) errors.push(`${tag}: plain.screenshot "${p.screenshot}" does not exist inside the run folder.`);
+      if (!abs || !fs6.existsSync(abs)) errors.push(`${tag}: plain.screenshot "${p.screenshot}" does not exist inside the run folder.`);
     }
   }
   for (const n of data.notTested) if (!n.plain?.area?.trim() || !n.plain?.reason?.trim()) errors.push(`not-tested.json: "${n.area}" needs a plain { area, reason } for the admin report.`);
@@ -45184,25 +45455,25 @@ function lintRun(runDir, data, knownSecrets = []) {
     if (row.surface === "ui" && !row.ui) warnings.push(`coverage "${row.area}": a UI row without "ui" is grouped under "Web screens" in the admin report.`);
   }
   for (let i = 1; i <= flowCount; i++) if (!data.coverage.some((r) => r.critical_flow === i)) warnings.push(`Critical journey ${i} ("${data.meta?.critical_flows?.[i - 1]}") has no coverage row, so the verdict cannot be Ready.`);
-  const dataDir = path8.join(runDir, "data");
-  if (fs5.existsSync(dataDir)) {
-    const newestData = Math.max(0, ...fs5.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs5.statSync(path8.join(dataDir, f)).mtimeMs));
+  const dataDir = path10.join(runDir, "data");
+  if (fs6.existsSync(dataDir)) {
+    const newestData = Math.max(0, ...fs6.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs6.statSync(path10.join(dataDir, f)).mtimeMs));
     for (const name of ["TECHNICAL-REPORT.md", "ADMIN-REPORT.md"]) {
-      const file3 = path8.join(runDir, name);
-      if (fs5.existsSync(file3) && fs5.statSync(file3).mtimeMs + 1 < newestData) errors.push(`${name} is older than the data it is built from: run \`report build\` again.`);
+      const file3 = path10.join(runDir, name);
+      if (fs6.existsSync(file3) && fs6.statSync(file3).mtimeMs + 1 < newestData) errors.push(`${name} is older than the data it is built from: run \`report build\` again.`);
     }
   }
   for (const row of data.coverage) {
     if (row.status === "tested" && /not tested|blocked|skipped/i.test(row.note ?? "")) errors.push(`coverage "${row.area}" is marked tested but its note says otherwise.`);
   }
   if (data.findings.length === 0 && data.coverage.length === 0) warnings.push("No findings and no coverage rows: the report would not show what was checked.");
-  const scan = [path8.join(runDir, "TECHNICAL-REPORT.md")];
+  const scan = [path10.join(runDir, "TECHNICAL-REPORT.md")];
   for (const sub of ["evidence", "data"]) {
-    const dir = path8.join(runDir, sub);
-    if (!fs5.existsSync(dir)) continue;
+    const dir = path10.join(runDir, sub);
+    if (!fs6.existsSync(dir)) continue;
     const walk = (d) => {
-      for (const e of fs5.readdirSync(d, { withFileTypes: true })) {
-        const p = path8.join(d, e.name);
+      for (const e of fs6.readdirSync(d, { withFileTypes: true })) {
+        const p = path10.join(d, e.name);
         if (e.isDirectory()) walk(p);
         else if (/\.(json|md|txt|log|yml|yaml|har|html)$/i.test(e.name)) scan.push(p);
       }
@@ -45210,17 +45481,176 @@ function lintRun(runDir, data, knownSecrets = []) {
     walk(dir);
   }
   for (const file3 of scan) {
-    if (!fs5.existsSync(file3)) continue;
-    const isPlan = path8.relative(runDir, file3).split(path8.sep).join("/").startsWith("data/plans/");
-    const leaks = findSecretLeaks(fs5.readFileSync(file3, "utf8"), knownSecrets, { generic: !isPlan });
-    for (const leak of leaks) errors.push(`${path8.relative(runDir, file3)}: contains ${leak}; redact it before reporting.`);
+    if (!fs6.existsSync(file3)) continue;
+    const isPlan = path10.relative(runDir, file3).split(path10.sep).join("/").startsWith("data/plans/");
+    const leaks = findSecretLeaks(fs6.readFileSync(file3, "utf8"), knownSecrets, { generic: !isPlan });
+    for (const leak of leaks) errors.push(`${path10.relative(runDir, file3)}: contains ${leak}; redact it before reporting.`);
   }
   return { ok: errors.length === 0, errors, warnings };
 }
 
-// core/lib/reports.ts
+// core/lib/privacy.ts
 import fs7 from "node:fs";
 import path11 from "node:path";
+var MASK = { "email address": "[masked email]", "phone number": "[masked phone]", "national ID number": "[masked ID]", "card number": "[masked card]", "custom pattern": "[masked data]" };
+var MASKED_FIELD = "[masked]";
+var EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
+var RESERVED_HOST = /(?:^|\.)(?:example\.(?:com|org|net)|[\w-]+\.(?:test|invalid|localhost|example)|test|invalid|localhost|example)$/i;
+var CNIC = /(?<!\d)\d{5}-\d{7}-\d(?!\d)/g;
+var PHONE = /(?<![\w.])(?:\+\d{1,3}[\s-]?\(?\d{2,4}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}|\(?\d{3}\)?[ -]\d{3}[ -]\d{4}|0\d{3}[ -]?\d{7})(?![\w])/g;
+var CARD = /(?<!\d)(?<!\d\.)(?:[3-6]\d{3}[ -]?\d{4}[ -]?\d{4}[ -]?\d{1,7}|[3-6]\d{12,18})(?!\d)(?!\.\d)/g;
+var FICTION_PHONE = /555[ -]?01\d\d/;
+function luhn2(digits) {
+  let sum = 0;
+  let alt = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let n = Number(digits[i]);
+    if (alt) {
+      n *= 2;
+      if (n > 9) n -= 9;
+    }
+    sum += n;
+    alt = !alt;
+  }
+  return sum % 10 === 0;
+}
+var emailAllowed = (m, ctx) => {
+  const lower = m.toLowerCase();
+  const host = lower.slice(lower.lastIndexOf("@") + 1);
+  return RESERVED_HOST.test(host) || ctx.allow.includes(lower) || ctx.prefix !== "" && lower.startsWith(ctx.prefix.toLowerCase());
+};
+function findPii(text2, ctx) {
+  const hits = [];
+  for (const m of text2.matchAll(EMAIL)) if (!emailAllowed(m[0], ctx)) hits.push({ kind: "email address", start: m.index, end: m.index + m[0].length });
+  for (const m of text2.matchAll(CNIC)) hits.push({ kind: "national ID number", start: m.index, end: m.index + m[0].length });
+  for (const m of text2.matchAll(CARD)) {
+    const digits = m[0].replace(/\D/g, "");
+    if (digits.length >= 13 && digits.length <= 19 && luhn2(digits)) hits.push({ kind: "card number", start: m.index, end: m.index + m[0].length });
+  }
+  for (const m of text2.matchAll(PHONE)) if (!FICTION_PHONE.test(m[0]) && m[0].replace(/\D/g, "").length >= 9 && !(ctx.prefix && text2.slice(Math.max(0, m.index - ctx.prefix.length), m.index).toLowerCase() === ctx.prefix.toLowerCase())) hits.push({ kind: "phone number", start: m.index, end: m.index + m[0].length });
+  for (const re of ctx.patterns) {
+    const g = new RegExp(re.source, re.flags.includes("g") ? re.flags : `${re.flags}g`);
+    for (const m of text2.matchAll(g)) if (m[0] !== "") hits.push({ kind: "custom pattern", start: m.index, end: m.index + m[0].length });
+  }
+  hits.sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start));
+  const out = [];
+  for (const h of hits) if (out.length === 0 || h.start >= out[out.length - 1].end) out.push(h);
+  return out;
+}
+function maskText(text2, ctx) {
+  const hits = findPii(text2, ctx);
+  if (hits.length === 0) return { text: text2, count: 0, kinds: {} };
+  let out = "";
+  let at = 0;
+  const kinds = {};
+  for (const h of hits) {
+    out += text2.slice(at, h.start) + MASK[h.kind];
+    at = h.end;
+    kinds[h.kind] = (kinds[h.kind] ?? 0) + 1;
+  }
+  return { text: out + text2.slice(at), count: hits.length, kinds };
+}
+function maskJson(value, ctx, tally = { count: 0, kinds: {} }, depth = 0) {
+  const walk = (v, d) => {
+    if (d > 20) return v;
+    if (typeof v === "string") {
+      const r = maskText(v, ctx);
+      tally.count += r.count;
+      for (const [k, n] of Object.entries(r.kinds)) tally.kinds[k] = (tally.kinds[k] ?? 0) + n;
+      return r.text;
+    }
+    if (Array.isArray(v)) return v.map((x) => walk(x, d + 1));
+    if (v && typeof v === "object") {
+      const out = {};
+      for (const [k, x] of Object.entries(v)) {
+        if (ctx.fields.includes(k.toLowerCase()) && (typeof x === "string" || typeof x === "number")) {
+          const keep = typeof x === "string" && ctx.prefix !== "" && x.toLowerCase().startsWith(ctx.prefix.toLowerCase());
+          if (!keep && String(x) !== "" && x !== MASKED_FIELD) {
+            tally.count += 1;
+            tally.kinds["custom pattern"] = (tally.kinds["custom pattern"] ?? 0) + 1;
+            out[k] = MASKED_FIELD;
+            continue;
+          }
+        }
+        out[k] = walk(x, d + 1);
+      }
+      return out;
+    }
+    return v;
+  };
+  const masked = walk(value, depth);
+  return { value: masked, count: tally.count, kinds: tally.kinds };
+}
+var DEFAULT_CONTEXT = { prefix: "QA-", allow: [], patterns: [], fields: [] };
+function contextFrom(config2, allow = []) {
+  if (!config2) return { ...DEFAULT_CONTEXT, allow: allow.map((a) => a.toLowerCase()) };
+  const patterns = [];
+  for (const p of config2.privacy.mask_patterns) {
+    try {
+      patterns.push(new RegExp(p, "gu"));
+    } catch {
+    }
+  }
+  return { prefix: config2.test_data_prefix, allow: allow.map((a) => a.toLowerCase()), patterns, fields: config2.privacy.mask_fields.map((f) => f.toLowerCase()) };
+}
+var projectRootOfRun = (runDir) => path11.resolve(runDir, "..", "..", "..");
+function contextForRun(runDir, env = process.env) {
+  const root = projectRootOfRun(runDir);
+  try {
+    if (!fs7.existsSync(path11.join(root, ".qa", "config.md"))) return DEFAULT_CONTEXT;
+    const config2 = checkConfigFile(root, env).config;
+    if (!config2) return DEFAULT_CONTEXT;
+    const names = config2.roles.flatMap((r) => [r.username_env, r.password_env]);
+    const { values } = loadQaEnv(root, env, names);
+    return contextFrom(config2, config2.roles.map((r) => values[r.username_env] ?? "").filter(Boolean));
+  } catch {
+    return DEFAULT_CONTEXT;
+  }
+}
+var TEXT_FILE = /\.(json|jsonl|md|txt|log|csv|har|html?|ya?ml|xml)$/i;
+var MAX_BYTES = 5 * 1024 * 1024;
+function textFiles(dir) {
+  const out = [];
+  const walk = (d) => {
+    for (const e of fs7.readdirSync(d, { withFileTypes: true })) {
+      if (e.name === "node_modules" || e.name === ".git") continue;
+      const p = path11.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (TEXT_FILE.test(e.name) && fs7.statSync(p).size <= MAX_BYTES) out.push(p);
+    }
+  };
+  if (fs7.existsSync(dir)) walk(dir);
+  return out.sort();
+}
+function scanRun(runDir, ctx) {
+  const leaks = [];
+  const files = textFiles(runDir);
+  for (const f of files) {
+    const r = maskText(fs7.readFileSync(f, "utf8"), ctx);
+    const j = f.endsWith(".json") ? jsonLeaks(f, ctx) : void 0;
+    const kinds = { ...r.kinds };
+    let count = r.count;
+    if (j && j.count > 0 && r.count === 0) {
+      Object.assign(kinds, j.kinds);
+      count = j.count;
+    }
+    if (count > 0) leaks.push({ file: path11.relative(runDir, f).split(path11.sep).join("/"), kinds, count });
+  }
+  return { ok: leaks.length === 0, files_scanned: files.length, leaks, note: "Screenshots and other images are not scanned: they are blurred in the browser before capture (privacy.mask_selectors, and emails, phone numbers and ID numbers on the page)." };
+}
+function jsonLeaks(file3, ctx) {
+  if (ctx.fields.length === 0) return void 0;
+  try {
+    const r = maskJson(JSON.parse(fs7.readFileSync(file3, "utf8")), ctx);
+    return { count: r.count, kinds: r.kinds };
+  } catch {
+    return void 0;
+  }
+}
+
+// core/lib/reports.ts
+import fs9 from "node:fs";
+import path14 from "node:path";
 
 // core/lib/adminreport.ts
 var MISSING_PLAIN = "(plain-language text not written yet)";
@@ -45423,6 +45853,7 @@ function buildAdminModel(data, previous = []) {
     notTested.length ? `Not tested: ${names.join("; ")}${notTested.length > 3 ? ` and ${notTested.length - 3} more` : ""}.` : "Not tested: nothing; everything planned was checked."
   ];
   const extra = [];
+  if (meta3?.budget?.reached) extra.push("This check stopped early because its time limit ran out, so some areas were not checked.");
   if (fixes) extra.push(fixes.branchLine);
   if (data.unconfirmed.length) extra.push(`${plural3(data.unconfirmed.length, "other thing was", "other things were")} seen only once and could not be repeated; they are not counted as problems.`);
   while (summary.length + extra.length > MAX_SUMMARY_LINES) summary[summary.length - 1] += ` ${extra.pop()}`;
@@ -45698,8 +46129,8 @@ function markApplied(store, ids, now = /* @__PURE__ */ new Date()) {
 }
 
 // core/lib/memory/memorylog.ts
-import path9 from "node:path";
-var file2 = (runDir) => path9.join(runDir, "data", "memory-log.json");
+import path12 from "node:path";
+var file2 = (runDir) => path12.join(runDir, "data", "memory-log.json");
 function readMemoryLog(runDir) {
   const v = readJson(file2(runDir));
   return Array.isArray(v) ? v : [];
@@ -45717,7 +46148,7 @@ var MAX_EVENTS = 30;
 var MAX_AREAS = 200;
 var areaKey = (area) => area.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 function loadRisk(store) {
-  return readMemoryJson(memoryPaths(store).riskAreas) ?? { schema_version: 1, updated: (/* @__PURE__ */ new Date(0)).toISOString(), areas: [] };
+  return readMemoryJson(memoryPaths(store).riskAreas) ?? { schema_version: MEMORY_SCHEMA, updated: (/* @__PURE__ */ new Date(0)).toISOString(), areas: [] };
 }
 var isAgentEvent = (e) => e.source === "agent";
 function tidy(file3, date5) {
@@ -45795,6 +46226,8 @@ function applyRunToMemory(input2) {
   const skipped = readMemoryLog(input2.runDir).filter((e) => e.kind === "false-alarm-skipped").map((e) => e.id);
   const touched = markFalseAlarmsSeen(input2.store, skipped, input2.now);
   if (touched.length) updated.push(`Known false alarms skipped: ${touched.join(", ")}.`);
+  const quirks = recordEnvQuirks(input2.store, input2.runId, data.health, input2.now);
+  if (quirks > 0) updated.push(`Environment quirks noted: ${quirks} (slow or flaky parts of the test environment), so the next run waits and retries where it matters.`);
   const log = readMemoryLog(input2.runDir);
   const count = (k) => log.filter((e) => e.kind === k).length;
   if (count("learning-created") + count("learning-merged") + count("learning-applied") + count("false-alarm-created") > 0) {
@@ -45802,10 +46235,23 @@ function applyRunToMemory(input2) {
   } else updated.push("No learnings were saved this run.");
   return { updated, changes };
 }
+function recordEnvQuirks(store, runId, health, now) {
+  let n = 0;
+  for (const c of health?.checks ?? []) {
+    const text2 = c.flaky ? `${c.name}: failed on the first try and answered on the second, so expect an occasional first-request failure and retry before calling it down.` : c.slow ? `${c.name} answered slowly (${Math.round((c.ms ?? 0) / 100) / 10} s), so give it time before treating a wait as a failure.` : void 0;
+    if (!text2) continue;
+    try {
+      learn(store, { type: "env-quirk", area: "Environment", text: text2, run: runId, confidence: 4 }, { now });
+      n++;
+    } catch {
+    }
+  }
+  return n;
+}
 
 // core/scripts/consistency-check.ts
-import fs6 from "node:fs";
-import path10 from "node:path";
+import fs8 from "node:fs";
+import path13 from "node:path";
 var SEV_WORD = { "\u{1F534}": "critical", "\u{1F7E0}": "important", "\u{1F7E1}": "minor" };
 var VERDICT = /^(✅ \*\*Ready to release|⚠️ \*\*Ready with risks|⛔ \*\*Not ready to release)/;
 function section(text2, heading) {
@@ -45820,16 +46266,16 @@ function checkConsistency(runDir) {
   const errors = [];
   const warnings = [];
   const result = { ok: true, errors, warnings, technical: [], admin: [] };
-  const techFile = path10.join(runDir, "TECHNICAL-REPORT.md");
-  const adminFile = path10.join(runDir, "ADMIN-REPORT.md");
+  const techFile = path13.join(runDir, "TECHNICAL-REPORT.md");
+  const adminFile = path13.join(runDir, "ADMIN-REPORT.md");
   for (const f of [techFile, adminFile]) {
-    if (!fs6.existsSync(f)) {
-      errors.push(`${path10.basename(f)} does not exist: run \`report build\` first.`);
+    if (!fs8.existsSync(f)) {
+      errors.push(`${path13.basename(f)} does not exist: run \`report build\` first.`);
     }
   }
   if (errors.length) return { ...result, ok: false };
-  const tech = fs6.readFileSync(techFile, "utf8");
-  const admin = fs6.readFileSync(adminFile, "utf8");
+  const tech = fs8.readFileSync(techFile, "utf8");
+  const admin = fs8.readFileSync(adminFile, "utf8");
   const findingsSection = section(`
 ${tech}`, "Findings");
   for (const m of findingsSection.matchAll(/^### (ISSUE-\d+) (🔴|🟠|🟡) (Critical|Important|Minor): /gm)) result.technical.push({ id: m[1], severity: SEV_WORD[m[2]] });
@@ -45924,8 +46370,8 @@ ${admin}`, "Suggested next steps").match(/^\d+\. /gm) ?? []).length;
 function previousRuns(store, currentRunId, limit = 3) {
   if (!store) return [];
   const dir = storeSubdirs(store).runs;
-  if (!fs7.existsSync(dir)) return [];
-  return fs7.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().map((f) => readJson(path11.join(dir, f))).filter((r) => !!r && r.run_id !== currentRunId).slice(0, limit);
+  if (!fs9.existsSync(dir)) return [];
+  return fs9.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().map((f) => readJson(path14.join(dir, f))).filter((r) => !!r && r.run_id !== currentRunId).slice(0, limit);
 }
 function renderReports(runDir, store, ctx) {
   const first = readRunData(runDir);
@@ -45938,9 +46384,12 @@ function renderReports(runDir, store, ctx) {
 }
 function writeReports(runDir, store, ctx) {
   const r = renderReports(runDir, store, ctx);
-  fs7.writeFileSync(path11.join(runDir, "TECHNICAL-REPORT.md"), r.technical, "utf8");
-  fs7.writeFileSync(path11.join(runDir, "ADMIN-REPORT.md"), r.admin, "utf8");
-  return r;
+  const privacy = contextForRun(runDir);
+  const technical = maskText(r.technical, privacy).text;
+  const admin = maskText(r.admin, privacy).text;
+  fs9.writeFileSync(path14.join(runDir, "TECHNICAL-REPORT.md"), technical, "utf8");
+  fs9.writeFileSync(path14.join(runDir, "ADMIN-REPORT.md"), admin, "utf8");
+  return { ...r, technical, admin };
 }
 function lintFixRun(data, errors, warnings) {
   const claimsFix = (f) => f.fix_status === "fixed-verified" || f.fix_status === "fixed-needs-confirmation" || f.fix?.outcome === "verified" || f.fix?.outcome === "best-effort";
@@ -45983,13 +46432,16 @@ function lintReports(runDir, knownSecrets = [], store) {
     }
   }
   lintFixRun(data, errors, warnings);
-  if (!fs7.existsSync(path11.join(runDir, "data", "pages.json"))) warnings.push("data/pages.json was not written: the product map will not learn which screens exist, and what changed since the last run cannot be reported for screens.");
+  const scan = scanRun(runDir, contextForRun(runDir));
+  for (const leak of scan.leaks.slice(0, 10)) errors.push(`Privacy: ${leak.file} holds ${leak.count} unmasked item(s) (${Object.entries(leak.kinds).map(([k, n]) => `${n} ${k}`).join(", ")}). Run \`qamind privacy mask --run ${path14.basename(runDir)}\`, rebuild the reports and lint again.`);
+  if (scan.leaks.length > 10) errors.push(`Privacy: ${scan.leaks.length - 10} more file(s) hold unmasked data (\`qamind privacy scan --run ${path14.basename(runDir)}\` lists them all).`);
+  if (!fs9.existsSync(path14.join(runDir, "data", "pages.json"))) warnings.push("data/pages.json was not written: the product map will not learn which screens exist, and what changed since the last run cannot be reported for screens.");
   return { ok: errors.length === 0, errors, warnings, consistency };
 }
 
 // core/lib/stack.ts
-import fs8 from "node:fs";
-import path12 from "node:path";
+import fs10 from "node:fs";
+import path15 from "node:path";
 var JS_FRAMEWORKS = [
   ["next", "nextjs"],
   ["react", "react"],
@@ -46013,7 +46465,7 @@ var JS_TEST_RUNNERS = [
 ];
 function readIf(file3) {
   try {
-    return fs8.readFileSync(file3, "utf8");
+    return fs10.readFileSync(file3, "utf8");
   } catch {
     return "";
   }
@@ -46024,14 +46476,14 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   const runners = /* @__PURE__ */ new Set();
   const commands = {};
   let packageManager;
-  const pkg = readJson(path12.join(root, "package.json"));
+  const pkg = readJson(path15.join(root, "package.json"));
   if (pkg) {
     languages.add("javascript");
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
     for (const [dep, name] of JS_FRAMEWORKS) if (deps[dep]) frameworks.add(name);
     for (const [dep, name] of JS_TEST_RUNNERS) if (deps[dep]) runners.add(name);
-    if (deps["typescript"] || exists(path12.join(root, "tsconfig.json"))) languages.add("typescript");
-    packageManager = exists(path12.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path12.join(root, "yarn.lock")) ? "yarn" : exists(path12.join(root, "bun.lock")) ? "bun" : "npm";
+    if (deps["typescript"] || exists(path15.join(root, "tsconfig.json"))) languages.add("typescript");
+    packageManager = exists(path15.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path15.join(root, "yarn.lock")) ? "yarn" : exists(path15.join(root, "bun.lock")) ? "bun" : "npm";
     const run = packageManager === "npm" ? "npm run" : packageManager;
     if (pkg.scripts?.["test"] && !/no test specified/.test(pkg.scripts["test"])) {
       commands.test = packageManager === "npm" ? "npm test" : `${packageManager} test`;
@@ -46041,7 +46493,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (pkg.scripts?.["dev"]) commands.dev = `${run} dev`;
     else if (pkg.scripts?.["start"]) commands.dev = packageManager === "npm" ? "npm start" : `${packageManager} start`;
   }
-  const composer = readIf(path12.join(root, "composer.json"));
+  const composer = readIf(path15.join(root, "composer.json"));
   if (composer) {
     languages.add("php");
     if (/laravel\/framework/.test(composer)) frameworks.add("laravel");
@@ -46049,23 +46501,23 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (/pestphp/.test(composer)) runners.add("pest");
     packageManager ??= "composer";
   }
-  const py = readIf(path12.join(root, "requirements.txt")) + readIf(path12.join(root, "pyproject.toml"));
-  if (py || exists(path12.join(root, "manage.py"))) {
+  const py = readIf(path15.join(root, "requirements.txt")) + readIf(path15.join(root, "pyproject.toml"));
+  if (py || exists(path15.join(root, "manage.py"))) {
     languages.add("python");
-    if (/django/i.test(py) || exists(path12.join(root, "manage.py"))) frameworks.add("django");
+    if (/django/i.test(py) || exists(path15.join(root, "manage.py"))) frameworks.add("django");
     if (/fastapi/i.test(py)) frameworks.add("fastapi");
     if (/flask/i.test(py)) frameworks.add("flask");
     if (/pytest/i.test(py)) runners.add("pytest");
     packageManager ??= "pip";
   }
-  if (/rails/.test(readIf(path12.join(root, "Gemfile")))) {
+  if (/rails/.test(readIf(path15.join(root, "Gemfile")))) {
     languages.add("ruby");
     frameworks.add("rails");
-    if (/rspec/.test(readIf(path12.join(root, "Gemfile")))) runners.add("rspec");
+    if (/rspec/.test(readIf(path15.join(root, "Gemfile")))) runners.add("rspec");
     packageManager ??= "bundler";
   }
   try {
-    if (fs8.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"))) {
+    if (fs10.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"))) {
       languages.add("csharp");
       frameworks.add("dotnet");
       commands.test ??= "dotnet test";
@@ -46074,7 +46526,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   } catch {
   }
   return {
-    schema_version: SCHEMA_VERSION,
+    schema_version: MEMORY_SCHEMA,
     frameworks: [...frameworks].sort(),
     languages: [...languages].sort(),
     test_runners: [...runners].sort(),
@@ -46084,7 +46536,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   };
 }
 function saveStack(memoryDir, stack) {
-  const file3 = path12.join(memoryDir, "stack.json");
+  const file3 = path15.join(memoryDir, "stack.json");
   const prev = readJson(file3);
   const strip = (s) => JSON.stringify({ ...s, detected_at: void 0 });
   if (prev && strip(prev) === strip(stack)) return { changed: false };
@@ -46094,8 +46546,8 @@ function saveStack(memoryDir, stack) {
 
 // core/lib/fix/gitops.ts
 import { spawnSync } from "node:child_process";
-import fs9 from "node:fs";
-import path13 from "node:path";
+import fs11 from "node:fs";
+import path16 from "node:path";
 function git(root, args, input2) {
   const r = spawnSync("git", ["-C", root, "-c", "core.quotepath=off", ...args], { encoding: "utf8", input: input2, maxBuffer: 32 * 1024 * 1024, stdio: ["pipe", "pipe", "pipe"] });
   return { ok: r.status === 0, out: (r.stdout ?? "").toString(), err: (r.stderr ?? "").toString().trim(), code: r.status ?? -1 };
@@ -46121,16 +46573,16 @@ function projectPrefix(root) {
   return text(git(root, ["rev-parse", "--show-prefix"]));
 }
 function fromRepoRoot(prefix, file3) {
-  return prefix === "" ? file3 : path13.posix.relative(prefix.replace(/\/$/, ""), file3);
+  return prefix === "" ? file3 : path16.posix.relative(prefix.replace(/\/$/, ""), file3);
 }
 var QAMIND_OWN = /^(?:\.qa\/|\.env\.qa(?:$|\.))/;
 var QAMIND_GITIGNORE_LINES = /* @__PURE__ */ new Set(["# QAMind (private test credentials and reports)", ".env.qa", ".qa/"]);
 function gitignoreChangeIsQamindsOnly(root) {
-  const file3 = path13.join(root, ".gitignore");
-  if (!fs9.existsSync(file3)) return false;
+  const file3 = path16.join(root, ".gitignore");
+  if (!fs11.existsSync(file3)) return false;
   const committed = git(root, ["show", "HEAD:./.gitignore"]);
   const before = (committed.ok ? committed.out : "").split(/\r?\n/);
-  const now = fs9.readFileSync(file3, "utf8").split(/\r?\n/);
+  const now = fs11.readFileSync(file3, "utf8").split(/\r?\n/);
   let kept = 0;
   for (const line2 of now) {
     if (kept < before.length && line2 === before[kept]) kept++;
@@ -46191,7 +46643,7 @@ function revertCommit(root, sha2) {
 }
 
 // core/lib/fix/protect.ts
-import path14 from "node:path";
+import path17 from "node:path";
 var BUILT_IN_PROTECTED = [
   { glob: ".git", why: "git's own data" },
   { glob: ".env*", why: "credential and environment files" },
@@ -46280,11 +46732,11 @@ function globToRegExp2(raw) {
   return new RegExp(anchored ? `^${body}(?:/.*)?$` : `(?:^|/)${body}(?:/.*)?$`, "i");
 }
 function relativeToRoot(root, p, cwd = root) {
-  const abs = path14.resolve(cwd, p);
-  const rel = path14.relative(path14.resolve(root), abs);
+  const abs = path17.resolve(cwd, p);
+  const rel = path17.relative(path17.resolve(root), abs);
   if (rel === "") return "";
-  if (rel === ".." || rel.startsWith(`..${path14.sep}`) || path14.isAbsolute(rel)) return void 0;
-  return rel.split(path14.sep).join("/");
+  if (rel === ".." || rel.startsWith(`..${path17.sep}`) || path17.isAbsolute(rel)) return void 0;
+  return rel.split(path17.sep).join("/");
 }
 function compileRules(doNotTouch = []) {
   return [
@@ -46349,12 +46801,12 @@ function tailOf(output2, chars) {
   const cut = output2.slice(output2.length - chars);
   return `\u2026${cut.slice(cut.indexOf("\n") + 1)}`.trim();
 }
-function runShell(command, opts) {
+function runShell(command2, opts) {
   const started = Date.now();
   const env = { ...process.env, CI: "1", FORCE_COLOR: "0", ...opts.env };
   delete env["NODE_TEST_CONTEXT"];
   return new Promise((resolve) => {
-    const child = spawn(command, { shell: true, cwd: opts.cwd, env, stdio: ["ignore", "pipe", "pipe"], detached: process.platform !== "win32", windowsHide: true });
+    const child = spawn(command2, { shell: true, cwd: opts.cwd, env, stdio: ["ignore", "pipe", "pipe"], detached: process.platform !== "win32", windowsHide: true });
     let output2 = "";
     const take = (d) => {
       output2 += d.toString("utf8");
@@ -46370,7 +46822,7 @@ function runShell(command, opts) {
     const finish = (code) => {
       clearTimeout(timer);
       const redacted = opts.redact ? opts.redact(output2) : output2;
-      resolve({ command, exit_code: code, timed_out: timedOut, duration_s: Math.round((Date.now() - started) / 100) / 10, passed: code === 0 && !timedOut, output_tail: tailOf(redacted, opts.tailChars ?? 2500), failed_tests: failedTestNames(redacted) });
+      resolve({ command: command2, exit_code: code, timed_out: timedOut, duration_s: Math.round((Date.now() - started) / 100) / 10, passed: code === 0 && !timedOut, output_tail: tailOf(redacted, opts.tailChars ?? 2500), failed_tests: failedTestNames(redacted) });
     };
     child.on("error", (err) => {
       output2 += `
@@ -46417,7 +46869,7 @@ function stateOf(scope) {
   if (!s) throw new Error("The fix loop has not started for this run. Call fix_preflight first (after the baseline report is written).");
   return s;
 }
-var findingsFile = (runDir) => path15.join(runDir, "data", "findings.json");
+var findingsFile = (runDir) => path18.join(runDir, "data", "findings.json");
 function updateFinding(runDir, issue3, patch) {
   const list = readJson(findingsFile(runDir)) ?? [];
   const f = list.find((x) => x.id === issue3);
@@ -46478,8 +46930,8 @@ async function preflight(scope, now = /* @__PURE__ */ new Date(), opts = {}) {
   if (!isRepo(root)) return fail("not-a-git-repo", "A fix run needs a git repository: every fix is a commit on a branch. Nothing was changed.");
   const head = headCommit(root);
   if (!head) return fail("no-commits", "The repository has no commits yet, so there is nothing to fix on a branch. Nothing was changed.");
-  const baselineReport = path15.join(scope.runDir, "TECHNICAL-REPORT.md");
-  if (!fs10.existsSync(findingsFile(scope.runDir)) || !fs10.existsSync(baselineReport)) {
+  const baselineReport = path18.join(scope.runDir, "TECHNICAL-REPORT.md");
+  if (!fs12.existsSync(findingsFile(scope.runDir)) || !fs12.existsSync(baselineReport)) {
     return fail("no-baseline-report", "Write the baseline report before any fix: test the product (Phases 0 to 3), write the data files, run report build and report lint, then call fix_preflight again.");
   }
   const lint = lintReports(scope.runDir, scope.ctx.passwords, scope.store);
@@ -46518,9 +46970,9 @@ async function preflight(scope, now = /* @__PURE__ */ new Date(), opts = {}) {
   const data = readRunData(scope.runDir);
   assignIds(scope.runDir, data);
   for (const [from, to] of [["TECHNICAL-REPORT.md", "BASELINE-TECHNICAL-REPORT.md"], ["ADMIN-REPORT.md", "BASELINE-ADMIN-REPORT.md"]]) {
-    const src = path15.join(scope.runDir, from);
-    const dst = path15.join(scope.runDir, to);
-    if (fs10.existsSync(src) && !fs10.existsSync(dst)) fs10.copyFileSync(src, dst);
+    const src = path18.join(scope.runDir, from);
+    const dst = path18.join(scope.runDir, to);
+    if (fs12.existsSync(src) && !fs12.existsSync(dst)) fs12.copyFileSync(src, dst);
   }
   const state = {
     schema_version: FIX_STATE_SCHEMA,
@@ -46579,6 +47031,8 @@ function begin(scope, input2, now = /* @__PURE__ */ new Date()) {
     saveFixState(scope.runDir, state);
     return fail("stopped", `A stop rule is in force: ${stop.reason}`, { stop: stopPayload(state) });
   }
+  const budget = budgetStatus(scope.ctx.marker.budget, scope.ctx.marker.started, now);
+  if (budget.state === "over") return fail("time-budget-reached", `${budget.message} No new fix is started after the deadline: finish the report with what is committed, and leave the rest for a person.`);
   const open2 = activeAttempt(state);
   if (open2) return fail("attempt-open", `${open2.issue} is still being fixed. Finish it (fix_commit), undo it (fix_revert) or give it up (fix_defer) before starting another.`);
   const prior = attemptFor(state, input2.issue);
@@ -46629,27 +47083,27 @@ async function runTests(scope, input2, now = /* @__PURE__ */ new Date()) {
   if (rel.problem) return fail("protected", rel.problem);
   for (const f of rel.rel) {
     if (!isTestPath(f)) return fail("not-a-test-file", `${f} does not look like an automated test.`);
-    if (!fs10.existsSync(path15.join(scope.ctx.projectRoot, f))) return fail("missing", `${f} does not exist yet: write the test first.`);
+    if (!fs12.existsSync(path18.join(scope.ctx.projectRoot, f))) return fail("missing", `${f} does not exist yet: write the test first.`);
   }
-  let command;
+  let command2;
   try {
-    command = withFiles(state.commands.file, rel.rel);
+    command2 = withFiles(state.commands.file, rel.rel);
   } catch (err) {
     return fail("bad-path", err.message);
   }
-  const run = await runShell(command, { cwd: scope.ctx.projectRoot, timeoutMs: timeoutMs(scope), redact: redactor(scope) });
+  const run = await runShell(command2, { cwd: scope.ctx.projectRoot, timeoutMs: timeoutMs(scope), redact: redactor(scope) });
   return { ok: true, ...toRecord(run, now), failed_tests: run.failed_tests };
 }
 function backupFixed(root, evidenceDir, rels) {
   return rels.map((rel) => {
-    const abs = path15.join(root, rel);
+    const abs = path18.join(root, rel);
     const tracked = isTracked(root, rel);
-    if (!fs10.existsSync(abs)) return { rel, tracked };
-    const content = fs10.readFileSync(abs);
-    const dest = path15.join(evidenceDir, "fixed", rel);
-    ensureDir(path15.dirname(dest));
-    fs10.writeFileSync(dest, content);
-    return { rel, content, mode: fs10.statSync(abs).mode, tracked };
+    if (!fs12.existsSync(abs)) return { rel, tracked };
+    const content = fs12.readFileSync(abs);
+    const dest = path18.join(evidenceDir, "fixed", rel);
+    ensureDir(path18.dirname(dest));
+    fs12.writeFileSync(dest, content);
+    return { rel, content, mode: fs12.statSync(abs).mode, tracked };
   });
 }
 function unfix(root, backups) {
@@ -46658,18 +47112,18 @@ function unfix(root, backups) {
     const r = restoreFromHead(root, tracked);
     if (!r.ok) throw new Error(`Could not take the fix out to prove the test: ${r.err}`);
   }
-  for (const b of backups.filter((x) => !x.tracked)) fs10.rmSync(path15.join(root, b.rel), { force: true });
+  for (const b of backups.filter((x) => !x.tracked)) fs12.rmSync(path18.join(root, b.rel), { force: true });
 }
 function refix(root, backups) {
   for (const b of backups) {
-    const abs = path15.join(root, b.rel);
+    const abs = path18.join(root, b.rel);
     if (b.content === void 0) {
-      fs10.rmSync(abs, { force: true });
+      fs12.rmSync(abs, { force: true });
       continue;
     }
-    ensureDir(path15.dirname(abs));
-    fs10.writeFileSync(abs, b.content);
-    if (b.mode !== void 0) fs10.chmodSync(abs, b.mode);
+    ensureDir(path18.dirname(abs));
+    fs12.writeFileSync(abs, b.content);
+    if (b.mode !== void 0) fs12.chmodSync(abs, b.mode);
   }
 }
 async function commit(scope, input2, now = /* @__PURE__ */ new Date()) {
@@ -46708,27 +47162,27 @@ async function commit(scope, input2, now = /* @__PURE__ */ new Date()) {
     if (n && n.deleted > 0) return fail("existing-test-changed", `${t} is an existing test and ${n.deleted} of its lines were removed or changed. Never change an existing assertion to make something pass: add a new test instead.`);
   }
   if (stagedFiles(root).length) return fail("staged-changes", "Something is already staged in the index. Nothing may be staged before fix_commit; ask the user.");
-  const evidence = path15.join(scope.runDir, "evidence", "fix", input2.issue);
+  const evidence = path18.join(scope.runDir, "evidence", "fix", input2.issue);
   ensureDir(evidence);
   const backups = backupFixed(root, evidence, changedProd);
   const redact = redactor(scope);
   let without;
   let withFix;
-  let command;
+  let command2;
   try {
-    command = withFiles(state.commands.file, changedTests);
+    command2 = withFiles(state.commands.file, changedTests);
   } catch (err) {
     return fail("bad-path", err.message);
   }
   try {
     unfix(root, backups);
-    without = await runShell(command, { cwd: root, timeoutMs: timeoutMs(scope), redact });
+    without = await runShell(command2, { cwd: root, timeoutMs: timeoutMs(scope), redact });
   } finally {
     refix(root, backups);
   }
   for (const b of backups) {
-    const now2 = fs10.existsSync(path15.join(root, b.rel)) ? fs10.readFileSync(path15.join(root, b.rel)) : void 0;
-    if (now2 === void 0 !== (b.content === void 0) || now2 && b.content && !now2.equals(b.content)) throw new Error(`Putting the fix back after the proof did not restore ${b.rel} exactly. The fixed files are saved in ${path15.relative(root, path15.join(evidence, "fixed"))}; restore them by hand.`);
+    const now2 = fs12.existsSync(path18.join(root, b.rel)) ? fs12.readFileSync(path18.join(root, b.rel)) : void 0;
+    if (now2 === void 0 !== (b.content === void 0) || now2 && b.content && !now2.equals(b.content)) throw new Error(`Putting the fix back after the proof did not restore ${b.rel} exactly. The fixed files are saved in ${path18.relative(root, path18.join(evidence, "fixed"))}; restore them by hand.`);
   }
   attempt.without_fix = toRecord(without, now);
   if (without.passed || without.timed_out || without.exit_code === null) {
@@ -46739,7 +47193,7 @@ async function commit(scope, input2, now = /* @__PURE__ */ new Date()) {
       { without_fix: attempt.without_fix }
     );
   }
-  withFix = await runShell(command, { cwd: root, timeoutMs: timeoutMs(scope), redact });
+  withFix = await runShell(command2, { cwd: root, timeoutMs: timeoutMs(scope), redact });
   attempt.with_fix = toRecord(withFix, now);
   if (!withFix.passed) {
     saveFixState(scope.runDir, state);
@@ -46793,27 +47247,27 @@ function revert(scope, input2, now = /* @__PURE__ */ new Date()) {
     const foreign = changed.map((e) => norm(e.path)).filter((p) => !allowed.has(p));
     if (foreign.length) return fail("other-changes", `The working tree also has changes this attempt did not declare (${foreign.slice(0, 8).join(", ")}). They may be the user's, so nothing was touched. Ask the user.`, { files: foreign.slice(0, 20) });
     if (stagedFiles(root).length) return fail("staged-changes", "Something is staged in the index. Nothing was touched; ask the user.");
-    const saved = path15.join(scope.runDir, "evidence", "fix", input2.issue, "reverted-attempt");
+    const saved = path18.join(scope.runDir, "evidence", "fix", input2.issue, "reverted-attempt");
     ensureDir(saved);
     for (const e of changed) {
-      const src = path15.join(root, e.path);
-      if (fs10.existsSync(src)) {
-        const dst = path15.join(saved, e.path);
-        ensureDir(path15.dirname(dst));
-        fs10.copyFileSync(src, dst);
+      const src = path18.join(root, e.path);
+      if (fs12.existsSync(src)) {
+        const dst = path18.join(saved, e.path);
+        ensureDir(path18.dirname(dst));
+        fs12.copyFileSync(src, dst);
       }
     }
     const diff = git(root, ["diff", "HEAD"]).out;
-    if (diff) fs10.writeFileSync(path15.join(saved, "attempt.patch"), diff, "utf8");
+    if (diff) fs12.writeFileSync(path18.join(saved, "attempt.patch"), diff, "utf8");
     const tracked = changed.filter((e) => !e.untracked).map((e) => norm(e.path));
     if (tracked.length) {
       const r = restoreFromHead(root, tracked);
       if (!r.ok) return fail("git-failed", `git could not restore the files: ${r.err}`);
     }
-    for (const e of changed.filter((x) => x.untracked)) fs10.rmSync(path15.join(root, e.path), { force: true });
+    for (const e of changed.filter((x) => x.untracked)) fs12.rmSync(path18.join(root, e.path), { force: true });
     if (statusEntries(root).length) return fail("not-clean", "After undoing the attempt the working tree is still not clean. Stop and ask the user.", { files: statusEntries(root).map((e) => e.path).slice(0, 20) });
     attempt.status = "reverted";
-    attempt.saved_to = path15.relative(scope.runDir, saved).split(path15.sep).join("/");
+    attempt.saved_to = path18.relative(scope.runDir, saved).split(path18.sep).join("/");
   } else if (attempt.status === "verified" || attempt.status === "best-effort") {
     if (!attempt.commit) return fail("no-commit", "This fix has no commit to revert.");
     if (statusEntries(root).length || stagedFiles(root).length) return fail("dirty-tree", "The working tree has changes. Ask the user before reverting a commit.");
@@ -46924,13 +47378,13 @@ function statusOf(scope, state) {
 }
 
 // core/lib/memory/service.ts
-import path27 from "node:path";
+import path31 from "node:path";
 
 // core/lib/project.ts
 import { execFileSync } from "node:child_process";
 import crypto from "node:crypto";
-import fs11 from "node:fs";
-import path16 from "node:path";
+import fs13 from "node:fs";
+import path19 from "node:path";
 function normalizeGitRemote(url2) {
   let s = url2.trim();
   if (!s) return null;
@@ -46962,8 +47416,8 @@ function isGitRepo(root) {
   return gitOutput(root, ["rev-parse", "--is-inside-work-tree"]) === "true";
 }
 function resolveProject(root) {
-  const real = fs11.realpathSync(root);
-  const name = path16.basename(real);
+  const real = fs13.realpathSync(root);
+  const name = path19.basename(real);
   const remoteRaw = gitOutput(real, ["remote", "get-url", "origin"]);
   const remote = remoteRaw ? normalizeGitRemote(remoteRaw) : null;
   if (remote) {
@@ -46974,11 +47428,11 @@ function resolveProject(root) {
 }
 var PROJECT_MARKERS = ["package.json", "composer.json", "pyproject.toml", "requirements.txt", "manage.py", "Gemfile", "pom.xml", "build.gradle", "go.mod", "Cargo.toml"];
 function looksLikeProject(root) {
-  if (exists(path16.join(root, ".qa", "config.md"))) return true;
+  if (exists(path19.join(root, ".qa", "config.md"))) return true;
   if (isGitRepo(root)) return true;
-  if (PROJECT_MARKERS.some((m) => exists(path16.join(root, m)))) return true;
+  if (PROJECT_MARKERS.some((m) => exists(path19.join(root, m)))) return true;
   try {
-    return fs11.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"));
+    return fs13.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"));
   } catch {
     return false;
   }
@@ -46987,7 +47441,7 @@ function ensureProjectStore(home, info, now = /* @__PURE__ */ new Date()) {
   const store = storeDir(home, info.id);
   const dirs = storeSubdirs(store);
   for (const d of Object.values(dirs)) ensureDir(d);
-  const file3 = path16.join(store, "project.json");
+  const file3 = path19.join(store, "project.json");
   const existing = readJson(file3);
   if (existing && existing.schema_version > SCHEMA_VERSION) {
     throw new Error(
@@ -47014,25 +47468,25 @@ function listKnownProjects(home) {
   const root = projectsRoot(home);
   if (!exists(root)) return [];
   const out = [];
-  for (const entry of fs11.readdirSync(root, { withFileTypes: true })) {
+  for (const entry of fs13.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const p = readJson(path16.join(root, entry.name, "project.json"));
+    const p = readJson(path19.join(root, entry.name, "project.json"));
     if (p) out.push({ id: p.id, name: p.name, paths_seen: p.paths_seen, last_seen: p.last_seen });
   }
   return out.sort((a, b) => b.last_seen.localeCompare(a.last_seen));
 }
 
 // core/lib/run.ts
-import fs15 from "node:fs";
-import path22 from "node:path";
+import fs16 from "node:fs";
+import path26 from "node:path";
 
 // core/lib/corepath.ts
-import path17 from "node:path";
+import path20 from "node:path";
 import { fileURLToPath } from "node:url";
 function corePath() {
-  const here = path17.dirname(fileURLToPath(import.meta.url));
-  const candidates = [process.env["QAMIND_CORE"], path17.resolve(here, "../core"), path17.resolve(here, "..")].filter((c) => !!c);
-  for (const c of candidates) if (exists(path17.join(c, "shared", "templates", "config.md"))) return c;
+  const here = path20.dirname(fileURLToPath(import.meta.url));
+  const candidates = [process.env["QAMIND_CORE"], path20.resolve(here, "../core"), path20.resolve(here, "..")].filter((c) => !!c);
+  for (const c of candidates) if (exists(path20.join(c, "shared", "templates", "config.md"))) return c;
   throw new Error(`Cannot locate QAMind's core files (looked in: ${candidates.join(", ")}).`);
 }
 
@@ -47072,8 +47526,8 @@ function gitInfo(root) {
 }
 
 // core/lib/gitignore.ts
-import fs12 from "node:fs";
-import path18 from "node:path";
+import fs14 from "node:fs";
+import path21 from "node:path";
 var QA_GITIGNORE_ENTRIES = [".env.qa", ".qa/"];
 function isCovered(lines, entry) {
   const bare = entry.replace(/\/$/, "");
@@ -47081,8 +47535,8 @@ function isCovered(lines, entry) {
   return lines.some((l) => accepted.has(l.trim()));
 }
 function ensureGitignoreEntries(root, entries = QA_GITIGNORE_ENTRIES) {
-  const file3 = path18.join(root, ".gitignore");
-  const current = fs12.existsSync(file3) ? fs12.readFileSync(file3, "utf8") : "";
+  const file3 = path21.join(root, ".gitignore");
+  const current = fs14.existsSync(file3) ? fs14.readFileSync(file3, "utf8") : "";
   const lines = current.split(/\r?\n/);
   const missing = entries.filter((e) => !isCovered(lines, e));
   if (missing.length === 0) return [];
@@ -47091,85 +47545,30 @@ function ensureGitignoreEntries(root, entries = QA_GITIGNORE_ENTRIES) {
   if (next !== "" && !next.endsWith("\n")) next += eol;
   if (next !== "") next += eol;
   next += `# QAMind (private test credentials and reports)${eol}${missing.join(eol)}${eol}`;
-  fs12.writeFileSync(file3, next, "utf8");
+  fs14.writeFileSync(file3, next, "utf8");
   return missing;
 }
 
 // core/lib/memory/migrate.ts
-import fs14 from "node:fs";
-import path20 from "node:path";
-
-// core/lib/memory/lock.ts
-import fs13 from "node:fs";
-import path19 from "node:path";
-var WAIT_MS = 1e4;
-var STALE_MS = 3e4;
-var POLL_MS = 25;
-var held = /* @__PURE__ */ new Map();
-function sleep(ms) {
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
-}
-function alive(pid) {
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch (err) {
-    return err.code === "EPERM";
-  }
-}
-function isStale(file3) {
-  try {
-    const age = Date.now() - fs13.statSync(file3).mtimeMs;
-    if (age > STALE_MS) return true;
-    const owner = JSON.parse(fs13.readFileSync(file3, "utf8"));
-    return typeof owner.pid === "number" && !alive(owner.pid);
-  } catch {
-    return false;
-  }
-}
-function lockFile(store) {
-  return path19.join(store, "state", "memory.lock");
-}
-function withStoreLock(store, fn) {
-  const file3 = lockFile(store);
-  const depth = held.get(file3) ?? 0;
-  if (depth > 0) {
-    held.set(file3, depth + 1);
-    try {
-      return fn();
-    } finally {
-      held.set(file3, depth);
-    }
-  }
-  ensureDir(path19.dirname(file3));
-  const deadline = Date.now() + WAIT_MS;
-  for (; ; ) {
-    try {
-      const fd = fs13.openSync(file3, "wx");
-      fs13.writeSync(fd, JSON.stringify({ pid: process.pid, at: (/* @__PURE__ */ new Date()).toISOString() }));
-      fs13.closeSync(fd);
-      break;
-    } catch (err) {
-      if (err.code !== "EEXIST") throw err;
-      if (isStale(file3)) {
-        fs13.rmSync(file3, { force: true });
-        continue;
-      }
-      if (Date.now() > deadline) throw new Error("Another QAMind process is changing this project's memory and did not finish in 10 seconds. Try again in a moment.");
-      sleep(POLL_MS);
-    }
-  }
-  held.set(file3, 1);
-  try {
-    return fn();
-  } finally {
-    held.delete(file3);
-    fs13.rmSync(file3, { force: true });
-  }
-}
-
-// core/lib/memory/migrate.ts
-var MIGRATIONS = [];
+import fs15 from "node:fs";
+import path22 from "node:path";
+var unchanged = (file3) => ({ id: `${file3}-1-to-2`, file: file3, from: 1, to: 2, describe: `${file3}: no change to the content; the version number moves to 2 so that a store is at one version`, up: (v) => v });
+var MIGRATIONS = [
+  {
+    id: "run-summary-1-to-2",
+    file: "run-summary",
+    from: 1,
+    to: 2,
+    describe: "run summaries: add `usage` (the measured duration, and the cost or tokens when the old `cost` text gave them); the old `cost` text is kept as it was",
+    up: (v) => ({ ...v, usage: v["usage"] ?? parseUsage(typeof v["cost"] === "string" ? v["cost"] : void 0, typeof v["duration_s"] === "number" ? v["duration_s"] : 0) })
+  },
+  unchanged("product-map"),
+  unchanged("risk-areas"),
+  unchanged("stack"),
+  unchanged("learnings"),
+  unchanged("false-alarms"),
+  unchanged("fix-log")
+];
 function memoryFiles(store) {
   const p = memoryPaths(store);
   const refs = [
@@ -47180,14 +47579,14 @@ function memoryFiles(store) {
     { kind: "false-alarms", file: p.falseAlarms, jsonl: true },
     { kind: "fix-log", file: p.fixLog, jsonl: true }
   ];
-  if (fs14.existsSync(p.runs)) {
-    for (const f of fs14.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path20.join(p.runs, f), jsonl: false });
+  if (fs15.existsSync(p.runs)) {
+    for (const f of fs15.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path22.join(p.runs, f), jsonl: false });
   }
-  return refs.filter((r) => fs14.existsSync(r.file));
+  return refs.filter((r) => fs15.existsSync(r.file));
 }
 function jsonVersion(file3) {
   try {
-    const v = JSON.parse(fs14.readFileSync(file3, "utf8")).schema_version;
+    const v = JSON.parse(fs15.readFileSync(file3, "utf8")).schema_version;
     return typeof v === "number" ? v : void 0;
   } catch {
     return void 0;
@@ -47202,7 +47601,7 @@ function headerOf(line2) {
   }
 }
 function jsonlVersion(file3) {
-  for (const raw of fs14.readFileSync(file3, "utf8").split(/\r?\n/)) {
+  for (const raw of fs15.readFileSync(file3, "utf8").split(/\r?\n/)) {
     const line2 = raw.trim();
     if (!line2 || line2.startsWith("#")) continue;
     const v = headerOf(line2)?.schema_version;
@@ -47247,14 +47646,14 @@ function migrateStore(store, opts = {}) {
   const next = /* @__PURE__ */ new Map();
   for (const { ref, steps } of pending) {
     const to = steps[steps.length - 1]?.to ?? target;
-    const where = path20.basename(ref.file);
+    const where = path22.basename(ref.file);
     if (!ref.jsonl) {
-      const value = JSON.parse(fs14.readFileSync(ref.file, "utf8"));
+      const value = JSON.parse(fs15.readFileSync(ref.file, "utf8"));
       next.set(ref.file, JSON.stringify({ ...applySteps(value, steps, where), schema_version: to }, null, 2) + "\n");
       continue;
     }
     let sawHeader = false;
-    const out = fs14.readFileSync(ref.file, "utf8").split(/\r?\n/).map((raw) => {
+    const out = fs15.readFileSync(ref.file, "utf8").split(/\r?\n/).map((raw) => {
       const line2 = raw.trim();
       if (!line2 || line2.startsWith("#")) return raw;
       if (!sawHeader) {
@@ -47274,23 +47673,23 @@ function migrateStore(store, opts = {}) {
     next.set(ref.file, out.join("\n"));
   }
   const lowest = Math.min(...pending.map((p) => p.from));
-  const backup = path20.join(storeSubdirs(store).backups, `${stampOf(now)}-schema-${lowest}-to-${target}`);
+  const backup = path22.join(storeSubdirs(store).backups, `${stampOf(now)}-schema-${lowest}-to-${target}`);
   for (const { ref } of pending) {
-    const dest = path20.join(backup, path20.relative(store, ref.file));
-    ensureDir(path20.dirname(dest));
-    fs14.copyFileSync(ref.file, dest);
+    const dest = path22.join(backup, path22.relative(store, ref.file));
+    ensureDir(path22.dirname(dest));
+    fs15.copyFileSync(ref.file, dest);
   }
   const log = [];
   const report = { migrated: [], backup };
   for (const { ref, from, steps } of pending) {
     const tmp = `${ref.file}.${process.pid}.tmp`;
-    fs14.writeFileSync(tmp, next.get(ref.file), "utf8");
-    fs14.renameSync(tmp, ref.file);
-    const entry = { file: path20.relative(store, ref.file).split(path20.sep).join("/"), from, to: steps[steps.length - 1]?.to ?? target, migrations: steps.map((s) => s.id) };
+    fs15.writeFileSync(tmp, next.get(ref.file), "utf8");
+    fs15.renameSync(tmp, ref.file);
+    const entry = { file: path22.relative(store, ref.file).split(path22.sep).join("/"), from, to: steps[steps.length - 1]?.to ?? target, migrations: steps.map((s) => s.id) };
     report.migrated.push(entry);
-    log.push(JSON.stringify({ at: now.toISOString(), ...entry, backup: path20.relative(store, backup).split(path20.sep).join("/"), describe: steps.map((s) => s.describe) }));
+    log.push(JSON.stringify({ at: now.toISOString(), ...entry, backup: path22.relative(store, backup).split(path22.sep).join("/"), describe: steps.map((s) => s.describe) }));
   }
-  fs14.appendFileSync(path20.join(storeSubdirs(store).backups, "migrations.log.jsonl"), `${log.join("\n")}
+  fs15.appendFileSync(path22.join(storeSubdirs(store).backups, "migrations.log.jsonl"), `${log.join("\n")}
 `, "utf8");
   return report;
 }
@@ -47302,13 +47701,80 @@ function ensureMigrated(store) {
   return report;
 }
 
+// core/auto-qa/settings.ts
+import path23 from "node:path";
+var AUTO_SCHEMA = 1;
+var AUTO_MODES = ["diff", "quick", "full", "fix", "ask"];
+var projectAutoFile = (store) => path23.join(store, "auto.json");
+var globalAutoFile = (home) => path23.join(home, "auto.json");
+function readJsonTolerant(file3) {
+  try {
+    return readJson(file3);
+  } catch {
+    return null;
+  }
+}
+function readAutoFile(file3) {
+  const raw = readJsonTolerant(file3);
+  if (raw === void 0) return { settings: { schema_version: AUTO_SCHEMA } };
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { settings: { schema_version: AUTO_SCHEMA }, unreadable: true };
+  const o = raw;
+  const version2 = typeof o["schema_version"] === "number" ? o["schema_version"] : AUTO_SCHEMA;
+  if (version2 > AUTO_SCHEMA) return { settings: { schema_version: version2 }, too_new: version2 };
+  const s = { schema_version: version2 };
+  if (typeof o["enabled"] === "boolean") s.enabled = o["enabled"];
+  if (typeof o["mode"] === "string" && AUTO_MODES.includes(o["mode"])) s.mode = o["mode"];
+  if (typeof o["paused_until"] === "string" && !Number.isNaN(Date.parse(o["paused_until"]))) s.paused_until = o["paused_until"];
+  if (typeof o["cooldown_minutes"] === "number" && o["cooldown_minutes"] >= 0) s.cooldown_minutes = o["cooldown_minutes"];
+  if (typeof o["time_budget_minutes"] === "number" && o["time_budget_minutes"] > 0) s.time_budget_minutes = o["time_budget_minutes"];
+  if (Array.isArray(o["ignore"])) s.ignore = o["ignore"].filter((x) => typeof x === "string" && x.length > 0 && x.length <= 200);
+  return { settings: s };
+}
+
 // core/auto-qa/state.ts
-import path21 from "node:path";
-var stateFile = (store, name) => path21.join(storeSubdirs(store).state, name);
+import path24 from "node:path";
+var stateFile = (store, name) => path24.join(storeSubdirs(store).state, name);
 var LAST_RUN = "last-run.json";
 function writeLastRun(store, run) {
   ensureDir(storeSubdirs(store).state);
   writeJson(stateFile(store, LAST_RUN), run);
+}
+
+// core/lib/envprep.ts
+import path25 from "node:path";
+var prepFile = (runDir) => path25.join(runDir, "data", "env-prep.json");
+var readPrep = (runDir) => readJson(prepFile(runDir));
+function commandProblem(command2, config2) {
+  const lower = command2.toLowerCase();
+  for (const pattern of config2.security.blocked_production_patterns) {
+    const bare = pattern.toLowerCase().replace(/^[a-z][a-z0-9+.-]*:\/\//, "").replace(/\*/g, "").replace(/^\.+|\/+$/g, "");
+    if (bare.length >= 4 && lower.includes(bare)) return `it mentions "${pattern}", which is listed as production`;
+  }
+  for (const m of command2.matchAll(/https?:\/\/[^\s"'<>)]+/gi)) {
+    const u = parseUrl(m[0]);
+    if (!u) continue;
+    if (config2.security.blocked_production_patterns.some((p) => matchesPattern(u, p))) return `it mentions ${u.origin}, which is listed as production`;
+    const v = classifyUrl(m[0], config2.security);
+    if (v.verdict === "blocked") return `it mentions ${u.origin}: ${v.reason}`;
+  }
+  return void 0;
+}
+async function step(name, command2, o) {
+  const problem = commandProblem(command2, o.config);
+  if (problem) return { name, command: maskText(command2, contextFrom(o.config)).text, ok: false, refused: `Not run: ${problem}. QAMind never runs a setup command against production.`, exit_code: null, timed_out: false, duration_s: 0, tail: "" };
+  const r = await runShell(command2, { cwd: o.cwd, timeoutMs: o.config.setup.timeout_s * 1e3, tailChars: 1500, ...o.redact ? { redact: o.redact } : {} });
+  const ctx = contextFrom(o.config);
+  const tail = maskText(r.timed_out ? `${r.output_tail}
+(stopped after ${o.config.setup.timeout_s} seconds)`.trim() : r.output_tail, ctx).text;
+  return { name, command: maskText(command2, ctx).text, ok: r.passed, exit_code: r.exit_code, timed_out: r.timed_out, duration_s: r.duration_s, tail };
+}
+async function restoreEnvironment(o) {
+  const prep = readPrep(o.runDir);
+  const command2 = o.config.setup.restore_command;
+  if (!prep?.snapshot_taken || !command2 || prep.restore) return prep?.restore;
+  const s = await step("restore", command2, { config: o.config, cwd: o.projectRoot, ...o.redact ? { redact: o.redact } : {} });
+  writeJson(prepFile(o.runDir), { ...prep, restore: s });
+  return s;
 }
 
 // core/lib/run.ts
@@ -47316,13 +47782,13 @@ var MODES = ["full", "quick", "regression", "diff"];
 var MARKER_TTL_HOURS = 8;
 function realOrResolved(p) {
   try {
-    return fs15.realpathSync(p);
+    return fs16.realpathSync(p);
   } catch {
-    return path22.resolve(p);
+    return path26.resolve(p);
   }
 }
 function browserStatus(home, projectRoot, expectedNames) {
-  const state = readJson(path22.join(home, "state", "browser-state.json"));
+  const state = readJson(path26.join(home, "state", "browser-state.json"));
   const key = Object.keys(state ?? {}).find((k) => realOrResolved(k) === realOrResolved(projectRoot));
   if (!state || !key) {
     return {
@@ -47343,12 +47809,12 @@ function browserStatus(home, projectRoot, expectedNames) {
 }
 function copyIfMissing(from, to, created) {
   if (exists(to)) return;
-  ensureDir(path22.dirname(to));
-  fs15.copyFileSync(from, to);
+  ensureDir(path26.dirname(to));
+  fs16.copyFileSync(from, to);
   created.push(to);
 }
 function markerPath(store) {
-  return path22.join(storeSubdirs(store).state, RUN_MARKER_FILE);
+  return path26.join(storeSubdirs(store).state, RUN_MARKER_FILE);
 }
 function readMarker(store) {
   return readJson(markerPath(store));
@@ -47363,9 +47829,9 @@ function scanAllMarkers(home) {
   const root = projectsRoot(home);
   if (!exists(root)) return [];
   const out = [];
-  for (const entry of fs15.readdirSync(root, { withFileTypes: true })) {
+  for (const entry of fs16.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const m = readJson(path22.join(root, entry.name, "state", RUN_MARKER_FILE));
+    const m = readJson(path26.join(root, entry.name, "state", RUN_MARKER_FILE));
     if (m) out.push(m);
   }
   return out;
@@ -47373,8 +47839,8 @@ function scanAllMarkers(home) {
 function startRun(opts) {
   const env = opts.env ?? process.env;
   const now = opts.now ?? /* @__PURE__ */ new Date();
-  const root = path22.resolve(opts.project ?? opts.cwd);
-  if (!exists(root) || !fs15.statSync(root).isDirectory()) {
+  const root = path26.resolve(opts.project ?? opts.cwd);
+  if (!exists(root) || !fs16.statSync(root).isDirectory()) {
     return { status: "no-project", message: `The folder ${root} does not exist. Ask the user which project folder to test.`, known_projects: listKnownProjects(opts.home) };
   }
   if (!opts.project && !looksLikeProject(root)) {
@@ -47388,13 +47854,13 @@ function startRun(opts) {
   const { store } = ensureProjectStore(opts.home, info, now);
   ensureMigrated(store);
   const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store };
-  const configFile = path22.join(root, ".qa", "config.md");
+  const configFile = path26.join(root, ".qa", "config.md");
   const gitignoreAdded = ensureGitignoreEntries(root);
   if (!exists(configFile)) {
     const created = [];
     const core = corePath();
-    copyIfMissing(path22.join(core, "shared", "templates", "config.md"), configFile, created);
-    copyIfMissing(path22.join(core, "shared", "templates", "env.qa.example"), path22.join(root, ".env.qa.example"), created);
+    copyIfMissing(path26.join(core, "shared", "templates", "config.md"), configFile, created);
+    copyIfMissing(path26.join(core, "shared", "templates", "env.qa.example"), path26.join(root, ".env.qa.example"), created);
     return {
       status: "needs-config",
       message: "First run in this project: QAMind created .qa/config.md and .env.qa.example and added .qa/ and .env.qa to .gitignore. Fill in .qa/config.md (every REPLACE_ME), copy .env.qa.example to .env.qa and add the TEST account logins, then run QA again. Nothing was tested.",
@@ -47446,10 +47912,10 @@ function startRun(opts) {
     }
   }
   let runId = `run-${utcStamp(now)}`;
-  const reports = path22.join(root, ".qa", "reports");
-  for (let n = 2; exists(path22.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
-  const runDir = path22.join(reports, runId);
-  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path22.join(runDir, sub));
+  const reports = path26.join(root, ".qa", "reports");
+  for (let n = 2; exists(path26.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
+  const runDir = path26.join(reports, runId);
+  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path26.join(runDir, sub));
   const criticalFlows = parseCriticalFlows(check2.body ?? "");
   const stack = detectStack(root, now);
   saveStack(storeSubdirs(store).memory, stack);
@@ -47457,6 +47923,8 @@ function startRun(opts) {
   const policy = policyFromConfig(config2);
   const readonly2 = opts.kind === "qa-only" || opts.trigger === "ci";
   const trigger = opts.trigger ?? "manual";
+  const userAuto = trigger === "auto" ? readAutoFile(projectAutoFile(store)).settings.time_budget_minutes ?? readAutoFile(globalAutoFile(opts.home)).settings.time_budget_minutes : void 0;
+  const budget = resolveBudget(config2, opts.mode, trigger, now, userAuto);
   const marker = {
     schema_version: SCHEMA_VERSION,
     run_id: runId,
@@ -47474,6 +47942,7 @@ function startRun(opts) {
     started: now.toISOString(),
     expires: new Date(now.getTime() + MARKER_TTL_HOURS * 36e5).toISOString(),
     policy,
+    ...budget.time_minutes !== void 0 || budget.max_cost !== void 0 ? { budget } : {},
     ...!readonly2 && opts.kind === "qa" ? { fix: { do_not_touch: config2.fix_policy.do_not_touch, max_fixes: config2.fix_policy.max_fixes, severities: config2.fix_policy.fix_severities } } : {}
   };
   writeJson(markerPath(store), marker);
@@ -47495,13 +47964,13 @@ function startRun(opts) {
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION
   };
-  writeJson(path22.join(runDir, "data", "meta.json"), meta3);
+  writeJson(path26.join(runDir, "data", "meta.json"), meta3);
   return {
     status: "ready",
     message: "Ready. Credentials are present for the roles listed (values are never shown).",
     project: projectOut,
     gitignore_added: gitignoreAdded,
-    run: { id: runId, dir: runDir, mode: opts.mode, ...opts.focus ? { focus: opts.focus } : {}, readonly: readonly2, report: path22.join(runDir, "TECHNICAL-REPORT.md") },
+    run: { id: runId, dir: runDir, mode: opts.mode, ...opts.focus ? { focus: opts.focus } : {}, readonly: readonly2, report: path26.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...budget.time_minutes !== void 0 ? { time_minutes: budget.time_minutes } : {}, ...budget.max_cost !== void 0 ? { max_cost: budget.max_cost } : {}, ...budget.deadline ? { deadline: budget.deadline } : {} } },
     config: {
       environment: config2.environment.name,
       web_uis: config2.web_uis,
@@ -47523,6 +47992,11 @@ function finishRun(opts) {
   const marker = findMarkerByRunId(opts.home, opts.runId);
   if (!marker) throw new Error(`No run ${opts.runId} found in the user store (already finished, or wrong id).`);
   const now = opts.now ?? /* @__PURE__ */ new Date();
+  const scan = scanRun(marker.run_dir, contextForRun(marker.run_dir));
+  if (!scan.ok) {
+    const where = scan.leaks.slice(0, 8).map((l) => `${l.file} (${Object.entries(l.kinds).map(([k, n]) => `${n} ${k}`).join(", ")})`).join("; ");
+    throw new Error(`Privacy scan failed: the run's output still holds private data in ${scan.leaks.length} file(s): ${where}${scan.leaks.length > 8 ? "; ..." : ""}. Run \`qamind privacy mask --run ${marker.run_id}\` (it masks them in place; test accounts' own data stays), rebuild the reports with \`report build\` and \`report lint\`, then finish the run again. Nothing was finished.`);
+  }
   const data = readRunData(marker.run_dir);
   assignIds(marker.run_dir, data);
   const counts = countBySeverity(data.findings);
@@ -47530,10 +48004,16 @@ function finishRun(opts) {
   const journeys = flowStatus(data);
   const started = new Date(marker.started).getTime();
   const duration_s = Math.max(0, Math.round((now.getTime() - started) / 1e3));
-  const meta3 = readJson(path22.join(marker.run_dir, "data", "meta.json"));
-  const stop_reason = opts.stopReason ?? "completed";
+  const meta3 = readJson(path26.join(marker.run_dir, "data", "meta.json"));
+  const health = readJson(path26.join(marker.run_dir, "data", "health.json"));
+  const stop_reason = opts.stopReason ?? (health && health.environment_ok === false ? "environment problem" : "completed");
+  const usage = parseUsage(opts.cost, duration_s);
+  const bstat = budgetStatus(marker.budget, marker.started, now);
+  const budgetOutcome = marker.budget ? { ...marker.budget.time_minutes !== void 0 ? { time_minutes: marker.budget.time_minutes } : {}, ...marker.budget.max_cost !== void 0 ? { max_cost: marker.budget.max_cost } : {}, used_minutes: Math.round(duration_s / 60 * 10) / 10, reached: bstat.state === "over", source: marker.budget.source } : void 0;
+  const prep = readPrep(marker.run_dir);
+  const environment = prep?.ran ? { prepared: true, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...prep.restore ? { restored: prep.restore.ok } : {} } : void 0;
   const summary = {
-    schema_version: SCHEMA_VERSION,
+    schema_version: MEMORY_SCHEMA,
     run_id: marker.run_id,
     mode: marker.mode,
     trigger: marker.trigger,
@@ -47554,12 +48034,15 @@ function finishRun(opts) {
     not_tested_count: notTested.length,
     blocked_areas: notTested.map((n) => n.area),
     cost: opts.cost ?? "not available on this host",
+    usage,
+    ...budgetOutcome ? { budget: budgetOutcome } : {},
+    ...environment ? { environment } : {},
     stop_reason,
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION,
     ...meta3?.branch ? { branch: meta3.branch } : {},
     ...meta3?.commit ? { commit: meta3.commit } : {},
-    report: path22.join(marker.run_dir, "TECHNICAL-REPORT.md")
+    report: path26.join(marker.run_dir, "TECHNICAL-REPORT.md")
   };
   const config2 = checkConfigFile(marker.project_root, process.env).config;
   const memory = applyRunToMemory({
@@ -47571,22 +48054,23 @@ function finishRun(opts) {
     roles: (config2?.roles ?? []).map((r) => r.name),
     uiUrls: Object.fromEntries((config2?.web_uis ?? []).map((u) => [u.name, u.url]))
   });
-  if (meta3) writeJson(path22.join(marker.run_dir, "data", "meta.json"), { ...meta3, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, memory_updated: memory.updated });
+  if (meta3) writeJson(path26.join(marker.run_dir, "data", "meta.json"), { ...meta3, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...budgetOutcome ? { budget: budgetOutcome } : {}, ...prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...prep.restore ? { restored: prep.restore.ok } : {} } } : {}, memory_updated: memory.updated });
   summary.memory_updated = memory.updated;
   const fixState = loadFixState(marker.run_dir);
   if (fixState) {
     const by = (o) => fixState.attempts.filter((a) => a.status === o).length;
     summary.fixes = { branch: fixState.branch, base_commit: fixState.base_commit.slice(0, 7), verified: by("verified"), best_effort: by("best-effort"), reverted: by("reverted"), deferred: by("deferred"), commits: fixState.attempts.filter((a) => a.commit && (a.status === "verified" || a.status === "best-effort")).map((a) => a.commit).map((c) => c.slice(0, 7)), suite: fixState.comparison?.verdict ?? "not-run" };
   }
-  writeJson(path22.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
+  writeJson(path26.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
   writeReports(marker.run_dir, marker.store);
-  fs15.rmSync(markerPath(marker.store), { force: true });
+  fs16.rmSync(markerPath(marker.store), { force: true });
+  addToDay(marker.store, marker.trigger, duration_s, now);
   writeLastRun(marker.store, { run_id: marker.run_id, trigger: marker.trigger, kind: marker.kind, started: marker.started, finished: summary.finished, ...marker.session_id ? { session_id: marker.session_id } : {} });
   return summary;
 }
 
 // core/lib/runctx.ts
-import path23 from "node:path";
+import path27 from "node:path";
 function loadRunContext(home, runId, env = process.env) {
   if (!runId) throw new Error("--run <run-id> is required (use the id printed by `run start`).");
   const marker = findMarkerByRunId(home, runId);
@@ -47604,7 +48088,7 @@ function loadRunContext(home, runId, env = process.env) {
   return {
     marker,
     projectRoot: marker.project_root,
-    runDir: path23.resolve(marker.run_dir),
+    runDir: path27.resolve(marker.run_dir),
     config: check2.config,
     policy: marker.policy,
     roles,
@@ -47613,13 +48097,13 @@ function loadRunContext(home, runId, env = process.env) {
 }
 
 // core/lib/memory/context.ts
-import fs17 from "node:fs";
-import path25 from "node:path";
+import fs18 from "node:fs";
+import path29 from "node:path";
 
 // core/lib/memory/lessons.ts
 import crypto2 from "node:crypto";
-import fs16 from "node:fs";
-import path24 from "node:path";
+import fs17 from "node:fs";
+import path28 from "node:path";
 var PENDING_FILE = "pending-lessons.md";
 var APPROVED_FILE = "global-lessons.md";
 var REJECTED_FILE = "rejected-lessons.jsonl";
@@ -47651,7 +48135,7 @@ function knownProjectNames(home, extra = []) {
   const names = new Set(extra);
   for (const p of listKnownProjects(home)) {
     names.add(p.name);
-    for (const seen of p.paths_seen) names.add(path24.basename(seen));
+    for (const seen of p.paths_seen) names.add(path28.basename(seen));
   }
   return [...names].filter((n) => n.trim().length > 0);
 }
@@ -47709,12 +48193,12 @@ function parseLessons(text2) {
   for (const b of blocks) if (!b.id) b.id = hashId(b.text);
   return { preamble, blocks };
 }
-var readFile = (file3) => parseLessons(fs16.existsSync(file3) ? fs16.readFileSync(file3, "utf8") : "");
+var readFile = (file3) => parseLessons(fs17.existsSync(file3) ? fs17.readFileSync(file3, "utf8") : "");
 function writeText(file3, text2) {
-  ensureDir(path24.dirname(file3));
+  ensureDir(path28.dirname(file3));
   const tmp = `${file3}.${process.pid}.tmp`;
-  fs16.writeFileSync(tmp, text2, "utf8");
-  fs16.renameSync(tmp, file3);
+  fs17.writeFileSync(tmp, text2, "utf8");
+  fs17.renameSync(tmp, file3);
 }
 var render = (p, extra = []) => {
   const body = [...p.preamble.join("\n").replace(/\s*$/, "").split("\n"), "", ...p.blocks.flatMap((b) => [...b.lines, ""]), ...extra].join("\n");
@@ -47729,11 +48213,11 @@ var approvedHeader = `# Global lessons
 
 Lessons you approved. **Every QAMind project reads this file** (the newest ${MAX_LOADED} at most, best-used first), so each entry must help on any project: no project names, web addresses, files, tickets or code.
 An entry that breaks that rule is not loaded, and the review says why. You can add, edit or delete entries by hand.`;
-var rejectedRecords = (home) => readJsonl(path24.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
+var rejectedRecords = (home) => readJsonl(path28.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
 var allIds = (home) => {
-  const approved = readFile(path24.join(home, APPROVED_FILE)).blocks;
+  const approved = readFile(path28.join(home, APPROVED_FILE)).blocks;
   const origins = approved.flatMap((b) => b.lines.flatMap((l) => [...l.matchAll(/\(was ([A-Z]-\d+)\)/g)].map((m) => m[1])));
-  return [...readFile(path24.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
+  return [...readFile(path28.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
 };
 function proposeLesson(home, input2, ctx = {}) {
   const text2 = one4(input2.text);
@@ -47746,10 +48230,10 @@ function proposeLesson(home, input2, ctx = {}) {
   if (problems.length) throw new Error(`This lesson is not generic: it ${problems.join("; ")}. A global lesson must help on any project, so rewrite it without those (describe the kind of problem, not this product).`);
   assertSafeText("this lesson", `${area} ${text2} ${reason}`, ctx.knownSecrets ?? []);
   ensureDir(home);
-  const pendingFile = path24.join(home, PENDING_FILE);
+  const pendingFile = path28.join(home, PENDING_FILE);
   return withStoreLock(home, () => {
     const pending = readFile(pendingFile);
-    const known = [...pending.blocks, ...readFile(path24.join(home, APPROVED_FILE)).blocks];
+    const known = [...pending.blocks, ...readFile(path28.join(home, APPROVED_FILE)).blocks];
     const dup = known.map((e) => ({ e, s: similarity(e.text, text2) })).filter((x) => x.s >= MERGE_AT2).sort((a, b) => b.s - a.s)[0];
     if (dup) return { action: "existing", id: dup.e.id, file: pendingFile, pending: pending.blocks.length, matches: dup.e.text };
     const turned = rejectedRecords(home).map((r) => ({ r, s: similarity(r.text, text2) })).filter((x) => x.s >= MERGE_AT2).sort((a, b) => b.s - a.s)[0];
@@ -47766,14 +48250,14 @@ function proposeLesson(home, input2, ctx = {}) {
 }
 var readLessonUse = (home) => {
   try {
-    const v = readJson(path24.join(home, USE_FILE));
+    const v = readJson(path28.join(home, USE_FILE));
     return v && typeof v === "object" && !Array.isArray(v) ? v : {};
   } catch {
     return {};
   }
 };
 function loadApprovedLessons(home, ctx = {}) {
-  const entries = readFile(path24.join(home, APPROVED_FILE)).blocks;
+  const entries = readFile(path28.join(home, APPROVED_FILE)).blocks;
   const use = readLessonUse(home);
   const ok = [];
   const skipped = [];
@@ -47793,7 +48277,7 @@ function loadApprovedLessons(home, ctx = {}) {
   };
 }
 function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
-  const approved = new Set(readFile(path24.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
+  const approved = new Set(readFile(path28.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
   const unique = [...new Set(ids)];
   const recorded = unique.filter((i) => approved.has(i));
   const unknown2 = unique.filter((i) => !approved.has(i));
@@ -47802,7 +48286,7 @@ function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
     withStoreLock(home, () => {
       const use = readLessonUse(home);
       for (const id of recorded) use[id] = { hits: (use[id]?.hits ?? 0) + 1, last_applied: now.toISOString() };
-      writeJson(path24.join(home, USE_FILE), use);
+      writeJson(path28.join(home, USE_FILE), use);
     });
   }
   return { recorded, unknown: unknown2 };
@@ -47813,8 +48297,8 @@ var PER_TYPE = 6;
 var MAX_PAGES_SHOWN = 40;
 function recentRunSummaries(store, limit = 3) {
   const dir = memoryPaths(store).runs;
-  if (!fs17.existsSync(dir)) return [];
-  return fs17.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path25.join(dir, f))).filter((r) => !!r);
+  if (!fs18.existsSync(dir)) return [];
+  return fs18.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path29.join(dir, f))).filter((r) => !!r);
 }
 function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), opts = {}) {
   const paths2 = memoryPaths(store);
@@ -47857,7 +48341,7 @@ function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), o
 }
 
 // core/lib/memory/observations.ts
-import path26 from "node:path";
+import path30 from "node:path";
 var MAX_PAGES = 300;
 var MAX_ENDPOINTS = 1e3;
 var OP = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(\/\S{0,200})$/i;
@@ -47865,10 +48349,10 @@ var clean = (s) => s.replace(/\s+/g, " ").trim();
 function recordObservations(runDir, input2, opts) {
   const secrets = opts.knownSecrets ?? [];
   const warnings = [];
-  const dir = path26.join(runDir, "data");
+  const dir = path30.join(runDir, "data");
   ensureDir(dir);
   const stored = (() => {
-    const raw = readJson(path26.join(dir, "pages.json"));
+    const raw = readJson(path30.join(dir, "pages.json"));
     return Array.isArray(raw) ? raw.filter((p) => !!p && typeof p === "object" && typeof p.path === "string" && typeof p.ui === "string") : [];
   })();
   const byKey = new Map(stored.map((p) => [`${p.ui}|${p.path}`, p]));
@@ -47899,9 +48383,9 @@ function recordObservations(runDir, input2, opts) {
     pagesAdded++;
   }
   if (stored.length > MAX_PAGES) throw new Error(`That is more than ${MAX_PAGES} distinct pages. Record page types, not every record (ids are collapsed automatically).`);
-  if (input2.pages?.length) writeJson(path26.join(dir, "pages.json"), stored);
+  if (input2.pages?.length) writeJson(path30.join(dir, "pages.json"), stored);
   const storedOps = (() => {
-    const raw = readJson(path26.join(dir, "endpoints.json"));
+    const raw = readJson(path30.join(dir, "endpoints.json"));
     return Array.isArray(raw) ? raw.filter((x) => typeof x === "string") : [];
   })();
   const ops = new Set(storedOps);
@@ -47916,7 +48400,7 @@ function recordObservations(runDir, input2, opts) {
     }
   }
   if (ops.size > MAX_ENDPOINTS) throw new Error(`That is more than ${MAX_ENDPOINTS} endpoints.`);
-  if (input2.endpoints?.length) writeJson(path26.join(dir, "endpoints.json"), [...ops]);
+  if (input2.endpoints?.length) writeJson(path30.join(dir, "endpoints.json"), [...ops]);
   return { pages_added: pagesAdded, pages_total: stored.length, endpoints_added: endpointsAdded, endpoints_total: ops.size, warnings };
 }
 
@@ -47932,7 +48416,7 @@ function defaultProjectDir(env = process.env, cwd = process.cwd()) {
 }
 function projectScope(home, opts = {}) {
   const env = opts.env ?? process.env;
-  const root = path27.resolve(opts.project ?? defaultProjectDir(env, opts.cwd ?? process.cwd()));
+  const root = path31.resolve(opts.project ?? defaultProjectDir(env, opts.cwd ?? process.cwd()));
   let info;
   try {
     info = resolveProject(root);
@@ -47948,7 +48432,7 @@ function scopeFor(home, opts) {
 }
 var secretsOf = (s) => s.ctx.passwords;
 function projectNamesOf(scope) {
-  return scope.kind === "run" ? [path27.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path27.basename(scope.project.root)];
+  return scope.kind === "run" ? [path31.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path31.basename(scope.project.root)];
 }
 function getContext(scope, limit = 3) {
   const ctx = loadMemoryContext(scope.store, limit, /* @__PURE__ */ new Date(), { home: scope.home, projectNames: projectNamesOf(scope) });
@@ -48070,6 +48554,13 @@ function finishRunTracked(home, runId, opts = {}) {
   if (open2) throw new Error(`${open2.issue} is still being fixed. Commit it (fix_commit), undo it (fix_revert) or give it up (fix_defer) first: finishing now would leave uncommitted changes in the project.`);
   if (fix && !fix.after && fix.attempts.some((a) => a.status === "verified" || a.status === "best-effort")) throw new Error("Fixes were committed but the full test suite was not run afterwards. Call fix_run_suite, re-check the affected flows, write the final reports, then finish.");
   return withStoreLock(marker.store, () => finishRun({ home, runId, ...opts }));
+}
+async function finishRunAndRestore(home, runId, opts = {}) {
+  const marker = findMarkerByRunId(home, runId);
+  if (!marker) throw new Error(`No run ${runId} found in the user store (already finished, or wrong id).`);
+  const ctx = loadRunContext(home, runId);
+  await restoreEnvironment({ config: ctx.config, projectRoot: marker.project_root, runDir: marker.run_dir, redact: makeRedactor(ctx.passwords).text, ...opts.now ? { now: opts.now } : {} });
+  return finishRunTracked(home, runId, opts);
 }
 
 // core/mcp/qa-memory/common.ts
@@ -48227,10 +48718,10 @@ var TOOLS = [
   define({
     name: "run_finish",
     title: "Finish the QA run",
-    description: "Finish the run: computes the run summary from the data files, updates the product map, risk areas and false-alarm counts, saves the run to history, re-renders both reports and ends the run (the safety guards stop applying). Call it once, last, after the reports lint clean. Returns the summary, including `memory_updated`.",
+    description: "Finish the run: computes the run summary from the data files, updates the product map, risk areas and false-alarm counts, saves the run to history, re-renders both reports and ends the run (the safety guards stop applying). If the run took an environment snapshot (setup.snapshot_command) it is restored first. Call it once, last, after the reports lint clean. Returns the summary, including `memory_updated`.",
     annotations: SET,
     input: { run: runField, stop_reason: line(1, 200, "stop_reason").optional().describe("completed, environment problem, stopped by the user, ..."), cost: line(1, 100, "cost").optional() },
-    run: (a, c) => finishRunTracked(c.home, a.run, { ...a.stop_reason ? { stopReason: a.stop_reason } : {}, ...a.cost ? { cost: a.cost } : {}, now: c.now() })
+    run: (a, c) => finishRunAndRestore(c.home, a.run, { ...a.stop_reason ? { stopReason: a.stop_reason } : {}, ...a.cost ? { cost: a.cost } : {}, now: c.now() })
   }),
   define({
     name: "run_history",

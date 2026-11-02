@@ -61,6 +61,8 @@ const touchRuns: Migration = { id: "runs-1-to-2", file: "run-summary", from: 1, 
 function seedV1(store: string): void {
   const p = memoryPaths(store);
   writeJsonl(p.learnings, "learnings", [{ id: "L-001", type: "test-tip", area: "Orders", text: "Wait for the list to load.", confidence: 6 }], ["{ not json"]);
+  // These tests pretend format 1 is the oldest and 2 the newest: stamp the file as an old QAMind would have.
+  fs.writeFileSync(p.learnings, fs.readFileSync(p.learnings, "utf8").replace(/"schema_version":\d+/, '"schema_version":1'));
   fs.appendFileSync(p.learnings, "# a hand-written note\n");
   writeJson(p.riskAreas, { schema_version: 1, updated: "x", areas: [{ area: "Orders", events: [] }] });
   writeJson(path.join(p.runs, "run-1.json"), { schema_version: 1, run_id: "run-1" });
@@ -111,10 +113,11 @@ test("memory from a newer QAMind is refused as a whole, and a gap in the migrati
   assert.throws(() => migrateStore(store, { migrations: [renameText], target: 2 }), /No migration from risk-areas schema 1/);
 });
 
-test("files with no recorded version (hand-written) are left alone, and today there is nothing to migrate", () => {
+test("files with no recorded version (hand-written) are left alone, and the shipped migrations cover every kind of file", () => {
   const store = storeDir();
   fs.writeFileSync(memoryPaths(store).learnings, '{"id":"L-001","type":"test-tip","area":"A","text":"Hand written learning without a header.","confidence":5}\n');
-  assert.equal(MIGRATIONS.length, 0, "format 1 is the first format: no migrations exist yet");
+  assert.deepEqual([...new Set(MIGRATIONS.map((m) => m.file))].sort(), ["false-alarms", "fix-log", "learnings", "product-map", "risk-areas", "run-summary", "stack"], "every kind of memory file has its step from format 1");
+  assert.ok(MIGRATIONS.every((m) => m.from === 1 && m.to === 2));
   assert.deepEqual(migrateStore(store), { migrated: [] });
   assert.equal(readJsonl(memoryPaths(store).learnings).records.length, 1);
 });

@@ -9,14 +9,20 @@ import { gitInfo } from "./git.ts";
 import type { GitInfo } from "./git.ts";
 import { ensureGitignoreEntries } from "./gitignore.ts";
 import { RUN_MARKER_FILE, SCHEMA_VERSION, projectsRoot, storeSubdirs } from "./paths.ts";
+import { MEMORY_SCHEMA } from "./memory/store.ts";
 import { ensureProjectStore, listKnownProjects, looksLikeProject, resolveProject } from "./project.ts";
 import { assignIds, countBySeverity, mergedNotTested, readRunData } from "./report.ts";
 import { compactFinding } from "./report.ts";
-import type { CompactFinding, RunMeta } from "./report.ts";
+import type { CompactFinding, RunBudgetOutcome, RunMeta } from "./report.ts";
 import { ensureMigrated } from "./memory/migrate.ts";
 import { applyRunToMemory } from "./memory/update.ts";
 import { writeReports } from "./reports.ts";
+import { globalAutoFile, projectAutoFile, readAutoFile } from "../auto-qa/settings.ts";
 import { writeLastRun } from "../auto-qa/state.ts";
+import { addToDay, budgetStatus, parseUsage, resolveBudget } from "./budget.ts";
+import type { RunBudget, Usage } from "./budget.ts";
+import { readPrep } from "./envprep.ts";
+import { contextForRun, scanRun } from "./privacy.ts";
 import { loadFixState } from "./fix/state.ts";
 import { flowStatus } from "./verdict.ts";
 import { detectStack, saveStack } from "./stack.ts";
@@ -46,6 +52,8 @@ export interface RunMarker {
   started: string;
   expires: string;
   policy: RunPolicy;
+  /** The run's time and cost budget (spec 13.6), resolved when the run started. The tools check the deadline before each new probe and each new fix. */
+  budget?: RunBudget;
   /** Fix runs only: the part of the config's fix_policy that the safety hook and the fix tools enforce, as it was when the run started. */
   fix?: { do_not_touch: string[]; max_fixes: number; severities: Severity[] };
 }
@@ -72,6 +80,11 @@ export interface RunSummary {
   not_tested_count: number;
   blocked_areas: string[];
   cost: string;
+  /** The same, structured (memory schema 2): the measured duration, and cost or tokens when the host or agent gave them. */
+  usage?: Usage;
+  budget?: RunBudgetOutcome;
+  /** What test data preparation did (spec 13.1), when it was configured and ran. */
+  environment?: { prepared: boolean; steps: string[]; snapshot_taken: boolean; restored?: boolean };
   stop_reason: string;
   agent_version: string;
   knowledge_version: string;
@@ -137,7 +150,7 @@ export interface StartResult {
   advisories?: string[];
   known_projects?: Array<{ id: string; name: string; paths_seen: string[]; last_seen: string }>;
   active_run?: { run_id: string; started: string };
-  run?: { id: string; dir: string; mode: Mode; focus?: string; readonly: boolean; report: string };
+  run?: { id: string; dir: string; mode: Mode; focus?: string; readonly: boolean; report: string; /** The run's budget in words, and the deadline: check it with `qamind budget status` before each new area. */ budget?: { message: string; time_minutes?: number; max_cost?: number; deadline?: string } };
   config?: {
     environment: string;
     web_uis: Array<{ name: string; url: string }>;
@@ -314,6 +327,9 @@ export function startRun(opts: StartOptions): StartResult {
   const policy = policyFromConfig(config);
   const readonly = opts.kind === "qa-only" || opts.trigger === "ci";
   const trigger = opts.trigger ?? "manual";
+  // Auto-QA's own setting (the user's, in auto.json) is the one budget that beats the project's config.
+  const userAuto = trigger === "auto" ? readAutoFile(projectAutoFile(store)).settings.time_budget_minutes ?? readAutoFile(globalAutoFile(opts.home)).settings.time_budget_minutes : undefined;
+  const budget = resolveBudget(config, opts.mode, trigger, now, userAuto);
 
   const marker: RunMarker = {
     schema_version: SCHEMA_VERSION,
@@ -332,6 +348,7 @@ export function startRun(opts: StartOptions): StartResult {
     started: now.toISOString(),
     expires: new Date(now.getTime() + MARKER_TTL_HOURS * 3600_000).toISOString(),
     policy,
+    ...(budget.time_minutes !== undefined || budget.max_cost !== undefined ? { budget } : {}),
     ...(!readonly && opts.kind === "qa" ? { fix: { do_not_touch: config.fix_policy.do_not_touch, max_fixes: config.fix_policy.max_fixes, severities: config.fix_policy.fix_severities } } : {}),
   };
   writeJson(markerPath(store), marker);
@@ -361,7 +378,7 @@ export function startRun(opts: StartOptions): StartResult {
     message: "Ready. Credentials are present for the roles listed (values are never shown).",
     project: projectOut,
     gitignore_added: gitignoreAdded,
-    run: { id: runId, dir: runDir, mode: opts.mode, ...(opts.focus ? { focus: opts.focus } : {}), readonly, report: path.join(runDir, "TECHNICAL-REPORT.md") },
+    run: { id: runId, dir: runDir, mode: opts.mode, ...(opts.focus ? { focus: opts.focus } : {}), readonly, report: path.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...(budget.time_minutes !== undefined ? { time_minutes: budget.time_minutes } : {}), ...(budget.max_cost !== undefined ? { max_cost: budget.max_cost } : {}), ...(budget.deadline ? { deadline: budget.deadline } : {}) } },
     config: {
       environment: config.environment.name,
       web_uis: config.web_uis,
@@ -392,6 +409,12 @@ export function finishRun(opts: FinishOptions): RunSummary {
   const marker = findMarkerByRunId(opts.home, opts.runId);
   if (!marker) throw new Error(`No run ${opts.runId} found in the user store (already finished, or wrong id).`);
   const now = opts.now ?? new Date();
+  // The privacy scan (spec 13.8): a run whose output still holds unmasked private data does not finish. Nothing is changed by the refusal.
+  const scan = scanRun(marker.run_dir, contextForRun(marker.run_dir));
+  if (!scan.ok) {
+    const where = scan.leaks.slice(0, 8).map((l) => `${l.file} (${Object.entries(l.kinds).map(([k, n]) => `${n} ${k}`).join(", ")})`).join("; ");
+    throw new Error(`Privacy scan failed: the run's output still holds private data in ${scan.leaks.length} file(s): ${where}${scan.leaks.length > 8 ? "; ..." : ""}. Run \`qamind privacy mask --run ${marker.run_id}\` (it masks them in place; test accounts' own data stays), rebuild the reports with \`report build\` and \`report lint\`, then finish the run again. Nothing was finished.`);
+  }
   const data = readRunData(marker.run_dir);
   assignIds(marker.run_dir, data);
   const counts = countBySeverity(data.findings);
@@ -400,9 +423,16 @@ export function finishRun(opts: FinishOptions): RunSummary {
   const started = new Date(marker.started).getTime();
   const duration_s = Math.max(0, Math.round((now.getTime() - started) / 1000));
   const meta = readJson<RunMeta>(path.join(marker.run_dir, "data", "meta.json"));
-  const stop_reason = opts.stopReason ?? "completed";
+  // A run whose environment was broken is an environment problem whatever the agent calls it: say so by default, so no summary claims "completed".
+  const health = readJson<{ environment_ok?: boolean }>(path.join(marker.run_dir, "data", "health.json"));
+  const stop_reason = opts.stopReason ?? (health && health.environment_ok === false ? "environment problem" : "completed");
+  const usage = parseUsage(opts.cost, duration_s);
+  const bstat = budgetStatus(marker.budget, marker.started, now);
+  const budgetOutcome: RunBudgetOutcome | undefined = marker.budget ? { ...(marker.budget.time_minutes !== undefined ? { time_minutes: marker.budget.time_minutes } : {}), ...(marker.budget.max_cost !== undefined ? { max_cost: marker.budget.max_cost } : {}), used_minutes: Math.round((duration_s / 60) * 10) / 10, reached: bstat.state === "over", source: marker.budget.source } : undefined;
+  const prep = readPrep(marker.run_dir);
+  const environment = prep?.ran ? { prepared: true, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...(prep.restore ? { restored: prep.restore.ok } : {}) } : undefined;
   const summary: RunSummary = {
-    schema_version: SCHEMA_VERSION,
+    schema_version: MEMORY_SCHEMA,
     run_id: marker.run_id,
     mode: marker.mode,
     trigger: marker.trigger,
@@ -423,6 +453,9 @@ export function finishRun(opts: FinishOptions): RunSummary {
     not_tested_count: notTested.length,
     blocked_areas: notTested.map((n) => n.area),
     cost: opts.cost ?? "not available on this host",
+    usage,
+    ...(budgetOutcome ? { budget: budgetOutcome } : {}),
+    ...(environment ? { environment } : {}),
     stop_reason,
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION,
@@ -441,7 +474,7 @@ export function finishRun(opts: FinishOptions): RunSummary {
     roles: (config?.roles ?? []).map((r) => r.name),
     uiUrls: Object.fromEntries((config?.web_uis ?? []).map((u) => [u.name, u.url])),
   });
-  if (meta) writeJson(path.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, memory_updated: memory.updated });
+  if (meta) writeJson(path.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...(budgetOutcome ? { budget: budgetOutcome } : {}), ...(prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...(prep.restore ? { restored: prep.restore.ok } : {}) } } : {}), memory_updated: memory.updated });
   summary.memory_updated = memory.updated;
   const fixState = loadFixState(marker.run_dir);
   if (fixState) {
@@ -452,6 +485,7 @@ export function finishRun(opts: FinishOptions): RunSummary {
   // Re-render both reports so they carry the final duration, stop reason and memory updates (what changed uses the saved result).
   writeReports(marker.run_dir, marker.store);
   fs.rmSync(markerPath(marker.store), { force: true });
+  addToDay(marker.store, marker.trigger, duration_s, now);
   // Auto-QA's Stop hook reads this to know that the task which just ended was itself a QA run (spec 9.5 rule 4).
   writeLastRun(marker.store, { run_id: marker.run_id, trigger: marker.trigger, kind: marker.kind, started: marker.started, finished: summary.finished, ...(marker.session_id ? { session_id: marker.session_id } : {}) });
   return summary;

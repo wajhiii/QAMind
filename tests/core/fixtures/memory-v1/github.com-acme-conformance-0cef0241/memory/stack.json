@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "frameworks": [],
+  "languages": [
+    "javascript"
+  ],
+  "test_runners": [
+    "node:test"
+  ],
+  "package_manager": "npm",
+  "commands": {
+    "test": "npm test"
+  },
+  "detected_at": "2026-11-02T10:27:23.267Z"
+}

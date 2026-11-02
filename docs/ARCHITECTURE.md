@@ -157,7 +157,15 @@ qamind setup | status | update | uninstall      status verifies the recorded edi
 
 The placeholders `core/` uses are a fixed list every host fills in. The hook formats are data in `host.json` (`core/auto-qa/hostio.ts` maps a host's hook JSON onto the one gate), so the gate, the memory and the servers are the same on every host; only the packaging around them changes.
 
+## Reliability: environment, budgets, privacy
+
+Code, not instructions, decides these ([decision 0007](decisions/0007-reliability.md)):
+
+- **Environment** (`core/lib/envprep.ts`, `health.ts`): `run_before` decides whether the configured snapshot, reset and seed commands run (each refuses to run if it names a blocked production address); the health check retries a failed check once and marks flaky and slow ones; a failed health check makes `report lint` refuse any finding and `run finish` default the stop reason to `environment problem`. A snapshot is restored by `run finish` (`finishRunAndRestore`), so an early stop still restores.
+- **Budget** (`core/lib/budget.ts`): `run start` resolves the limit (mode, `ci`, `auto`, config default) into the run marker as a deadline; `qamind budget status`, the API runner and `fix_begin` read it. Usage (duration, and cost when the host reported one) is written to the run summary; a daily total in the store lets the auto-QA gate pause itself once per day. Cost is advisory by design.
+- **Privacy** (`core/lib/privacy.ts`, `core/shared/page-mask.js`): one set of detectors masks API evidence, setup output and rendered reports on the way out, scans the run folder's text files before a run may finish (never printing a value), and, as a second `--init-script` of the browser tool, blurs the same kinds of text and the configured selectors in the page before a screenshot is taken.
+
 ## Formats and versioning
 
-Every file QAMind writes carries `schema_version`. Memory written by a newer QAMind is refused. Reports record the QAMind
-and knowledge versions. See [MEMORY.md](MEMORY.md).
+Every file QAMind writes carries `schema_version`. Memory is at schema 2; a store written by an older QAMind is **migrated on first use** after a byte-for-byte copy to `backups/<time>-schema-N-to-M/` and a line per file in `backups/migrations.log.jsonl` (`core/lib/memory/migrate.ts`); a store written by a newer QAMind is refused untouched.
+Reports record the QAMind and knowledge versions. See [MEMORY.md](MEMORY.md).

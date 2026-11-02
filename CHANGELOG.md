@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.7.6 (Phase 7.6, unreleased)
+
+Reliability foundations ([decision 0007](docs/decisions/0007-reliability.md)).
+
+- **A broken environment is an "Environment problem", not a bug.** The health check retries a failed check once and marks flaky and slow ones (kept as `env-quirk` learnings); a failed check makes `report lint` refuse any finding, `run finish` default the stop reason to `environment problem`, and the skills stop at Step 2 instead of testing on top of it.
+- **Test data setup** (`setup:` in `.qa/config.md`): `reset_command`, `seed_command`, optional `snapshot_command` with `restore_command`, `run_before: never | full_runs | always`, `timeout_s`. One-line commands, run in the project folder, refused when they name a blocked production address; output kept in `data/env-prep.json` with credentials removed and private data masked;
+  a snapshot is restored by `run finish`, also after an early stop.
+- **Budgets** (`budget:`): `time_minutes` per mode, `ci` and `auto` (auto-QA defaults to 5) is a real deadline in the run marker: `qamind budget status`, the API runner (stops between requests) and `fix_begin` (refuses another fix) honour it, and the reports say "time budget reached" for what was not covered.
+  `max_cost` is advisory (QAMind cannot see a host's spending) and recorded as `usage` in the run summary. `daily_max` pauses auto-QA once per day when auto-QA and CI have used their minutes; a `#qa` tag still runs.
+- **Privacy** (`privacy:`): emails (reserved test domains, the test accounts and `QA-` data stay readable), national ID numbers, Luhn-valid card numbers, phone numbers (not the fictional `555-01xx`), your `mask_patterns`, and `mask_fields` in API evidence are masked in evidence, reports and setup output.
+  `run finish` and `report lint` scan the whole run folder and refuse a leak (never printing the value); `qamind privacy scan | mask` do it by hand. Screenshots are taken with a blur script injected as a second `--init-script` of the browser tool (text patterns, input values and `mask_selectors`).
+- **Memory schema 2 and real migration**: the run summary gained `usage`; the other files moved to 2 unchanged. An older store is copied byte for byte to `backups/<time>-schema-1-to-2/`, migrated, and logged to `backups/migrations.log.jsonl` on first use; a newer store is refused untouched.
+  Tested on a real format 1 store written by the 0.7.5 build (`tests/core/fixtures/memory-v1/`).
+- **New commands**: `qamind budget status`, `qamind privacy scan|mask`; `qamind health` now runs the configured preparation first. `scripts/eval-reliability.ts` is the real-agent test (broken environment, one-minute budget, old memory with reset and privacy).
+- **Found by testing and fixed**: `writeMemoryJson` let a stale default `schema_version` win and `stack.json` wrote an old constant (the store would have migrated again on every run); the in-page script threw before `document.documentElement` existed (found only in real Chrome); a card number at the end of a sentence was not masked.
+- Not in this phase: cost enforcement (impossible from outside the host), detection of names and addresses in free text, scanning images, any run on Linux or Windows (the new tests are in the Windows CI job), interactive Claude Code, Cursor or generic hosts.
+
 ## 0.7.5 (Phase 7.5, unreleased)
 
 - **Multi-host install** ([decision 0006](docs/decisions/0006-multi-host.md), [docs/ADDING-A-HOST.md](docs/ADDING-A-HOST.md)): a host is a folder, `hosts/<id>/` with `host.json` and `adapter.ts`, found by scanning. **Codex was deferred by the owner and is not built.**

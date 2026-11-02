@@ -4,8 +4,11 @@ import { ensureDir, readJson, writeJson } from "../fsutil.ts";
 import { storeSubdirs } from "../paths.ts";
 import { findSecretLeaks } from "../redact.ts";
 
-/** Version of every memory file format (spec 13.17). Memory written by a newer version is never modified. */
-export const MEMORY_SCHEMA = 1;
+/**
+ * Version of every memory file format (spec 13.17). Memory written by a newer version is never modified.
+ * 1: the first format. 2 (QAMind 0.7.6): run summaries carry a structured `usage` block (measured duration, cost or tokens when known); every other file is unchanged and only takes the new number.
+ */
+export const MEMORY_SCHEMA = 2;
 
 export interface MemoryPaths {
   dir: string;
@@ -48,7 +51,8 @@ export function readMemoryJson<T extends { schema_version?: number }>(file: stri
 }
 
 export function writeMemoryJson(file: string, value: Record<string, unknown>): void {
-  writeJson(file, { schema_version: MEMORY_SCHEMA, ...value });
+  // The version goes last: a default object that carried an older number must not win over the format being written.
+  writeJson(file, { ...value, schema_version: MEMORY_SCHEMA });
 }
 
 export interface JsonlRead<T> {

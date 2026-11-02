@@ -1,5 +1,7 @@
 import path from "node:path";
 import { parseArgs } from "node:util";
+import { dayUsage } from "../lib/budget.ts";
+import { checkConfigFile } from "../lib/config.ts";
 import { exists } from "../lib/fsutil.ts";
 import { isRepo } from "../lib/fix/gitops.ts";
 import { storeDir } from "../lib/paths.ts";
@@ -155,6 +157,9 @@ function status(project: { id: string; name: string; root: string }, store: stri
   const last = readLast(store);
   const mine = readAutoFile(projectAutoFile(store));
   const glob = readAutoFile(globalAutoFile(h.home));
+  const cfg = exists(path.join(project.root, ".qa", "config.md")) ? checkConfigFile(project.root, h.env).config : undefined;
+  const used = dayUsage(store, h.now);
+  const daily = cfg?.budget.daily_max !== undefined ? { max_minutes: cfg.budget.daily_max, used_minutes: used.minutes, runs_today: used.runs, paused_today: used.minutes >= cfg.budget.daily_max } : undefined;
   const trigger = eff.enabled
     ? eff.mode === "ask"
       ? "After a task that changes code (documentation, lock files and ignored paths do not count): QAMind asks whether to run QA."
@@ -174,6 +179,7 @@ function status(project: { id: string; name: string; root: string }, store: stri
     global_setting: settingsText(glob.settings),
     last_auto_run: last ? { at: last.at, mode: last.mode, files: last.files.length, ...(last.forced ? { forced_by: `#${last.forced}` } : {}) } : null,
     would_trigger_next: trigger,
+    ...(daily ? { daily_budget: daily } : {}),
     host: "Claude Code: enforced by the Stop hook (the plugin must be installed and enabled).",
   };
 }
