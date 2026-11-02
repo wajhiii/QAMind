@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.7.5 (Phase 7.5, unreleased)
+
+- **Multi-host install** ([decision 0006](docs/decisions/0006-multi-host.md), [docs/ADDING-A-HOST.md](docs/ADDING-A-HOST.md)): a host is a folder, `hosts/<id>/` with `host.json` and `adapter.ts`, found by scanning. **Codex was deferred by the owner and is not built.**
+  An adapter describes the install as edits (`file`, `json`, `block`, `command`); one engine (`cli/src/setup/ops.ts`) applies, verifies and reverses them the same way for every host: idempotent, a backup before overwriting, user edits left alone on uninstall, invalid JSON never overwritten, only created folders removed.
+- **`qamind setup | status | update | uninstall`** (`./setup`, `setup.cmd`, `bin/qamind.mjs`, `cli/src/setup-main.ts`): `--host auto|claude|cursor|generic`, `--project`, `--dry-run`, `--version vX.Y.Z`; a `qamind` launcher on the PATH; an install record in the store so `status` tells the truth
+  and `uninstall` removes exactly what was added (the user's store is kept unless `--purge --yes`); `update` moves to the latest release tag (or `--edge` while there are none) and re-renders every install.
+- **Hosts**: `claude` (installs through Claude Code's own CLI), `cursor` (experimental: skills in `.cursor/skills`, `mcp.json`, `hooks.json` with `stop` and `beforeSubmitPrompt`, a rule file; **never run in a real Cursor**), `generic` (instruction-only: an `AGENTS.md` section and printed MCP registration).
+- **The auto-QA gate serves other hosts**: the hook format is data in `host.json` (`core/auto-qa/hostio.ts`), the project is found from `QAMIND_PROJECT_DIR`, `CLAUDE_PROJECT_DIR` or `CURSOR_PROJECT_DIR` (an unexpanded `${workspaceFolder}` is ignored), a QA run is matched by project on a host that gives skills no session id,
+  the gate's own message coming back as a prompt starts no task, and `qamind auto skipped` works without a session. New placeholders `{{SESSION_ARG}}` and `{{SESSION_FLAG}}` (Claude Code's rendered skills are byte-identical to before).
+- **Conformance suite** (`tests/conformance/`): one battery for every host and a made-up dummy host (setup and idempotence, status, MCP registered and reachable, skills discoverable, a `/qa-only` run through the registered server, uninstall leaving nothing and other tools' config intact, project level, auto-QA enforced or advisory as declared),
+  a memory-interoperability test (a chain of runs through Claude Code's, Cursor's and the generic host's registrations: one store, one project id, the same approved lessons), and a test that core names no host.
+- **Found by it and fixed**: runs finished in the same second were listed in the wrong order in the history; runtime messages named Claude Code's commands; uninstall left a skill folder when its file was deleted by hand, and the lock's empty folder.
+- Not in this phase: any real run inside Cursor or with a generic agent (so Cursor stays `experimental` and generic `instruction-only`), Codex, Linux and Windows runs (the Windows CI job now includes the new tests), a Cursor safety hook (see decision 0006 for why not).
+
 ## 0.7.0 (Phase 7, unreleased)
 
 - **Global lessons you approve** (`core/lib/memory/lessons.ts`, [decision 0005](docs/decisions/0005-global-lessons.md)): pending lessons (`P-001`) are used by nothing; approved ones (`G-001`) in `global-lessons.md` are given to **every** project's runs as `global_lessons` in `memory_get_context` (the 25 best-used and newest at most);

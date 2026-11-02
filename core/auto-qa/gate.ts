@@ -11,9 +11,9 @@ import { changedInTask, stateHash, takeSnapshot } from "./changes.ts";
 import { buildReason } from "./prompt.ts";
 import { AutoTooNewError, globalAutoFile, projectAutoFile, readAutoFile, resolveEffective } from "./settings.ts";
 import type { AutoEffective, AutoMode } from "./settings.ts";
-import { AUTO_PENDING, AUTO_SKIP, NEXT_RUN, TASK_START, dropSession, getSession, putSession, readLast, readLastRun, writeLast } from "./state.ts";
+import { ANY_SESSION, AUTO_PENDING, AUTO_SKIP, NEXT_RUN, TASK_START, dropSession, getSession, putSession, readLast, readLastRun, writeLast } from "./state.ts";
 import type { NextRun, PendingRun, SessionNotice, TaskStart } from "./state.ts";
-import { isQaCommand, parseTags } from "./tags.ts";
+import { isContinuation, isQaCommand, parseTags } from "./tags.ts";
 
 /**
  * The auto-QA gate (spec 9.5). Two hook events feed it: UserPromptSubmit records what the prompt asked for (tags) and a snapshot of the project, and
@@ -24,6 +24,8 @@ export interface HookEnv {
   home: string;
   env: NodeJS.ProcessEnv;
   now: Date;
+  /** How this host tells the agent to run the internal QA skill (`{mode}` is replaced); Claude Code's wording when absent. */
+  invoke?: string;
 }
 
 export interface StopInput {
@@ -60,9 +62,12 @@ interface Where {
   session: string;
 }
 
+/** A folder variable that a host left unexpanded (`${workspaceFolder}`) is not a folder. */
+export const usableDir = (v: string | undefined): string | undefined => (v && v.trim() !== "" && !v.includes("${") ? v : undefined);
+
 /** The project the hook fires for: the host's project folder when it says so (the same folder the qa-memory server uses), else the session's working folder. */
 function locate(input: { session_id?: string; cwd?: string }, h: HookEnv): Where | undefined {
-  const dir = h.env["CLAUDE_PROJECT_DIR"] || input.cwd;
+  const dir = usableDir(h.env["QAMIND_PROJECT_DIR"]) || usableDir(h.env["CLAUDE_PROJECT_DIR"]) || usableDir(h.env["CURSOR_PROJECT_DIR"]) || input.cwd;
   if (!dir || !exists(dir)) return undefined;
   const info = resolveProject(dir);
   return { root: info.root, info, store: storeDir(h.home, info.id), session: input.session_id || "unknown-session" };
@@ -80,6 +85,8 @@ export function onPrompt(input: PromptInput, h: HookEnv): void {
   const where = locate(input, h);
   if (!where) return;
   const prompt = input.prompt ?? "";
+  // A host that submits our block message back as the next prompt (Cursor does) must not start a new task out of it: the QA run it asks for belongs to the task before.
+  if (isContinuation(prompt)) return;
   const tags = parseTags(prompt);
   const eff = effectiveFor(where.store, h);
   if (!eff.enabled && !tags.force) {
@@ -105,16 +112,16 @@ const skip = (rule: string, why: string, systemMessage?: string): Decision => ({
 
 /** Say it once per session: a record of the reason is kept, and the same session is not told again. */
 function onceNotice(where: Where, h: HookEnv, rule: string, reason: string, force: boolean): Decision {
-  if (!force && getSession<SessionNotice>(where.store, AUTO_SKIP, where.session)) return skip(rule, `${reason} (already reported in this session)`);
+  if (!force && (getSession<SessionNotice>(where.store, AUTO_SKIP, where.session) ?? getSession<SessionNotice>(where.store, AUTO_SKIP, ANY_SESSION))) return skip(rule, `${reason} (already reported in this session)`);
   putSession<SessionNotice>(where.store, AUTO_SKIP, where.session, { at: h.now.toISOString(), reason });
   return skip(rule, reason, `Auto-QA skipped: ${reason}`);
 }
 
 /** Credentials and configuration the run needs, checked without printing any value. Returns the reason it cannot run, or undefined. */
 function cannotRun(root: string, h: HookEnv): string | undefined {
-  if (!exists(path.join(root, ".qa", "config.md"))) return "this project has no .qa/config.md yet. Run /qamind:qa-only once to set it up.";
+  if (!exists(path.join(root, ".qa", "config.md"))) return "this project has no .qa/config.md yet. Run the QAMind qa-only skill once to set it up.";
   const check = checkConfigFile(root, h.env);
-  if (check.status !== "ok" || !check.config) return `.qa/config.md is not usable (${check.status}). Run /qamind:qa-only to see what to fix.`;
+  if (check.status !== "ok" || !check.config) return `.qa/config.md is not usable (${check.status}). Run the QAMind qa-only skill to see what to fix.`;
   const names = check.config.roles.flatMap((r) => [r.username_env, r.password_env]);
   const { values } = loadQaEnv(root, h.env, names);
   if (!check.config.roles.some((r) => !!values[r.username_env] && !!values[r.password_env])) return "no test account has both its username and password in .env.qa.";
@@ -145,9 +152,11 @@ export function onStop(input: StopInput, h: HookEnv): Decision {
   }
   if (input.stop_hook_active) return skip("3", "stop_hook_active (a Stop hook already made Claude continue)");
 
-  const marker = findActiveMarkers(h.home, h.now).find((m) => m.store === where.store && m.session_id === where.session);
+  // A host that gives the QA skill no session id (Cursor) leaves the run's session empty: then the project's own run counts, since the store is per project.
+  const sameSession = (id: string | undefined): boolean => id === where.session || !id;
+  const marker = findActiveMarkers(h.home, h.now).find((m) => m.store === where.store && sameSession(m.session_id));
   const last = readLastRun(where.store);
-  const ranQaThisTask = !!next && !!last && last.session_id === where.session && last.finished >= next.at;
+  const ranQaThisTask = !!next && !!last && sameSession(last.session_id) && last.finished >= next.at;
   if (next?.qa_command || marker || ranQaThisTask) {
     consume();
     return skip("4", "the task that just finished was itself a QA run");
@@ -175,7 +184,7 @@ export function onStop(input: StopInput, h: HookEnv): Decision {
   }
 
   // The QA skill told us earlier in this session that a run cannot happen (app not reachable, ...): it was reported once, so stay quiet. A tag tries again.
-  const told = getSession<SessionNotice>(where.store, AUTO_SKIP, where.session);
+  const told = getSession<SessionNotice>(where.store, AUTO_SKIP, where.session) ?? getSession<SessionNotice>(where.store, AUTO_SKIP, ANY_SESSION);
   if (told && !forced) {
     consume();
     return skip("precondition", `a run could not happen earlier in this session (${told.reason})`);
@@ -188,7 +197,7 @@ export function onStop(input: StopInput, h: HookEnv): Decision {
   }
 
   const mode: AutoMode = forced === "qa-full" ? "full" : forced === "qa-fix" ? "fix" : forced === "qa" ? (eff.enabled && eff.mode !== "ask" ? eff.mode : "diff") : eff.mode;
-  const reason = buildReason({ mode, files: changed, ...(forced ? { forced } : {}), budgetMinutes: eff.time_budget_minutes });
+  const reason = buildReason({ mode, files: changed, ...(forced ? { forced } : {}), budgetMinutes: eff.time_budget_minutes, ...(h.invoke ? { invoke: h.invoke } : {}) });
   if (forced) dropSession(where.store, AUTO_SKIP, where.session); // a deliberate retry: if it fails again the skill says so again
   putSession<PendingRun>(where.store, AUTO_PENDING, where.session, { at: h.now.toISOString(), mode });
   writeLast(where.store, { at: h.now.toISOString(), state_hash: hash, mode, files: changed.slice(0, 200), session_id: where.session, ...(forced ? { forced } : {}) });

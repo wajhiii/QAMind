@@ -47814,7 +47814,7 @@ var MAX_PAGES_SHOWN = 40;
 function recentRunSummaries(store, limit = 3) {
   const dir = memoryPaths(store).runs;
   if (!fs17.existsSync(dir)) return [];
-  return fs17.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().slice(0, limit).map((f) => readJson(path25.join(dir, f))).filter((r) => !!r);
+  return fs17.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path25.join(dir, f))).filter((r) => !!r);
 }
 function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), opts = {}) {
   const paths2 = memoryPaths(store);
@@ -47927,7 +47927,8 @@ function runScope(home, runId, env = process.env) {
   return { kind: "run", home, store: ctx.marker.store, runId: ctx.marker.run_id, runDir: ctx.runDir, mode: ctx.marker.mode, ctx };
 }
 function defaultProjectDir(env = process.env, cwd = process.cwd()) {
-  return env["QAMIND_PROJECT_DIR"] || env["CLAUDE_PROJECT_DIR"] || cwd;
+  const ok = (v) => v && v.trim() !== "" && !v.includes("${") ? v : void 0;
+  return ok(env["QAMIND_PROJECT_DIR"]) || ok(env["CLAUDE_PROJECT_DIR"]) || ok(env["CURSOR_PROJECT_DIR"]) || cwd;
 }
 function projectScope(home, opts = {}) {
   const env = opts.env ?? process.env;

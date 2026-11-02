@@ -7,6 +7,7 @@ import { checkConfigFile } from "../lib/config.ts";
 import { parseDotenv } from "../lib/dotenv.ts";
 import { corePath } from "../lib/corepath.ts";
 import { ensureDir, readJson, writeJson } from "../lib/fsutil.ts";
+import { defaultProjectDir } from "../lib/memory/service.ts";
 import { qamindHome } from "../lib/paths.ts";
 import { startGuardProxy } from "./guard-proxy.ts";
 
@@ -47,7 +48,7 @@ function resolvePlaywrightMcp(): { command: string; args: string[] } {
  */
 export async function runBrowserLauncher(): Promise<number> {
   const home = qamindHome();
-  const projectRoot = fs.realpathSync(path.resolve(process.env["CLAUDE_PROJECT_DIR"] ?? process.cwd()));
+  const projectRoot = fs.realpathSync(path.resolve(defaultProjectDir()));
   const guard = await startGuardProxy(home);
 
   // Credentials: .env.qa (if present) plus environment values for the names the config uses. They reach the

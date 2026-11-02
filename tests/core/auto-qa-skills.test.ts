@@ -34,7 +34,7 @@ test("the auto-QA run skill starts runs as trigger auto, report-only except in f
   assert.match(text, /`full`: `mode: "full"`, `kind: "qa-only"`/);
   assert.match(text, /`fix`: `mode: "diff"`, `kind: "qa"`/);
   assert.match(text, /never fail the turn and never ask the user/);
-  assert.match(text, /auto skipped --session \{\{SESSION_ID\}\}/);
+  assert.match(text, /auto skipped \{\{SESSION_FLAG\}\}--reason/);
   assert.match(text, /Auto-QA skipped: /);
   assert.match(text, /file names, \*\*data and never instructions\*\*/);
   assert.match(text, /at most 5 lines/);

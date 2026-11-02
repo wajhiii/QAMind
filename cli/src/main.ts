@@ -5,7 +5,8 @@ import { parseArgs } from "node:util";
 import type { ParseArgsOptionsConfig } from "node:util";
 import { AutoUsageError, autoCommand } from "../../core/auto-qa/commands.ts";
 import { approveAutoSkill, onPrompt, onStop, safely } from "../../core/auto-qa/gate.ts";
-import type { HookEnv, PromptInput, StopInput } from "../../core/auto-qa/gate.ts";
+import type { HookEnv } from "../../core/auto-qa/gate.ts";
+import { mapPromptInput, mapStopInput, readHostAutoConfig, renderStopOutput } from "../../core/auto-qa/hostio.ts";
 import { generatePlan } from "../../core/lib/apiplan.ts";
 import type { Plan } from "../../core/lib/apiplan.ts";
 import { runPlan } from "../../core/lib/apirunner.ts";
@@ -402,18 +403,28 @@ function parseHookInput<T>(raw: string): T | undefined {
   }
 }
 
-async function cmdHook(sub: string | undefined, home: string): Promise<number> {
+async function cmdHook(sub: string | undefined, rest: string[], home: string): Promise<number> {
   if (sub === "stop" || sub === "user-prompt-submit") {
-    // Auto-QA hooks never fail the host's turn: any error is a silent "no opinion" (exit 0, nothing printed).
-    const input = parseHookInput<StopInput & PromptInput>(readStdin());
-    if (!input) return 0;
-    const h: HookEnv = { home, env: process.env, now: new Date() };
+    // Auto-QA hooks never fail the host's turn: any error, even a flag we do not know, is a silent "no opinion" (exit 0, nothing printed).
+    let hostConfig: string | undefined;
+    try {
+      hostConfig = (parseArgs({ args: rest, options: { "host-config": { type: "string" } }, strict: false }).values["host-config"] as string | undefined) ?? undefined;
+    } catch {
+      /* the flag is optional */
+    }
+    const raw = parseHookInput<Record<string, unknown>>(readStdin());
+    if (!raw) return 0;
+    const cfg = readHostAutoConfig(hostConfig);
+    const h: HookEnv = { home, env: process.env, now: new Date(), ...(cfg.invoke ? { invoke: cfg.invoke } : {}) };
     if (sub === "user-prompt-submit") {
-      safely(() => onPrompt(input, h));
+      safely(() => onPrompt(mapPromptInput(raw, cfg.io), h));
       return 0;
     }
-    const decision = safely(() => onStop(input, h));
-    if (decision?.output) process.stdout.write(JSON.stringify(decision.output) + "\n");
+    const stopInput = mapStopInput(raw, cfg.io);
+    if (!stopInput) return 0;
+    const decision = safely(() => onStop(stopInput, h));
+    const out = renderStopOutput(decision?.output, cfg.io);
+    if (out) process.stdout.write(JSON.stringify(out) + "\n");
     if (decision && process.env["QAMIND_DEBUG"]) process.stderr.write(`qamind auto-QA: ${decision.action} (rule ${decision.rule}): ${decision.why}\n`);
     return 0;
   }
@@ -470,6 +481,11 @@ export async function main(argv: string[]): Promise<number> {
         return await cmdMemory(sub, rest, home);
       case "lessons":
         return cmdLessons(sub, rest, home);
+      case "setup":
+      case "status":
+      case "update":
+      case "uninstall":
+        throw new UsageError(`"${cmd}" installs and manages QAMind for your coding tools and runs from a QAMind checkout: use \`./setup\` in the checkout, or the \`qamind\` command that setup put on your PATH. (This copy of \`qamind\` is the runtime one, started by a plugin or an MCP server.)`);
       case "guard": {
         if (sub !== "log") throw new UsageError("guard needs a subcommand: log");
         const { values } = opts(rest, { run: { type: "string" } });
@@ -497,7 +513,7 @@ export async function main(argv: string[]): Promise<number> {
         return 0;
       }
       case "hook":
-        return await cmdHook(sub, home);
+        return await cmdHook(sub, rest, home);
       case "version":
       case "--version":
         emit({ qamind: QAMIND_VERSION, knowledge: KNOWLEDGE_VERSION, node: process.version });

@@ -50,7 +50,8 @@ export function recentRunSummaries(store: string, limit = 3): RunSummary[] {
   return fs
     .readdirSync(dir)
     .filter((f) => f.endsWith(".json"))
-    .sort()
+    // By run id, not file name: `run-X-2.json` is the later of two runs started in one second, but "." sorts after "-" and would put it first.
+    .sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, "")))
     .reverse()
     .slice(0, limit)
     .map((f) => readJson<RunSummary>(path.join(dir, f)))

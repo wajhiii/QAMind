@@ -40,7 +40,7 @@ Parse the arguments: if the first word is `full`, `quick`, `regression` or `diff
 the rest is a free-text focus. If the user passes `--ticket`, say ticket mode is not available in this version and continue
 without it.
 
-Load the qa-memory tools, then call `run_start` with `mode` (the mode), `kind: "qa"`, `session: "{{SESSION_ID}}"`, `host: "{{HOST_ID}}"` and, if
+Load the qa-memory tools, then call `run_start` with `mode` (the mode), `kind: "qa"`, {{SESSION_ARG}}`host: "{{HOST_ID}}"` and, if
 there is one, `focus`.
 
 Act on the JSON `status`:

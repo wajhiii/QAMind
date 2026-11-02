@@ -90,5 +90,38 @@
       "disable-model-invocation": true,
       "allowed-tools": "Bash(qamind lessons list) Bash(qamind lessons list *) Bash(qamind memory review) Bash(qamind memory review *) Bash(qamind memory stats) Bash(qamind memory stats *)"
     }
-  }
+  },
+  "auto_qa": {
+    "mode": "enforced",
+    "hook_env": {
+      "CLAUDE_PROJECT_DIR": "{cwd}"
+    },
+    "samples": {
+      "prompt": {
+        "session_id": "{session}",
+        "cwd": "{cwd}",
+        "hook_event_name": "UserPromptSubmit",
+        "prompt": "{prompt}"
+      },
+      "stop": {
+        "session_id": "{session}",
+        "cwd": "{cwd}",
+        "hook_event_name": "Stop",
+        "stop_hook_active": false
+      },
+      "stop_after_block": {
+        "session_id": "{session}",
+        "cwd": "{cwd}",
+        "hook_event_name": "Stop",
+        "stop_hook_active": true
+      }
+    }
+  },
+  "safety": "hooks",
+  "runtime": false,
+  "requires_host": true,
+  "scopes": [
+    "user",
+    "project"
+  ]
 }

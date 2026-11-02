@@ -1,6 +1,6 @@
 ---
 name: qa-auto-run
-description: Internal skill that only QAMind's auto-QA hook uses. Run it only when a message that starts with "QAMind auto-QA." asks you to, with the mode it names, and never for any other reason. It tests the files that task changed, reports, and ends with a five-line summary. Users run /qamind:qa-only or /qamind:qa instead.
+description: Internal skill that only QAMind's auto-QA hook uses. Run it only when a message that starts with "QAMind auto-QA." asks you to, with the mode it names, and never for any other reason. It tests the files that task changed, reports, and ends with a five-line summary. Users run {{CMD_QA_ONLY}} or {{CMD_QA}} instead.
 argument-hint: "diff|quick|full|fix"
 ---
 
@@ -38,7 +38,7 @@ as written, one command per call (no `&&`, `||` or pipes around it). Only if the
 
 ## Step 0: start the run
 
-Load the qa-memory tools, then call `run_start` with `trigger: "auto"`, `session: "{{SESSION_ID}}"`, `host: "{{HOST_ID}}"`, `focus: "auto-QA of the files this task changed"` and, by the mode in the arguments:
+Load the qa-memory tools, then call `run_start` with `trigger: "auto"`, {{SESSION_ARG}}`host: "{{HOST_ID}}"`, `focus: "auto-QA of the files this task changed"` and, by the mode in the arguments:
 - `diff`: `mode: "diff"`, `kind: "qa-only"` (report only).
 - `quick`: `mode: "quick"`, `kind: "qa-only"`.
 - `full`: `mode: "full"`, `kind: "qa-only"`.
@@ -48,7 +48,7 @@ Act on the JSON `status`:
 - `ready`: remember `run.id` and `run.dir`. Roles with `has_credentials: false` are not testable: they go to Not tested. `config.critical_flows` lists the critical journeys, numbered from 1: tag the
   coverage rows that cover each one with `critical_flow`. If `browser.status` is not `ok`, continue API-only without asking: every UI area becomes Not tested, with `browser.message` as the reason.
 - anything else (`needs-config`, `unfilled`, `invalid`, `blocked-url`, `ambiguous-url`, `no-project`, `missing-env`, `busy`): **never fail the turn and never ask the user.** Say "Auto-QA skipped: <the reason, in one line>"
-  (name missing variables, never values), run `{{CLI}} auto skipped --session {{SESSION_ID}} --reason "<the same reason>"` so it is not tried again in this session, and **stop**. No run exists, so do not call `run_finish`.
+  (name missing variables, never values), run `{{CLI}} auto skipped {{SESSION_FLAG}}--reason "<the same reason>"` so it is not tried again in this session, and **stop**. No run exists, so do not call `run_finish`.
 
 Read `.qa/config.md` (the flows, business rules, do-not-touch list and known issues are in its body; never read `.env.qa`).
 Skip anything under "Known issues to skip".

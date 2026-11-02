@@ -1,0 +1,178 @@
+{
+  "id": "cursor",
+  "name": "Cursor",
+  "tier": "experimental",
+  "docs_checked": {
+    "date": "2026-11-02",
+    "pages": [
+      "https://cursor.com/docs/skills",
+      "https://cursor.com/docs/rules",
+      "https://cursor.com/docs/mcp",
+      "https://cursor.com/docs/hooks",
+      "https://cursor.com/docs/plugins",
+      "https://cursor.com/docs/reference/plugins",
+      "https://cursor.com/docs/reference/permissions",
+      "https://cursor.com/docs/cli/headless",
+      "https://cursor.com/docs/cli/reference/parameters",
+      "https://cursor.com/docs/cli/changelog"
+    ]
+  },
+  "verified": {
+    "real_run": false,
+    "note": "Everything here is taken from Cursor's current documentation (2026-11-02) and checked by QAMind's conformance suite against that documentation. QAMind has never run inside a real Cursor (neither the editor nor the agent CLI), which is why the tier is experimental."
+  },
+  "skills": {
+    "location": "<project>/.cursor/skills/<name>/SKILL.md or ~/.cursor/skills/<name>/SKILL.md",
+    "naming": "the folder name is the skill name and the slash command (/qamind-qa-only); the front matter name must equal it",
+    "name_prefix": "qamind-",
+    "layout": "folders",
+    "fields": [
+      "name",
+      "description"
+    ],
+    "frontmatter": {
+      "qa-only": {
+        "disable-model-invocation": true
+      },
+      "qa": {
+        "disable-model-invocation": true
+      },
+      "qa-auto": {
+        "disable-model-invocation": true
+      },
+      "qa-memory-review": {
+        "disable-model-invocation": true
+      },
+      "qa-auto-run": {
+        "user-invocable": false
+      }
+    },
+    "facts": [
+      "documented front matter: name, description, paths, disable-model-invocation (user-only); user-invocable: false (model-only) appears only in the CLI changelog",
+      "allowed-tools, argument-hint and $ARGUMENTS are not documented, so arguments are the text typed after the slash name in the same message",
+      "Cursor also reads .claude/skills and .codex/skills; with its Third-Party Imports setting on, a project that has both the Claude plugin and this install may show a skill twice"
+    ]
+  },
+  "mcp": {
+    "registration": "~/.cursor/mcp.json (user) or <project>/.cursor/mcp.json (project), top-level mcpServers; command, args, env, type",
+    "facts": [
+      "variables in command, args, env: ${env:NAME}, ${userHome}, ${workspaceFolder}",
+      "the working directory of a stdio server and the meaning of ${workspaceFolder} in the user-level file are not documented: QAMind passes the project folder as QAMIND_PROJECT_DIR and ignores a value that was left unexpanded",
+      "the name the model sees for a tool is not documented, so the skills name tools by their short names and the server",
+      "Cursor asks for approval of MCP tool calls unless they are on its allowlist (~/.cursor/permissions.json mcpAllowlist, entries server:tool)"
+    ]
+  },
+  "hooks": {
+    "file": "~/.cursor/hooks.json or <project>/.cursor/hooks.json: { \"version\": 1, \"hooks\": { \"<event>\": [ { \"command\": \"...\" } ] } }",
+    "events_used": [
+      "stop",
+      "beforeSubmitPrompt"
+    ],
+    "enforcement": "auto-QA only. The safety guard is NOT a hook on this host: permission hooks (preToolUse, beforeShellExecution, beforeMCPExecution, beforeReadFile) block the action when their output is invalid, and their payloads are only partly documented, so a mistake could stop all of the user's tool use. The safety rules are instructions here.",
+    "facts": [
+      "stop: stdin has conversation_id, status (completed, aborted, error), loop_count and workspace_roots; printing {\"followup_message\": \"...\"} submits it as the next user message",
+      "loop_count counts the follow-ups already triggered (starts at 0); the default limit is 5 and loop_limit in hooks.json changes it",
+      "beforeSubmitPrompt: stdin has prompt, conversation_id and workspace_roots",
+      "a hook that crashes or times out lets the action go on unless failClosed is set; project hooks run only in a trusted workspace",
+      "the hook process gets CURSOR_PROJECT_DIR and CLAUDE_PROJECT_DIR (an alias for compatibility); user-level hooks run from ~/.cursor, so the project folder comes from that variable"
+    ]
+  },
+  "auto_qa": {
+    "mode": "enforced",
+    "invoke": "To run QA, use the skill `qamind-qa-auto-run` (it is in your skills list) with the mode `{mode}`.",
+    "hooks": {
+      "stop": {
+        "input": {
+          "session_id": "conversation_id",
+          "cwd": [
+            "workspace_roots.0"
+          ]
+        },
+        "only_when": {
+          "path": "status",
+          "equals": "completed"
+        },
+        "loop_active_when": {
+          "path": "loop_count",
+          "gt": 0
+        },
+        "block_output": {
+          "followup_message": "{reason}"
+        },
+        "notice_output": null
+      },
+      "prompt": {
+        "input": {
+          "session_id": "conversation_id",
+          "cwd": [
+            "workspace_roots.0"
+          ],
+          "prompt": "prompt"
+        }
+      }
+    },
+    "hook_env": {
+      "CURSOR_PROJECT_DIR": "{cwd}"
+    },
+    "samples": {
+      "prompt": {
+        "conversation_id": "{session}",
+        "generation_id": "g1",
+        "hook_event_name": "beforeSubmitPrompt",
+        "workspace_roots": [
+          "{cwd}"
+        ],
+        "cursor_version": "3.27",
+        "prompt": "{prompt}",
+        "attachments": []
+      },
+      "stop": {
+        "conversation_id": "{session}",
+        "generation_id": "g1",
+        "hook_event_name": "stop",
+        "workspace_roots": [
+          "{cwd}"
+        ],
+        "cursor_version": "3.27",
+        "status": "completed",
+        "loop_count": 0
+      },
+      "stop_after_block": {
+        "conversation_id": "{session}",
+        "generation_id": "g2",
+        "hook_event_name": "stop",
+        "workspace_roots": [
+          "{cwd}"
+        ],
+        "cursor_version": "3.27",
+        "status": "completed",
+        "loop_count": 1
+      },
+      "stop_aborted": {
+        "conversation_id": "{session}",
+        "generation_id": "g1",
+        "hook_event_name": "stop",
+        "workspace_roots": [
+          "{cwd}"
+        ],
+        "cursor_version": "3.27",
+        "status": "aborted",
+        "loop_count": 0
+      }
+    }
+  },
+  "safety": "instructions",
+  "rules_file": "<project>/.cursor/rules/qamind.mdc",
+  "commands": {
+    "CMD_QA": "/qamind-qa",
+    "CMD_QA_ONLY": "/qamind-qa-only",
+    "CMD_QA_AUTO": "/qamind-qa-auto",
+    "CMD_QA_MEMORY_REVIEW": "/qamind-qa-memory-review",
+    "CMD_QA_FEEDBACK": "/qamind-qa-feedback",
+    "CMD_QA_TESTS": "/qamind-qa-tests"
+  },
+  "scopes": [
+    "user",
+    "project"
+  ]
+}

@@ -62,7 +62,9 @@ export function runScope(home: string, runId: string | undefined, env: NodeJS.Pr
 
 /** The folder to treat as the project when none is given: an explicit override, then the host's project folder, then where we run. */
 export function defaultProjectDir(env: NodeJS.ProcessEnv = process.env, cwd: string = process.cwd()): string {
-  return env["QAMIND_PROJECT_DIR"] || env["CLAUDE_PROJECT_DIR"] || cwd;
+  // A host that leaves `${workspaceFolder}` unexpanded in the server's environment gives a value that is not a folder: it is ignored.
+  const ok = (v: string | undefined): string | undefined => (v && v.trim() !== "" && !v.includes("${") ? v : undefined);
+  return ok(env["QAMIND_PROJECT_DIR"]) || ok(env["CLAUDE_PROJECT_DIR"]) || ok(env["CURSOR_PROJECT_DIR"]) || cwd;
 }
 
 export function projectScope(home: string, opts: { project?: string; env?: NodeJS.ProcessEnv; cwd?: string } = {}): ProjectScope {

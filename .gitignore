@@ -6,3 +6,4 @@ plugins/qamind/node_modules/
 # QAMind's own runtime files if it is ever run on this repo
 .qa/
 .env.qa
+build/

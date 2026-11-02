@@ -66,6 +66,8 @@ export const AUTO_LAST = "auto-last.json";
 export const AUTO_SKIP = "auto-skip.json";
 export const LAST_RUN = "last-run.json";
 export const AUTO_PENDING = "auto-pending.json";
+/** The session key for a notice recorded where the host gave the QA skill no session id: it applies to every session of the project. */
+export const ANY_SESSION = "*";
 
 type SessionMap<T> = Record<string, T & { at: string }>;
 

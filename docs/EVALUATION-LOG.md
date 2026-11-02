@@ -427,3 +427,36 @@ Record: `docs/baselines/phase-7-lessons.{json,md}`. Total for the final run of f
 - The genericity check is best-effort: it cannot know a project it has never seen, and a lesson that describes a product without naming it passes (the review asks the owner to read what they approve).
 - Nothing was run on Linux or Windows.
 
+## Phase 7.5: more hosts, the setup CLI and the conformance suite (Codex deferred by the owner)
+
+This phase has no real-agent run to report, and that is the main fact about it: **no agent was run inside Cursor or through the generic path.** Neither the Cursor editor nor its agent CLI is installed here, and running either needs the user's login; the owner also asked to skip Codex.
+What was run is the conformance suite (`tests/conformance/`), which drives every adapter through its own formats and hooks:
+
+| Check, per host (claude, cursor, generic, and a made-up dummy host in a temp folder) | Result |
+|---|---|
+| setup installs; a second run changes nothing | pass for all four |
+| status tells the truth: ok, the problem after a file is removed, ok after setup, nothing after uninstall | pass |
+| MCP servers registered; the registered qa-memory command starts over stdio, lists the tools and finds the project from what the host gives it | pass |
+| every core skill discoverable under a documented name; valid front matter, name equal to folder; no unrendered placeholder | pass |
+| a `/qa-only` run through the registered server writes both reports (lint clean) and memory, naming the host | pass |
+| uninstall leaves no file QAMind added, restores what it replaced, and leaves another tool's settings exactly as they were | pass |
+| project-level install lands in the project, not the user's account, and goes away | pass (hosts that have one) |
+| auto-QA as declared: the host's own hook command, fed that host's documented payload, blocks once in the host's format, never loops, honours `#noqa` and off, skips an aborted turn, survives garbage; advisory: no hooks, an instruction in the project, status says advisory | pass |
+
+Claude Code's install, status and uninstall ran through **its real CLI** (2.1.314, an isolated `CLAUDE_CONFIG_DIR`); without `CLAUDE_BIN` those tests are skipped and say so. Memory interoperability (`interop.test.ts`): a chain of runs through Claude Code's, Cursor's and the generic host's own registrations against one store and one project, then back to Claude Code:
+each run saw the learnings of the earlier ones (0, 1, 2, then 3), one project id throughout (two checkouts of one repository share it), one project folder in the store, the run history named the host of each run, and an approved lesson reached all three hosts while a pending one reached none. The whole suite: 331 tests, 329 pass, 2 skipped by design.
+
+### What the suite found, and what was done
+- Two runs finished in the same second were listed in the wrong order in the history (`.json` sorts after `-2`), so "the last run" could be the earlier one: sorted by run id now.
+- Runtime messages and the internal skill's description named Claude Code's commands (`/qamind:qa-only`), which would have been wrong on every other host: neutral now, and a test keeps core free of any host's names, commands, tools, variables and folders.
+- Uninstall left a skill folder when its file had been deleted by hand, and left the lock's empty folder in the store: both cleaned up (only folders setup created are ever removed).
+- My own harness first built a fresh runtime folder per call, which made hook paths differ between runs: setup itself was never non-idempotent (the second run reported no changes once the folder was stable).
+- Moving a checkout to a release would have refused over a rebuilt generated plugin folder, and been blocked by an untracked generated file: generated files are put back before moving, and only the user's own changes block an update.
+
+### What this does not show
+- **Cursor**: that the skills appear and run, that the MCP servers connect and the model finds their tools, that the hooks fire, that a `followup_message` continues the agent, and what `${workspaceFolder}` expands to in the user-level file. All of it follows Cursor's documentation (read 2026-11-02), none was seen. Hence `experimental`.
+- **Generic**: no agent's compliance with the AGENTS.md section, no auto-QA beyond the instruction.
+- **Claude Code through `setup --host claude`**: the install and uninstall were checked by Claude Code's own listing in an isolated config folder; no agent was run in that folder (an agent run needs the real login).
+- Windows and Linux: `setup.cmd`, the `.cmd` launcher and the PowerShell quoting of Cursor's hook commands were not run.
+- `update` was tested against a local repository with tags, not GitHub; there are no release tags yet. `setup` builds with `npm ci` and the build script, which needs the network and was not run inside the test suite (a fresh-clone run of it is recorded when the phase is committed).
+

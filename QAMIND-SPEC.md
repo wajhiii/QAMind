@@ -948,7 +948,7 @@ Gate logic in `core/auto-qa/`, Claude Code hooks in `hosts/claude/`, `qa-auto` s
 `~/.qamind/` pending/approved flow and `qa-memory-review` skill.
 ✅ Lessons are generic and only approved ones are loaded.
 
-**Phase 7.5: Multi-platform (Codex, Cursor, generic)**
+**Phase 7.5: Multi-platform (Codex, Cursor, generic)** _(Codex deferred by the owner, 2026-11-02: build Cursor and generic only)_
 `cli/` setup/status/update/uninstall, `hosts/codex/`, `hosts/cursor/`, `hosts/generic/`,
 auto-QA wiring or advisory fallback per host, `docs/HOSTS.md`, `docs/ADDING-A-HOST.md`,
 conformance suite.
@@ -1027,7 +1027,7 @@ using only the README and `docs/HOSTS.md`.
    all phases are complete; ask me which project at that point.
 8. Auto-QA mode when enabled: `diff`.
 9. Auto-QA never fixes on its own; fixing only via `/qa` or the `#qa-fix` tag.
-10. Hosts: Claude Code, Codex and Cursor only for now (plus the generic `AGENTS.md` option).
+10. Hosts: Claude Code, Codex and Cursor only for now (plus the generic `AGENTS.md` option). **Update 2026-11-02: the owner said to skip Codex for now, so Phase 7.5 builds Cursor and the generic host (and the setup CLI, conformance suite and the dummy-host proof); `hosts/codex/` is deferred, not dropped.**
 11. CI: GitHub Actions first, GitLab second.
 12. Test bank and visual baselines: stored in the user store (§7.2), like memory; the test
     bank can be exported into the project's tests only when I ask (`/qa-tests export`).

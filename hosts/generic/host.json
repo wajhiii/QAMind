@@ -1,0 +1,28 @@
+{
+  "id": "generic",
+  "name": "your coding agent",
+  "tier": "instruction-only",
+  "verified": {
+    "real_run": false,
+    "note": "Any agent that reads AGENTS.md and supports MCP can use QAMind. QAMind has not been run with a real agent through this path; the conformance suite checks the files, the MCP servers and the memory they share."
+  },
+  "skills": {
+    "layout": "flat",
+    "name_prefix": ""
+  },
+  "auto_qa": {
+    "mode": "advisory"
+  },
+  "safety": "instructions",
+  "commands": {
+    "CMD_QA": "the QAMind `qa` procedure",
+    "CMD_QA_ONLY": "the QAMind `qa-only` procedure",
+    "CMD_QA_AUTO": "the QAMind `qa-auto` procedure",
+    "CMD_QA_MEMORY_REVIEW": "the QAMind `qa-memory-review` procedure",
+    "CMD_QA_FEEDBACK": "the QAMind `qa-feedback` procedure",
+    "CMD_QA_TESTS": "the QAMind `qa-tests` procedure"
+  },
+  "scopes": [
+    "project"
+  ]
+}

@@ -9,32 +9,61 @@ It tests your **API** (from its OpenAPI spec), each **web UI** per role, cross-s
 business rules, and writes a technical report with reproducible findings, evidence, and an explicit **Not tested** list.
 It works on staging or local environments only, never production.
 
-> **Status: Phase 6 of 8.** Working today: the `/qa-only` skill on **Claude Code**, API testing from OpenAPI, browser
-> testing of web UIs, safety guard, a built-in QA knowledge base (27 topic files, sourced in
-> [docs/KNOWLEDGE-SOURCES.md](docs/KNOWLEDGE-SOURCES.md)), and two reports per run: a technical report for developers and a
-> plain-language admin report for managers with a release verdict and an email-ready HTML export, and **project memory** that each run loads and applies (risk areas, learnings, known false alarms, a product map, and a "what changed since the last run" section in both reports), served by a validated **`qa-memory` MCP server** that the skill uses for all memory and run bookkeeping, and **`/qa` fix mode**: it fixes the confirmed critical and important problems one at a time on a git branch, each with a regression test that fails without the fix, and never pushes or merges. Not built yet: auto-QA, Codex/Cursor, CI mode and the rest of the
-> [roadmap](#roadmap). Nothing below is claimed beyond what is built.
+> **Status: Phase 7.5 of 8.** Working today: `/qa-only` and `/qa` (fix mode) on **Claude Code**, API testing from OpenAPI, browser testing of web UIs, a safety guard, a built-in QA knowledge base (27 topic files, sourced in
+> [docs/KNOWLEDGE-SOURCES.md](docs/KNOWLEDGE-SOURCES.md)), a technical report for developers and a plain-language admin report for managers (release verdict, email-ready HTML), **project memory** that each run applies, a validated
+> **`qa-memory` MCP server**, **auto-QA** after every task that changed code (off by default), **global lessons you approve** and a memory review, and now **installation for other tools**: Cursor (experimental, from its docs, never run in a real Cursor)
+> and any agent that reads `AGENTS.md` (instruction-only), with `qamind setup | status | update | uninstall`. Codex was deferred by the owner. Not built yet: CI mode and the rest of the [roadmap](#roadmap). Nothing below is claimed beyond what is built.
 
-## Install (Claude Code)
+## Install
 
-QAMind is installed from its Git repository only (no npm package).
+QAMind is installed from its Git repository only (no npm package, no registry). Pick your tool; each install is separate and `setup --host X` never touches the others.
+
+**Claude Code** (full: hooks enforce auto-QA and the safety guard), with its plugin marketplace:
 
 ```
 /plugin marketplace add <owner>/qamind
 /plugin install qamind@qamind
 ```
 
-Update with `/plugin marketplace update qamind`. Requires **Node 20+** (the plugin runs its own bundled code) and
-**Google Chrome or Microsoft Edge** for web testing (otherwise run `npx playwright-core install chromium` once).
+Update with `/plugin marketplace update qamind`. Requires **Node 20+** (the plugin runs its own bundled code) and **Google Chrome or Microsoft Edge** for web testing (otherwise run `npx playwright-core install chromium` once).
 
-To try it from a local clone:
+**Cursor, any agent that reads `AGENTS.md`, and the `qamind` command** (clone and run setup):
+
+```
+git clone --depth 1 https://github.com/<owner>/qamind.git ~/.qamind/app
+cd ~/.qamind/app && ./setup --host auto        # Windows: setup.cmd --host auto
+```
+
+`setup` needs **Node 22.18+** (it builds from source: `npm ci`, then the build; QAMind's runtime then runs on Node 20+), writes only what your tool needs, puts a `qamind` command in `~/.local/bin` (it tells you if that is not on your PATH) and records exactly what it did.
+`--host auto` installs every supported tool it finds on your machine; name one to install just that tool. `--project` installs into the current project instead of your account. `--dry-run` shows what would happen and changes nothing.
+
+```
+qamind setup --host cursor              Cursor, for your account       (experimental)
+qamind setup --host generic --project   an AGENTS.md section in this project, for any other agent   (instruction-only)
+qamind setup --host claude              Claude Code through its own CLI, instead of the /plugin commands
+qamind status                           one row per install: tool, tier, what is in place, how auto-QA and safety are enforced
+qamind update [--version vX.Y.Z]        the latest release tag (releases are Git tags), re-rendered for every install; --edge follows the branch until there are tags
+qamind uninstall --host cursor          removes exactly what setup added, restores what it replaced, leaves your other tools' settings alone
+```
+
+**What differs by tool** (stated plainly, because it matters):
+
+| | Claude Code | Cursor | Generic |
+|---|---|---|---|
+| Tier | `full` (real runs recorded) | `experimental`: from Cursor's docs, **never run in a real Cursor** | `instruction-only` |
+| Names | `/qamind:qa-only` ... | `/qamind-qa-only` ... | "follow the `qa-only` procedure" |
+| Auto-QA | enforced by hooks | wired through Cursor's hooks, untested in Cursor | advisory: the agent is asked, nothing makes it |
+| Safety guard (production, credentials, report-only writes) | enforced by a hook | **instructions only** (see [docs/HOSTS.md](docs/HOSTS.md) for why) | instructions only |
+
+Everything else is identical on every tool: the test workflow, severity, report formats, the memory format and your private store in `~/.qamind`, which setup, update and uninstall never touch (only `qamind uninstall --purge --yes` does). To try a trial install without touching your real tool, set
+`QAMIND_USER_HOME` (and `QAMIND_HOME`). Details and limits: [docs/HOSTS.md](docs/HOSTS.md); adding another tool: [docs/ADDING-A-HOST.md](docs/ADDING-A-HOST.md).
+
+To try Claude Code from a local clone:
 
 ```
 claude plugin marketplace add /path/to/qamind
 claude plugin install qamind@qamind
 ```
-
-Codex CLI, Cursor and other agents that read `AGENTS.md` come in Phase 7.5. See [docs/HOSTS.md](docs/HOSTS.md).
 
 ## First run
 
@@ -49,7 +78,7 @@ Codex CLI, Cursor and other agents that read `AGENTS.md` come in Phase 7.5. See 
 
 | What | Claude Code | Notes |
 |------|-------------|-------|
-| Test and report | `/qamind:qa-only [full\|quick\|regression\|diff] [focus]` | Writes only inside `.qa/` and the QAMind user store |
+| Test and report | `/qamind:qa-only [full\|quick\|regression\|diff] [focus]` (Cursor: `/qamind-qa-only`) | Writes only inside `.qa/` and the QAMind user store |
 | Test and fix | `/qamind:qa [full\|quick\|regression\|diff] [focus]` | Fixes on a git branch, one commit per fix with its regression test; never pushes, merges or opens a pull request. Needs a clean working tree and a project test command; see [Fix mode](#fix-mode-qamindqa) |
 | Auto-QA on, off, mode, pause | `/qamind:qa-auto on\|off\|status\|mode diff\|quick\|full\|fix\|ask\|pause 1h\|global on\|off` | QA after every task that changed code. **Off by default.** See [Auto-QA](#auto-qa-qamindqa-auto) |
 | Review what QAMind remembers | `/qamind:qa-memory-review [lessons\|prune\|stats]` | Approve or reject the generic lessons it proposed for all projects, archive stale memory, see run statistics. Only you decide. See [Memory review](#memory-review-qamindqa-memory-review) |
@@ -147,7 +176,7 @@ A run may *propose* a lesson; **nothing uses it until you approve it**, and no Q
 QAMind never tests production, never reads or prints credentials, creates data only with your `QA-` prefix, never
 triggers real payments or emails, and treats everything it sees in your app as data, not instructions.
 
-| Rule | Claude Code | Other hosts (later) |
+| Rule | Claude Code | Cursor and generic (see the install table above for what is enforced) |
 |------|-------------|--------------------|
 | Production URLs blocked | `run start` checks the config; the browser runs behind a **fail-closed guard proxy** that also stops redirects and sub-resources; the API runner checks every request | same code, via MCP |
 | `/qa-only` writes only to `.qa/` and the user store | **enforced by a PreToolUse hook** (Bash inspection is best-effort, not a sandbox) | instructions only unless the host has hooks |
@@ -172,8 +201,9 @@ Screenshot masking of personal data is not built yet (Phase 7.6).
 | 5 ✅ | `qa-memory` MCP server: validated memory and run tools, migrations, global-lesson proposals |
 | 6 ✅ | `/qa` fix mode: fix loop with proof, stop rules, branch handling, fix-log memory |
 | 6.5 ✅ | Auto-QA: a gate after every agent task that changed code, `/qa-auto`, tags |
-| 7 ✅ (this) | Global lessons you approve, `/qa-memory-review` (lessons, prune, stats) |
-| 7.5 – 7.10 | Codex, Cursor, generic; reliability, test bank, CI, coverage depth, release verdict and metrics |
+| 7 ✅ | Global lessons you approve, `/qa-memory-review` (lessons, prune, stats) |
+| 7.5 ✅ (this, without Codex) | `qamind setup \| status \| update \| uninstall`; Cursor (experimental) and generic (instruction-only) hosts; conformance suite; `docs/ADDING-A-HOST.md`. Codex deferred by the owner |
+| 7.6 – 7.10 | reliability, test bank, CI, coverage depth, release verdict and metrics (Codex whenever the owner asks) |
 | 8 | Linear and Sentry, polish |
 
 ## Development

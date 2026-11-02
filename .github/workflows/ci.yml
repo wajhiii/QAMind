@@ -20,7 +20,7 @@ jobs:
       - run: npm test
       - name: Generated plugin is up to date with core/
         run: npm run check:generated
-  # The memory, MCP server, fix-loop, auto-QA gate and lesson-review tests on Windows. Allowed to fail until the owner has read the first results and decided to promote it
+  # The memory, MCP server, fix-loop, auto-QA gate, lesson-review, setup and host-conformance tests on Windows. Allowed to fail until the owner has read the first results and decided to promote it
   # (see MAINTAINING.md). It skips the generated-plugin check: that compares bytes, and Windows checkouts may change line endings.
   windows-memory-server:
     runs-on: windows-latest
@@ -33,4 +33,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - run: node --test --test-reporter=spec tests/core/memory.test.ts tests/core/memory-infra.test.ts tests/core/memory-lifecycle.test.ts tests/core/mcp-server.test.ts tests/core/mcp-stdio.test.ts tests/core/skills-use-tools.test.ts tests/core/fix-protect.test.ts tests/core/fix-hook.test.ts tests/core/fix-testrun.test.ts tests/core/fix-loop.test.ts tests/core/auto-qa-units.test.ts tests/core/auto-qa-gate.test.ts tests/core/auto-qa-skills.test.ts tests/core/lessons-review.test.ts tests/core/review-skill.test.ts tests/core/guard-and-hooks.test.ts
+      - run: node --test --test-reporter=spec tests/core/memory.test.ts tests/core/memory-infra.test.ts tests/core/memory-lifecycle.test.ts tests/core/mcp-server.test.ts tests/core/mcp-stdio.test.ts tests/core/skills-use-tools.test.ts tests/core/fix-protect.test.ts tests/core/fix-hook.test.ts tests/core/fix-testrun.test.ts tests/core/fix-loop.test.ts tests/core/auto-qa-units.test.ts tests/core/auto-qa-gate.test.ts tests/core/auto-qa-skills.test.ts tests/core/lessons-review.test.ts tests/core/review-skill.test.ts tests/core/guard-and-hooks.test.ts tests/core/setup-ops.test.ts tests/core/setup-cli.test.ts tests/core/auto-qa-hosts.test.ts tests/conformance/hosts.test.ts tests/conformance/interop.test.ts tests/conformance/core-neutral.test.ts

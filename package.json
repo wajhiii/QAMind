@@ -12,7 +12,7 @@
     "build": "node scripts/build.ts",
     "check:generated": "node scripts/build.ts --check",
     "typecheck": "tsc --noEmit",
-    "test": "node --test --test-reporter=spec \"tests/core/**/*.test.ts\"",
+    "test": "node --test --test-reporter=spec \"tests/core/**/*.test.ts\" \"tests/conformance/**/*.test.ts\"",
     "validate": "node scripts/validate-plugin.ts"
   },
   "devDependencies": {

@@ -8,7 +8,7 @@ import { effectiveFor } from "./gate.ts";
 import type { HookEnv } from "./gate.ts";
 import { AUTO_MODES, DEFAULT_IGNORE, globalAutoFile, parseDuration, projectAutoFile, readAutoFile, updateAutoFile } from "./settings.ts";
 import type { AutoMode, AutoSettings } from "./settings.ts";
-import { AUTO_SKIP, putSession, readLast } from "./state.ts";
+import { ANY_SESSION, AUTO_SKIP, putSession, readLast } from "./state.ts";
 import type { SessionNotice } from "./state.ts";
 
 /**
@@ -25,7 +25,7 @@ export const AUTO_HELP = `qamind auto: auto-QA after every agent task (default O
   auto resume                            end a pause now
   auto global on|off                     the default for every project (a project's own setting wins)
   auto set cooldown MINUTES | budget MINUTES | ignore GLOB,GLOB | ignore default
-  auto skipped --session ID --reason TEXT   (used by the auto-QA skill) tell the gate why a run could not happen
+  auto skipped [--session ID] --reason TEXT   (used by the auto-QA skill) tell the gate why a run could not happen
 `;
 
 const MODE_TEXT: Record<AutoMode, string> = {
@@ -76,7 +76,7 @@ export function autoCommand(args: string[], h: HookEnv, cwd: string): Record<str
       return status(project, store, h);
     case "on": {
       if (!isRepo(info.root)) warnings.push("This folder is not a git repository: auto-QA needs git to see what a task changed, so it will skip every task until it is one.");
-      if (!exists(path.join(info.root, ".qa", "config.md"))) warnings.push("No .qa/config.md yet: run /qamind:qa-only once to set up the config and the test logins. Until then auto-QA skips with a one-line notice.");
+      if (!exists(path.join(info.root, ".qa", "config.md"))) warnings.push("No .qa/config.md yet: run the QAMind qa-only skill once to set up the config and the test logins. Until then auto-QA skips with a one-line notice.");
       write({ enabled: true, paused_until: undefined });
       const eff = effectiveFor(store, h);
       const note = eff.enabled ? "" : ` It is still off because ${eff.why}.`;
@@ -126,12 +126,13 @@ export function autoCommand(args: string[], h: HookEnv, cwd: string): Record<str
       throw new AutoUsageError("set needs cooldown, budget or ignore.");
     }
     case "skipped": {
-      const session = values.session as string | undefined;
+      // A host that gives the skill no session id (Cursor) reports without one: it then applies to every session of the project.
+      const session = (values.session as string | undefined) || ANY_SESSION;
       const reason = ((values.reason as string | undefined) ?? "").replace(/\s+/g, " ").trim().slice(0, 300);
-      if (!session || !reason) throw new AutoUsageError("skipped needs --session and --reason.");
+      if (!reason) throw new AutoUsageError("skipped needs --reason (and --session where the host has one).");
       ensureProjectStore(h.home, info, h.now);
       putSession<SessionNotice>(store, AUTO_SKIP, session, { at: h.now.toISOString(), reason });
-      return { message: "Recorded: auto-QA will not try again in this session unless a prompt carries #qa.", project };
+      return { message: `Recorded: auto-QA will not try again ${session === ANY_SESSION ? "in this project's sessions" : "in this session"} unless a prompt carries #qa.`, project };
     }
     default:
       throw new AutoUsageError(`Unknown auto command "${sub}".\n\n${AUTO_HELP}`);

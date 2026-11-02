@@ -144,12 +144,18 @@ records how many knowledge files a run actually read. Files are never edited dur
 - **Stop and UserPromptSubmit hooks** (Claude Code): the auto-QA gate above. Silent no-ops unless the user turned auto-QA on or put a tag in the prompt.
 - Everything else is in the skill's instructions (`core/shared/safety.md`), which hosts without hooks rely on.
 
-## Host adapters
+## Host adapters and setup
 
-`hosts/<host>/host.json` records, from that host's current docs: where skills go, how MCP is registered, which hook
-events are used, command names, and the capability tier. The adapter renders `core/` into the host's layout and fills
-placeholders (`{{CLI}}`, `{{CORE_PATH}}`, `{{SESSION_ID}}`, `{{CMD_QA_ONLY}}`, …); an unknown placeholder fails the build.
-Adding a host means adding a folder, not changing core (documented fully in Phase 7.5).
+`hosts/<host>/host.json` records, from that host's current docs: where skills go, how MCP is registered, which hook events are used, command names, how auto-QA and the safety guard are enforced, and the capability tier. `hosts/<host>/adapter.ts` describes the install (`HostAdapter` in `hosts/host-api.ts`):
+placeholder values, a list of edits, the hook commands and the MCP registrations. Hosts are found by scanning `hosts/` (`hosts/registry.ts`); adding one is a folder, not a change to core ([ADDING-A-HOST.md](ADDING-A-HOST.md), [decision 0006](decisions/0006-multi-host.md)).
+
+```
+core/ (skills + shared docs with {{PLACEHOLDERS}})  --render per host-->  build/<host>/  skills/ core/ dist/ host.json     (Claude Code: plugins/qamind/, committed)
+hosts/<host>/adapter.ts  --plan-->  edits (file | json | block | command)  --cli/src/setup/ops.ts-->  the host's own files   +  <store>/installs.json (what to undo)
+qamind setup | status | update | uninstall      status verifies the recorded edits; uninstall reverses exactly them
+```
+
+The placeholders `core/` uses are a fixed list every host fills in. The hook formats are data in `host.json` (`core/auto-qa/hostio.ts` maps a host's hook JSON onto the one gate), so the gate, the memory and the servers are the same on every host; only the packaging around them changes.
 
 ## Formats and versioning
 

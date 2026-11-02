@@ -25,9 +25,16 @@ export function parseTags(prompt: string): PromptTags {
 }
 
 /**
- * Is this prompt itself a QAMind QA command (`/qamind:qa-only`, `/qamind:qa`, or the short `/qa-only`, `/qa`)? Such a task is a QA run: auto-QA
+ * Is this prompt itself a QAMind QA command (`/qamind:qa-only`, `/qamind:qa`, `/qamind-qa-only` on hosts without namespaces, or the short `/qa-only`, `/qa`)? Such a task is a QA run: auto-QA
  * never starts another one after it (spec 9.5 rule 4). The toggle `/qa-auto` and the other QAMind skills are not QA runs.
  */
+/**
+ * The gate's own block message begins with this. A host that submits it back as the next prompt (Cursor submits `followup_message` as the next user message) would otherwise
+ * look like a new task to the prompt hook.
+ */
+export const CONTINUATION_PREFIX = "QAMind auto-QA.";
+export const isContinuation = (prompt: string): boolean => prompt.trimStart().startsWith(CONTINUATION_PREFIX);
+
 export function isQaCommand(prompt: string): boolean {
-  return /^\s*\/(?:qamind:)?qa(?:-only)?(?=\s|$)/i.test(prompt);
+  return /^\s*\/(?:qamind[:-])?qa(?:-only)?(?=\s|$)/i.test(prompt);
 }

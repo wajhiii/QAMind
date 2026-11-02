@@ -94,6 +94,18 @@ The lesson logic is `core/lib/memory/lessons.ts` and the review is `core/lib/mem
 - **The end-to-end test**: `CLAUDE_BIN=/path/to/claude node scripts/eval-lessons.ts --label <phase-name>`. Real Claude Code, five scenarios (a run is given only the approved lesson; a relevant lesson is used (observation); the review without consent changes nothing; with consent it decides correctly; a QA run told to approve is refused). About $3 and 15 minutes.
   Port 4100 must be free; do not rebuild the plugin while it runs.
 
+## Hosts (Cursor, generic, and adding more)
+
+Each host is a folder under `hosts/` ([decision 0006](docs/decisions/0006-multi-host.md), [docs/ADDING-A-HOST.md](docs/ADDING-A-HOST.md)). `qamind setup` renders it into `build/<id>/` (git-ignored) and applies its edits through `cli/src/setup/ops.ts`.
+
+- **Try an install without touching your real tools:** `QAMIND_USER_HOME=/tmp/u QAMIND_HOME=/tmp/s QAMIND_BUILD_DIR=/tmp/b node cli/src/setup-main.ts setup --host cursor --skip-build`, then `status` and `uninstall` the same way.
+- **The conformance suite is the gate for a host:** `npm test` runs `tests/conformance/` (every folder in `hosts/`, and a dummy host). Set `CLAUDE_BIN=/path/to/claude` to include Claude Code's install, status and uninstall through its own CLI in an isolated config folder; without it those tests are skipped, and the skip shows in the output.
+- **Raising a tier needs a real run on that host** and a row in the certification log in `docs/HOSTS.md` (what ran, what passed, what could not be seen, the host's version). A test refuses any host but Claude Code claiming `full`.
+- **Core never names a host**: `tests/conformance/core-neutral.test.ts` fails if the shared instructions or the runtime's messages mention a host's commands, tools, variables or folders, and if a placeholder core uses is missing from `docs/ADDING-A-HOST.md`.
+- **A new placeholder** goes into the core text, into every host's `placeholders()` (an unknown one fails the build) and into the table in `ADDING-A-HOST.md`.
+- **Releasing and updating:** releases are Git tags (`vX.Y.Z`), and `qamind update` moves a checkout to the latest tag (never the tip of `main`), rebuilds and re-renders every install. There are no tags yet (the owner has not said the first release is ready); until then `--edge` follows the branch.
+- The setup scripts (`setup`, `setup.cmd`, `bin/qamind.mjs`) are plain and small on purpose: they check Node, then hand over to `cli/src/setup-main.ts`.
+
 ## Changing the admin report
 
 The admin report is rendered by `core/lib/adminreport.ts` (Markdown) and `core/scripts/export-html.ts` (HTML) from the same model; the consistency check

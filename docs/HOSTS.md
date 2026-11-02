@@ -1,20 +1,20 @@
 # Hosts
 
-| Host | Tier | Status | Command names | MCP | Safety enforcement |
-|------|------|--------|---------------|-----|--------------------|
-| Claude Code | `full` target | **built (Phases 1 to 6)**; certification result below | `/qamind:qa-only`, `/qamind:qa` (`/qamind:qa-auto`, … later) | plugin `.mcp.json` (browser, qa-memory) | PreToolUse hook + instructions |
-| OpenAI Codex CLI | `experimental` target | Phase 7.5 | - | - | - |
-| Cursor | `experimental` target | Phase 7.5 | - | - | - |
-| Generic (`AGENTS.md` + MCP) | `instruction-only` | Phase 7.5 | - | - | instructions only |
+| Host | Tier | Status | Names the user types | MCP | Auto-QA | Safety guard |
+|------|------|--------|----------------------|-----|---------|--------------|
+| Claude Code | `full` | built; real end-to-end runs recorded below | `/qamind:qa-only`, `/qamind:qa`, `/qamind:qa-auto`, `/qamind:qa-memory-review` | plugin `.mcp.json` | **enforced** (Stop and UserPromptSubmit hooks) | **enforced** (PreToolUse hook) |
+| Cursor | `experimental` | built (Phase 7.5) from Cursor's docs; **never run in a real Cursor** | `/qamind-qa-only`, `/qamind-qa`, `/qamind-qa-auto`, `/qamind-qa-memory-review` | `~/.cursor/mcp.json` or `<project>/.cursor/mcp.json` | **enforced** by design (stop and beforeSubmitPrompt hooks), untested in Cursor | instructions only |
+| Generic (`AGENTS.md` + MCP) | `instruction-only` | built (Phase 7.5) | "follow the QAMind `qa-only` procedure" | printed for you to register | **advisory** (the agent is asked) | instructions only |
+| OpenAI Codex CLI | `experimental` target | **deferred by the owner (2026-11-02), not built** | - | - | - | - |
 
-A host is labelled **full** only after a real end-to-end run on that host passes. Results are recorded here with the date and
-host version.
+A host is labelled **full** only after a real end-to-end run on that host passes ([ADDING-A-HOST.md](ADDING-A-HOST.md) section 5; a test refuses any other host claiming it). Results are recorded below with the date and the host's version.
+Install with `qamind setup` ([README](../README.md#install)); add a host with [ADDING-A-HOST.md](ADDING-A-HOST.md).
 
 ## How a host registers the servers
 
 The servers are listed once, without any host's syntax, in `core/mcp/servers.ts` (`MCP_SERVERS`: name, the file in `dist/` that runs it over stdio with Node, arguments). A host adapter
-turns that list into the host's own registration: for Claude Code, `claudeMcpConfig()` in `hosts/claude/adapter.ts` writes the plugin's `.mcp.json`. Adding a host means writing its
-function (for example Codex's `config.toml` entries or Cursor's `mcp.json`) from the same list, and noting its tool-name prefix and how it approves tools in `hosts/<host>/host.json`.
+turns that list into the host's own registration: for Claude Code, `claudeMcpConfig()` in `hosts/claude/adapter.ts` writes the plugin's `.mcp.json`; for Cursor, `hosts/cursor/adapter.ts` plans the `mcpServers` entries of `mcp.json`.
+Adding a host means writing that function from the same list, and noting its tool-name prefix and how it approves tools in `hosts/<host>/host.json`.
 The server needs only Node 20+ and the two files in `dist/`; it is host-neutral and takes the project from an explicit `project`, `QAMIND_PROJECT_DIR`, `CLAUDE_PROJECT_DIR` or its working folder.
 
 ## Claude Code
@@ -31,6 +31,29 @@ The server needs only Node 20+ and the two files in `dist/`; it is host-neutral 
 - Plugin dependencies (`@playwright/mcp`) are installed by Claude Code when it copies a marketplace plugin into its cache.
   A plugin loaded in place from a local path (development) gets none, so the launcher falls back to
   `npx @playwright/mcp@<pinned version>`.
+
+## Cursor (experimental)
+
+Built from Cursor's current documentation, read 2026-11-02 (the pages are listed in `hosts/cursor/host.json`). **QAMind has never run inside a real Cursor**, neither the editor nor the agent CLI (not installed here); that is why this is `experimental`.
+What setup writes: skills in `.cursor/skills/qamind-*/SKILL.md` (the folder is the skill name and the slash command, and the front matter name equals it), the two MCP servers in `mcp.json`, and two hooks in `hooks.json`
+(`stop` and `beforeSubmitPrompt`, both of which let the action go on if they fail), plus a rule file in `.cursor/rules/qamind.mdc` for project installs.
+
+- **Auto-QA** uses Cursor's `stop` hook: printing `{"followup_message": "..."}` makes Cursor submit it as the next user message, `loop_count` is the loop guard (Cursor's own limit is also set, `loop_limit: 3`), and an aborted or failed turn is not checked.
+  Cursor submits the follow-up as a prompt, so the gate recognises its own message and starts no new task from it. A Cursor skill is given no session id, so a QA run is matched to the project. A Cursor stop hook cannot show the user a notice, so "Auto-QA skipped" is silent there.
+- **The safety guard is not a hook on Cursor, on purpose.** Cursor's permission hooks (`preToolUse`, `beforeShellExecution`, `beforeMCPExecution`, `beforeReadFile`) block the action when their output is invalid, and their payloads are only partly documented: a mistake in
+  QAMind's guard could stop all of the user's tool use. The rules (never read `.env.qa`, never touch production, no git writes in a report-only run, ...) are instructions, as they are on any host without the hook; the fix tools still refuse protected files and unproven fixes.
+- **Not documented by Cursor, so not relied on:** skill arguments (a skill reads what the user typed after its name from the message), the name the model sees for an MCP tool, the working folder of a stdio MCP server, and what `${workspaceFolder}` means in the user-level `mcp.json`.
+  QAMind passes the project as `QAMIND_PROJECT_DIR=${workspaceFolder}` and ignores a value that was left unexpanded (it then uses the server's working folder; `run_start` also accepts an explicit project).
+- Cursor asks to approve each MCP call unless it is on its allowlist; setup prints the entries to add and says to keep `fix_create_branch` and `fix_continue` off it. If you also use Claude Code, Cursor's Third-Party Imports setting may show the same skills twice.
+
+## Generic (instruction-only)
+
+Any agent that reads `AGENTS.md` and supports MCP. `qamind setup --host generic --project` renders the procedures as plain Markdown, writes a compact section into the project's `AGENTS.md` (between `qamind:start` and `qamind:end` markers, removed again by uninstall) and prints the
+MCP registration to put in the agent's own config. Auto-QA is **advisory**: the section asks the agent to run `qamind auto status` after changing code. Nothing enforces it, and nothing enforces the safety rules. QAMind has not been run with a real agent through this path.
+
+## Claude Code and `setup`
+
+`qamind setup --host claude` asks Claude Code's own CLI to add this checkout as a marketplace and install the plugin (the same as the `/plugin` commands), and `uninstall` asks it to remove both. It needs the `claude` command (or `CLAUDE_BIN`); without it setup says so and does nothing.
 
 ### Certification log
 
@@ -55,6 +78,11 @@ The server needs only Node 20+ and the two files in `dist/`; it is host-neutral 
 | 2026-11-02 | same | `/qamind:qa-memory-review` headless: the pre-approved reading command runs; approve and reject are refused by the host when not allowed, and the agent stops and says so; allowed, they work | pass (details: [EVALUATION-LOG.md](EVALUATION-LOG.md)) |
 | 2026-11-02 | same | a QA run told to run `qamind lessons approve`: the PreToolUse hook refuses it | pass |
 | 2026-11-02 | same | the interactive approval prompt for the review's deciding commands | **not tested**: only the headless refusal was observed |
+| 2026-11-02 | Claude Code 2.1.314 | the host conformance suite (`tests/conformance/`), `setup --host claude` through Claude Code's own CLI into an isolated config folder: install and re-run, status, the registered servers, skills, a run through them, uninstall leaving nothing, auto-QA hooks | pass |
+| 2026-11-02 | none (Cursor not run) | the same suite for `cursor`, from Cursor's documentation: files, formats, hooks run with Cursor's documented payloads | pass; **not run in a real Cursor** |
+| 2026-11-02 | none | the same suite for `generic` and for a made-up host that exists only in a temp folder (no core change needed) | pass |
+| 2026-11-02 | n/a | memory interoperability: a chain of runs through Claude Code's, Cursor's and the generic host's registrations against one store: each sees the earlier learnings, one project id, the same approved lessons | pass |
+| - | - | a real run inside Cursor (editor or `agent -p`): skills listed, MCP servers connect, hooks fire and a follow-up continues the agent | **not tested**: this is what would raise Cursor to `full` |
 
 **Not yet verified:** installing from a Git URL (where Claude Code copies the plugin and installs `@playwright/mcp` itself), Windows,
 Linux (the CI workflow runs the suite on Linux and macOS, but I cannot see its results from here; the Windows job is new in Phase 5 and has not run). Tier: **full**, for the Phase 1 feature set only (`/qa-only`); other skills arrive in later phases.
