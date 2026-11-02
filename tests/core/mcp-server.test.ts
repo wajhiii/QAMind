@@ -9,7 +9,7 @@ import { resetMigrationMemo } from "../../core/lib/memory/migrate.ts";
 import { memoryPaths } from "../../core/lib/memory/store.ts";
 import { writeJson } from "../../core/lib/fsutil.ts";
 import { INSTRUCTIONS, createServer } from "../../core/mcp/qa-memory/server.ts";
-import { QA_MEMORY_TOOLS } from "../../core/mcp/servers.ts";
+import { ALL_QA_TOOLS } from "../../core/mcp/servers.ts";
 import { DEMO_ENV, makeConfiguredProject, makeRunWithData, tmp, writeFixtureData } from "./helpers.ts";
 
 const NOW = new Date("2026-10-30T11:00:00Z");
@@ -42,16 +42,18 @@ test("the server offers exactly the documented tools, each described, annotated,
   const fx = makeRunWithData();
   const { client, close } = await connect({ home: fx.home, cwd: fx.proj });
   const tools = (await client.listTools()).tools;
-  assert.deepEqual(tools.map((t) => t.name).sort(), [...QA_MEMORY_TOOLS].sort());
+  assert.deepEqual(tools.map((t) => t.name).sort(), [...ALL_QA_TOOLS].sort());
   assert.match(client.getInstructions() ?? "", /Call run_start first/);
   assert.equal(INSTRUCTIONS.includes("Memory is leads, not proof"), true);
 
   const readOnly = tools.filter((t) => t.annotations?.readOnlyHint).map((t) => t.name).sort();
-  assert.deepEqual(readOnly, ["memory_get_context", "memory_list", "run_history"]);
+  assert.deepEqual(readOnly, ["fix_status", "memory_get_context", "memory_list", "run_history"]);
+  // Only the tools that run the project's own test commands can reach beyond QAMind's folders, and only fix_revert removes edits.
+  const runsProjectCode = ["fix_preflight", "fix_run_suite", "fix_run_tests"];
   for (const t of tools) {
     assert.ok((t.description ?? "").length >= 60, `${t.name} needs a real description`);
-    assert.equal(t.annotations?.openWorldHint, false, `${t.name} reaches nothing outside QAMind's own folders`);
-    assert.equal(t.annotations?.destructiveHint, false, `${t.name} never deletes`);
+    assert.equal(t.annotations?.openWorldHint, runsProjectCode.includes(t.name), `${t.name}: open-world hint`);
+    assert.equal(t.annotations?.destructiveHint, t.name === "fix_revert", `${t.name}: destructive hint`);
   }
 
   // Size limits are part of the contract: every free-text field and list is bounded in the schema the host shows the model.

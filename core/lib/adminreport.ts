@@ -53,6 +53,8 @@ export interface AdminModel {
   changes: string[];
   notTested: Array<{ area: string; reason: string }>;
   nextSteps: string[];
+  /** Present in a `/qa` run that fixed (or tried to fix) things. */
+  fixes?: AdminFixes;
 }
 
 export const CANNOT_SEE_ON_SCREEN = "This cannot be seen on screen. A developer can confirm it using the technical details linked at the end of this problem.";
@@ -121,6 +123,8 @@ function buildAreas(data: RunData): AreaRow[] {
     else t.notTested++;
   }
   for (const f of data.findings.filter(isOpen)) get(areaOf(f.surface, f.ui)).findings[f.severity]++;
+  const fixedIn = new Map<string, number>();
+  for (const f of data.findings.filter((x) => !isOpen(x))) fixedIn.set(areaOf(f.surface, f.ui), (fixedIn.get(areaOf(f.surface, f.ui)) ?? 0) + 1);
 
   const rows: AreaRow[] = [];
   for (const [area, t] of tallies) {
@@ -137,6 +141,8 @@ function buildAreas(data: RunData): AreaRow[] {
     else if (t.tested === 0 && t.partial === 0) note = "Not checked.";
     else if (partlyChecked) note = "Nothing wrong found, but part of this area was not fully checked.";
     else note = "Nothing wrong found in what was checked.";
+    const fixed = fixedIn.get(area) ?? 0;
+    if (fixed > 0) note = `${note.replace(/^Nothing wrong found in what was checked\.$/, "Nothing is left open in what was checked.")} ${fixed === 1 ? "A problem" : `${fixed} problems`} found here ${fixed === 1 ? "was" : "were"} fixed and checked (see "What was fixed").`;
     rows.push({ area, result, note });
   }
   const rank = { "⛔": 0, "⚠️": 1, "✅": 2 } as const;
@@ -156,8 +162,45 @@ function environmentLines(data: RunData): string[] {
   return lines.length ? lines : ["The test environment did not pass its health check."];
 }
 
-function statusText(s: FixStatus | undefined): string {
-  return s === "fixed-verified" ? "Fixed and checked" : s === "fixed-needs-confirmation" ? "Fixed, needs a human to confirm" : "Not fixed yet";
+export const STATUS_FIXED = "Fixed and checked";
+export const STATUS_CONFIRM = "Fixed, needs a human to confirm";
+export const STATUS_NOT_FIXED = "Not fixed yet";
+
+function statusText(f: Finding): string {
+  const s: FixStatus | undefined = f.fix_status;
+  if (s === "fixed-verified" || f.fix?.outcome === "verified") return STATUS_FIXED;
+  if (s === "fixed-needs-confirmation" || f.fix?.outcome === "best-effort") return STATUS_CONFIRM;
+  return f.fix?.outcome === "reverted" ? `${STATUS_NOT_FIXED} (a fix was tried and taken back)` : STATUS_NOT_FIXED;
+}
+
+/** What a manager can be told about the fix run, without file names, commands or test output. */
+export interface AdminFixes {
+  lines: string[];
+  branchLine: string;
+  warning?: string;
+}
+
+export const branchLine = (branch: string): string => `Fixes are on branch ${branch}; a developer must review and merge them.`;
+
+function fixesOf(data: RunData): AdminFixes | undefined {
+  const fix = data.fix;
+  if (!fix) return undefined;
+  const lines: string[] = [];
+  for (const f of [...data.findings].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""))) {
+    const title = one(f.plain?.title) || f.title;
+    const o = f.fix?.outcome;
+    if (o === "verified") lines.push(`✅ ${title}: fixed and checked.`);
+    else if (o === "best-effort") lines.push(`⚠️ ${title}: fixed, but a person needs to confirm it.`);
+    else if (o === "reverted") lines.push(`↩️ ${title}: a fix was tried and taken back because it did not work out.`);
+    else if (o === "deferred") lines.push(`➖ ${title}: left for a person to decide.`);
+  }
+  const regression = fix.comparison?.verdict === "regression";
+  const stopped = fix.stop ? "The fixing stopped early and is waiting for someone to say whether to go on." : "";
+  return {
+    lines: lines.length ? lines : ["No fix was made in this check."],
+    branchLine: branchLine(fix.branch),
+    ...(regression || stopped ? { warning: [regression ? "⚠️ After the fixes, an automatic check that used to pass now fails. A developer must look at this before the fixes are merged." : "", stopped].filter(Boolean).join(" ") } : {}),
+  };
 }
 
 const IMAGE = /\.(png|jpe?g|webp|gif)$/i;
@@ -176,7 +219,7 @@ function toProblem(f: Finding): AdminProblem {
     steps: (p?.how_to_see_it ?? []).map(one).filter(Boolean),
     expected: one(p?.expected) || MISSING_PLAIN,
     ...(shot ? { screenshot: shot } : {}),
-    status: statusText(f.fix_status),
+    status: statusText(f),
     ...(p?.ticket ? { ticket: p.ticket } : {}),
     missingPlain: !complete,
   };
@@ -185,7 +228,7 @@ function toProblem(f: Finding): AdminProblem {
 function trendLines(data: RunData, previous: RunSummary[]): string[] {
   const last = previous[0];
   if (!last) return ["This is the first check of this project, so there is nothing to compare with yet."];
-  const now = countBySeverity(data.findings.filter(isOpen));
+  const now = countBySeverity(data.findings); // what was found this time, as the earlier checks counted it (fixes are reported separately)
   const diff = (a: number, b: number) => (b === a ? "same" : b > a ? `${b - a} more` : `${a - b} fewer`);
   const lines = [
     `Last check (${plainDate(last.started)}, ${MODE_TEXT[last.mode]?.split(" (")[0] ?? last.mode}): ${last.counts.critical} critical, ${last.counts.important} important, ${last.counts.minor} minor.`,
@@ -209,12 +252,17 @@ function changeLines(data: RunData): string[] {
   return out;
 }
 
+const topOpen = (open: Finding[]): Finding => [...open].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""))[0] as Finding;
+
 export function buildAdminModel(data: RunData, previous: RunSummary[] = []): AdminModel {
   const verdict = computeVerdict(data);
   const open = data.findings.filter(isOpen);
+  const found = countBySeverity(data.findings); // everything found, as the technical report counts it; fixes are shown next to it
   const counts = countBySeverity(open);
+  const fixedVerified = data.findings.length - open.length;
+  const fixes = fixesOf(data);
   const areas = buildAreas(data);
-  const problems = [...open]
+  const problems = [...data.findings]
     .sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""))
     .map(toProblem);
   const notTested = mergedNotTested(data).map((n) => {
@@ -232,27 +280,35 @@ export function buildAdminModel(data: RunData, previous: RunSummary[] = []): Adm
   const areaParts = [`${fine} fine`, `${withProblems} with problems`, ...(partly > 0 ? [`${partly} partly checked`] : []), `${notChecked} not checked`];
 
   const meta = data.meta;
+  // What the agent wrote at baseline (biggest risk, next steps) is not true after fixes: it is used only if it was written after the last fix.
+  const authored = data.adminStale ? undefined : data.admin;
   const biggest =
-    one(data.admin?.biggest_risk) ||
-    (problems[0] && problems[0].severity !== "minor" ? `${problems[0].title}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
+    one(authored?.biggest_risk) ||
+    (open[0] && open.some((f) => f.severity !== "minor") ? `${one(toProblem(topOpen(open)).title)}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
   const names = notTested.slice(0, 3).map((n) => (n.area.length > 60 ? `${n.area.slice(0, 57)}...` : n.area));
   const summary = [
     `Checked on ${plainDate(meta?.started)} · Environment: ${meta?.environment ?? "unknown"} · Type of check: ${MODE_TEXT[meta?.mode ?? ""] ?? meta?.mode ?? "unknown"}`,
     `We looked at ${plural(areas.length, "area", "areas")}: ${areaParts.join(", ")}.`,
-    `Problems: 🔴 ${counts.critical} critical · 🟠 ${counts.important} important · 🟡 ${counts.minor} minor`,
+    `Problems: 🔴 ${found.critical} critical · 🟠 ${found.important} important · 🟡 ${found.minor} minor${fixedVerified > 0 ? ` · ${fixedVerified} of them fixed and checked` : ""}`,
     `Biggest risk: ${biggest}`,
     notTested.length ? `Not tested: ${names.join("; ")}${notTested.length > 3 ? ` and ${notTested.length - 3} more` : ""}.` : "Not tested: nothing; everything planned was checked.",
   ];
-  if (data.unconfirmed.length) summary.push(`${plural(data.unconfirmed.length, "other thing was", "other things were")} seen only once and could not be repeated; they are not counted as problems.`);
+  // The summary is at most six lines. The fix branch must be stated in it; the note about leads seen only once folds into the last line if both are present.
+  const extra: string[] = [];
+  if (fixes) extra.push(fixes.branchLine);
+  if (data.unconfirmed.length) extra.push(`${plural(data.unconfirmed.length, "other thing was", "other things were")} seen only once and could not be repeated; they are not counted as problems.`);
+  while (summary.length + extra.length > MAX_SUMMARY_LINES) summary[summary.length - 1] += ` ${extra.pop() as string}`;
+  summary.push(...extra);
 
   const fallbackSteps: string[] = [];
-  if (counts.critical > 0) fallbackSteps.push("Have a developer fix the critical problems first.");
+  if (data.findings.some((f) => f.fix?.outcome === "verified" || f.fix?.outcome === "best-effort")) fallbackSteps.push("Have a developer review the fixes and merge them.");
+  if (counts.critical > 0) fallbackSteps.push(fixedVerified > 0 ? "Have a developer fix the critical problems that are still open." : "Have a developer fix the critical problems first.");
   if (notTested.length > 0) fallbackSteps.push("Arrange what is needed to check the areas that were not tested (see the list below).");
   if (problems.length > 0) fallbackSteps.push("Run the check again after the fixes to confirm them.");
-  const authored = (data.admin?.next_steps ?? []).map(one).filter(Boolean);
-  const nextSteps = (authored.length ? authored : fallbackSteps).slice(0, MAX_NEXT_STEPS);
+  const authoredSteps = (authored?.next_steps ?? []).map(one).filter(Boolean);
+  const nextSteps = (authoredSteps.length ? authoredSteps : fallbackSteps).slice(0, MAX_NEXT_STEPS);
 
-  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps };
+  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps, ...(fixes ? { fixes } : {}) };
 }
 
 export function renderAdminMarkdown(m: AdminModel): string {
@@ -284,6 +340,11 @@ export function renderAdminMarkdown(m: AdminModel): string {
     L.push(p.screenshot ? `- **Screenshot:** [view the screenshot](${p.screenshot})` : "- **Screenshot:** none (this is not visible on screen)");
     L.push(`- **Status:** ${p.status}`, `- **Ticket:** ${p.ticket ? `[open the ticket](${p.ticket})` : "none yet"}`, "- **Your feedback (optional):** ______");
     L.push(`- **For developers:** [${p.id}](${TECHNICAL_FILE}#${p.id})`, "");
+  }
+
+  if (m.fixes) {
+    L.push("## What was fixed", "", ...m.fixes.lines.map((l) => `- ${l}`), "", m.fixes.branchLine, "");
+    if (m.fixes.warning) L.push(m.fixes.warning, "");
   }
 
   L.push("## What changed since the last check", "", ...m.changes.map((t) => `- ${t}`), "");
@@ -327,6 +388,7 @@ export function lintAdminLanguage(markdown: string): LanguageIssue[] {
   markdown.split("\n").forEach((raw, i) => {
     if (/^\s*-\s+\*\*For developers:\*\*/.test(raw)) return;
     if (raw.startsWith("The full technical details, with exact steps for developers")) return; // fixed footer names the file once
+    if (/^(?:>\s*-\s+|-\s+)?Fixes are on branch .+; a developer must review and merge them\.$/.test(raw)) return; // the branch name is the developer's own, whatever it looks like
     const text = raw.replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1"); // link targets are file paths by nature
     for (const [re, label] of JARGON) if (re.test(text)) issues.push({ line: i + 1, found: label, text: raw.trim().slice(0, 110) });
   });

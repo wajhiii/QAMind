@@ -1,0 +1,400 @@
+diff --git a/src/api.mjs b/src/api.mjs
+index 11c5d16..2684dec 100644
+--- a/src/api.mjs
++++ b/src/api.mjs
+@@ -48,7 +48,7 @@ function authenticate(ctx, req) {
+   const token = bearerToken(req);
+   if (!token) return null;
+   const session = ctx.store.sessions.get(token);
+-  if (!session) return null;
++  if (!session || session.endedAt || session.expiresAt <= Date.now()) return null;
+   const user = ctx.store.users.find((candidate) => candidate.id === session.userId);
+   return user ? { user, token } : null;
+ }
+@@ -66,13 +66,7 @@ function publicUser(store, user) {
+ }
+ 
+ function listClientOrders(store, clientId) {
+-  const hit = store.orderCache.get(clientId);
+-  if (hit && Date.now() - hit.at < ORDER_CACHE_TTL_MS) {
+-    return hit.rows;
+-  }
+-  const rows = store.orders.filter((order) => order.client_id === clientId).map((order) => ({ ...order }));
+-  store.orderCache.set(clientId, { at: Date.now(), rows });
+-  return rows;
++  return store.orders.filter((order) => order.client_id === clientId);
+ }
+ 
+ function paginate(rows, page, pageSize) {
+@@ -95,7 +89,7 @@ function parseListQuery(url) {
+     throw validationError([{ field: 'page', message: 'page must be an integer of at least 1' }]);
+   }
+   const pageSize = Number(params.get('page_size') ?? 20);
+-  if (!Number.isInteger(pageSize) || pageSize > 100) {
++  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+     throw validationError([{ field: 'page_size', message: 'page_size must be an integer between 1 and 100' }]);
+   }
+   const status = params.get('status');
+@@ -126,6 +120,8 @@ function validateOrderInput(body, store) {
+   const items = [];
+   if (!Array.isArray(input.items)) {
+     details.push({ field: 'items', message: 'items must be an array' });
++  } else if (input.items.length < 1) {
++    details.push({ field: 'items', message: 'items must contain at least 1 line' });
+   } else if (input.items.length > MAX_ORDER_LINES) {
+     details.push({ field: 'items', message: `items must contain at most ${MAX_ORDER_LINES} lines` });
+   } else {
+@@ -142,6 +138,10 @@ function validateOrderInput(body, store) {
+         details.push({ field: `items[${index}].quantity`, message: 'quantity is required and must be a number' });
+         return;
+       }
++      if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 1000) {
++        details.push({ field: `items[${index}].quantity`, message: 'quantity must be a whole number from 1 to 1000' });
++        return;
++      }
+       items.push({ product_id: line.product_id, quantity: line.quantity });
+     });
+   }
+@@ -257,7 +257,7 @@ function listOrders({ ctx, user, url }) {
+     rows = rows.filter((order) => order.status === status);
+   }
+   if (q) {
+-    const matcher = new RegExp(q, 'i');
++    const matcher = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+     rows = rows.filter((order) => matcher.test(order.reference) || matcher.test(order.note ?? ''));
+   }
+   rows = [...rows].sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id));
+@@ -271,9 +271,9 @@ async function createOrder({ ctx, user, body }) {
+   return { status: 201, body: order, headers: { Location: `/api/orders/${order.id}` } };
+ }
+ 
+-function getOrder({ ctx, params }) {
++function getOrder({ ctx, user, params }) {
+   const order = ctx.store.orders.find((candidate) => candidate.id === params.id);
+-  if (!order) {
++  if (!order || (user.role !== 'admin' && order.client_id !== user.client_id)) {
+     throw new HttpError(404, 'not_found', 'Order not found');
+   }
+   return { status: 200, body: order };
+@@ -358,7 +358,7 @@ const ROUTES = [
+   route('POST', '/api/orders', { roles: ['client'] }, createOrder),
+   route('GET', '/api/orders/{id}', {}, getOrder),
+   route('PATCH', '/api/admin/orders/{id}/status', { roles: ['admin'] }, updateOrderStatus),
+-  route('GET', '/api/admin/customers', {}, listCustomers),
++  route('GET', '/api/admin/customers', { roles: ['admin'] }, listCustomers),
+   route('GET', '/api/admin/reports/sales', { roles: ['admin'] }, salesReport),
+ ];
+ 
+diff --git a/src/pricing.mjs b/src/pricing.mjs
+index 6dd7348..0d1902e 100644
+--- a/src/pricing.mjs
++++ b/src/pricing.mjs
+@@ -15,7 +15,7 @@ export function priceOrder(lines, productsById) {
+   });
+   const subtotal = items.reduce((sum, item) => sum + item.line_total_cents, 0);
+   const discount = subtotal >= DISCOUNT_THRESHOLD_CENTS ? Math.round(subtotal * DISCOUNT_RATE) : 0;
+-  const tax = Math.round(subtotal * TAX_RATE);
++  const tax = Math.round((subtotal - discount) * TAX_RATE);
+   return {
+     items,
+     subtotal_cents: subtotal,
+diff --git a/test/customers-access.test.mjs b/test/customers-access.test.mjs
+new file mode 100644
+index 0000000..def770b
+--- /dev/null
++++ b/test/customers-access.test.mjs
+@@ -0,0 +1,21 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('customer list access', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('forbids client users from listing customers', async () => {
++    const res = await t.call('GET', '/api/admin/customers', { token: await t.login('acme1') });
++    assert.equal(res.status, 403);
++    assert.equal(res.json.error.code, 'forbidden');
++  });
++
++  it('still lists customers for admins', async () => {
++    const res = await t.call('GET', '/api/admin/customers', { token: await t.login('admin') });
++    assert.equal(res.status, 200);
++    assert.ok(res.json.items.length > 0);
++  });
++});
+diff --git a/test/logout-session.test.mjs b/test/logout-session.test.mjs
+new file mode 100644
+index 0000000..0d4b8d0
+--- /dev/null
++++ b/test/logout-session.test.mjs
+@@ -0,0 +1,25 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('sign-out ends the session', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('rejects a token after logout and leaves other sessions alone', async () => {
++    const token = await t.login('zain1');
++    const other = await t.login('acme1');
++    assert.equal((await t.call('GET', '/api/me', { token })).status, 200);
++    assert.equal((await t.call('POST', '/api/auth/logout', { token })).status, 204);
++    const after = await t.call('GET', '/api/me', { token });
++    assert.equal(after.status, 401);
++    assert.equal((await t.call('GET', '/api/me', { token: other })).status, 200);
++  });
++
++  it('rejects an expired session', async () => {
++    const token = await t.login('acme2');
++    t.app.store.sessions.get(token).expiresAt = Date.now() - 1000;
++    assert.equal((await t.call('GET', '/api/me', { token })).status, 401);
++  });
++});
+diff --git a/test/order-empty.test.mjs b/test/order-empty.test.mjs
+new file mode 100644
+index 0000000..7be4397
+--- /dev/null
++++ b/test/order-empty.test.mjs
+@@ -0,0 +1,26 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('empty orders', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('refuses an order with no items', async () => {
++    const res = await t.call('POST', '/api/orders', {
++      token: await t.login('acme1'),
++      body: { reference: 'QA-empty', items: [] },
++    });
++    assert.equal(res.status, 400);
++    assert.equal(res.json.error.details[0].field, 'items');
++  });
++
++  it('accepts an order with a single item', async () => {
++    const res = await t.call('POST', '/api/orders', {
++      token: await t.login('acme1'),
++      body: { reference: 'QA-one', items: [{ product_id: 'p-101', quantity: 1 }] },
++    });
++    assert.equal(res.status, 201);
++  });
++});
+diff --git a/test/order-freshness.test.mjs b/test/order-freshness.test.mjs
+new file mode 100644
+index 0000000..16d624f
+--- /dev/null
++++ b/test/order-freshness.test.mjs
+@@ -0,0 +1,26 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('order list freshness', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('shows a status change made by an admin after the list was already read', async () => {
++    const client = await t.login('acme1');
++    const admin = await t.login('admin');
++    const created = await t.call('POST', '/api/orders', {
++      token: client,
++      body: { reference: 'QA-fresh', items: [{ product_id: 'p-101', quantity: 1 }] },
++    });
++    const first = await t.call('GET', '/api/orders?q=QA-fresh', { token: client });
++    assert.equal(first.json.items[0].status, 'placed');
++    const moved = await t.call('PATCH', `/api/admin/orders/${created.json.id}/status`, { token: admin, body: { status: 'processing' } });
++    assert.equal(moved.status, 200);
++    const second = await t.call('GET', '/api/orders?q=QA-fresh', { token: client });
++    assert.equal(second.json.items[0].status, 'processing');
++    const colleague = await t.call('GET', '/api/orders?q=QA-fresh', { token: await t.login('acme2') });
++    assert.equal(colleague.json.items[0].status, 'processing');
++  });
++});
+diff --git a/test/order-isolation.test.mjs b/test/order-isolation.test.mjs
+new file mode 100644
+index 0000000..67adb94
+--- /dev/null
++++ b/test/order-isolation.test.mjs
+@@ -0,0 +1,31 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('order detail isolation', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('hides another company\'s order from a client', async () => {
++    const created = await t.call('POST', '/api/orders', {
++      token: await t.login('acme1'),
++      body: { reference: 'QA-iso', items: [{ product_id: 'p-101', quantity: 1 }] },
++    });
++    assert.equal(created.status, 201);
++    const res = await t.call('GET', `/api/orders/${created.json.id}`, { token: await t.login('bright1') });
++    assert.equal(res.status, 404);
++    assert.equal(res.json.error.code, 'not_found');
++  });
++
++  it('still lets a colleague and an admin read the order', async () => {
++    const created = await t.call('POST', '/api/orders', {
++      token: await t.login('acme1'),
++      body: { reference: 'QA-iso-2', items: [{ product_id: 'p-101', quantity: 1 }] },
++    });
++    const colleague = await t.call('GET', `/api/orders/${created.json.id}`, { token: await t.login('acme2') });
++    assert.equal(colleague.status, 200);
++    const admin = await t.call('GET', `/api/orders/${created.json.id}`, { token: await t.login('admin') });
++    assert.equal(admin.status, 200);
++  });
++});
+diff --git a/test/order-page-size.test.mjs b/test/order-page-size.test.mjs
+new file mode 100644
+index 0000000..6007fec
+--- /dev/null
++++ b/test/order-page-size.test.mjs
+@@ -0,0 +1,25 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('order list page_size', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  for (const size of ['0', '-5']) {
++    it(`refuses page_size=${size} with 400`, async () => {
++      const res = await t.call('GET', `/api/orders?page_size=${size}`, { token: await t.login('acme1') });
++      assert.equal(res.status, 400);
++      assert.equal(res.json.error.details[0].field, 'page_size');
++    });
++  }
++
++  for (const size of ['1', '100']) {
++    it(`accepts page_size=${size}`, async () => {
++      const res = await t.call('GET', `/api/orders?page_size=${size}`, { token: await t.login('acme1') });
++      assert.equal(res.status, 200);
++      assert.equal(res.json.page_size, Number(size));
++    });
++  }
++});
+diff --git a/test/order-search.test.mjs b/test/order-search.test.mjs
+new file mode 100644
+index 0000000..1d07d86
+--- /dev/null
++++ b/test/order-search.test.mjs
+@@ -0,0 +1,32 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('order search text', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('treats special characters as plain text', async () => {
++    const token = await t.login('acme1');
++    const created = await t.call('POST', '/api/orders', {
++      token,
++      body: { reference: 'QA-(a+b)', items: [{ product_id: 'p-101', quantity: 1 }] },
++    });
++    assert.equal(created.status, 201);
++    for (const q of ['(', '[', '\\', '*', '+']) {
++      const res = await t.call('GET', `/api/orders?q=${encodeURIComponent(q)}`, { token });
++      assert.equal(res.status, 200, `q=${q}`);
++    }
++    const hit = await t.call('GET', `/api/orders?q=${encodeURIComponent('(a+b)')}`, { token });
++    assert.equal(hit.json.total, 1);
++    assert.equal(hit.json.items[0].reference, 'QA-(a+b)');
++    const noPatternMatch = await t.call('GET', `/api/orders?q=${encodeURIComponent('QA-.*')}`, { token });
++    assert.equal(noPatternMatch.json.total, 0);
++  });
++
++  it('still searches plain text case-insensitively', async () => {
++    const res = await t.call('GET', '/api/orders?q=bf-22', { token: await t.login('admin') });
++    assert.ok(res.json.items.length >= 3);
++  });
++});
+diff --git a/test/order-validation.test.mjs b/test/order-validation.test.mjs
+new file mode 100644
+index 0000000..b1ec0c1
+--- /dev/null
++++ b/test/order-validation.test.mjs
+@@ -0,0 +1,28 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('order quantity validation', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  const place = async (quantity) => t.call('POST', '/api/orders', {
++    token: await t.login('acme1'),
++    body: { reference: 'QA-qty', items: [{ product_id: 'p-101', quantity }] },
++  });
++
++  for (const quantity of [-3, 0, 1.5, 1001]) {
++    it(`refuses quantity ${quantity}`, async () => {
++      const res = await place(quantity);
++      assert.equal(res.status, 400);
++      assert.equal(res.json.error.details[0].field, 'items[0].quantity');
++    });
++  }
++
++  for (const quantity of [1, 1000]) {
++    it(`accepts quantity ${quantity}`, async () => {
++      assert.equal((await place(quantity)).status, 201);
++    });
++  }
++});
+diff --git a/test/pricing.test.mjs b/test/pricing.test.mjs
+new file mode 100644
+index 0000000..e0a80ea
+--- /dev/null
++++ b/test/pricing.test.mjs
+@@ -0,0 +1,32 @@
++import assert from 'node:assert/strict';
++import { describe, it } from 'node:test';
++import { priceOrder } from '../src/pricing.mjs';
++
++const products = new Map([
++  ['p-102', { id: 'p-102', name: 'Ballpoint Pens, box of 50', price_cents: 1250 }],
++  ['p-105', { id: 'p-105', name: 'Desk Organizer', price_cents: 2450 }],
++]);
++
++describe('priceOrder tax', () => {
++  it('applies tax to the discounted subtotal at exactly 1000.00', () => {
++    const priced = priceOrder([{ product_id: 'p-102', quantity: 80 }], products);
++    assert.equal(priced.subtotal_cents, 100000);
++    assert.equal(priced.discount_cents, 5000);
++    assert.equal(priced.tax_cents, 9500);
++    assert.equal(priced.total_cents, 104500);
++  });
++
++  it('rounds tax on the discounted subtotal to the cent', () => {
++    const priced = priceOrder([{ product_id: 'p-105', quantity: 41 }], products);
++    assert.equal(priced.discount_cents, 5023);
++    assert.equal(priced.tax_cents, 9543);
++    assert.equal(priced.total_cents, 104970);
++  });
++
++  it('taxes the full subtotal when there is no discount', () => {
++    const priced = priceOrder([{ product_id: 'p-102', quantity: 79 }], products);
++    assert.equal(priced.discount_cents, 0);
++    assert.equal(priced.tax_cents, 9875);
++    assert.equal(priced.total_cents, 108625);
++  });
++});

@@ -1,0 +1,399 @@
+{
+  "label": "phase-6",
+  "seq": 2,
+  "date": "2026-11-02T06:50:12.342Z",
+  "model": "claude-sonnet-5-5",
+  "prompt_first": "/qamind:qa full",
+  "turns": [
+    {
+      "turn": 1,
+      "minutes": 8.7,
+      "cost_usd": 2.1390229000000005,
+      "result": "success",
+      "is_error": false,
+      "final_message": "I've stopped for the five-fix pause. All five critical fixes are committed, and I need your go-ahead before starting the five important ones.\n\n**Committed** (branch `feature/qa-eval`, nothing pushed). Each fix has a new regression test that failed without the fix and passes with it, so the five commits are marked `verified`.\n\n| Issue | Commit | Fix |\n|---|---|---|\n| ISSUE-001 | `a0994a2` | A client asking for another company's order now gets 404. Admins and colleagues from the same company still",
+      "stderr_tail": ""
+    },
+    {
+      "turn": 2,
+      "minutes": 2.01,
+      "cost_usd": 2.823623,
+      "result": "success",
+      "is_error": false,
+      "prompt": "The owner read your summary and says: yes, go on with the remaining fixes. (Stop rule that applied: pause.)",
+      "final_message": "✅ **Ready to release:** no critical problems, 1 important problem, and every key journey was checked. That verdict counts the 9 fixes as merged, and they sit on a separate branch until a developer reviews and merges them.\n\n- **Found:** 5 critical, 5 important, 3 minor, plus 1 unconfirmed lead.\n- **Fixed and checked (9):** ISSUE-001 to ISSUE-009, in commits `a0994a2` to `071d549` on `feature/qa-eval`. Each fix has a new regression test that failed without it. The full suite showed no regression.\n",
+      "stderr_tail": ""
+    }
+  ],
+  "total_cost_usd": 4.96,
+  "total_minutes": 10.71,
+  "fix_state": {
+    "branch": "feature/qa-eval",
+    "reverts": 0,
+    "continues": [
+      {
+        "at": "2026-11-02T06:48:02.258Z",
+        "reason": "The owner read the summary after the five-fix pause and said to go on with the remaining fixes.",
+        "was": "pause"
+      }
+    ],
+    "stop": null,
+    "attempts": [
+      {
+        "issue": "ISSUE-001",
+        "severity": "critical",
+        "status": "verified",
+        "files": [
+          "src/api.mjs"
+        ],
+        "test_files": [
+          "test/regression-order-isolation.test.mjs"
+        ],
+        "commit": "a0994a2"
+      },
+      {
+        "issue": "ISSUE-002",
+        "severity": "critical",
+        "status": "verified",
+        "files": [
+          "src/api.mjs"
+        ],
+        "test_files": [
+          "test/regression-customers-admin-only.test.mjs"
+        ],
+        "commit": "24b7044"
+      },
+      {
+        "issue": "ISSUE-003",
+        "severity": "critical",
+        "status": "verified",
+        "files": [
+          "src/pricing.mjs"
+        ],
+        "test_files": [
+          "test/regression-tax-after-discount.test.mjs"
+        ],
+        "commit": "eb323b1"
+      },
+      {
+        "issue": "ISSUE-004",
+        "severity": "critical",
+        "status": "verified",
+        "files": [
+          "src/api.mjs"
+        ],
+        "test_files": [
+          "test/regression-session-end.test.mjs"
+        ],
+        "commit": "e405b59"
+      },
+      {
+        "issue": "ISSUE-005",
+        "severity": "critical",
+        "status": "verified",
+        "files": [
+          "src/api.mjs"
+        ],
+        "test_files": [
+          "test/regression-order-quantity.test.mjs"
+        ],
+        "commit": "be4a85b"
+      },
+      {
+        "issue": "ISSUE-006",
+        "severity": "important",
+        "status": "verified",
+        "files": [
+          "src/api.mjs"
+        ],
+        "test_files": [
+          "test/regression-order-search.test.mjs"
+        ],
+        "commit": "5eff6bc"
+      },
+      {
+        "issue": "ISSUE-007",
+        "severity": "important",
+        "status": "verified",
+        "files": [
+          "src/api.mjs"
+        ],
+        "test_files": [
+          "test/regression-page-size.test.mjs"
+        ],
+        "commit": "9580a8d"
+      },
+      {
+        "issue": "ISSUE-008",
+        "severity": "important",
+        "status": "verified",
+        "files": [
+          "src/api.mjs"
+        ],
+        "test_files": [
+          "test/regression-fresh-status.test.mjs"
+        ],
+        "commit": "2466016"
+      },
+      {
+        "issue": "ISSUE-009",
+        "severity": "important",
+        "status": "verified",
+        "files": [
+          "src/http.mjs"
+        ],
+        "test_files": [
+          "test/regression-no-stack-leak.test.mjs"
+        ],
+        "commit": "071d549"
+      },
+      {
+        "issue": "ISSUE-010",
+        "severity": "important",
+        "status": "deferred",
+        "files": [],
+        "test_files": [],
+        "reason": "No rule says whether two identical orders are duplicates; refusing or merging them is a product decision (idempotency key, reference uniqueness, or UI double-click guard)."
+      },
+      {
+        "issue": "ISSUE-011",
+        "severity": "minor",
+        "status": "deferred",
+        "files": [],
+        "test_files": [],
+        "reason": "Minor layout problem; the fix policy covers critical and important only."
+      },
+      {
+        "issue": "ISSUE-012",
+        "severity": "minor",
+        "status": "deferred",
+        "files": [],
+        "test_files": [],
+        "reason": "Minor accessibility labelling; the fix policy covers critical and important only."
+      },
+      {
+        "issue": "ISSUE-013",
+        "severity": "minor",
+        "status": "deferred",
+        "files": [],
+        "test_files": [],
+        "reason": "Minor slowness; the fix policy covers critical and important only, and the delay may be a configured demo latency."
+      }
+    ],
+    "baseline_passed": true,
+    "after_passed": true,
+    "comparison": {
+      "verdict": "no-regression",
+      "regressions": [],
+      "note": "The full test suite passes."
+    }
+  },
+  "checks": {
+    "run_finished": true,
+    "commits_on_branch": 9,
+    "fix_commits": 9,
+    "revert_commits": 0,
+    "branch": "feature/qa-eval",
+    "default_branch_untouched": true,
+    "remotes": [],
+    "git_config_unchanged": true,
+    "protected_or_do_not_touch_edits": [],
+    "per_fix": [
+      {
+        "commit": "a0994a2",
+        "subject": "fix(qa): ISSUE-001 hide other companies' orders from client users",
+        "files": [
+          "src/api.mjs",
+          "test/regression-order-isolation.test.mjs"
+        ],
+        "test_files": [
+          "test/regression-order-isolation.test.mjs"
+        ],
+        "production_files": [
+          "src/api.mjs"
+        ],
+        "added_lines": 27,
+        "red_on_parent": true,
+        "green_on_fix": true
+      },
+      {
+        "commit": "24b7044",
+        "subject": "fix(qa): ISSUE-002 restrict the customers list to admins",
+        "files": [
+          "src/api.mjs",
+          "test/regression-customers-admin-only.test.mjs"
+        ],
+        "test_files": [
+          "test/regression-customers-admin-only.test.mjs"
+        ],
+        "production_files": [
+          "src/api.mjs"
+        ],
+        "added_lines": 25,
+        "red_on_parent": true,
+        "green_on_fix": true
+      },
+      {
+        "commit": "eb323b1",
+        "subject": "fix(qa): ISSUE-003 apply tax to the discounted subtotal",
+        "files": [
+          "src/pricing.mjs",
+          "test/regression-tax-after-discount.test.mjs"
+        ],
+        "test_files": [
+          "test/regression-tax-after-discount.test.mjs"
+        ],
+        "production_files": [
+          "src/pricing.mjs"
+        ],
+        "added_lines": 43,
+        "red_on_parent": true,
+        "green_on_fix": true
+      },
+      {
+        "commit": "e405b59",
+        "subject": "fix(qa): ISSUE-004 reject signed-out and expired sessions",
+        "files": [
+          "src/api.mjs",
+          "test/regression-session-end.test.mjs"
+        ],
+        "test_files": [
+          "test/regression-session-end.test.mjs"
+        ],
+        "production_files": [
+          "src/api.mjs"
+        ],
+        "added_lines": 32,
+        "red_on_parent": true,
+        "green_on_fix": true
+      },
+      {
+        "commit": "be4a85b",
+        "subject": "fix(qa): ISSUE-005 enforce quantity 1-1000 whole numbers and non-empty orders",
+        "files": [
+          "src/api.mjs",
+          "test/regression-order-quantity.test.mjs"
+        ],
+        "test_files": [
+          "test/regression-order-quantity.test.mjs"
+        ],
+        "production_files": [
+          "src/api.mjs"
+        ],
+        "added_lines": 48,
+        "red_on_parent": true,
+        "green_on_fix": true
+      },
+      {
+        "commit": "5eff6bc",
+        "subject": "fix(qa): ISSUE-006 search order text literally instead of as a pattern",
+        "files": [
+          "src/api.mjs",
+          "test/regression-order-search.test.mjs"
+        ],
+        "test_files": [
+          "test/regression-order-search.test.mjs"
+        ],
+        "production_files": [
+          "src/api.mjs"
+        ],
+        "added_lines": 44,
+        "red_on_parent": true,
+        "green_on_fix": true
+      },
+      {
+        "commit": "9580a8d",
+        "subject": "fix(qa): ISSUE-007 refuse page_size below 1 with a 400",
+        "files": [
+          "src/api.mjs",
+          "test/regression-page-size.test.mjs"
+        ],
+        "test_files": [
+          "test/regression-page-size.test.mjs"
+        ],
+        "production_files": [
+          "src/api.mjs"
+        ],
+        "added_lines": 29,
+        "red_on_parent": true,
+        "green_on_fix": true
+      },
+      {
+        "commit": "2466016",
+        "subject": "fix(qa): ISSUE-008 show current order status in the client order list",
+        "files": [
+          "src/api.mjs",
+          "test/regression-fresh-status.test.mjs"
+        ],
+        "test_files": [
+          "test/regression-fresh-status.test.mjs"
+        ],
+        "production_files": [
+          "src/api.mjs"
+        ],
+        "added_lines": 37,
+        "red_on_parent": true,
+        "green_on_fix": true
+      },
+      {
+        "commit": "071d549",
+        "subject": "fix(qa): ISSUE-009 stop returning stack traces for malformed JSON",
+        "files": [
+          "src/http.mjs",
+          "test/regression-no-stack-leak.test.mjs"
+        ],
+        "test_files": [
+          "test/regression-no-stack-leak.test.mjs"
+        ],
+        "production_files": [
+          "src/http.mjs"
+        ],
+        "added_lines": 34,
+        "red_on_parent": true,
+        "green_on_fix": true
+      }
+    ],
+    "suite_at_head": {
+      "exit_code": 0,
+      "pass": 67,
+      "fail": 0
+    },
+    "suite_baseline_pass": 44,
+    "seeded_bugs_gone": [
+      "DB-01",
+      "DB-02",
+      "DB-03",
+      "DB-04",
+      "DB-05",
+      "DB-06",
+      "DB-10",
+      "DB-12"
+    ],
+    "seeded_bugs_still_present": [
+      "DB-07",
+      "DB-13",
+      "DB-14",
+      "DB-17"
+    ],
+    "working_tree_clean": true,
+    "reports_lint_ok": true,
+    "admin_has_branch_line": true,
+    "baseline_reports_kept": true,
+    "fix_log_entries": 13,
+    "secrets_found_in": [],
+    "fix_tool_calls": {
+      "fix_preflight": 1,
+      "fix_begin": 9,
+      "fix_run_tests": 18,
+      "fix_commit": 9,
+      "fix_continue": 1,
+      "fix_defer": 4,
+      "fix_run_suite": 1
+    },
+    "hook_denials": 0,
+    "attempted_git_writes_via_bash": []
+  },
+  "problems": [],
+  "verdict_line": "✅ **Ready to release:** no critical problems, 1 important problem, and every key journey was checked. (This counts the 9 fixes made in this check as merged; they are on a separate branch until a developer reviews and merges them.)",
+  "hook_denial_samples": []
+}

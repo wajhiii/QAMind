@@ -1,0 +1,55 @@
+f3f2ead fix(qa): ISSUE-005 signed-out and expired sessions are refused
+Root cause: logout only stamped endedAt on the session and authenticate checked neither endedAt nor expiresAt, so the token kept working.
+Regression test: test/session-end.test.mjs (fails without the fix, passes with it)
+Verification: In the in-process app over HTTP: login, then /me gives 200, logout gives 204, and /me with the same token now gives 401 (was 200). A session created with a negative lifetime is also refused. The live server on 4100 was not restarted, so the live probe was not repeated.
+Adjacent check: A second sign-in of the same user still works after the first one signs out; a fresh sign-in gets 200 on /me.
+Best effort: The app on port 4100 runs the old code until restarted; after a restart, sign in, sign out, and confirm the old token gets 401. Real 15-minute expiry was only checked with a negative lifetime in the test.
+
+QAMind-Run: run-20261102T071712Z
+QAMind-Issue: ISSUE-005
+QAMind-Classification: best-effort
+---
+99897c3 fix(qa): ISSUE-004 restrict the customers list to admins
+Root cause: The customers route was registered without the admin role restriction that the other admin routes have.
+Regression test: test/customers-permission.test.mjs (fails without the fix, passes with it)
+Verification: In the in-process app over HTTP, a Bright Foods client calling the customers list now gets 403 (was 200 with all customers). The live server on 4100 was not restarted, so the live probe was not repeated.
+Adjacent check: An admin still gets 200 and a non-empty customer list.
+Best effort: The app on port 4100 runs the old code until restarted; after a restart, call the customers list as a client and confirm 403, and open Customers in the Admin Portal to confirm it still loads.
+
+QAMind-Run: run-20261102T071712Z
+QAMind-Issue: ISSUE-004
+QAMind-Classification: best-effort
+---
+be1447a fix(qa): ISSUE-003 hide other companies' orders from client users
+Root cause: getOrder found orders by id only and never compared the order's client_id with the signed-in client's company.
+Regression test: test/order-isolation.test.mjs (fails without the fix, passes with it)
+Verification: In the in-process app over HTTP, a Bright Foods client requesting an Acme order id now gets 404 (was 200 with the full order). The live server on 4100 was not restarted, so the live probe was not repeated.
+Adjacent check: An Acme colleague and an admin still get 200 for the same order.
+Best effort: The app on port 4100 runs the old code until restarted; after a restart, request an Acme order as a Bright Foods client and confirm 404.
+
+QAMind-Run: run-20261102T071712Z
+QAMind-Issue: ISSUE-003
+QAMind-Classification: best-effort
+---
+dc28fe6 fix(qa): ISSUE-002 order quantity must be 1-1000 whole and items non-empty
+Root cause: validateOrderInput only checked typeof quantity === 'number' and never required at least one item.
+Regression test: test/order-validation.test.mjs (fails without the fix, passes with it)
+Verification: Through the in-process app over HTTP: quantities 0, -3, 1.5, 1001 and empty items now return 400 with the field named; nothing is stored. The live server on 4100 was not restarted, so the live probe was not repeated.
+Adjacent check: Quantity 1 and quantity 1000 are still accepted with 201.
+Best effort: The app on port 4100 runs the old code until restarted; after a restart, POST an order with quantity -3 and confirm a 400 response.
+
+QAMind-Run: run-20261102T071712Z
+QAMind-Issue: ISSUE-002
+QAMind-Classification: best-effort
+---
+dd8ea36 fix(qa): ISSUE-001 tax is applied to the discounted subtotal
+Root cause: priceOrder computed tax as 10% of the full subtotal instead of the subtotal after the 5% discount.
+Regression test: test/pricing.test.mjs (fails without the fix, passes with it)
+Verification: Priced 80 x 12.50 in the test: subtotal 100000, discount 5000, tax 9500, total 104500 (was tax 10000, total 105000). The running demo server was not restarted, so the live probe was not repeated.
+Adjacent check: 153 x 6.50 (994.50, below the discount threshold) still gives no discount, tax 9945 and total 109395.
+Best effort: The running app on port 4100 uses the old code until restarted; after restarting, place an order of 80 x Ballpoint Pens and confirm the total is $1,045.00.
+
+QAMind-Run: run-20261102T071712Z
+QAMind-Issue: ISSUE-001
+QAMind-Classification: best-effort
+---

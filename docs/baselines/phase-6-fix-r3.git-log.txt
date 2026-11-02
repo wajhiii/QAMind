@@ -1,0 +1,90 @@
+e975536 fix(qa): ISSUE-009 stop leaking stack traces in invalid JSON errors
+Root cause: readJsonBody put the caught SyntaxError's message and stack (err.stack, with absolute server file paths) into the 400 response body for any JSON parse failure.
+Regression test: test/qa-009-no-stack-in-json-errors.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the finding's malformed bodies over real HTTP against a fresh app instance started by the test (live demo still runs old code): POST /api/auth/login with '{bad json' and POST /api/orders with a truncated body -> 400 invalid_json 'Request body must be valid JSON', no trace or stack field and no file paths in the body (previously a full stack trace).
+Adjacent check: An ordinary validation error (login with an empty object) still returns 400 validation_error unchanged; valid JSON bodies still parse (all other suites post JSON, checked by fix_run_suite).
+
+QAMind-Run: run-20261102T065021Z
+QAMind-Issue: ISSUE-009
+QAMind-Classification: verified
+---
+283885c fix(qa): ISSUE-008 refuse page_size below 1
+Root cause: parseListQuery validated page_size as an integer of at most 100 but had no lower bound, so 0 reached paginate and divided by zero (HTTP 500) and -1 was accepted and echoed back.
+Regression test: test/qa-008-page-size-lower-bound.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the finding's requests over real HTTP against a fresh app instance started by the test (live demo still runs old code): page_size=0 -> 400 naming page_size (was 500) and page_size=-1 -> 400 (was 200 with page_size -1).
+Adjacent check: page_size=1 returns one row with page_size 1 and page_size=100 returns 200; page_size=101, 1.5 and abc are still refused with 400.
+
+QAMind-Run: run-20261102T065021Z
+QAMind-Issue: ISSUE-008
+QAMind-Classification: verified
+---
+762bce1 fix(qa): ISSUE-007 treat order search text literally
+Root cause: listOrders built new RegExp(q, 'i') from user input, so regex metacharacters such as ( or a backslash threw an uncaught SyntaxError (HTTP 500) and others acted as patterns.
+Regression test: test/qa-007-order-search-literal.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the finding's searches over real HTTP against a fresh app instance started by the test (live demo still runs old code): q=( , \, [, *, + and ? -> 200 with total 0 instead of 500; BF-.* matches nothing instead of 4 rows.
+Adjacent check: Search still finds orders by reference (bf-22) and by note (case-insensitive 'LOADING DOCK' -> o-1001), and a reference with punctuation 'QA-(x)+y' is found by '(x)+y'.
+
+QAMind-Run: run-20261102T065021Z
+QAMind-Issue: ISSUE-007
+QAMind-Classification: verified
+---
+146ed88 fix(qa): ISSUE-006 show status changes in the client order list at once
+Root cause: The per-company order list cache (10 minutes) was only cleared when an order was added, never when an admin changed an order's status, so the list kept the old status.
+Regression test: test/qa-006-status-change-visible-in-list.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the warm, change, re-read sequence over real HTTP against a fresh app instance started by the test (live demo still runs old code): acme1 and acme2 list o-1004 (placed), admin PATCHes it to processing, both lists and the detail now show processing instead of placed.
+Adjacent check: Another company's list (bright1, o-1008) also shows its own change at once and acme's list is unaffected; the existing test that a new order appears straight away is covered by fix_run_suite.
+
+QAMind-Run: run-20261102T065021Z
+QAMind-Issue: ISSUE-006
+QAMind-Classification: verified
+---
+51dbb15 fix(qa): ISSUE-005 reject invalid quantities and empty orders
+Root cause: validateOrderInput only checked that quantity was a number and that items was an array, with no integer, 1..1000 range or non-empty check, so negative, zero, fractional, huge quantities and empty orders were stored.
+Regression test: test/qa-005-order-quantity-validation.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the finding's POSTs over real HTTP against a fresh app instance started by the test (live demo still runs old code): quantity -3, 0, 1.5, 1001 and items [] -> 400 validation_error naming items[0].quantity or items, and the order count did not change (previously 201 and a stored order).
+Adjacent check: Quantity 1 and 1000 (the boundaries) still create orders with 201, and existing order tests (checked fully by fix_run_suite) cover valid orders, unknown product and text quantity.
+
+QAMind-Run: run-20261102T065021Z
+QAMind-Issue: ISSUE-005
+QAMind-Classification: verified
+---
+fa64c72 fix(qa): ISSUE-004 charge tax on the discounted subtotal
+Root cause: priceOrder computed tax as Math.round(subtotal * 10%) instead of using subtotal minus discount, so discounted orders were taxed on the pre-discount amount.
+Regression test: test/qa-004-tax-after-discount.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the finding's order over real HTTP against a fresh app instance started by the test (the live demo still runs the old code): POST 80 x p-102 (subtotal 1000.00) -> discount 5000, tax 9500, total 104500 instead of tax 10000/total 105000; 160 x p-102 -> tax 19000, total 209000.
+Adjacent check: Order below the threshold (79 x p-102, 987.50) is unchanged: no discount, tax 98.75, total 1086.25; existing pricing tests are checked by fix_run_suite.
+
+QAMind-Run: run-20261102T065021Z
+QAMind-Issue: ISSUE-004
+QAMind-Classification: verified
+---
+61d62ae fix(qa): ISSUE-003 reject sessions that have been signed out
+Root cause: logout only stamped session.endedAt and authenticate never checked it, so a signed-out bearer token stayed valid.
+Regression test: test/qa-003-logout-revokes-session.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the finding's chain over real HTTP against a fresh app instance started by the test (the live demo on port 4100 still runs the old code): zain1 /api/me 200, logout 204, then /api/me and /api/orders with the same token -> 401 instead of 200, and a second logout also 401.
+Adjacent check: A second login of the same user (acme1) stays signed in after the first token is signed out; ordinary login and /api/me work. Session expiry (expiresAt) is not checked either; it was not part of this finding and was not changed.
+
+QAMind-Run: run-20261102T065021Z
+QAMind-Issue: ISSUE-003
+QAMind-Classification: verified
+---
+a1b3b7a fix(qa): ISSUE-002 restrict customer list to admins
+Root cause: The GET /api/admin/customers route was registered without roles: ['admin'], unlike the other admin routes, so the role check never ran for it.
+Regression test: test/qa-002-customers-admin-only.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the finding's steps over real HTTP against a fresh app instance started by the test (the live demo on port 4100 still runs the old code): acme1, acme2, bright1 and zain1 GET /api/admin/customers -> 403 forbidden with no items instead of 200.
+Adjacent check: Admin GET /api/admin/customers still returns 200 with 3 companies (the Admin Portal Customers page uses the admin sign-in); anonymous stays 401 per the existing admin suite.
+
+QAMind-Run: run-20261102T065021Z
+QAMind-Issue: ISSUE-002
+QAMind-Classification: verified
+---
+533c267 fix(qa): ISSUE-001 hide other companies' orders from clients
+Root cause: getOrder looked the order up by id only and never compared order.client_id with the caller's client_id, so any signed-in client could read any order.
+Regression test: test/qa-001-order-isolation.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the finding's steps over real HTTP against a fresh app instance started by the test (the running demo on port 4100 still has the old code): bright1 and zain1 GET an Acme order and acme1's own QA-tenant order -> 404 instead of 200; the same company and admin still get 200.
+Adjacent check: Same-company user acme2 reads o-1001 (200) and admin reads Bright's o-1006 (200); unknown id still 404; whole existing suite checked later by fix_run_suite.
+
+QAMind-Run: run-20261102T065021Z
+QAMind-Issue: ISSUE-001
+QAMind-Classification: verified
+---

@@ -59,6 +59,19 @@ and run `npm test` plus the learning test. The build writes `THIRD-PARTY-NOTICES
 
 **Windows and Linux.** The phases are built and tested on macOS only. `.github/workflows/ci.yml` runs the full suite on Linux and macOS, and a separate Windows job (allowed to fail until the owner promotes it) runs the memory and server tests. Read their results after each push.
 
+## Fix mode (`/qa`)
+
+The fix loop is in `core/lib/fix/` (`protect.ts`, `gitops.ts`, `testrun.ts`, `state.ts`, `loop.ts`), its tools in `core/mcp/qa-memory/fixtools.ts`, the hook rules in `core/lib/hooks.ts` (`decideFixRun`), and the agent's instructions in
+`core/skills/qa/SKILL.md` and `core/shared/fix-loop.md`. The design and its limits are in [decision 0003](docs/decisions/0003-fix-mode.md).
+
+- **What a fix may not touch** is `BUILT_IN_PROTECTED` in `protect.ts` (plus the project's `fix_policy.do_not_touch`). Adding an entry protects it in the hook, `fix_begin` and `fix_commit` at once; `tests/core/fix-protect.test.ts` and `fix-hook.test.ts` show how to test one. Removing an entry weakens a safety rule: ask the owner.
+- **The skill and `/qa-only` share Steps 1 to 5 word for word**; a test (`skills-use-tools.test.ts`) fails if they drift. Change the shared steps in both.
+- **A rule that can be checked in code goes in the tools, not the skill text.** Add the check to `loop.ts`, make the tool return a `problem` and a `message` that says what to do, and add a case to `tests/core/fix-loop.test.ts` (it uses a real git repository with real bugs).
+- **Two tools are deliberately not pre-approved** (`FIX_CONSENT_TOOLS` in `core/mcp/servers.ts`), so the host asks the user. Do not add them to a skill's allowed tools.
+- **The fix test on the demo app** (spec section 14): `CLAUDE_BIN=/path/to/claude node scripts/eval-fix.ts --label <phase-name> --seq 1`. It runs `/qa` headlessly on a copy of the demo app on a feature branch, answers the stop rules as the owner
+  would (same conversation, up to `--max-turns`), then checks everything from git: commit format, a test in every commit, **red on the parent and green on the fix commit re-proved in clean checkouts**, the whole suite, protected paths, no remote, unchanged
+  git settings, a clean tree, no secrets, lint-clean consistent reports, and which seeded bugs are gone. Expect 30 to 60 minutes and roughly $10 to $30 for a full run (`--max-total-usd` caps it). Make sure port 4100 is free first.
+
 ## Changing the admin report
 
 The admin report is rendered by `core/lib/adminreport.ts` (Markdown) and `core/scripts/export-html.ts` (HTML) from the same model; the consistency check

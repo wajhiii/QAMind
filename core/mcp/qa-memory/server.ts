@@ -3,9 +3,9 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { qamindHome } from "../../lib/paths.ts";
 import { MemoryTooNewError, UnsafeMemoryTextError } from "../../lib/memory/store.ts";
 import { QAMIND_VERSION } from "../../lib/version.ts";
-import { QA_MEMORY_TOOLS } from "../servers.ts";
-import { TOOLS } from "./tools.ts";
-import type { ToolContext } from "./tools.ts";
+import { ALL_QA_TOOLS } from "../servers.ts";
+import type { ToolContext } from "./common.ts";
+import { ALL_TOOLS } from "./registry.ts";
 
 /** Shown to the host once, at connection: how to use the server well. Kept short; the skills carry the detailed protocol. */
 export const INSTRUCTIONS =
@@ -30,7 +30,7 @@ function asResult(value: unknown): { content: Array<{ type: "text"; text: string
 export function createServer(partial: Partial<ToolContext> = {}): McpServer {
   const ctx: ToolContext = { home: partial.home ?? qamindHome(), env: partial.env ?? process.env, cwd: partial.cwd ?? process.cwd(), now: partial.now ?? (() => new Date()) };
   const server = new McpServer({ name: "qa-memory", version: QAMIND_VERSION }, { instructions: INSTRUCTIONS });
-  for (const tool of TOOLS) {
+  for (const tool of ALL_TOOLS) {
     server.registerTool(tool.name, { title: tool.title, description: tool.description, inputSchema: tool.input, annotations: tool.annotations }, async (args: Record<string, unknown>) => {
       try {
         return asResult(await tool.run(args, ctx));
@@ -40,8 +40,8 @@ export function createServer(partial: Partial<ToolContext> = {}): McpServer {
     });
   }
   // The skills, the host's pre-approval and the tests all rely on this list being exactly what the server serves.
-  const served = TOOLS.map((t) => t.name).sort().join(",");
-  if (served !== [...QA_MEMORY_TOOLS].sort().join(",")) throw new Error(`qa-memory tool list drifted from core/mcp/servers.ts: ${served}`);
+  const served = ALL_TOOLS.map((t) => t.name).sort().join(",");
+  if (served !== [...ALL_QA_TOOLS].sort().join(",")) throw new Error(`qa-memory tool list drifted from core/mcp/servers.ts: ${served}`);
   return server;
 }
 

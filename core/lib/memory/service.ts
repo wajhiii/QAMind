@@ -6,9 +6,11 @@ import { finishRun, findMarkerByRunId, startRun } from "../run.ts";
 import type { RunSummary, StartOptions, StartResult } from "../run.ts";
 import { loadRunContext } from "../runctx.ts";
 import type { RunContext } from "../runctx.ts";
+import { loadFixState } from "../fix/state.ts";
 import { loadMemoryContext, recentRunSummaries } from "./context.ts";
 import type { MemoryContext } from "./context.ts";
 import { addFalseAlarm, loadFalseAlarms } from "./falsealarms.ts";
+import { loadFixLog } from "./fixlog.ts";
 import type { FalseAlarmSource } from "./falsealarms.ts";
 import { LEARNING_TYPES, adjustLearning, learn, loadLearnings, markApplied } from "./learnings.ts";
 import type { LearningType } from "./learnings.ts";
@@ -91,7 +93,7 @@ export function getContext(scope: Scope, limit = 3): MemoryContext & { project?:
   return scope.kind === "project" ? { ...ctx, project: scope.project } : ctx;
 }
 
-export type ListWhat = "learnings" | "false-alarms" | "risk" | "map";
+export type ListWhat = "learnings" | "false-alarms" | "risk" | "map" | "fix-log";
 
 /** One part of memory in full, with each list cut to `limit` entries so the answer stays a size a host will accept. */
 export function listMemory(scope: Scope, what: ListWhat, limit = 50): unknown {
@@ -105,6 +107,10 @@ export function listMemory(scope: Scope, what: ListWhat, limit = 50): unknown {
     return { false_alarms: cut(f.alarms), warnings: f.warnings };
   }
   if (what === "risk") return { areas: cut(scoreAreas(loadRisk(scope.store))) };
+  if (what === "fix-log") {
+    const f = loadFixLog(scope.store);
+    return { fix_log: cut([...f.entries].reverse()), warnings: f.warnings };
+  }
   const map = loadMap(scope.store);
   if (!map) return { note: "no product map yet" };
   return {
@@ -125,6 +131,7 @@ export interface HistoryRun {
   duration_s: number;
   counts: RunSummary["counts"];
   journeys?: RunSummary["journeys"];
+  fixes?: RunSummary["fixes"];
   coverage: RunSummary["coverage"];
   not_tested_count: number;
   stop_reason: string;
@@ -141,6 +148,7 @@ export function runHistory(scope: Scope, limit = 5, includeFindings = false): { 
     duration_s: r.duration_s,
     counts: r.counts,
     ...(r.journeys ? { journeys: r.journeys } : {}),
+    ...(r.fixes ? { fixes: r.fixes } : {}),
     coverage: r.coverage,
     not_tested_count: r.not_tested_count,
     stop_reason: r.stop_reason,
@@ -234,6 +242,11 @@ export function startRunTracked(opts: StartOptions): StartResult {
 export function finishRunTracked(home: string, runId: string, opts: { stopReason?: string; cost?: string; now?: Date } = {}): RunSummary {
   const marker = findMarkerByRunId(home, runId);
   if (!marker) throw new Error(`No run ${runId} found in the user store (already finished, or wrong id).`);
+  // A fix run must not end with a half-done change in the project, or with fixes nobody ran the whole test suite after.
+  const fix = loadFixState(marker.run_dir);
+  const open = fix?.attempts.find((a) => a.status === "in-progress");
+  if (open) throw new Error(`${open.issue} is still being fixed. Commit it (fix_commit), undo it (fix_revert) or give it up (fix_defer) first: finishing now would leave uncommitted changes in the project.`);
+  if (fix && !fix.after && fix.attempts.some((a) => a.status === "verified" || a.status === "best-effort")) throw new Error("Fixes were committed but the full test suite was not run afterwards. Call fix_run_suite, re-check the affected flows, write the final reports, then finish.");
   return withStoreLock(marker.store, () => finishRun({ home, runId, ...opts }));
 }
 

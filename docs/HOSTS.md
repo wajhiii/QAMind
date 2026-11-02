@@ -2,7 +2,7 @@
 
 | Host | Tier | Status | Command names | MCP | Safety enforcement |
 |------|------|--------|---------------|-----|--------------------|
-| Claude Code | `full` target | **built (Phase 1)**; certification result below | `/qamind:qa-only` (`/qamind:qa`, `/qamind:qa-auto`, … later) | plugin `.mcp.json` (browser, qa-memory) | PreToolUse hook + instructions |
+| Claude Code | `full` target | **built (Phases 1 to 6)**; certification result below | `/qamind:qa-only`, `/qamind:qa` (`/qamind:qa-auto`, … later) | plugin `.mcp.json` (browser, qa-memory) | PreToolUse hook + instructions |
 | OpenAI Codex CLI | `experimental` target | Phase 7.5 | - | - | - |
 | Cursor | `experimental` target | Phase 7.5 | - | - | - |
 | Generic (`AGENTS.md` + MCP) | `instruction-only` | Phase 7.5 | - | - | instructions only |
@@ -43,6 +43,9 @@ The server needs only Node 20+ and the two files in `dist/`; it is host-neutral 
 | 2026-11-02 | same | probe plugin with a stdio server named `qa-memory`: tool naming, a bare server entry in `--allowedTools`, the server's working folder and `CLAUDE_PROJECT_DIR` | pass; facts recorded in `hosts/claude/host.json` |
 | 2026-11-02 | same | the built plugin: both MCP servers connect; `memory_get_context` loaded with `ToolSearch` and approved by the bare server rule | pass |
 | 2026-11-02 | same | `/qamind:qa-only full` twice in each of two sequences, memory and run bookkeeping only through the qa-memory tools | pass: 4 of 4 runs valid, no access outside the tools (details: [EVALUATION-LOG.md](EVALUATION-LOG.md)) |
+| 2026-11-02 | same | `/qamind:qa full` on a copy of the demo app, six sequences: 45 fix commits, each re-proved red on its parent and green on the commit; full suite green; nothing pushed; no protected file touched | pass (details: [EVALUATION-LOG.md](EVALUATION-LOG.md)) |
+| 2026-11-02 | same | a skill's `allowed-tools` listing the qa-memory tools one by one is honoured in a headless run, and a tool left out (`fix_continue`) is refused by the host: the agent stopped and asked the user to approve it instead of working round it | pass (2 sequences) |
+| 2026-11-02 | same | the user is asked interactively to approve `fix_continue` and `fix_create_branch` | **not tested**: only the headless refusal was observed |
 
 **Not yet verified:** installing from a Git URL (where Claude Code copies the plugin and installs `@playwright/mcp` itself), Windows,
 Linux (the CI workflow runs the suite on Linux and macOS, but I cannot see its results from here; the Windows job is new in Phase 5 and has not run). Tier: **full**, for the Phase 1 feature set only (`/qa-only`); other skills arrive in later phases.

@@ -12,7 +12,8 @@ core/                         single source of truth
   lib/memory/*.ts               project memory: learnings, false alarms, risk areas, product map, change detection, context bundle
   scripts/                      browser launcher + guard proxy
 cli/src/                      the `qamind` command (JSON in/out) used by skills and hooks
-core/mcp/                     MCP servers: servers.ts (the shared list), qa-memory/ (tools.ts, server.ts, main.ts)
+core/lib/fix/                 the fix loop (Phase 6): protect.ts (what may not be touched), gitops.ts, testrun.ts, state.ts, loop.ts
+core/mcp/                     MCP servers: servers.ts (the shared list), qa-memory/ (tools.ts, fixtools.ts, server.ts, main.ts)
 hosts/claude/                 adapter: host.json, adapter.ts (renders the plugin and .mcp.json), plugin dependency manifest + lockfile
 plugins/qamind/               GENERATED Claude Code plugin (committed; CI fails if stale): dist/qamind.mjs (CLI, hooks, browser launcher), dist/qa-memory.mjs (MCP server), THIRD-PARTY-NOTICES.md
 ```
@@ -79,6 +80,26 @@ Every change runs under a per-store lock and after the store is migrated to the 
 store safely. Memory is written in two places, both by code: `run_finish` updates the product map, risk areas and false-alarm counters (after checking
 every memory file's schema, so a too-new store is never half-updated), and `memory learn` saves a learning. A report is rendered from the
 run's data files plus the previous runs' summaries, so a trend never depends on the agent remembering numbers.
+
+## Fix mode (`/qa`)
+
+`/qa` is `/qa-only` plus a fix phase, and the fix phase is built so that its rules are checked by code, not asked of the agent ([decision 0003](decisions/0003-fix-mode.md)).
+The agent edits files with the Edit and Write tools; everything that touches git, branches or the project's tests is a tool of the qa-memory server (`fix_*`), and only a
+`/qa` run started by a person can use them (a report-only run, or one started by CI, is refused).
+
+| Rule (spec 9.3) | Where it is enforced |
+|---|---|
+| clean working tree, feature branch, baseline report first | `fix_preflight`; `fix_create_branch` is a separate step the host asks the user to approve |
+| never touch credentials, CI, lock files, generated code, the do-not-touch list | the safety hook on every edit and shell redirect, again in `fix_begin` and `fix_commit` |
+| a regression test that fails because of the bug | `fix_commit` takes the fix out, runs the test (must fail), puts it back, runs it again (must pass) |
+| minimal fix, no unrelated changes | only declared files may change; anything else is a stop; no existing assertion may be edited |
+| stop after 2 reverts, every 5 fixes, an unrelated file, more than 5 files; hard cap | counters in `data/fix-state.json`; the fix tools refuse until `fix_continue` (which the host asks the user to approve) |
+| full suite afterwards, regressions loud | `fix_run_suite` against the baseline; the reports and the verdict show a regression; `run_finish` refuses without it |
+| never push, merge or open a PR | no such operation exists in the tools; the hook blocks `git` writes and the git host's CLI from the agent's shell |
+| fix-log memory | `fix-log.jsonl`, written by the tools |
+
+The reports render the fix state, so what they say about a fix is what the tools did: every problem is listed with its status (fixed and checked, fixed and needs a human, not fixed),
+the technical report keeps the proof for each fix, and the admin report says "Fixes are on branch X; a developer must review and merge them." The verdict counts verified fixes as merged and says so.
 
 ## Knowledge, loaded on demand
 

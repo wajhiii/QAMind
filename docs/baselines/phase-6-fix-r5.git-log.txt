@@ -1,0 +1,55 @@
+455c691 fix(qa): ISSUE-005 order quantity and item count are validated
+Root cause: validateOrderInput only checked that quantity was a number, with no whole-number or 1 to 1000 range check, and did not require at least one item.
+Regression test: test/qa-issue-005-order-quantity.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original steps against an in-process copy of the app: quantities -3, 0, 1001, 1.5 and an empty items list each return 400 instead of 201.
+Adjacent check: Quantities 1 and 1000 (the boundaries) are still accepted with 201 in the same test.
+Best effort: Re-check ran against an in-process app, not the demo server on port 4100 (old code until restarted) nor the Client Portal form; a person should restart the server and try a negative quantity in the form.
+
+QAMind-Run: run-20261102T071050Z
+QAMind-Issue: ISSUE-005
+QAMind-Classification: best-effort
+---
+e9d8d37 fix(qa): ISSUE-004 tax is charged on the discounted subtotal
+Root cause: priceOrder computed tax from the undiscounted subtotal instead of subtotal minus discount.
+Regression test: test/qa-issue-004-tax-after-discount.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original steps through the pricing function: 80 x 12.50 now gives subtotal 100000, discount 5000, tax 9500, total 104500 (1,045.00) instead of 105000.
+Adjacent check: 79 x 12.50 (below the threshold) still has no discount and totals 108625 (1,086.25).
+Best effort: Checked through the pricing function, not the Client Portal screen or the demo server on port 4100 (old code until restarted); a person should restart it and place the 80 x $12.50 order to confirm $1,045.00 is shown.
+
+QAMind-Run: run-20261102T071050Z
+QAMind-Issue: ISSUE-004
+QAMind-Classification: best-effort
+---
+07917b0 fix(qa): ISSUE-003 signed-out token is refused
+Root cause: logout marked the session with endedAt but authenticate() never checked it, so the token stayed valid.
+Regression test: test/qa-issue-003-logout.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original steps against an in-process copy of the app: acme-2 signs in, /api/me 200, logout 204, /api/me with the same token now returns 401 instead of 200.
+Adjacent check: A second sign-in of the same user (bright-1) stays valid after the first one logs out; normal sign-in and /api/me return 200.
+Best effort: Re-check ran against an in-process app, not the demo server on port 4100 (old code until restarted); expiry of sessions (expiresAt) is not checked by this fix and was not tested.
+
+QAMind-Run: run-20261102T071050Z
+QAMind-Issue: ISSUE-003
+QAMind-Classification: best-effort
+---
+37e9e8c fix(qa): ISSUE-002 customer list restricted to admins
+Root cause: The customers route was registered without the admin role restriction that the sibling admin routes use.
+Regression test: test/qa-issue-002-customers-admin-only.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original steps against an in-process copy of the app: acme-1 GET /api/admin/customers now returns 403 instead of 200; anonymous gets 401.
+Adjacent check: Admin GET /api/admin/customers still returns 200 with a non-empty list in the same test.
+Best effort: Re-check ran against an in-process app, not the demo server on port 4100, which still runs old code until restarted; a person should restart it and call the customers route as a client.
+
+QAMind-Run: run-20261102T071050Z
+QAMind-Issue: ISSUE-002
+QAMind-Classification: best-effort
+---
+60772e5 fix(qa): ISSUE-001 order detail hidden from other companies
+Root cause: getOrder looked the order up by id only and never compared its client_id with the caller's company (admins excepted).
+Regression test: test/qa-issue-001-order-tenant.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original steps against an in-process copy of the app: acme-1 creates an order, bright-1 GETs it and now receives 404 instead of 200; acme-2 and admin still receive 200.
+Adjacent check: Same-company user (acme-2) and admin read the order with 200 in the same test; full order list tests unchanged.
+Best effort: Re-check ran against an in-process app, not the already-running demo server on port 4100, which still runs the old code until restarted; a person should restart it and repeat GET /api/orders/{id} as another company.
+
+QAMind-Run: run-20261102T071050Z
+QAMind-Issue: ISSUE-001
+QAMind-Classification: best-effort
+---

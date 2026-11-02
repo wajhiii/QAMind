@@ -13,6 +13,7 @@ export interface MemoryPaths {
   riskAreas: string;
   learnings: string;
   falseAlarms: string;
+  fixLog: string;
   archiveDir: string;
   runs: string;
   stack: string;
@@ -26,6 +27,7 @@ export function memoryPaths(store: string): MemoryPaths {
     riskAreas: path.join(dir, "risk-areas.json"),
     learnings: path.join(dir, "learnings.jsonl"),
     falseAlarms: path.join(dir, "false-alarms.jsonl"),
+    fixLog: path.join(dir, "fix-log.jsonl"),
     archiveDir: path.join(dir, "archive"),
     runs: storeSubdirs(store).runs,
     stack: path.join(dir, "stack.json"),

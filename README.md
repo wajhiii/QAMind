@@ -9,10 +9,10 @@ It tests your **API** (from its OpenAPI spec), each **web UI** per role, cross-s
 business rules, and writes a technical report with reproducible findings, evidence, and an explicit **Not tested** list.
 It works on staging or local environments only, never production.
 
-> **Status: Phase 5 of 8.** Working today: the `/qa-only` skill on **Claude Code**, API testing from OpenAPI, browser
+> **Status: Phase 6 of 8.** Working today: the `/qa-only` skill on **Claude Code**, API testing from OpenAPI, browser
 > testing of web UIs, safety guard, a built-in QA knowledge base (27 topic files, sourced in
 > [docs/KNOWLEDGE-SOURCES.md](docs/KNOWLEDGE-SOURCES.md)), and two reports per run: a technical report for developers and a
-> plain-language admin report for managers with a release verdict and an email-ready HTML export, and **project memory** that each run loads and applies (risk areas, learnings, known false alarms, a product map, and a "what changed since the last run" section in both reports), served by a validated **`qa-memory` MCP server** that the skill uses for all memory and run bookkeeping. Not built yet: fix mode, auto-QA, Codex/Cursor, CI mode and the rest of the
+> plain-language admin report for managers with a release verdict and an email-ready HTML export, and **project memory** that each run loads and applies (risk areas, learnings, known false alarms, a product map, and a "what changed since the last run" section in both reports), served by a validated **`qa-memory` MCP server** that the skill uses for all memory and run bookkeeping, and **`/qa` fix mode**: it fixes the confirmed critical and important problems one at a time on a git branch, each with a regression test that fails without the fix, and never pushes or merges. Not built yet: auto-QA, Codex/Cursor, CI mode and the rest of the
 > [roadmap](#roadmap). Nothing below is claimed beyond what is built.
 
 ## Install (Claude Code)
@@ -50,7 +50,7 @@ Codex CLI, Cursor and other agents that read `AGENTS.md` come in Phase 7.5. See 
 | What | Claude Code | Notes |
 |------|-------------|-------|
 | Test and report | `/qamind:qa-only [full\|quick\|regression\|diff] [focus]` | Writes only inside `.qa/` and the QAMind user store |
-| Test and fix | `/qamind:qa` | _Phase 6_ |
+| Test and fix | `/qamind:qa [full\|quick\|regression\|diff] [focus]` | Fixes on a git branch, one commit per fix with its regression test; never pushes, merges or opens a pull request. Needs a clean working tree and a project test command; see [Fix mode](#fix-mode-qamindqa) |
 | Auto-QA, memory review, feedback, test bank | `/qamind:qa-auto` … | _Later phases_ |
 
 Modes: `full` (everything), `quick` (critical flows and top risks), `regression` (re-run last findings), `diff` (changed
@@ -85,6 +85,20 @@ anything not tested is listed with the reason. Nothing untested is ever reported
 The project id comes from the git `origin` URL, so two clones of one repo share memory; without a remote it is a hash of
 the path. Details in [docs/MEMORY.md](docs/MEMORY.md).
 
+## Fix mode (`/qamind:qa`)
+
+`/qamind:qa` tests exactly like `/qamind:qa-only` and writes the same baseline report. It then fixes the confirmed problems the config allows (`fix_policy.fix_severities`, critical and important by default), one at a time:
+it diagnoses, writes a regression test in your project's own framework and sees it **fail for the right reason**, makes the smallest fix, re-checks the original steps, and commits both together as `fix(qa): ISSUE-NNN ...`.
+Before each commit QAMind proves the test by taking the fix out and running it again. A fix with no automated test possible (a visual defect with no browser test setup) is left for a person, with the reason in the report.
+
+- **What it needs:** a git repository with a clean working tree and a branch that is not the default one (it asks before creating `qa/fix-...`), and a way to run your tests (detected from your package scripts, or `fix_policy.test_command` and `test_file_command`). It runs your whole test suite before and after.
+- **What it never touches:** credentials, CI and deployment files, lock files and dependency manifests, generated code, migrations, existing test assertions, and anything in `fix_policy.do_not_touch`.
+- **When it stops and asks you:** after two reverts, after every five fixes, if it edits a file the fix did not declare, or if a fix needs more than five files. The host asks you to approve the tool that lets it continue. There is a hard cap on fixes per run (30 by default).
+- **What you get:** both reports list every problem with its status (fixed and checked, fixed and needs a person to confirm, not fixed), say "Fixes are on branch X; a developer must review and merge them", and keep the proof; a regression after the fixes is flagged loudly. The reports from before any fix are kept.
+- **Not for CI:** a run started by CI is always read-only.
+
+Details and limits: [decision 0003](docs/decisions/0003-fix-mode.md); how it behaved on the demo app: [docs/EVALUATION-LOG.md](docs/EVALUATION-LOG.md).
+
 ## Safety (and how it is enforced)
 
 QAMind never tests production, never reads or prints credentials, creates data only with your `QA-` prefix, never
@@ -96,6 +110,8 @@ triggers real payments or emails, and treats everything it sees in your app as d
 | `/qa-only` writes only to `.qa/` and the user store | **enforced by a PreToolUse hook** (Bash inspection is best-effort, not a sandbox) | instructions only unless the host has hooks |
 | Credentials stay out of the conversation | browser `--secrets`, API runner logs in itself, hook blocks reading `.env.qa` | secrets and runner work everywhere; the read-block is a hook |
 | Side-effect endpoints (email, SMS, payments) | left out of generated API plans by default and listed as Not tested | same |
+| `/qa` never pushes, merges or opens a pull request, and never touches credentials, CI, lock files, generated code or your do-not-touch list | no such operation exists in the fix tools; the hook blocks git writes and the git host's CLI from the agent's shell and refuses edits to protected files | the tools are the same everywhere; the hook is Claude Code's |
+| Every fix has a regression test that fails without it | `fix_commit` takes the fix out, runs the test (it must fail), puts the fix back and runs it again (it must pass) | same, via MCP |
 
 Known limits are listed in [docs/decisions/0001-browser-automation.md](docs/decisions/0001-browser-automation.md).
 Screenshot masking of personal data is not built yet (Phase 7.6).
@@ -108,8 +124,9 @@ Screenshot masking of personal data is not built yet (Phase 7.6).
 | 2 ✅ | Curated QA knowledge base, loaded on demand |
 | 3 ✅ | Plain-language admin report with release verdict, consistency check, HTML export |
 | 4 ✅ | Project memory that improves each run |
-| 5 ✅ (this) | `qa-memory` MCP server: validated memory and run tools, migrations, global-lesson proposals |
-| 6 / 6.5 / 7 | `/qa` fix mode, auto-QA hooks, global lessons |
+| 5 ✅ | `qa-memory` MCP server: validated memory and run tools, migrations, global-lesson proposals |
+| 6 ✅ (this) | `/qa` fix mode: fix loop with proof, stop rules, branch handling, fix-log memory |
+| 6.5 / 7 | auto-QA hooks, global lessons review |
 | 7.5 – 7.10 | Codex, Cursor, generic; reliability, test bank, CI, coverage depth, release verdict and metrics |
 | 8 | Linear and Sentry, polish |
 

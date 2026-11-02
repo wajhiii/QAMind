@@ -6,6 +6,8 @@ import type { Severity } from "./config.ts";
 import { readJson, writeJson } from "./fsutil.ts";
 import type { MemoryLogEntry } from "./memory/memorylog.ts";
 import type { Changes } from "./memory/productmap.ts";
+import { loadFixState } from "./fix/state.ts";
+import type { FixState } from "./fix/state.ts";
 import { findSecretLeaks } from "./redact.ts";
 import { flowStatus } from "./verdict.ts";
 
@@ -60,6 +62,22 @@ export function compactFinding(f: Finding): CompactFinding {
 
 export type FixStatus = "not-fixed" | "fixed-verified" | "fixed-needs-confirmation";
 
+/** What the fix tools record on a finding (fix runs only). The reports render this; the agent never writes it by hand. */
+export interface FindingFix {
+  outcome: "verified" | "best-effort" | "reverted" | "deferred";
+  commit?: string;
+  files?: string[];
+  test_files?: string[];
+  root_cause?: string;
+  /** What was repeated from the finding after the fix, and what was seen. */
+  recheck?: string;
+  /** The neighbouring happy path that was checked. */
+  adjacent?: string;
+  /** Why a fix is best-effort, was reverted, or was deferred. */
+  reason?: string;
+  reverted_by?: string;
+}
+
 export interface Finding {
   id?: string;
   title: string;
@@ -86,6 +104,8 @@ export interface Finding {
   not_a_known_false_alarm?: string;
   /** Fix mode sets this; report-only runs leave it unset (not fixed). */
   fix_status?: FixStatus;
+  /** Set by the fix tools in a `/qa` run: how the fix attempt went. */
+  fix?: FindingFix;
 }
 
 export interface Unconfirmed {
@@ -167,6 +187,13 @@ export interface RunData {
   changes?: Changes;
   /** What memory did during this run (data/memory-log.json). */
   memoryLog: MemoryLogEntry[];
+  /** The fix loop's record (data/fix-state.json), in a `/qa` run that started fixing. */
+  fix?: FixState;
+  /**
+   * True when `admin.json` (the biggest risk and the next steps, written by the agent) is older than the last fix that changed the product.
+   * It then describes the situation before the fixes, so the admin report does not use it.
+   */
+  adminStale?: boolean;
   charters: Charter[];
   findings: Finding[];
   unconfirmed: Unconfirmed[];
@@ -209,10 +236,23 @@ export function readRunData(runDir: string): RunData {
   const admin = readJson<AdminNotes>(dataFile(runDir, "admin.json"));
   const changes = readJson<Changes>(dataFile(runDir, "changes.json"));
   const memLog = readJson<unknown>(dataFile(runDir, "memory-log.json"));
+  const fix = loadFixState(runDir);
+  const adminStale = ((): boolean => {
+    if (!fix || !admin) return false;
+    const changed = fix.attempts.filter((a) => (a.status === "verified" || a.status === "best-effort" || a.status === "reverted") && a.finished_at).map((a) => Date.parse(a.finished_at as string));
+    if (changed.length === 0) return false;
+    try {
+      return fs.statSync(dataFile(runDir, "admin.json")).mtimeMs < Math.max(...changed);
+    } catch {
+      return false;
+    }
+  })();
   return {
     ...(meta ? { meta } : {}),
     ...(admin ? { admin } : {}),
     ...(changes ? { changes } : {}),
+    ...(fix ? { fix } : {}),
+    ...(adminStale ? { adminStale } : {}),
     memoryLog: Array.isArray(memLog) ? (memLog as MemoryLogEntry[]) : [],
     charters: readList<Charter>(runDir, "charters.json"),
     findings: readList<Finding>(runDir, "findings.json"),
@@ -297,6 +337,58 @@ export interface TechnicalContext {
   previous?: Array<{ run_id: string; started: string; mode: string; counts: { critical: number; important: number; minor: number; unconfirmed: number }; coverage: { tested: number; partial: number; not_tested: number }; journeys?: { total: number; tested: number }; not_tested_count: number }>;
 }
 
+export type FixOutcomeWord = "verified" | "best-effort" | "reverted" | "deferred" | "not attempted";
+
+export const fixOutcomeOf = (f: Finding): FixOutcomeWord => f.fix?.outcome ?? "not attempted";
+
+const ticks = (s: string): string => `\`${s}\``;
+const clip = (s: string, n: number): string => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+
+/** What the fix tools recorded for one finding: the outcome, the commit, and the proof that the test needs the fix. */
+function fixDetails(f: Finding, fix: FixState): string[] {
+  const a = [...fix.attempts].reverse().find((x) => x.issue === f.id);
+  if (!f.fix || !a) return [];
+  const L: string[] = [`**Fix: ${f.fix.outcome}**`, ""];
+  if (f.fix.commit) L.push(`- Commit ${ticks(f.fix.commit)} on \`${fix.branch}\`${f.fix.reverted_by ? `, undone by revert commit ${ticks(f.fix.reverted_by)}` : ""}`);
+  if (f.fix.files?.length) L.push(`- Production files: ${f.fix.files.map(ticks).join(", ")}`);
+  if (f.fix.test_files?.length) L.push(`- Regression test: ${f.fix.test_files.map(ticks).join(", ")}`);
+  if (a.plan) L.push(`- Diagnosis before the fix: ${a.plan}`);
+  if (f.fix.root_cause) L.push(`- Root cause: ${f.fix.root_cause}`);
+  if (a.without_fix) L.push(`- Test with the fix taken out: **failed** (exit ${a.without_fix.exit_code}), as it must: \`${clip(a.without_fix.tail.split("\n").filter(Boolean).slice(-3).join(" ⏎ "), 260)}\``);
+  if (a.with_fix) L.push(`- Test with the fix in: **${a.with_fix.passed ? "passed" : "failed"}** (exit ${a.with_fix.exit_code}, ${a.with_fix.duration_s} s)`);
+  if (f.fix.recheck) L.push(`- Re-check of the original steps: ${f.fix.recheck}`);
+  if (f.fix.adjacent) L.push(`- Adjacent check: ${f.fix.adjacent}`);
+  if (f.fix.reason) L.push(`- ${f.fix.outcome === "best-effort" ? "Why best-effort (what a person must confirm)" : f.fix.outcome === "reverted" ? "Why it was reverted" : "Why it was not fixed"}: ${f.fix.reason}`);
+  if (a.saved_to) L.push(`- The undone attempt (edits and failing test) is kept in [${a.saved_to}](${a.saved_to})`);
+  L.push("");
+  return L;
+}
+
+/** The fix run as a whole: branch, outcomes, the suite before and after, and every stop. */
+function fixRunSection(data: RunData): string[] {
+  const fix = data.fix as FixState;
+  const n = (o: string): number => data.findings.filter((f) => fixOutcomeOf(f) === o).length;
+  const L: string[] = ["## Fix run", ""];
+  const cmp = fix.comparison;
+  if (cmp?.verdict === "regression") L.push(`> ⚠️ **REGRESSION after the fixes:** ${cmp.note}${cmp.regressions.length ? ` Failing now: ${cmp.regressions.slice(0, 8).join("; ")}.` : ""} A developer must look at this before merging.`, "");
+  L.push(`- **Branch:** ${ticks(fix.branch)}, started from commit ${ticks(fix.base_commit.slice(0, 7))}${fix.base_branch ? ` on ${ticks(fix.base_branch)}` : ""}. The commits are local to this branch: **nothing was pushed or merged.** A developer must review and merge them.`);
+  L.push(`- **Outcome:** ${n("verified")} fixed and verified · ${n("best-effort")} best-effort (a person must confirm) · ${n("reverted")} reverted · ${n("deferred")} deferred · ${n("not attempted")} not attempted`);
+  const suite = (s: FixState["baseline"]) => (s ? `${s.passed ? "passed" : s.timed_out ? "did not finish" : `failed${s.failed_tests.length ? ` (${s.failed_tests.length} failing)` : ""}`} (${ticks(s.command)}, ${s.duration_s} s)` : "not run");
+  L.push(`- **Test suite:** before any fix: ${suite(fix.baseline)} · after the fixes: ${suite(fix.after)}${cmp ? ` · ${cmp.verdict === "no-regression" ? "no regression" : cmp.verdict === "regression" ? "⚠️ **regression**" : "cannot compare"}: ${cmp.note}` : ""}`);
+  if (fix.api_only) L.push("- **Baseline scope:** the API only: the user agreed to fix without the web UIs having been tested.");
+  L.push(`- **Limits:** at most ${fix.max_fixes} fixes; severities fixed: ${fix.severities.join(", ")}; reverts so far: ${fix.reverts}`);
+  if (fix.continues.length) L.push(`- **Stops and what the user said:** ${fix.continues.map((c) => `${c.was}: ${c.reason}`).join(" · ")}`);
+  if (fix.stop) L.push(`- **A stop rule is still in force (${fix.stop.kind}):** ${fix.stop.reason}`);
+  L.push("- **Reports from before any fix:** [BASELINE-TECHNICAL-REPORT.md](BASELINE-TECHNICAL-REPORT.md), [BASELINE-ADMIN-REPORT.md](BASELINE-ADMIN-REPORT.md)", "");
+  const attempted = fix.attempts.filter((a) => a.status !== "in-progress");
+  if (attempted.length) {
+    L.push("| Issue | Severity | Outcome | Commit | Production files | Regression test |", "|---|---|---|---|---|---|");
+    for (const a of attempted) L.push(`| [${a.issue}](#${a.issue}) | ${a.severity} | ${a.status} | ${a.commit ? ticks(a.commit.slice(0, 7)) : "-"} | ${a.files.map(ticks).join(", ") || "-"} | ${a.test_files.map(ticks).join(", ") || "-"} |`);
+    L.push("");
+  }
+  return L;
+}
+
 /** "3/5", or "-" when the config lists no key journeys. */
 const journeyCell = (tested: number, total: number): string => (total > 0 ? `${tested}/${total}` : "-");
 
@@ -344,6 +436,8 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
   if (data.apiSummaries.length) L.push(`- API probes executed: **${api.total}** (${api.signals} produced a signal worth a look)`);
   L.push("");
 
+  if (data.fix) L.push(...fixRunSection(data));
+
   L.push("## What changed since the last run", "");
   const ch = data.changes;
   if (!ch) L.push("_Not computed (no page or endpoint list was recorded)._", "");
@@ -377,6 +471,7 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
     if (f.roles?.length) L.push(`- **Roles:** ${f.roles.join(", ")}`);
     if (f.browser || f.viewport) L.push(`- **Browser / viewport:** ${[f.browser, f.viewport].filter(Boolean).join(" / ")}`);
     L.push(`- **Reproduced:** ${f.reproduced.times} of ${f.reproduced.of} attempts`);
+    if (data.fix) L.push(`- **Fix outcome:** ${fixOutcomeOf(f)}${f.fix?.commit ? ` (commit \`${f.fix.commit}\`)` : ""}`);
     if (f.charter) L.push(`- **Charter:** ${f.charter}`);
     L.push("", f.summary, "", "**Steps to reproduce**", "");
     f.steps.forEach((s, i) => L.push(`${i + 1}. ${s}`));
@@ -385,6 +480,7 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
     if (f.suspected_cause) L.push(`**Suspected root cause:** ${f.suspected_cause}`, "");
     if (f.regression_test) L.push(`**Proposed regression test:** ${f.regression_test.description}${f.regression_test.location ? ` (suggested location: \`${f.regression_test.location}\`)` : ""}`, "");
     if (f.memory_applied?.length) L.push(`**Memory applied:** ${f.memory_applied.join("; ")}`, "");
+    if (data.fix) L.push(...fixDetails(f, data.fix));
   }
 
   L.push("## Unconfirmed (could not be reproduced twice)", "", "_These are leads, not findings. They are not counted above._", "");

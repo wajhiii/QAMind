@@ -31,7 +31,8 @@
         "tool names keep the hyphen: mcp__plugin_<plugin>_qa-memory__<tool>",
         "a bare server-level entry in allowed-tools / --allowedTools (mcp__plugin_<plugin>_qa-memory) pre-approves every tool of the server",
         "the server process starts in the project folder and has CLAUDE_PROJECT_DIR set",
-        "MCP tools are deferred: the agent loads them with one ToolSearch call before the first use"
+        "MCP tools are deferred: the agent loads them with one ToolSearch call before the first use",
+        "a skill's allowed-tools can list tools one by one, so a tool left out (fix_create_branch, fix_continue) makes the host ask the user"
       ]
     }
   },
@@ -55,6 +56,10 @@
     "qa-only": {
       "disable-model-invocation": true,
       "allowed-tools": "Read Glob Grep Write(.qa/**) Edit(.qa/**) Bash(qamind *) Bash(curl *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(ls *) mcp__plugin_qamind_browser mcp__plugin_qamind_qa-memory"
+    },
+    "qa": {
+      "disable-model-invocation": true,
+      "allowed-tools": "Read Glob Grep Write Edit Bash(qamind *) Bash(curl *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(git show *) Bash(ls *) mcp__plugin_qamind_browser {{QA_TOOLS_APPROVED}}"
     }
   }
 }

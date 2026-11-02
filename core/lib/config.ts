@@ -29,6 +29,24 @@ export interface ApiLogin {
   token_path: string;
   auth_header: string;
 }
+/** What `/qa` (fix mode) may do (spec 7.3, 9.3). Everything here is optional in the file and has the default shown. */
+export interface FixPolicy {
+  fix_severities: Severity[];
+  /** Hard cap on fixes per run (default 30). */
+  max_fixes: number;
+  /** The whole test suite. Default: detected from the project's package scripts or build files. */
+  test_command?: string;
+  /** One test file, with `{file}` where the path goes. Default: the standard command for the detected test runner. */
+  test_file_command?: string;
+  /** Seconds a single test command may run before it is stopped (default 300). */
+  test_timeout_s: number;
+  /** Globs of files a fix must never edit, in addition to the built-in list (credentials, CI, lock files, generated code, migrations). */
+  do_not_touch: string[];
+}
+
+export const DEFAULT_MAX_FIXES = 30;
+export const DEFAULT_TEST_TIMEOUT_S = 300;
+
 export interface QamindConfig {
   schema_version: number;
   environment: { name: string; confirmed_non_production: boolean };
@@ -37,7 +55,7 @@ export interface QamindConfig {
   security: SecuritySettings;
   test_data_prefix: string;
   roles: RoleConfig[];
-  fix_policy: { fix_severities: Severity[] };
+  fix_policy: FixPolicy;
   health: { checks: string[] };
 }
 
@@ -104,9 +122,19 @@ export function normalizeConfig(raw: unknown, problems: string[]): QamindConfig 
     roles.push({ name, ui, username_env, password_env, ...(tenant ? { tenant } : {}) });
   }
 
-  const fixRaw = isObj(raw["fix_policy"]) ? strList(raw["fix_policy"]["fix_severities"]) : ["critical", "important"];
+  const fixObj = isObj(raw["fix_policy"]) ? raw["fix_policy"] : {};
+  const fixRaw = isObj(raw["fix_policy"]) && "fix_severities" in raw["fix_policy"] ? strList(raw["fix_policy"]["fix_severities"]) : ["critical", "important"];
   const fix_severities = fixRaw.filter((s): s is Severity => (SEVERITIES as string[]).includes(s));
   if (fixRaw.length !== fix_severities.length) problems.push("fix_policy.fix_severities may only contain critical, important, minor.");
+  const maxFixes = fixObj["max_fixes"] === undefined ? DEFAULT_MAX_FIXES : fixObj["max_fixes"];
+  if (typeof maxFixes !== "number" || !Number.isInteger(maxFixes) || maxFixes < 1 || maxFixes > 100) problems.push("fix_policy.max_fixes must be a whole number from 1 to 100.");
+  const timeout = fixObj["test_timeout_s"] === undefined ? DEFAULT_TEST_TIMEOUT_S : fixObj["test_timeout_s"];
+  if (typeof timeout !== "number" || timeout < 10 || timeout > 3600) problems.push("fix_policy.test_timeout_s must be a number of seconds from 10 to 3600.");
+  const testCommand = str(fixObj["test_command"]);
+  const testFileCommand = str(fixObj["test_file_command"]);
+  if (testFileCommand && !testFileCommand.includes("{file}")) problems.push("fix_policy.test_file_command must contain {file}, where the path of the test file goes.");
+  const doNotTouch = strList(fixObj["do_not_touch"]).map((g) => g.trim()).filter(Boolean);
+  for (const g of doNotTouch) if (g.length > 200 || g.split("/").includes("..") || /^([A-Za-z]:)?[\\/]/.test(g)) problems.push(`fix_policy.do_not_touch: "${g}" must be a glob relative to the project (no .. and no absolute path).`);
 
   const baseUrl = str(api["base_url"]);
   const openapi = str(api["openapi"]);
@@ -138,7 +166,14 @@ export function normalizeConfig(raw: unknown, problems: string[]): QamindConfig 
     },
     test_data_prefix: str(raw["test_data_prefix"]) ?? "QA-",
     roles,
-    fix_policy: { fix_severities: fix_severities.length ? fix_severities : ["critical", "important"] },
+    fix_policy: {
+      fix_severities: fix_severities.length ? fix_severities : ["critical", "important"],
+      max_fixes: typeof maxFixes === "number" && Number.isInteger(maxFixes) && maxFixes >= 1 && maxFixes <= 100 ? maxFixes : DEFAULT_MAX_FIXES,
+      ...(testCommand ? { test_command: testCommand } : {}),
+      ...(testFileCommand ? { test_file_command: testFileCommand } : {}),
+      test_timeout_s: typeof timeout === "number" && timeout >= 10 && timeout <= 3600 ? timeout : DEFAULT_TEST_TIMEOUT_S,
+      do_not_touch: doNotTouch,
+    },
     health: { checks: isObj(raw["health"]) ? strList(raw["health"]["checks"]) : [] },
   };
   return config;

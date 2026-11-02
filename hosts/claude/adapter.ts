@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { MCP_SERVERS, QA_MEMORY_TOOLS } from "../../core/mcp/servers.ts";
+import { ALL_QA_TOOLS, FIX_CONSENT_TOOLS, MCP_SERVERS, QA_MEMORY_TOOLS } from "../../core/mcp/servers.ts";
 import type { McpServerDef } from "../../core/mcp/servers.ts";
 
 export interface RenderContext {
@@ -41,6 +41,9 @@ export function placeholders(host: HostJson): Record<string, string> {
     BROWSER_TOOLS: "the browser tools (their names start with mcp__plugin_qamind_browser__)",
     MEMORY_TOOLS: "the qa-memory tools (their names start with mcp__plugin_qamind_qa-memory__)",
     MEMORY_TOOLS_LOAD: `Claude Code loads MCP tools on demand, so before the first call load all of them at once with ToolSearch, query \`select:${QA_MEMORY_TOOLS.map(memoryToolName).join(",")}\``,
+    FIX_TOOLS_LOAD: `Claude Code loads MCP tools on demand, so before the first call load all of them at once with ToolSearch, query \`select:${ALL_QA_TOOLS.map(memoryToolName).join(",")}\``,
+    // Every tool except the ones that need the user's go-ahead (a branch in their repository, continuing after a stop): the host asks them for those.
+    QA_TOOLS_APPROVED: ALL_QA_TOOLS.filter((t) => !(FIX_CONSENT_TOOLS as readonly string[]).includes(t)).map(memoryToolName).join(" "),
     ...host.commands,
   };
 }

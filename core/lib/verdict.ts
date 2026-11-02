@@ -41,6 +41,26 @@ const sentence = (s: string) => s.trim().replace(/[.\s]+$/, "");
  * rule overrides arrive with later phases; until then regressions are not tracked.)
  */
 export function computeVerdict(data: RunData): Verdict {
+  const v = verdictFromOpenFindings(data);
+  if (!data.fix || v.environment_problem) return v;
+  // In a fix run the open problems exclude the ones fixed and verified on the fix branch, which is only true once a person has merged it.
+  const fixed = data.findings.filter((f) => f.fix_status === "fixed-verified").length;
+  const regression = data.fix.comparison?.verdict === "regression";
+  let { level, reasons, line } = v;
+  if (regression) {
+    const why = "an automatic check that passed before the fixes fails after them";
+    if (level === "ready") {
+      level = "ready-with-risks";
+      line = `⚠️ **Ready with risks:** ${why}.`;
+    }
+    reasons = [...reasons, why];
+    if (level === "ready-with-risks" && !line.includes(why)) line = line.replace(/\.$/, `; ${why}.`);
+  }
+  if (fixed > 0) line = `${line} (This counts the ${plural(fixed, "fix", "fixes")} made in this check as merged; they are on a separate branch until a developer reviews and merges them.)`;
+  return { ...v, level, reasons, line };
+}
+
+function verdictFromOpenFindings(data: RunData): Verdict {
   const open = data.findings.filter(isOpen);
   const critical = open.filter((f) => f.severity === "critical");
   const important = open.filter((f) => f.severity === "important");

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { SEVERITIES } from "../../lib/config.ts";
 import { LEARNING_TYPES } from "../../lib/memory/learnings.ts";
 import {
   changeLearningConfidence,
@@ -19,48 +18,8 @@ import {
   updateRisk,
 } from "../../lib/memory/service.ts";
 import { MODES } from "../../lib/run.ts";
-import type { QaMemoryToolName } from "../servers.ts";
-
-/** What a tool needs from its surroundings. Tests pass their own; the server uses the process's. */
-export interface ToolContext {
-  home: string;
-  env: NodeJS.ProcessEnv;
-  cwd: string;
-  now: () => Date;
-}
-
-export interface ToolDef {
-  name: QaMemoryToolName;
-  title: string;
-  description: string;
-  input: z.ZodRawShape;
-  /** MCP tool annotations: hints for hosts about what a call can do. None of these tools reaches outside QAMind's own folders. */
-  annotations: { readOnlyHint: boolean; destructiveHint: boolean; idempotentHint: boolean; openWorldHint: boolean };
-  run(args: Record<string, unknown>, ctx: ToolContext): unknown;
-}
-
-// ------------------------------------------------------------------------------------------------ shared field schemas
-
-const NO_CONTROL = /^[^\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]*$/;
-
-/** A one-line text field with hard limits. Control characters are refused (they have no place in memory files or Markdown). */
-const line = (min: number, max: number, what: string) => {
-  const chars = (n: number) => `${n} character${n === 1 ? "" : "s"}`;
-  return z
-    .string()
-    .trim()
-    .min(min, `${what} must be at least ${chars(min)}.`)
-    .max(max, `${what} must be at most ${chars(max)}.`)
-    .refine((v) => NO_CONTROL.test(v), `${what} contains control characters.`); // a refinement, so it does not bloat every tool's JSON schema
-};
-
-const run = z
-  .string()
-  .regex(/^[A-Za-z0-9._-]{1,80}$/, "The run id printed by run_start, for example run-20261030T105554Z.")
-  .describe("The run id that run_start returned (run.id).");
-const optionalRun = run.optional().describe("The run id from run_start. Omit it to read the project's memory outside a run.");
-const project = line(1, 500, "project").optional().describe("Project folder. Omit it to use the folder the host opened.");
-const severity = z.enum(SEVERITIES as unknown as [string, ...string[]]).describe("critical, important or minor.");
+import { ADD, READ, SET, define, line, optionalRun, project, runField as run, severity } from "./common.ts";
+import type { ToolDef } from "./common.ts";
 
 const page = z.object({
   ui: line(1, 80, "ui").optional().describe('The web UI\'s name as in the config, e.g. "Client Portal". Omit for the first UI.'),
@@ -72,14 +31,6 @@ const page = z.object({
 const endpoint = line(5, 220, "endpoint").describe('METHOD /path, for example "GET /orders/{id}".');
 
 // ------------------------------------------------------------------------------------------------ tools
-
-function define<S extends z.ZodRawShape>(def: Omit<ToolDef, "input" | "run"> & { input: S; run(args: z.infer<z.ZodObject<S>>, ctx: ToolContext): unknown }): ToolDef {
-  return def as unknown as ToolDef;
-}
-
-const READ = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false } as const;
-const ADD = { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } as const;
-const SET = { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false } as const;
 
 export const TOOLS: ToolDef[] = [
   define({
@@ -148,9 +99,9 @@ export const TOOLS: ToolDef[] = [
   define({
     name: "memory_list",
     title: "List memory",
-    description: "List one part of memory in full: all learnings, all false alarms, the scored risk areas, or the product map. For review and debugging; planning needs only memory_get_context.",
+    description: "List one part of memory in full: all learnings, all false alarms, the scored risk areas, the product map, or the log of fixes made in earlier /qa runs. For review and debugging; planning needs only memory_get_context.",
     annotations: READ,
-    input: { what: z.enum(["learnings", "false-alarms", "risk", "map"]), run: optionalRun, project, limit: z.number().int().min(1).max(200).default(50).describe("At most this many entries per list.") },
+    input: { what: z.enum(["learnings", "false-alarms", "risk", "map", "fix-log"]), run: optionalRun, project, limit: z.number().int().min(1).max(200).default(50).describe("At most this many entries per list.") },
     run: (a, c) => listMemory(scopeFor(c.home, { env: c.env, cwd: c.cwd, ...(a.run ? { run: a.run } : {}), ...(a.project ? { project: a.project } : {}) }), a.what, a.limit),
   }),
 

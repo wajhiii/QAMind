@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { checkConfigFile, parseCriticalFlows, policyFromConfig } from "./config.ts";
-import type { ConfigCheck, QamindConfig } from "./config.ts";
+import type { ConfigCheck, QamindConfig, Severity } from "./config.ts";
 import { corePath } from "./corepath.ts";
 import { loadQaEnv } from "./dotenv.ts";
 import { ensureDir, exists, readJson, utcStamp, writeJson } from "./fsutil.ts";
@@ -16,6 +16,7 @@ import type { CompactFinding, RunMeta } from "./report.ts";
 import { ensureMigrated } from "./memory/migrate.ts";
 import { applyRunToMemory } from "./memory/update.ts";
 import { writeReports } from "./reports.ts";
+import { loadFixState } from "./fix/state.ts";
 import { flowStatus } from "./verdict.ts";
 import { detectStack, saveStack } from "./stack.ts";
 import type { StackInfo } from "./stack.ts";
@@ -44,6 +45,8 @@ export interface RunMarker {
   started: string;
   expires: string;
   policy: RunPolicy;
+  /** Fix runs only: the part of the config's fix_policy that the safety hook and the fix tools enforce, as it was when the run started. */
+  fix?: { do_not_touch: string[]; max_fixes: number; severities: Severity[] };
 }
 
 export interface RunSummary {
@@ -61,6 +64,8 @@ export interface RunSummary {
   /** Compact copies of the findings, so a later run (regression mode) has them even if the report folder is gone. */
   findings?: CompactFinding[];
   coverage: { tested: number; partial: number; not_tested: number };
+  /** A `/qa` run's fixes: where they are and how many of each outcome (the details are in the fix log and the run's reports). */
+  fixes?: { branch: string; base_commit: string; verified: number; best_effort: number; reverted: number; deferred: number; commits: string[]; suite: "no-regression" | "regression" | "cannot-compare" | "not-run" };
   /** Key journeys from the config that were tested end to end. A stable measure to compare runs by: the number of coverage rows is the agent's choice of granularity. */
   journeys?: { total: number; tested: number };
   not_tested_count: number;
@@ -326,6 +331,7 @@ export function startRun(opts: StartOptions): StartResult {
     started: now.toISOString(),
     expires: new Date(now.getTime() + MARKER_TTL_HOURS * 3600_000).toISOString(),
     policy,
+    ...(!readonly && opts.kind === "qa" ? { fix: { do_not_touch: config.fix_policy.do_not_touch, max_fixes: config.fix_policy.max_fixes, severities: config.fix_policy.fix_severities } } : {}),
   };
   writeJson(markerPath(store), marker);
 
@@ -436,6 +442,11 @@ export function finishRun(opts: FinishOptions): RunSummary {
   });
   if (meta) writeJson(path.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, memory_updated: memory.updated });
   summary.memory_updated = memory.updated;
+  const fixState = loadFixState(marker.run_dir);
+  if (fixState) {
+    const by = (o: string): number => fixState.attempts.filter((a) => a.status === o).length;
+    summary.fixes = { branch: fixState.branch, base_commit: fixState.base_commit.slice(0, 7), verified: by("verified"), best_effort: by("best-effort"), reverted: by("reverted"), deferred: by("deferred"), commits: fixState.attempts.filter((a) => a.commit && (a.status === "verified" || a.status === "best-effort")).map((a) => a.commit as string).map((c) => c.slice(0, 7)), suite: fixState.comparison?.verdict ?? "not-run" };
+  }
   writeJson(path.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
   // Re-render both reports so they carry the final duration, stop reason and memory updates (what changed uses the saved result).
   writeReports(marker.run_dir, marker.store);

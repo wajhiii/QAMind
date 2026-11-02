@@ -1,0 +1,480 @@
+diff --git a/src/api.mjs b/src/api.mjs
+index 11c5d16..eec5297 100644
+--- a/src/api.mjs
++++ b/src/api.mjs
+@@ -11,7 +11,6 @@ const STATUS_TRANSITIONS = {
+   delivered: [],
+   cancelled: [],
+ };
+-const ORDER_CACHE_TTL_MS = 10 * 60 * 1000;
+ const RESET_TOKEN_TTL_MS = 30 * 60 * 1000;
+ const MAX_ORDER_LINES = 50;
+ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+@@ -48,7 +47,7 @@ function authenticate(ctx, req) {
+   const token = bearerToken(req);
+   if (!token) return null;
+   const session = ctx.store.sessions.get(token);
+-  if (!session) return null;
++  if (!session || session.endedAt || session.expiresAt <= Date.now()) return null;
+   const user = ctx.store.users.find((candidate) => candidate.id === session.userId);
+   return user ? { user, token } : null;
+ }
+@@ -66,13 +65,7 @@ function publicUser(store, user) {
+ }
+ 
+ function listClientOrders(store, clientId) {
+-  const hit = store.orderCache.get(clientId);
+-  if (hit && Date.now() - hit.at < ORDER_CACHE_TTL_MS) {
+-    return hit.rows;
+-  }
+-  const rows = store.orders.filter((order) => order.client_id === clientId).map((order) => ({ ...order }));
+-  store.orderCache.set(clientId, { at: Date.now(), rows });
+-  return rows;
++  return store.orders.filter((order) => order.client_id === clientId);
+ }
+ 
+ function paginate(rows, page, pageSize) {
+@@ -95,7 +88,7 @@ function parseListQuery(url) {
+     throw validationError([{ field: 'page', message: 'page must be an integer of at least 1' }]);
+   }
+   const pageSize = Number(params.get('page_size') ?? 20);
+-  if (!Number.isInteger(pageSize) || pageSize > 100) {
++  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+     throw validationError([{ field: 'page_size', message: 'page_size must be an integer between 1 and 100' }]);
+   }
+   const status = params.get('status');
+@@ -126,6 +119,8 @@ function validateOrderInput(body, store) {
+   const items = [];
+   if (!Array.isArray(input.items)) {
+     details.push({ field: 'items', message: 'items must be an array' });
++  } else if (input.items.length < 1) {
++    details.push({ field: 'items', message: 'items must contain at least one line' });
+   } else if (input.items.length > MAX_ORDER_LINES) {
+     details.push({ field: 'items', message: `items must contain at most ${MAX_ORDER_LINES} lines` });
+   } else {
+@@ -142,6 +137,10 @@ function validateOrderInput(body, store) {
+         details.push({ field: `items[${index}].quantity`, message: 'quantity is required and must be a number' });
+         return;
+       }
++      if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 1000) {
++        details.push({ field: `items[${index}].quantity`, message: 'quantity must be a whole number from 1 to 1000' });
++        return;
++      }
+       items.push({ product_id: line.product_id, quantity: line.quantity });
+     });
+   }
+@@ -257,8 +256,10 @@ function listOrders({ ctx, user, url }) {
+     rows = rows.filter((order) => order.status === status);
+   }
+   if (q) {
+-    const matcher = new RegExp(q, 'i');
+-    rows = rows.filter((order) => matcher.test(order.reference) || matcher.test(order.note ?? ''));
++    const needle = q.toLowerCase();
++    rows = rows.filter(
++      (order) => order.reference.toLowerCase().includes(needle) || (order.note ?? '').toLowerCase().includes(needle),
++    );
+   }
+   rows = [...rows].sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id));
+   return { status: 200, body: paginate(rows, page, pageSize) };
+@@ -271,9 +272,9 @@ async function createOrder({ ctx, user, body }) {
+   return { status: 201, body: order, headers: { Location: `/api/orders/${order.id}` } };
+ }
+ 
+-function getOrder({ ctx, params }) {
++function getOrder({ ctx, params, user }) {
+   const order = ctx.store.orders.find((candidate) => candidate.id === params.id);
+-  if (!order) {
++  if (!order || (user.role !== 'admin' && order.client_id !== user.client_id)) {
+     throw new HttpError(404, 'not_found', 'Order not found');
+   }
+   return { status: 200, body: order };
+@@ -358,7 +359,7 @@ const ROUTES = [
+   route('POST', '/api/orders', { roles: ['client'] }, createOrder),
+   route('GET', '/api/orders/{id}', {}, getOrder),
+   route('PATCH', '/api/admin/orders/{id}/status', { roles: ['admin'] }, updateOrderStatus),
+-  route('GET', '/api/admin/customers', {}, listCustomers),
++  route('GET', '/api/admin/customers', { roles: ['admin'] }, listCustomers),
+   route('GET', '/api/admin/reports/sales', { roles: ['admin'] }, salesReport),
+ ];
+ 
+diff --git a/src/http.mjs b/src/http.mjs
+index bfd6a17..0218afc 100644
+--- a/src/http.mjs
++++ b/src/http.mjs
+@@ -51,7 +51,7 @@ export async function readJsonBody(req) {
+   }
+   try {
+     return JSON.parse(raw);
+-  } catch (err) {
+-    throw new HttpError(400, 'invalid_json', err.message, { trace: err.stack });
++  } catch {
++    throw new HttpError(400, 'invalid_json', 'Request body is not valid JSON');
+   }
+ }
+diff --git a/src/pricing.mjs b/src/pricing.mjs
+index 6dd7348..0d1902e 100644
+--- a/src/pricing.mjs
++++ b/src/pricing.mjs
+@@ -15,7 +15,7 @@ export function priceOrder(lines, productsById) {
+   });
+   const subtotal = items.reduce((sum, item) => sum + item.line_total_cents, 0);
+   const discount = subtotal >= DISCOUNT_THRESHOLD_CENTS ? Math.round(subtotal * DISCOUNT_RATE) : 0;
+-  const tax = Math.round(subtotal * TAX_RATE);
++  const tax = Math.round((subtotal - discount) * TAX_RATE);
+   return {
+     items,
+     subtotal_cents: subtotal,
+diff --git a/test/regression-customers-admin-only.test.mjs b/test/regression-customers-admin-only.test.mjs
+new file mode 100644
+index 0000000..76e6fb4
+--- /dev/null
++++ b/test/regression-customers-admin-only.test.mjs
+@@ -0,0 +1,24 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('customers list is admin only', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('refuses every client user and anonymous callers', async () => {
++    for (const account of ['acme1', 'acme2', 'bright1', 'zain1']) {
++      const res = await t.call('GET', '/api/admin/customers', { token: await t.login(account) });
++      assert.equal(res.status, 403, `${account} must be refused`);
++      assert.equal(res.json.items, undefined);
++    }
++    assert.equal((await t.call('GET', '/api/admin/customers')).status, 401);
++  });
++
++  it('still lists customers for an admin', async () => {
++    const res = await t.call('GET', '/api/admin/customers', { token: await t.login('admin') });
++    assert.equal(res.status, 200);
++    assert.ok(res.json.items.length > 0);
++  });
++});
+diff --git a/test/regression-fresh-status.test.mjs b/test/regression-fresh-status.test.mjs
+new file mode 100644
+index 0000000..77a31d1
+--- /dev/null
++++ b/test/regression-fresh-status.test.mjs
+@@ -0,0 +1,36 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('client order list shows an admin\'s status change at once', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('re-reads the status after warming the list', async () => {
++    const client = await t.login('bright1');
++    const admin = await t.login('admin');
++    const created = await t.call('POST', '/api/orders', {
++      token: client,
++      body: { reference: 'QA-fresh', items: [{ product_id: 'p-101', quantity: 1 }] },
++    });
++    const id = created.json.id;
++    const warm = await t.call('GET', '/api/orders?q=QA-fresh', { token: client });
++    assert.equal(warm.json.items[0].status, 'placed');
++
++    const change = await t.call('PATCH', `/api/admin/orders/${id}/status`, { token: admin, body: { status: 'processing' } });
++    assert.equal(change.status, 200);
++
++    const list = await t.call('GET', '/api/orders?q=QA-fresh', { token: client });
++    assert.equal(list.json.items[0].status, 'processing');
++    const filtered = await t.call('GET', '/api/orders?status=processing&q=QA-fresh', { token: client });
++    assert.equal(filtered.json.total, 1);
++    const detail = await t.call('GET', `/api/orders/${id}`, { token: client });
++    assert.equal(detail.json.status, 'processing');
++  });
++
++  it('still limits the list to the caller\'s company', async () => {
++    const res = await t.call('GET', '/api/orders?page_size=100', { token: await t.login('acme1') });
++    assert.ok(res.json.items.every((order) => order.client_id === 'c-acme'));
++  });
++});
+diff --git a/test/regression-no-stack-leak.test.mjs b/test/regression-no-stack-leak.test.mjs
+new file mode 100644
+index 0000000..fc94079
+--- /dev/null
++++ b/test/regression-no-stack-leak.test.mjs
+@@ -0,0 +1,32 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('malformed JSON errors reveal no internals', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  function assertClean(res) {
++    assert.equal(res.status, 400);
++    assert.equal(res.json.error.code, 'invalid_json');
++    assert.equal(typeof res.json.error.message, 'string');
++    assert.equal(res.json.error.trace, undefined);
++    assert.equal(res.json.error.stack, undefined);
++    assert.doesNotMatch(res.text, /\n\s+at |\.mjs|node:internal|\/Users\/|\/var\/|\/home\//);
++  }
++
++  it('login with a broken body returns a short message', async () => {
++    assertClean(await t.call('POST', '/api/auth/login', { body: '{not json', raw: true }));
++  });
++
++  it('placing an order with a broken body returns a short message', async () => {
++    const token = await t.login('acme1');
++    assertClean(await t.call('POST', '/api/orders', { token, body: '{"reference": ', raw: true }));
++  });
++
++  it('a valid body is still read normally', async () => {
++    const res = await t.call('POST', '/api/auth/login', { body: { email: 'nobody@acme.test', password: 'x' } });
++    assert.equal(res.status, 401);
++  });
++});
+diff --git a/test/regression-order-isolation.test.mjs b/test/regression-order-isolation.test.mjs
+new file mode 100644
+index 0000000..37fedcb
+--- /dev/null
++++ b/test/regression-order-isolation.test.mjs
+@@ -0,0 +1,25 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('order access by id (company isolation)', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('hides another company\'s order from a client', async () => {
++    const acme = await t.call('GET', '/api/orders/o-1001', { token: await t.login('acme1') });
++    assert.equal(acme.status, 200);
++    const bright = await t.call('GET', '/api/orders/o-1001', { token: await t.login('bright1') });
++    assert.equal(bright.status, 404);
++    const zain = await t.call('GET', '/api/orders/o-1001', { token: await t.login('zain1') });
++    assert.equal(zain.status, 404);
++  });
++
++  it('still lets colleagues of the same company and admins open the order', async () => {
++    const colleague = await t.call('GET', '/api/orders/o-1001', { token: await t.login('acme2') });
++    assert.equal(colleague.status, 200);
++    const admin = await t.call('GET', '/api/orders/o-1001', { token: await t.login('admin') });
++    assert.equal(admin.status, 200);
++  });
++});
+diff --git a/test/regression-order-quantity.test.mjs b/test/regression-order-quantity.test.mjs
+new file mode 100644
+index 0000000..eb375a4
+--- /dev/null
++++ b/test/regression-order-quantity.test.mjs
+@@ -0,0 +1,42 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('order quantity and item rules', () => {
++  let t;
++  let token;
++  before(async () => {
++    t = await startTestApp();
++    token = await t.login('acme1');
++  });
++  after(() => t.close());
++
++  const order = (items) => t.call('POST', '/api/orders', { token, body: { reference: 'QA-qty', items } });
++
++  it('refuses quantities that are negative, zero, too large or fractional', async () => {
++    for (const quantity of [-3, 0, 1001, 1.5]) {
++      const res = await order([{ product_id: 'p-101', quantity }]);
++      assert.equal(res.status, 400, `quantity ${quantity} must be refused`);
++      assert.equal(res.json.error.details[0].field, 'items[0].quantity');
++    }
++  });
++
++  it('refuses an order with no items', async () => {
++    const res = await order([]);
++    assert.equal(res.status, 400);
++    assert.equal(res.json.error.details[0].field, 'items');
++  });
++
++  it('refuses a bad line even when other lines are fine, and stores nothing', async () => {
++    const before = (await t.call('GET', '/api/orders?page_size=100', { token })).json.total;
++    const res = await order([{ product_id: 'p-101', quantity: 2 }, { product_id: 'p-102', quantity: -1 }]);
++    assert.equal(res.status, 400);
++    const after = (await t.call('GET', '/api/orders?page_size=100', { token })).json.total;
++    assert.equal(after, before);
++  });
++
++  it('accepts the smallest and largest allowed quantities', async () => {
++    assert.equal((await order([{ product_id: 'p-101', quantity: 1 }])).status, 201);
++    assert.equal((await order([{ product_id: 'p-104', quantity: 1000 }])).status, 201);
++  });
++});
+diff --git a/test/regression-order-search.test.mjs b/test/regression-order-search.test.mjs
+new file mode 100644
+index 0000000..7f62773
+--- /dev/null
++++ b/test/regression-order-search.test.mjs
+@@ -0,0 +1,40 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('order search treats the text literally', () => {
++  let t;
++  let token;
++  before(async () => {
++    t = await startTestApp();
++    token = await t.login('acme1');
++    const res = await t.call('POST', '/api/orders', {
++      token,
++      body: { reference: 'QA-(a)[b]\\c.d', items: [{ product_id: 'p-101', quantity: 1 }] },
++    });
++    assert.equal(res.status, 201);
++  });
++  after(() => t.close());
++
++  it('does not fail on regular-expression characters', async () => {
++    for (const q of ['(', ')', '[', '\\', '*', '+', '?']) {
++      const res = await t.call('GET', `/api/orders?q=${encodeURIComponent(q)}`, { token });
++      assert.equal(res.status, 200, `q=${q} must not fail`);
++    }
++  });
++
++  it('finds an order whose reference contains those characters', async () => {
++    const res = await t.call('GET', `/api/orders?q=${encodeURIComponent('(a)[b]\\c.d')}`, { token });
++    assert.equal(res.status, 200);
++    assert.equal(res.json.total, 1);
++  });
++
++  it('does not treat a dot as a wildcard, and stays case-insensitive', async () => {
++    const wildcard = await t.call('GET', `/api/orders?q=${encodeURIComponent('c.d')}`, { token });
++    assert.equal(wildcard.json.total, 1);
++    const noMatch = await t.call('GET', `/api/orders?q=${encodeURIComponent('c-d')}`, { token });
++    assert.equal(noMatch.json.total, 0);
++    const upper = await t.call('GET', '/api/orders?q=PO-44', { token });
++    assert.ok(upper.json.total >= 1);
++  });
++});
+diff --git a/test/regression-page-size.test.mjs b/test/regression-page-size.test.mjs
+new file mode 100644
+index 0000000..de3044a
+--- /dev/null
++++ b/test/regression-page-size.test.mjs
+@@ -0,0 +1,28 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('page_size must be 1 to 100', () => {
++  let t;
++  let token;
++  before(async () => {
++    t = await startTestApp();
++    token = await t.login('acme1');
++  });
++  after(() => t.close());
++
++  it('refuses 0 and negative page sizes with a 400', async () => {
++    for (const size of ['0', '-1', '1.5']) {
++      const res = await t.call('GET', `/api/orders?page_size=${size}`, { token });
++      assert.equal(res.status, 400, `page_size=${size}`);
++      assert.equal(res.json.error.details[0].field, 'page_size');
++    }
++  });
++
++  it('accepts the smallest and largest page sizes', async () => {
++    const one = await t.call('GET', '/api/orders?page_size=1', { token });
++    assert.equal(one.status, 200);
++    assert.equal(one.json.items.length, 1);
++    assert.equal((await t.call('GET', '/api/orders?page_size=100', { token })).status, 200);
++  });
++});
+diff --git a/test/regression-session-end.test.mjs b/test/regression-session-end.test.mjs
+new file mode 100644
+index 0000000..4d0fdd1
+--- /dev/null
++++ b/test/regression-session-end.test.mjs
+@@ -0,0 +1,31 @@
++import assert from 'node:assert/strict';
++import { describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('sessions end at sign-out and at expiry', () => {
++  it('rejects the same token everywhere once the user has signed out', async () => {
++    const t = await startTestApp();
++    try {
++      const token = await t.login('zain1');
++      assert.equal((await t.call('GET', '/api/me', { token })).status, 200);
++      assert.equal((await t.call('POST', '/api/auth/logout', { token })).status, 204);
++      assert.equal((await t.call('GET', '/api/me', { token })).status, 401);
++      assert.equal((await t.call('GET', '/api/orders', { token })).status, 401);
++      assert.equal((await t.call('POST', '/api/auth/logout', { token })).status, 401);
++      const fresh = await t.login('zain1');
++      assert.equal((await t.call('GET', '/api/me', { token: fresh })).status, 200);
++    } finally {
++      await t.close();
++    }
++  });
++
++  it('rejects a token whose session has expired', async () => {
++    const t = await startTestApp({ sessionTtlSeconds: -1 });
++    try {
++      const token = await t.login('acme1');
++      assert.equal((await t.call('GET', '/api/me', { token })).status, 401);
++    } finally {
++      await t.close();
++    }
++  });
++});
+diff --git a/test/regression-tax-after-discount.test.mjs b/test/regression-tax-after-discount.test.mjs
+new file mode 100644
+index 0000000..2379cc9
+--- /dev/null
++++ b/test/regression-tax-after-discount.test.mjs
+@@ -0,0 +1,42 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('tax is applied to the discounted subtotal', () => {
++  let t;
++  let token;
++  before(async () => {
++    t = await startTestApp();
++    token = await t.login('acme1');
++  });
++  after(() => t.close());
++
++  async function place(items) {
++    const res = await t.call('POST', '/api/orders', { token, body: { reference: 'QA-tax', items } });
++    assert.equal(res.status, 201);
++    return res.json;
++  }
++
++  it('charges 10% tax on the discounted subtotal at exactly 1000.00', async () => {
++    const order = await place([{ product_id: 'p-102', quantity: 80 }]);
++    assert.equal(order.subtotal_cents, 100000);
++    assert.equal(order.discount_cents, 5000);
++    assert.equal(order.tax_cents, 9500);
++    assert.equal(order.total_cents, 104500);
++  });
++
++  it('rounds correctly above the threshold', async () => {
++    const order = await place([{ product_id: 'p-107', quantity: 12 }]);
++    assert.equal(order.subtotal_cents, 107988);
++    assert.equal(order.discount_cents, 5399);
++    assert.equal(order.tax_cents, 10259);
++    assert.equal(order.total_cents, 112848);
++  });
++
++  it('keeps tax on the full subtotal below the threshold', async () => {
++    const order = await place([{ product_id: 'p-102', quantity: 79 }]);
++    assert.equal(order.discount_cents, 0);
++    assert.equal(order.tax_cents, 9875);
++    assert.equal(order.total_cents, 108625);
++  });
++});

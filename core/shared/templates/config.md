@@ -61,9 +61,16 @@ roles:
     username_env: QA_CLIENT_B_USERNAME
     password_env: QA_CLIENT_B_PASSWORD
 
-# Which problem levels /qa (fix mode) may fix. Minor problems are always only reported.
+# What /qa (fix mode) may do. Minor problems are always only reported. Everything except fix_severities is optional.
 fix_policy:
   fix_severities: [critical, important]
+  # max_fixes: 30                 # hard cap on fixes in one run
+  # test_command: npm test        # the whole test suite (default: detected from your package scripts or build files)
+  # test_file_command: "npx jest {file}"   # one test file; {file} is where the path goes (default: the standard command for your test runner)
+  # test_timeout_s: 300           # seconds one test command may run before it is stopped
+  # Files a fix must never edit. Credentials, CI and deployment files, lock files, dependency manifests, generated code and migrations are
+  # always off limits; add your own here (globs relative to the project, e.g. "src/billing/**").
+  do_not_touch: []
 
 # Extra addresses (beyond each web UI and the API) that must respond before testing starts, e.g. "/healthz".
 health:

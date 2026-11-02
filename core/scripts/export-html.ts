@@ -66,6 +66,10 @@ export function renderAdminHtml(m: AdminModel, title: string, opts: HtmlOptions 
     H.push(`<dt>Status</dt><dd>${esc(p.status)}</dd>`, `<dt>Ticket</dt><dd>${p.ticket && /^https?:\/\//.test(p.ticket) ? `<a href="${esc(p.ticket)}">open the ticket</a>` : "none yet"}</dd>`);
     H.push(`<dt>For developers</dt><dd>${esc(p.id)} in ${esc(TECHNICAL_FILE)}</dd>`, "</dl>", "</article>");
   }
+  if (m.fixes) {
+    H.push("<h2>What was fixed</h2>", `<ul>${m.fixes.lines.map((l) => `<li>${esc(l)}</li>`).join("")}</ul>`, `<p>${esc(m.fixes.branchLine)}</p>`);
+    if (m.fixes.warning) H.push(`<p><strong>${esc(m.fixes.warning)}</strong></p>`);
+  }
   H.push("<h2>What changed since the last check</h2>", `<ul>${m.changes.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`);
   H.push("<h2>Compared with the last check</h2>", `<ul>${m.trend.map((t) => `<li>${esc(t)}</li>`).join("")}</ul>`);
   H.push("<h2>What was not tested</h2>", m.notTested.length ? `<ul>${m.notTested.map((n) => `<li><strong>${esc(n.area)}</strong>: ${esc(n.reason)}</li>`).join("")}</ul>` : "<p>Everything planned was checked.</p>");

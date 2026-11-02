@@ -13,7 +13,7 @@ import { MEMORY_SCHEMA, MemoryTooNewError, memoryPaths } from "./store.ts";
  *
  * Format 1 is the first format, so there are no migrations yet; the framework is tested with synthetic ones.
  */
-export type MemoryFileKind = "product-map" | "risk-areas" | "stack" | "run-summary" | "learnings" | "false-alarms";
+export type MemoryFileKind = "product-map" | "risk-areas" | "stack" | "run-summary" | "learnings" | "false-alarms" | "fix-log";
 
 export interface Migration {
   /** Stable id, recorded in the log. */
@@ -50,6 +50,7 @@ function memoryFiles(store: string): FileRef[] {
     { kind: "stack", file: p.stack, jsonl: false },
     { kind: "learnings", file: p.learnings, jsonl: true },
     { kind: "false-alarms", file: p.falseAlarms, jsonl: true },
+    { kind: "fix-log", file: p.fixLog, jsonl: true },
   ];
   if (fs.existsSync(p.runs)) for (const f of fs.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path.join(p.runs, f), jsonl: false });
   return refs.filter((r) => fs.existsSync(r.file));

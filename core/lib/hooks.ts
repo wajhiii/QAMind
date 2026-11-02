@@ -1,4 +1,5 @@
 import path from "node:path";
+import { compileRules, protectedReason, relativeToRoot } from "./fix/protect.ts";
 import { findActiveMarkers } from "./run.ts";
 import type { RunMarker } from "./run.ts";
 
@@ -65,7 +66,7 @@ export function decidePreToolUse(input: PreToolUseInput, home: string, tmpDirs: 
     if (/^\s*(printenv|env|export\s+-p|set)\s*(\||$)/.test(cmd)) return { decision: "deny", reason: "Dumping the environment could print test credentials, so it is blocked during a QAMind run." };
   }
 
-  if (!marker.readonly) return null;
+  if (!marker.readonly) return marker.kind === "qa" ? decideFixRun(marker, tool, ti, abs, home, tmpDirs) : null;
 
   const roots = allowedWriteRoots(marker, home, tmpDirs);
   const writable = (p: string) => roots.some((r) => inside(abs(p), r));
@@ -86,6 +87,63 @@ export function decidePreToolUse(input: PreToolUseInput, home: string, tmpDirs: 
       const raw = (m[1] ?? "").replace(/^["']|["']$/g, "");
       if (!raw || raw === "/dev/null" || raw.startsWith("&") || raw === "/dev/stderr" || raw === "/dev/stdout") continue;
       if (!writable(raw)) return { decision: "deny", reason: `${reportOnly}: it writes to ${raw}, outside .qa/ and the QAMind user store.` };
+    }
+  }
+  return null;
+}
+
+// ---- fix runs (`/qa`): edits are allowed inside the project, but never to protected files, and git/dependency changes go through the fix tools ----
+
+/** Every git command that changes anything. Reading (status, diff, log, show, blame, ls-files, rev-parse) stays allowed. */
+const GIT_WRITE = /\bgit\s+(?:(?:-[A-Za-z]\s+\S+|--[a-z-]+(?:=\S+)?)\s+)*(add|commit|push|pull|fetch|merge|rebase|reset|checkout|switch|restore|stash|cherry-pick|revert|rm|mv|clean|tag|apply|am|worktree|remote|config|submodule|filter-branch|gc|prune|reflog|update-ref|init|clone|bisect)\b/;
+const GIT_BRANCH_WRITE = /\bgit\s+branch\s+(?!(?:--list|-a|-r|-v|-vv|--show-current|--contains|--merged|--no-merged)\b)\S/;
+const GIT_HOST_CLI = /(^|[;&|\s])gh\s+\S/;
+const FILE_COMMANDS = new Set(["rm", "mv", "cp", "tee", "truncate", "ln", "install", "dd", "chmod", "chown"]);
+
+/** The words of each simple command in a line, without quotes: enough to see which files rm, mv, cp and tee were given. */
+function commandWords(cmd: string): string[][] {
+  return cmd
+    .split(/&&|\|\||;|\||\n/)
+    .map((seg) => [...seg.matchAll(/"([^"]*)"|'([^']*)'|(\S+)/g)].map((m) => m[1] ?? m[2] ?? m[3] ?? ""))
+    .filter((w) => w.length > 0);
+}
+
+function decideFixRun(marker: RunMarker, tool: string, ti: Record<string, unknown>, abs: (p: string) => string, home: string, tmpDirs: string[]): Decision | null {
+  const rules = compileRules(marker.fix?.do_not_touch ?? []);
+  const outsideOk = [home, ...tmpDirs];
+  const why = (target: string): string | undefined => {
+    const p = abs(target);
+    const rel = relativeToRoot(marker.project_root, p);
+    if (rel === undefined) return outsideOk.some((r) => inside(p, r)) ? undefined : `${target} is outside the project: a fix may change files only inside ${marker.project_root}.`;
+    return protectedReason(rel, rules);
+  };
+  const fixOnly = "This is a fix run (/qa): git and dependency changes are made by the fix tools (fix_create_branch, fix_commit, fix_revert), which enforce the rules";
+
+  if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
+    const target = String(ti["file_path"] ?? ti["notebook_path"] ?? "");
+    const problem = target ? why(target) : undefined;
+    if (problem) return { decision: "deny", reason: `${problem} A fix must not touch it. If the finding really lives there, leave it in the report for a person to decide.` };
+  }
+  if (tool === "Bash") {
+    const cmd = String(ti["command"] ?? "");
+    const unquoted = stripQuoted(cmd);
+    if (GIT_WRITE.test(unquoted) || GIT_BRANCH_WRITE.test(unquoted)) return { decision: "deny", reason: `${fixOnly}; this command would change git state or its settings. QAMind never pushes, merges, resets or opens a pull request.` };
+    if (GIT_HOST_CLI.test(unquoted)) return { decision: "deny", reason: "QAMind never talks to the git host (no pull requests, releases or API calls from a fix run)." };
+    if (INSTALLS.test(cmd)) return { decision: "deny", reason: "A fix run does not change dependencies (installs, updates and removals are blocked)." };
+    if (IN_PLACE_EDIT.test(cmd)) return { decision: "deny", reason: "Edit files with the Edit tool, not in place from the shell: the safety checks look at the file paths the edit tools are given." };
+    for (const m of [...unquoted.matchAll(REDIRECT), ...unquoted.matchAll(AMP_REDIRECT)]) {
+      const raw = (m[1] ?? "").replace(/^["']|["']$/g, "");
+      if (!raw || raw === "/dev/null" || raw.startsWith("&") || raw === "/dev/stderr" || raw === "/dev/stdout") continue;
+      const problem = why(raw);
+      if (problem) return { decision: "deny", reason: `This command writes to ${raw}: ${problem}` };
+    }
+    for (const words of commandWords(cmd)) {
+      if (!FILE_COMMANDS.has(path.basename(words[0] ?? ""))) continue;
+      for (const w of words.slice(1)) {
+        if (!w || w.startsWith("-") || /^[\d.]+$/.test(w) || /^[ugoa]*[+=-][rwxX]+$/.test(w)) continue;
+        const problem = why(w);
+        if (problem) return { decision: "deny", reason: `\`${words[0]}\` would change ${w}: ${problem}` };
+      }
     }
   }
   return null;

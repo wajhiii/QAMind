@@ -1,0 +1,390 @@
+diff --git a/src/api.mjs b/src/api.mjs
+index 11c5d16..e6c6368 100644
+--- a/src/api.mjs
++++ b/src/api.mjs
+@@ -48,7 +48,7 @@ function authenticate(ctx, req) {
+   const token = bearerToken(req);
+   if (!token) return null;
+   const session = ctx.store.sessions.get(token);
+-  if (!session) return null;
++  if (!session || session.endedAt) return null;
+   const user = ctx.store.users.find((candidate) => candidate.id === session.userId);
+   return user ? { user, token } : null;
+ }
+@@ -95,7 +95,7 @@ function parseListQuery(url) {
+     throw validationError([{ field: 'page', message: 'page must be an integer of at least 1' }]);
+   }
+   const pageSize = Number(params.get('page_size') ?? 20);
+-  if (!Number.isInteger(pageSize) || pageSize > 100) {
++  if (!Number.isInteger(pageSize) || pageSize < 1 || pageSize > 100) {
+     throw validationError([{ field: 'page_size', message: 'page_size must be an integer between 1 and 100' }]);
+   }
+   const status = params.get('status');
+@@ -126,6 +126,8 @@ function validateOrderInput(body, store) {
+   const items = [];
+   if (!Array.isArray(input.items)) {
+     details.push({ field: 'items', message: 'items must be an array' });
++  } else if (input.items.length < 1) {
++    details.push({ field: 'items', message: 'items must contain at least 1 line' });
+   } else if (input.items.length > MAX_ORDER_LINES) {
+     details.push({ field: 'items', message: `items must contain at most ${MAX_ORDER_LINES} lines` });
+   } else {
+@@ -138,8 +140,8 @@ function validateOrderInput(body, store) {
+         details.push({ field: `items[${index}].product_id`, message: 'product_id must be the id of an existing product' });
+         return;
+       }
+-      if (typeof line.quantity !== 'number') {
+-        details.push({ field: `items[${index}].quantity`, message: 'quantity is required and must be a number' });
++      if (!Number.isInteger(line.quantity) || line.quantity < 1 || line.quantity > 1000) {
++        details.push({ field: `items[${index}].quantity`, message: 'quantity is required and must be a whole number from 1 to 1000' });
+         return;
+       }
+       items.push({ product_id: line.product_id, quantity: line.quantity });
+@@ -257,8 +259,10 @@ function listOrders({ ctx, user, url }) {
+     rows = rows.filter((order) => order.status === status);
+   }
+   if (q) {
+-    const matcher = new RegExp(q, 'i');
+-    rows = rows.filter((order) => matcher.test(order.reference) || matcher.test(order.note ?? ''));
++    const needle = q.toLowerCase();
++    rows = rows.filter(
++      (order) => order.reference.toLowerCase().includes(needle) || (order.note ?? '').toLowerCase().includes(needle),
++    );
+   }
+   rows = [...rows].sort((a, b) => b.created_at.localeCompare(a.created_at) || b.id.localeCompare(a.id));
+   return { status: 200, body: paginate(rows, page, pageSize) };
+@@ -271,9 +275,9 @@ async function createOrder({ ctx, user, body }) {
+   return { status: 201, body: order, headers: { Location: `/api/orders/${order.id}` } };
+ }
+ 
+-function getOrder({ ctx, params }) {
++function getOrder({ ctx, user, params }) {
+   const order = ctx.store.orders.find((candidate) => candidate.id === params.id);
+-  if (!order) {
++  if (!order || (user.role !== 'admin' && order.client_id !== user.client_id)) {
+     throw new HttpError(404, 'not_found', 'Order not found');
+   }
+   return { status: 200, body: order };
+@@ -292,6 +296,7 @@ function updateOrderStatus({ ctx, params, body }) {
+     throw new HttpError(409, 'invalid_transition', `An order that is ${order.status} cannot be changed to ${status}`);
+   }
+   order.status = status;
++  ctx.store.orderCache.delete(order.client_id);
+   return { status: 200, body: order };
+ }
+ 
+@@ -358,7 +363,7 @@ const ROUTES = [
+   route('POST', '/api/orders', { roles: ['client'] }, createOrder),
+   route('GET', '/api/orders/{id}', {}, getOrder),
+   route('PATCH', '/api/admin/orders/{id}/status', { roles: ['admin'] }, updateOrderStatus),
+-  route('GET', '/api/admin/customers', {}, listCustomers),
++  route('GET', '/api/admin/customers', { roles: ['admin'] }, listCustomers),
+   route('GET', '/api/admin/reports/sales', { roles: ['admin'] }, salesReport),
+ ];
+ 
+diff --git a/src/pricing.mjs b/src/pricing.mjs
+index 6dd7348..0d1902e 100644
+--- a/src/pricing.mjs
++++ b/src/pricing.mjs
+@@ -15,7 +15,7 @@ export function priceOrder(lines, productsById) {
+   });
+   const subtotal = items.reduce((sum, item) => sum + item.line_total_cents, 0);
+   const discount = subtotal >= DISCOUNT_THRESHOLD_CENTS ? Math.round(subtotal * DISCOUNT_RATE) : 0;
+-  const tax = Math.round(subtotal * TAX_RATE);
++  const tax = Math.round((subtotal - discount) * TAX_RATE);
+   return {
+     items,
+     subtotal_cents: subtotal,
+diff --git a/test/qa-issue-001-pricing.test.mjs b/test/qa-issue-001-pricing.test.mjs
+new file mode 100644
+index 0000000..199b365
+--- /dev/null
++++ b/test/qa-issue-001-pricing.test.mjs
+@@ -0,0 +1,39 @@
++import assert from 'node:assert/strict';
++import { describe, it } from 'node:test';
++import { priceOrder } from '../src/pricing.mjs';
++import { startTestApp } from './helpers.mjs';
++
++const products = new Map([['p-102', { id: 'p-102', name: 'Pens', price_cents: 1250 }]]);
++
++describe('QA ISSUE-001: tax is applied to the discounted subtotal', () => {
++  it('taxes 950.00 for a 1,000.00 order (total 1,045.00)', () => {
++    const priced = priceOrder([{ product_id: 'p-102', quantity: 80 }], products);
++    assert.equal(priced.subtotal_cents, 100000);
++    assert.equal(priced.discount_cents, 5000);
++    assert.equal(priced.tax_cents, 9500);
++    assert.equal(priced.total_cents, 104500);
++  });
++
++  it('returns the corrected total from POST /api/orders', async () => {
++    const t = await startTestApp();
++    try {
++      const res = await t.call('POST', '/api/orders', {
++        token: await t.login('acme1'),
++        body: { reference: 'QA-thresh', items: [{ product_id: 'p-102', quantity: 80 }] },
++      });
++      assert.equal(res.status, 201);
++      assert.equal(res.json.discount_cents, 5000);
++      assert.equal(res.json.tax_cents, 9500);
++      assert.equal(res.json.total_cents, 104500);
++    } finally {
++      await t.close();
++    }
++  });
++
++  it('keeps tax on the full subtotal below the threshold', () => {
++    const priced = priceOrder([{ product_id: 'p-102', quantity: 79 }], products);
++    assert.equal(priced.discount_cents, 0);
++    assert.equal(priced.tax_cents, 9875);
++    assert.equal(priced.total_cents, 108625);
++  });
++});
+diff --git a/test/qa-issue-002-quantity.test.mjs b/test/qa-issue-002-quantity.test.mjs
+new file mode 100644
+index 0000000..7e45dea
+--- /dev/null
++++ b/test/qa-issue-002-quantity.test.mjs
+@@ -0,0 +1,33 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('QA ISSUE-002: order input rules are enforced', () => {
++  let t;
++  let token;
++  before(async () => {
++    t = await startTestApp();
++    token = await t.login('acme1');
++  });
++  after(() => t.close());
++
++  const place = (items) => t.call('POST', '/api/orders', { token, body: { reference: 'QA-qty', items } });
++
++  for (const quantity of [-3, 0, 1001, 1.5]) {
++    it(`refuses quantity ${quantity}`, async () => {
++      const res = await place([{ product_id: 'p-101', quantity }]);
++      assert.equal(res.status, 400);
++      assert.equal(res.json.error.code ?? res.json.code, 'validation_error');
++    });
++  }
++
++  it('refuses an order with no items', async () => {
++    const res = await place([]);
++    assert.equal(res.status, 400);
++  });
++
++  it('accepts the boundary quantities 1 and 1000', async () => {
++    assert.equal((await place([{ product_id: 'p-101', quantity: 1 }])).status, 201);
++    assert.equal((await place([{ product_id: 'p-101', quantity: 1000 }])).status, 201);
++  });
++});
+diff --git a/test/qa-issue-003-order-isolation.test.mjs b/test/qa-issue-003-order-isolation.test.mjs
+new file mode 100644
+index 0000000..f80dfc5
+--- /dev/null
++++ b/test/qa-issue-003-order-isolation.test.mjs
+@@ -0,0 +1,30 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('QA ISSUE-003: order detail is limited to the caller\'s company', () => {
++  let t;
++  let orderId;
++  before(async () => {
++    t = await startTestApp();
++    const created = await t.call('POST', '/api/orders', {
++      token: await t.login('acme1'),
++      body: { reference: 'QA-iso', items: [{ product_id: 'p-101', quantity: 1 }] },
++    });
++    orderId = created.json.id;
++  });
++  after(() => t.close());
++
++  it('hides another company\'s order from a client', async () => {
++    const res = await t.call('GET', `/api/orders/${orderId}`, { token: await t.login('bright1') });
++    assert.equal(res.status, 404);
++  });
++
++  it('still shows the order to the same company, a colleague and an admin', async () => {
++    for (const account of ['acme1', 'acme2', 'admin']) {
++      const res = await t.call('GET', `/api/orders/${orderId}`, { token: await t.login(account) });
++      assert.equal(res.status, 200, account);
++      assert.equal(res.json.id, orderId);
++    }
++  });
++});
+diff --git a/test/qa-issue-004-customers-access.test.mjs b/test/qa-issue-004-customers-access.test.mjs
+new file mode 100644
+index 0000000..f9eb59e
+--- /dev/null
++++ b/test/qa-issue-004-customers-access.test.mjs
+@@ -0,0 +1,20 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('QA ISSUE-004: the customer list is admin-only', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('refuses a client with 403', async () => {
++    const res = await t.call('GET', '/api/admin/customers', { token: await t.login('acme1') });
++    assert.equal(res.status, 403);
++  });
++
++  it('still lists customers for an admin', async () => {
++    const res = await t.call('GET', '/api/admin/customers', { token: await t.login('admin') });
++    assert.equal(res.status, 200);
++    assert.ok(res.json.items.length > 0);
++  });
++});
+diff --git a/test/qa-issue-005-logout.test.mjs b/test/qa-issue-005-logout.test.mjs
+new file mode 100644
+index 0000000..e933fa3
+--- /dev/null
++++ b/test/qa-issue-005-logout.test.mjs
+@@ -0,0 +1,24 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('QA ISSUE-005: signing out ends the session', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('rejects the token after logout', async () => {
++    const token = await t.login('bright1');
++    assert.equal((await t.call('GET', '/api/me', { token })).status, 200);
++    assert.equal((await t.call('POST', '/api/auth/logout', { token })).status, 204);
++    assert.equal((await t.call('GET', '/api/me', { token })).status, 401);
++    assert.equal((await t.call('GET', '/api/orders', { token })).status, 401);
++  });
++
++  it('does not end other sessions of the same user', async () => {
++    const first = await t.login('acme1');
++    const second = await t.login('acme1');
++    await t.call('POST', '/api/auth/logout', { token: first });
++    assert.equal((await t.call('GET', '/api/me', { token: second })).status, 200);
++  });
++});
+diff --git a/test/qa-issue-006-status-cache.test.mjs b/test/qa-issue-006-status-cache.test.mjs
+new file mode 100644
+index 0000000..903a30d
+--- /dev/null
++++ b/test/qa-issue-006-status-cache.test.mjs
+@@ -0,0 +1,37 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('QA ISSUE-006: a client sees a status change after an admin makes it', () => {
++  let t;
++  before(async () => { t = await startTestApp(); });
++  after(() => t.close());
++
++  it('shows the new status in the client list and detail after the list was already loaded', async () => {
++    const acme1 = await t.login('acme1');
++    const acme2 = await t.login('acme2');
++    const admin = await t.login('admin');
++    const created = await t.call('POST', '/api/orders', {
++      token: acme1,
++      body: { reference: 'QA-stale', items: [{ product_id: 'p-101', quantity: 1 }] },
++    });
++    const id = created.json.id;
++
++    const before = await t.call('GET', '/api/orders?q=QA-stale', { token: acme2 });
++    assert.equal(before.json.items[0].status, 'placed');
++
++    const patch = await t.call('PATCH', `/api/admin/orders/${id}/status`, { token: admin, body: { status: 'processing' } });
++    assert.equal(patch.status, 200);
++
++    const after = await t.call('GET', '/api/orders?q=QA-stale', { token: acme2 });
++    assert.equal(after.json.items[0].status, 'processing');
++    const detail = await t.call('GET', `/api/orders/${id}`, { token: acme2 });
++    assert.equal(detail.json.status, 'processing');
++  });
++
++  it('leaves another company\'s list unaffected', async () => {
++    const res = await t.call('GET', '/api/orders', { token: await t.login('bright1') });
++    assert.equal(res.status, 200);
++    assert.ok(res.json.items.every((order) => order.client_id === 'c-bright'));
++  });
++});
+diff --git a/test/qa-issue-007-search.test.mjs b/test/qa-issue-007-search.test.mjs
+new file mode 100644
+index 0000000..b694fde
+--- /dev/null
++++ b/test/qa-issue-007-search.test.mjs
+@@ -0,0 +1,35 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('QA ISSUE-007: order search treats the text literally', () => {
++  let t;
++  let admin;
++  before(async () => {
++    t = await startTestApp();
++    admin = await t.login('admin');
++    await t.call('POST', '/api/orders', {
++      token: await t.login('acme1'),
++      body: { reference: 'QA-search (A*B)', items: [{ product_id: 'p-101', quantity: 1 }] },
++    });
++  });
++  after(() => t.close());
++
++  for (const q of ['(', '*', '[', '\\']) {
++    it(`does not fail for q=${q}`, async () => {
++      const res = await t.call('GET', `/api/orders?q=${encodeURIComponent(q)}`, { token: admin });
++      assert.equal(res.status, 200);
++    });
++  }
++
++  it('finds an order by its literal punctuation, ignoring case', async () => {
++    const res = await t.call('GET', `/api/orders?q=${encodeURIComponent('qa-search (a*b)')}`, { token: admin });
++    assert.equal(res.status, 200);
++    assert.equal(res.json.total, 1);
++  });
++
++  it('does not treat . as a wildcard', async () => {
++    const res = await t.call('GET', `/api/orders?q=${encodeURIComponent('QA.search')}`, { token: admin });
++    assert.equal(res.json.total, 0);
++  });
++});
+diff --git a/test/qa-issue-008-page-size.test.mjs b/test/qa-issue-008-page-size.test.mjs
+new file mode 100644
+index 0000000..69b561d
+--- /dev/null
++++ b/test/qa-issue-008-page-size.test.mjs
+@@ -0,0 +1,27 @@
++import assert from 'node:assert/strict';
++import { after, before, describe, it } from 'node:test';
++import { startTestApp } from './helpers.mjs';
++
++describe('QA ISSUE-008: page_size must be from 1 to 100', () => {
++  let t;
++  let token;
++  before(async () => {
++    t = await startTestApp();
++    token = await t.login('acme1');
++  });
++  after(() => t.close());
++
++  for (const size of ['0', '-5', '101', '1.5']) {
++    it(`refuses page_size=${size} with 400`, async () => {
++      const res = await t.call('GET', `/api/orders?page_size=${size}`, { token });
++      assert.equal(res.status, 400);
++    });
++  }
++
++  it('accepts the boundaries 1 and 100', async () => {
++    const one = await t.call('GET', '/api/orders?page_size=1', { token });
++    assert.equal(one.status, 200);
++    assert.equal(one.json.items.length, 1);
++    assert.equal((await t.call('GET', '/api/orders?page_size=100', { token })).status, 200);
++  });
++});

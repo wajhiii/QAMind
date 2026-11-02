@@ -35,3 +35,14 @@ export const QA_MEMORY_TOOLS = [
 ] as const;
 
 export type QaMemoryToolName = (typeof QA_MEMORY_TOOLS)[number];
+
+/**
+ * The fix loop's tools (Phase 6), served by the same server. Only a /qa run started by a person may use them.
+ * `FIX_CONSENT_TOOLS` need the user's go-ahead (a branch on their repository, continuing after a stop), so a host that pre-approves tools
+ * should leave them out and let the user decide when it asks.
+ */
+export const QA_FIX_TOOLS = ["fix_preflight", "fix_create_branch", "fix_begin", "fix_run_tests", "fix_commit", "fix_revert", "fix_defer", "fix_run_suite", "fix_continue", "fix_status"] as const;
+export const FIX_CONSENT_TOOLS = ["fix_create_branch", "fix_continue"] as const;
+export type QaFixToolName = (typeof QA_FIX_TOOLS)[number];
+
+export const ALL_QA_TOOLS: readonly string[] = [...QA_MEMORY_TOOLS, ...QA_FIX_TOOLS];

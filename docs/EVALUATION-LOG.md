@@ -314,3 +314,57 @@ Claude Code loads MCP tools on demand, so every run now starts with one extra `T
 
 ### Platforms
 Everything above ran on macOS (Claude Code 2.1.312, Node 24.2.0). **Linux and Windows were not run by me.** The CI workflow runs the suite on Linux and macOS (I cannot see its results from here), and a Windows job for the memory and server tests was added in this phase and has not run.
+
+
+## Phase 6: fix mode (`/qa`), the fix test of spec section 14
+
+The spec's test: run `/qa` on a copy of the demo app and check that every fix has a failing-then-passing regression test and that the existing suite still passes. `scripts/eval-fix.ts` runs it headlessly on a temporary copy (a feature branch,
+a clean tree, the fixture config plus a do-not-touch list, the 44-test demo suite as the baseline), answers the stop rules as the owner would in the same conversation, and then **checks everything from git and the files, not from the agent's word**:
+
+- every commit is `fix(qa): ISSUE-NNN ...` with a `QAMind-Run` trailer, a test file, and a production change (at most five files);
+- **each commit's tests are re-run in clean checkouts of its parent (they must fail) and of the commit (they must pass)**;
+- the whole suite at the end; no protected or do-not-touch file in the diff; the default branch unmoved; no remote; git settings unchanged; a clean tree;
+- no fixture password in any commit, the memory store, the run folder or the saved trace; both reports lint clean and consistent, the branch line present, the baseline reports kept, the fix log matching the fix record;
+- which seeded bugs are gone (`demo-app/eval/check-seeded-bugs.mjs`, copied in only after the run: the agent never sees it).
+
+Six sequences, files `docs/baselines/phase-6-fix-r<n>.*` (record, call trace, the fixes as a patch, the git log, both reports). Claude Code 2.1.312, `claude-sonnet-5-5`, mode `full`.
+
+| Build | Sequences | Permissions |
+|---|---|---|
+| A: the first complete build | 1, 2, 3 | the harness's allow list (the bare server entry) |
+| B: the final build, `plugin_content_sha256` 428ca00cf5dc (uncommitted when run) | 4 | the same |
+| B | 5, 6 | **only what the skill's own `allowed-tools` pre-approves**, as a real user gets it |
+
+| Seq | Build | Cost, time | Browser calls | Fixes | Suite (baseline 44) | Seeded bugs gone | Production lines changed | Checks |
+|---|---|---|---|---|---|---|---|---|
+| 1 | A | $2.71, 6.0 min | **0** | 9 verified | 68 pass | 7 | 28 | all pass |
+| 2 | A | $4.96, 10.7 min | 53 | 9 verified, 4 deferred | 67 pass | 8 | 37 | all pass |
+| 3 | A | $6.55, 12.6 min | 93 | 9 verified, 2 deferred | 81 pass | 8 | 29 | all pass |
+| 4 | B | $3.13, 6.5 min | 26 | 8 verified | 72 pass | 7 | 25 | all pass |
+| 5 | B, skill permissions | $2.46, 5.0 min | 18 | 5 best-effort, then waiting | 59 pass | 5 | 16 | all that apply pass |
+| 6 | B, skill permissions | $3.80, 6.7 min | 44 | 5 best-effort, then waiting | 62 pass | 5 | 16 | all that apply pass |
+
+### What the independent checks found
+- **All 45 fix commits** (9+9+9+8+5+5) have a regression test that fails on the parent commit and passes on the fix commit, re-proved in clean checkouts. Every commit is a `fix(qa): ISSUE-NNN` commit with a test and a production change; none touched more than one production file.
+- The suite passed at the end of every sequence, with the tests the agent added (15 to 37 new tests); nothing was pushed, no remote exists, git settings and the default branch were unchanged, the tree was clean, no protected file or do-not-touch file changed, and no fixture password reached a commit, the store, the run folder or the trace.
+- **The agent never tried a git write from its shell** (checked in all six traces) and made no edit the hook refused. The one hook denial (sequence 4) was a shell redirect to `/tmp/...`, outside the project: the hook said so, and the agent wrote the file inside the run folder instead.
+- The fixes are minimal and read as correct: one-line changes at the root cause (`>` to `>=` on the discount, tax on the discounted subtotal, an ownership check on order detail, a role restriction on the customer list, a regex escape on search, an integer range on the quantity), and the tests pin exact wrong values and also check that the happy path still works (for example a colleague and an admin can still read the order). I read sequence 1's production diff in full and two of its tests; for the other sequences the checks above are mechanical.
+- **Deferrals were right every time**: a duplicate-order finding ("no rule says whether two identical orders are duplicates; refusing or merging them is a product decision"), minor findings (below the policy), and in sequence 3 a phone-width layout defect ("the project only has node:test API tests and no browser runner, so a regression test that fails without the fix cannot be written without adding a framework"), which is the spec's own rule.
+
+### The consent gate, tested for real (sequences 5 and 6)
+Run on only the skill's own permissions, the agent finished five fixes, paused as the stop rule requires and asked the user. When the harness (as the owner) said "go on", the agent called `fix_continue`, **the host refused it** (it is deliberately not pre-approved), and the agent did what it should:
+it said it could not continue, did not look for a way round, and asked the user to approve the call. The run is left waiting (its run marker stays active; `run_start` would say `busy`). So a headless run cannot fix past the first stop rule or on the default branch, which matches "ask me".
+All ten fixes in these two sequences were classified **best-effort**, each with the same honest reason: the demo server on port 4100 still ran the old code, the agent could not restart it under headless auto-deny, so it re-checked against an in-process copy and wrote down what a person must do (restart the server, place the 80 x 12.50 order, and confirm the total is 1,045.00). In an interactive session the agent would be asked to approve a restart and could verify.
+(Sequence 5's record lists two "problems" about stale reports and a missing branch line: those are the unfinished run, which the harness then wrongly counted as a failure. The harness now records them as waiting for the user; sequence 6 is the corrected run.)
+
+### What the evaluation found in the product, and what was done
+- **The first runs' admin report gave stale next steps.** "Have a developer fix the access and sign-out problems first" stayed in the report after those problems were fixed, because the agent wrote `admin.json` at baseline and nothing refreshed it (sequences 1 to 3). Now an `admin.json` older than the last fix is ignored (computed text is used), lint says so, and the skill tells the agent to rewrite it after the fixes. **Verified in sequence 4:** it rewrote it, and the steps read "review and merge the fix branch, then restart the system".
+- **Sequence 1 did no browser testing in a `full` run** ("Browser flows were not run in this pass"), which the workflow forbids as a reason. It was honest in the report, but it left the web UIs untested. Sequences 2 and 3 tested the browser (53 and 93 calls), so it was not systematic, but it happened. `fix_preflight` now refuses to start fixing in a `full` or `quick` run until every web UI with a test login has a tested or partly tested area, unless the user agreed to API-only fixing (`api_only`). Unit-tested; **not triggered in any real run since** (sequences 4 to 6 tested the browser), so its effect on the agent is not demonstrated.
+- A test fixture exposed that a nested `node --test` inherits Node's test-runner marker and exits 0 whatever happened; test commands now run without it.
+
+### What this does not show
+- **The real agent never used the revert path, the unrelated-file stop, the more-than-five-files stop, the cap, the dirty-tree or the default-branch refusal.** They are covered by unit tests against a real git repository (31 tests in `tests/core/fix-loop.test.ts`), not by a real-agent run. The five-fix pause and `fix_continue` were exercised for real (every sequence).
+- One product, one model, six runs; the demo app is small and its bugs are seeded, and the fixes were found by testing the API and reading its source. The tests are only as good as the project's own test command.
+- A run in which a fix must touch the UI (no browser-test setup) ends in a deferral, not a fix.
+- Nothing was run on Linux or Windows.
+- A single timing-based API test failed once under load during development and never again in five reruns; it is not related to this phase.

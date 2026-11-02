@@ -4,7 +4,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { QA_MEMORY_TOOLS } from "../../core/mcp/servers.ts";
+import { ALL_QA_TOOLS } from "../../core/mcp/servers.ts";
 import { makeConfiguredProject, repoRoot, tmp } from "./helpers.ts";
 
 // The server as a host runs it: a separate process speaking MCP over stdio. Checked from source and from the built plugin bundle,
@@ -42,23 +42,29 @@ for (const target of targets) {
     const client = new Client({ name: "test", version: "0" });
     await client.connect(transport);
     const pid = transport.pid as number;
+    try {
+      assert.equal(client.getServerVersion()?.name, "qa-memory");
+      assert.deepEqual((await client.listTools()).tools.map((t) => t.name).sort(), [...ALL_QA_TOOLS].sort());
 
-    assert.equal(client.getServerVersion()?.name, "qa-memory");
-    assert.deepEqual((await client.listTools()).tools.map((t) => t.name).sort(), [...QA_MEMORY_TOOLS].sort());
+      const ctx = await client.callTool({ name: "memory_get_context", arguments: {} });
+      const body = JSON.parse((ctx.content as Array<{ text: string }>)[0]?.text ?? "{}");
+      assert.equal(body.project.root, fs.realpathSync(proj), "the project comes from the host's project folder");
 
-    const ctx = await client.callTool({ name: "memory_get_context", arguments: {} });
-    const body = JSON.parse((ctx.content as Array<{ text: string }>)[0]?.text ?? "{}");
-    assert.equal(body.project.root, fs.realpathSync(proj), "the project comes from the host's project folder");
+      const start = await client.callTool({ name: "run_start", arguments: { mode: "quick", session: "sess-stdio", host: "test" } });
+      const started = JSON.parse((start.content as Array<{ text: string }>)[0]?.text ?? "{}");
+      assert.equal(started.status, "ready", JSON.stringify(started).slice(0, 300));
+      assert.ok(started.run.id && fs.existsSync(started.run.dir));
 
-    const start = await client.callTool({ name: "run_start", arguments: { mode: "quick", session: "sess-stdio", host: "test" } });
-    const started = JSON.parse((start.content as Array<{ text: string }>)[0]?.text ?? "{}");
-    assert.equal(started.status, "ready", JSON.stringify(started).slice(0, 300));
-    assert.ok(started.run.id && fs.existsSync(started.run.dir));
+      const bad = await client.callTool({ name: "memory_save_learning", arguments: { run: started.run.id, type: "test-tip", area: "x", text: "no" } });
+      assert.equal(bad.isError, true);
 
-    const bad = await client.callTool({ name: "memory_save_learning", arguments: { run: started.run.id, type: "test-tip", area: "x", text: "no" } });
-    assert.equal(bad.isError, true);
-
-    await client.close();
+      // a fix tool in a report-only run refuses, with a message that says why
+      const fix = await client.callTool({ name: "fix_preflight", arguments: { run: started.run.id } });
+      assert.equal(fix.isError, true);
+      assert.match((fix.content as Array<{ text: string }>)[0]?.text ?? "", /report-only/);
+    } finally {
+      await client.close(); // a failed assertion must not leave the server (and this test) running
+    }
     for (let i = 0; i < 60 && alive(pid); i++) await new Promise((r) => setTimeout(r, 50));
     assert.equal(alive(pid), false, "the server exits when the host closes the connection");
     assert.deepEqual(protocolErrors.map((e) => e.message), [], "stdout carried only protocol messages");

@@ -1,0 +1,80 @@
+dc6981a fix(qa): ISSUE-008 refuse order list page_size below 1
+Root cause: parseListQuery only rejected page_size above 100, so 0 caused a crash in paginate and negatives were accepted.
+Regression test: test/qa-issue-008-page-size.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original probes in-process as Acme: page_size=0 and page_size=-5 now return 400 (previously 500 and 200).
+Adjacent check: page_size=1 returns one item and page_size=100 returns 200; 101 and 1.5 still return 400.
+
+QAMind-Run: run-20261102T070403Z
+QAMind-Issue: ISSUE-008
+QAMind-Classification: verified
+---
+a8a5938 fix(qa): ISSUE-007 order search matches text literally instead of as a regex
+Root cause: listOrders compiled the user's search text with new RegExp, so invalid patterns threw and returned 500.
+Regression test: test/qa-issue-007-search.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original probes in-process as admin: q=(, q=*, q=[ and q=\ now return 200 (previously 500).
+Adjacent check: Searching the exact reference "qa-search (a*b)" in lower case finds the one matching order, and "QA.search" matches nothing.
+
+QAMind-Run: run-20261102T070403Z
+QAMind-Issue: ISSUE-007
+QAMind-Classification: verified
+---
+d0d577a fix(qa): ISSUE-006 clear the client order cache on status change
+Root cause: updateOrderStatus changed the order but never invalidated the company's cached order list (10 minute cache).
+Regression test: test/qa-issue-006-status-cache.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original steps in-process: Acme2 list loaded (placed), admin PATCH to processing (200), Acme2 list and order detail now show processing (previously placed).
+Adjacent check: Bright's order list still loads with 200 and only Bright's orders.
+
+QAMind-Run: run-20261102T070403Z
+QAMind-Issue: ISSUE-006
+QAMind-Classification: verified
+---
+9ebf43e fix(qa): ISSUE-005 reject a session token after sign-out
+Root cause: logout only marked session.endedAt and authenticate never checked it, so the signed-out token kept working.
+Regression test: test/qa-issue-005-logout.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original steps in-process: login as Bright, logout 204, then GET /api/me and GET /api/orders with the same token both return 401 (previously 200).
+Adjacent check: A second sign-in of the same user (a different token) still works after the first is signed out.
+
+QAMind-Run: run-20261102T070403Z
+QAMind-Issue: ISSUE-005
+QAMind-Classification: verified
+---
+eec7bb6 fix(qa): ISSUE-004 restrict the customer list to admins
+Root cause: The customers route was registered without the admin role restriction that the other admin routes have.
+Regression test: test/qa-issue-004-customers-access.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original probe in-process: Acme client GET /api/admin/customers now returns 403 (previously 200 with the list).
+Adjacent check: The admin account still gets 200 with a non-empty customers list.
+
+QAMind-Run: run-20261102T070403Z
+QAMind-Issue: ISSUE-004
+QAMind-Classification: verified
+---
+96c85d6 fix(qa): ISSUE-003 hide other companies' orders from clients
+Root cause: getOrder looked up any order by id and never compared the order's client_id with the caller's company.
+Regression test: test/qa-issue-003-order-isolation.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original steps in-process: Acme places an order, Bright GETs it by id and now gets 404 (previously 200 with the order).
+Adjacent check: The same order is still returned with 200 to the Acme user, a second Acme user and the admin.
+
+QAMind-Run: run-20261102T070403Z
+QAMind-Issue: ISSUE-003
+QAMind-Classification: verified
+---
+57b2676 fix(qa): ISSUE-002 refuse invalid quantities and empty orders
+Root cause: validateOrderInput only checked that quantity was a number and never required a non-empty items list.
+Regression test: test/qa-issue-002-quantity.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original probes in-process as Acme: quantity -3, 0, 1001, 1.5 and items [] each return 400 validation_error (previously 201).
+Adjacent check: Quantities 1 and 1000 (the boundaries) are still accepted with 201.
+
+QAMind-Run: run-20261102T070403Z
+QAMind-Issue: ISSUE-002
+QAMind-Classification: verified
+---
+63cd747 fix(qa): ISSUE-001 tax is applied to the discounted subtotal
+Root cause: priceOrder computed tax as 10% of the undiscounted subtotal instead of subtotal minus discount.
+Regression test: test/qa-issue-001-pricing.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original probe in-process (POST /api/orders, 80 x p-102 as Acme): 201, discount 5000, tax 9500, total 104500 (was 10000 and 105000).
+Adjacent check: Order just below the threshold (79 x p-102) still has no discount, tax 9875 and total 108625.
+
+QAMind-Run: run-20261102T070403Z
+QAMind-Issue: ISSUE-001
+QAMind-Classification: verified
+---

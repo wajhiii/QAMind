@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { claudeMcpConfig, memoryToolName } from "../../hosts/claude/adapter.ts";
-import { MCP_SERVERS, QA_MEMORY_TOOLS } from "../../core/mcp/servers.ts";
+import { ALL_QA_TOOLS, FIX_CONSENT_TOOLS, MCP_SERVERS, QA_FIX_TOOLS, QA_MEMORY_TOOLS } from "../../core/mcp/servers.ts";
 import { repoRoot } from "./helpers.ts";
 
 // Spec Phase 5: "skills use only the tools for memory". These checks keep it true: the instructions the agent reads never tell it to run
@@ -33,11 +33,11 @@ test("no instruction tells the agent to run a memory or run-lifecycle command, o
 });
 
 test("every qa-memory tool the instructions name exists, and the skill names all of them", () => {
-  const known = new Set<string>(QA_MEMORY_TOOLS);
-  const notTools = new Set(["memory_applied", "memory_updated"]); // fields in the run's meta.json, not tools
+  const known = new Set<string>(ALL_QA_TOOLS);
+  const notTools = new Set(["memory_applied", "memory_updated", "fix_policy", "fix_severities"]); // fields in the run's meta.json and the config, not tools
   const unknown: string[] = [];
   for (const f of [...instructions, ...knowledge]) {
-    for (const m of read(f).matchAll(/\b((?:run|memory|lessons)_[a-z_]+)\b/g)) {
+    for (const m of read(f).matchAll(/\b((?:run|memory|lessons|fix)_[a-z_]+)\b/g)) {
       const name = m[1] as string;
       if (!known.has(name) && !notTools.has(name)) unknown.push(`${rel(f)}: ${name}`);
     }
@@ -75,4 +75,51 @@ test("registration is a function of the shared server list: another host gets th
   assert.equal(memoryToolName("run_start"), "mcp__plugin_qamind_qa-memory__run_start");
   const host = JSON.parse(read(path.join(repoRoot, "hosts", "claude", "host.json"))) as { mcp: { servers: string[] } };
   assert.deepEqual(host.mcp.servers, MCP_SERVERS.map((s) => s.name), "host.json documents the same servers");
+});
+
+// ------------------------------------------------------------------------------------------------ the /qa skill (Phase 6)
+
+const skillOf = (name: string) => read(path.join(repoRoot, "core", "skills", name, "SKILL.md"));
+const stepsOf = (text: string): Map<string, string> => new Map([...text.matchAll(/^## (Step \d+)[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/gm)].map((m) => [m[1] as string, (m[2] as string).trim()]));
+
+test("the /qa skill names every tool it may use, the guide covers the fix tools, and fix_* appears nowhere in the report-only skill", () => {
+  const qa = skillOf("qa");
+  for (const t of ALL_QA_TOOLS) assert.match(qa, new RegExp(`\`${t}\``), `/qa must name ${t}`);
+  assert.match(qa, /\{\{FIX_TOOLS_LOAD\}\}/);
+  assert.match(qa, /did not start and \*\*stop\*\*/);
+  const guide = read(path.join(repoRoot, "core", "shared", "fix-loop.md"));
+  for (const t of QA_FIX_TOOLS) assert.match(guide, new RegExp(`\`${t}\``), `fix-loop.md must explain ${t}`);
+  const only = skillOf("qa-only");
+  for (const t of QA_FIX_TOOLS) assert.ok(!only.includes(t), `the report-only skill must not mention ${t}`);
+  assert.match(qa, /kind: "qa"/);
+  assert.doesNotMatch(qa, /kind: "qa-only"|--kind qa-only/);
+});
+
+test("the steps shared with /qa-only are identical in both skills, so the two cannot drift apart", () => {
+  const a = stepsOf(skillOf("qa-only"));
+  const b = stepsOf(skillOf("qa"));
+  for (const step of ["Step 1", "Step 2", "Step 3", "Step 4"]) {
+    assert.ok(a.get(step), `qa-only has ${step}`);
+    assert.equal(b.get(step), a.get(step), `${step} must be the same text in both skills`);
+  }
+  assert.equal(b.get("Step 5"), a.get("Step 5"), "the baseline report is written exactly like the report-only report");
+  assert.ok(b.get("Step 6")?.includes("fix_preflight"), "Step 6 is the fix phase");
+});
+
+test("the rendered /qa skill pre-approves each tool by name, except the two that need the user's go-ahead, and tells the agent to load all of them", () => {
+  const rendered = read(path.join(repoRoot, "plugins", "qamind", "skills", "qa", "SKILL.md"));
+  const allowed = (/^allowed-tools:\s*"?([^\n]*?)"?$/m.exec(rendered)?.[1] ?? "").split(/\s+/);
+  for (const t of ALL_QA_TOOLS) {
+    const name = memoryToolName(t);
+    if ((FIX_CONSENT_TOOLS as readonly string[]).includes(t)) assert.ok(!allowed.includes(name), `${t} must NOT be pre-approved: the host has to ask the user`);
+    else assert.ok(allowed.includes(name), `${t} should be pre-approved`);
+  }
+  assert.ok(!allowed.includes("mcp__plugin_qamind_qa-memory"), "no bare server entry, which would approve the consent tools too");
+  assert.ok(allowed.includes("Write") && allowed.includes("Edit"), "a fix run edits project files (the hook guards the protected ones)");
+  assert.ok(!allowed.some((x) => /^Bash\(git (add|commit|push|checkout|reset)/.test(x)), "no writing git command is pre-approved");
+  assert.ok(rendered.includes(`select:${ALL_QA_TOOLS.map(memoryToolName).join(",")}`));
+  assert.ok(!/\{\{[A-Z_]+\}\}/.test(rendered), "no placeholder is left unrendered");
+  // the report-only skill is unchanged: still path-scoped writes and the bare server entry
+  const only = read(path.join(repoRoot, "plugins", "qamind", "skills", "qa-only", "SKILL.md"));
+  assert.match(only, /allowed-tools:.*Write\(\.qa\/\*\*\).*mcp__plugin_qamind_qa-memory"?$/m);
 });

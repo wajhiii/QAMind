@@ -5,6 +5,8 @@ import type { CompactFinding } from "../report.ts";
 import type { RunSummary } from "../run.ts";
 import type { StackInfo } from "../stack.ts";
 import { loadFalseAlarms } from "./falsealarms.ts";
+import { loadFixLog, recentFixes } from "./fixlog.ts";
+import type { FixLogEntry } from "./fixlog.ts";
 import type { FalseAlarm } from "./falsealarms.ts";
 import { LEARNING_TYPES, learningScore, loadLearnings } from "./learnings.ts";
 import type { Learning, LearningType } from "./learnings.ts";
@@ -28,6 +30,8 @@ export interface MemoryContext {
   /** The findings of the last finished run, for `regression` mode and for re-verifying. */
   previous_findings: { from_run?: string; findings: CompactFinding[] };
   product_map: { pages: number; endpoints: number; last_run?: string; uis: Record<string, string[]> };
+  /** Fixes `/qa` made in earlier runs (newest first): what was fixed, where, with which test, and what was reverted or deferred. */
+  fix_log: Array<Pick<FixLogEntry, "issue" | "severity" | "area" | "title" | "outcome" | "files" | "test_files" | "root_cause">>;
   warnings: string[];
 }
 
@@ -88,6 +92,7 @@ export function loadMemoryContext(store: string, limit = 3, now = new Date()): M
     false_alarms: alarms.alarms.slice(0, 30).map((a) => ({ id: a.id, area: a.area, symptom: a.symptom, reason: a.reason, source: a.source })),
     previous_findings: { ...(last ? { from_run: last.run_id } : {}), findings: (last?.findings ?? []).slice(0, 25) },
     product_map: { pages: pageCount(map), endpoints: map ? Object.keys(map.api.endpoints).length : 0, ...(map ? { last_run: map.last_run } : {}), uis },
-    warnings: [...learned.warnings, ...alarms.warnings],
+    fix_log: recentFixes(store),
+    warnings: [...learned.warnings, ...alarms.warnings, ...loadFixLog(store).warnings],
   };
 }

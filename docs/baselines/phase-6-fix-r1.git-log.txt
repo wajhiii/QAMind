@@ -1,0 +1,90 @@
+87f3506 fix(qa): ISSUE-009 refuse page_size below 1 on the order list
+Root cause: parseListQuery validated only the upper bound of page_size, so 0 crashed paginate and negative values were accepted.
+Regression test: test/order-page-size.test.mjs (fails without the fix, passes with it)
+Verification: Repeated GET /api/orders with page_size=0 and page_size=-5 in the in-process app: both now return 400 with field page_size (previously 500 and 200).
+Adjacent check: page_size=1 and page_size=100 (both ends of the valid range) still return 200 with the same page_size; existing orders tests pass (16/16).
+
+QAMind-Run: run-20261102T063111Z
+QAMind-Issue: ISSUE-009
+QAMind-Classification: verified
+---
+cda3f7f fix(qa): ISSUE-008 order search treats typed text literally
+Root cause: listOrders compiled the user's search text directly into a RegExp, so unbalanced special characters threw and surfaced as a 500.
+Regression test: test/order-search.test.mjs (fails without the fix, passes with it)
+Verification: Repeated GET /api/orders?q=( in the in-process app: now 200 instead of 500; q=(a+b) finds the order QA-(a+b), and q=QA-.* matches nothing, so it is no longer used as a pattern.
+Adjacent check: Plain case-insensitive search (q=bf-22) still returns the three or more seeded orders; existing orders tests pass (16/16).
+
+QAMind-Run: run-20261102T063111Z
+QAMind-Issue: ISSUE-008
+QAMind-Classification: verified
+---
+5284ceb fix(qa): ISSUE-007 order lists show the current status after changes
+Root cause: listClientOrders cached copies of a company's orders for 10 minutes and only new orders invalidated the cache, so admin status changes were never reflected.
+Regression test: test/order-freshness.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the warm, change, re-read chain in the in-process app: client list shows placed, admin PATCHes to processing, client re-reads the list and now sees processing (also for a colleague in the same company).
+Adjacent check: Company scoping and newly created orders in the list still work; existing orders and admin tests pass (31/31).
+
+QAMind-Run: run-20261102T063111Z
+QAMind-Issue: ISSUE-007
+QAMind-Classification: verified
+---
+e11e204 fix(qa): ISSUE-003 refuse orders with no items
+Root cause: validateOrderInput checked only that items was an array and its maximum length, never a minimum of one line.
+Regression test: test/order-empty.test.mjs (fails without the fix, passes with it)
+Verification: Repeated POST /api/orders with reference QA-empty and items [] in the in-process app: now 400 with field items, and no order is created.
+Adjacent check: An order with one valid item still returns 201; existing orders and quantity validation tests pass (22/22).
+
+QAMind-Run: run-20261102T063111Z
+QAMind-Issue: ISSUE-003
+QAMind-Classification: verified
+---
+dd4cf16 fix(qa): ISSUE-006 sign-out and expiry end the session
+Root cause: authenticate looked sessions up by token but never checked endedAt (set by logout) or expiresAt, so ended and expired sessions kept working.
+Regression test: test/logout-session.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original chain in the in-process app: sign in as zain1, POST /api/auth/logout (204), GET /api/me with the same token now returns 401 instead of 200.
+Adjacent check: A second user's session signed in at the same time still returns 200 on /api/me; existing auth and admin tests pass (27/27).
+
+QAMind-Run: run-20261102T063111Z
+QAMind-Issue: ISSUE-006
+QAMind-Classification: verified
+---
+f20f8d9 fix(qa): ISSUE-005 restrict the customer list to admins
+Root cause: The GET /api/admin/customers route was registered without the roles: ['admin'] option, so only authentication was enforced.
+Regression test: test/customers-access.test.mjs (fails without the fix, passes with it)
+Verification: Repeated GET /api/admin/customers as an Acme client in the in-process app: now 403 forbidden instead of 200 with the customer list.
+Adjacent check: The admin still gets 200 with customers; the existing admin endpoint tests pass (15/15).
+
+QAMind-Run: run-20261102T063111Z
+QAMind-Issue: ISSUE-005
+QAMind-Classification: verified
+---
+8ca5e9a fix(qa): ISSUE-004 hide other companies' orders from client users
+Root cause: getOrder looked an order up by id only and never compared its client_id with the caller's company.
+Regression test: test/order-isolation.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the chain in the in-process app: Acme creates an order, Bright GETs it and now receives 404 not_found instead of 200 with the order.
+Adjacent check: A second Acme user and an admin still get 200 for the same order; existing orders and admin tests pass (31/31).
+
+QAMind-Run: run-20261102T063111Z
+QAMind-Issue: ISSUE-004
+QAMind-Classification: verified
+---
+0208c78 fix(qa): ISSUE-002 refuse quantities that are not whole numbers 1 to 1000
+Root cause: validateOrderInput only checked that quantity was a number; there was no integer or 1-1000 range check.
+Regression test: test/order-validation.test.mjs (fails without the fix, passes with it)
+Verification: Repeated POST /api/orders with quantity -3, 0, 1.5 and 1001 against the in-process app: each returns 400 with field items[0].quantity and no order is created.
+Adjacent check: Quantities 1 and 1000 (both ends of the valid range) still return 201; the existing orders tests pass (16/16).
+
+QAMind-Run: run-20261102T063111Z
+QAMind-Issue: ISSUE-002
+QAMind-Classification: verified
+---
+edf5e70 fix(qa): ISSUE-001 tax is charged on the discounted subtotal
+Root cause: priceOrder computed tax as 10% of the undiscounted subtotal instead of subtotal minus discount.
+Regression test: test/pricing.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the 80 x 12.50 order against the code under test (priceOrder and the in-process HTTP app, since the already-running demo server was not restarted): subtotal 100000, discount 5000, tax 9500, total 104500.
+Adjacent check: Below-threshold order (79 x 12.50) still taxes the full subtotal: tax 9875, total 108625; existing orders and admin tests all pass (31/31).
+
+QAMind-Run: run-20261102T063111Z
+QAMind-Issue: ISSUE-001
+QAMind-Classification: verified
+---

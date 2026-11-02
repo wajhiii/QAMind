@@ -1,0 +1,90 @@
+071d549 fix(qa): ISSUE-009 stop returning stack traces for malformed JSON
+Root cause: readJsonBody attached err.stack as trace and used the parser's message, and sendError spreads that extra data into the response body.
+Regression test: test/regression-no-stack-leak.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the malformed-body requests (login with {not json, create order with a truncated body) against a freshly started app over real HTTP: both return 400 invalid_json with the message 'Request body is not valid JSON' and no trace, stack or file path (before: stack and paths).
+Adjacent check: A well-formed login body with unknown credentials still returns 401 invalid_credentials; empty and over-size body handling is untouched.
+
+QAMind-Run: run-20261102T063924Z
+QAMind-Issue: ISSUE-009
+QAMind-Classification: verified
+---
+2466016 fix(qa): ISSUE-008 show current order status in the client order list
+Root cause: listClientOrders served a 10-minute cache of copied order rows that was cleared only when an order was added, never when a status changed.
+Regression test: test/regression-fresh-status.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original sequence against a freshly started app over real HTTP: bright1 creates an order and warms the list (placed), admin sets processing, bright1's list, the status=processing filter and the order page all show processing (list showed placed before).
+Adjacent check: acme1's list still contains only Acme orders; a newly created order still appears in the creator's list at once (existing test passes); the list is sorted on a copy so live orders are not reordered.
+
+QAMind-Run: run-20261102T063924Z
+QAMind-Issue: ISSUE-008
+QAMind-Classification: verified
+---
+9580a8d fix(qa): ISSUE-007 refuse page_size below 1 with a 400
+Root cause: parseListQuery checked only the upper bound of page_size, so 0 crashed paginate and negative values passed through.
+Regression test: test/regression-page-size.test.mjs (fails without the fix, passes with it)
+Verification: Repeated GET /api/orders?page_size=0 and page_size=-1 against a freshly started app over real HTTP: both return 400 naming the page_size field (were 500 and 200).
+Adjacent check: page_size=1 returns one item and page_size=100 returns 200; existing page and page_size=101 tests still pass.
+
+QAMind-Run: run-20261102T063924Z
+QAMind-Issue: ISSUE-007
+QAMind-Classification: verified
+---
+5eff6bc fix(qa): ISSUE-006 search order text literally instead of as a pattern
+Root cause: listOrders built a RegExp from the user's search text, so unbalanced characters threw and became a 500.
+Regression test: test/regression-order-search.test.mjs (fails without the fix, passes with it)
+Verification: Repeated GET /api/orders?q=( and q=\ against a freshly started app over real HTTP: both return 200 (were 500), and an order with reference QA-(a)[b]\c.d is found by its literal text. Admin Portal search box not re-viewed (demo not restarted).
+Adjacent check: Case-insensitive search for PO-44 still finds orders, a dot is no longer a wildcard, and the existing bf-22 search test passes.
+
+QAMind-Run: run-20261102T063924Z
+QAMind-Issue: ISSUE-006
+QAMind-Classification: verified
+---
+be4a85b fix(qa): ISSUE-005 enforce quantity 1-1000 whole numbers and non-empty orders
+Root cause: validateOrderInput only checked that quantity was a number and had no minimum item count, so out-of-range, fractional and empty orders were priced and stored.
+Regression test: test/regression-order-quantity.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original orders against a freshly started app over real HTTP: quantity -3, 0, 1001, 1.5 and items [] now return 400 with a field-level message and store nothing (were 201). Running demo not restarted.
+Adjacent check: Quantity 1 and 1000 still return 201; an existing multi-line order and the pricing tests still pass.
+
+QAMind-Run: run-20261102T063924Z
+QAMind-Issue: ISSUE-005
+QAMind-Classification: verified
+---
+e405b59 fix(qa): ISSUE-004 reject signed-out and expired sessions
+Root cause: authenticate accepted any token still in the sessions map and ignored the endedAt mark set by logout and the expiresAt time.
+Regression test: test/regression-session-end.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original steps against a freshly started app over real HTTP: login as zain1, logout (204), then GET /api/me and GET /api/orders with the same token both return 401 (were 200). A session created with a negative lifetime also gets 401. Running demo not restarted.
+Adjacent check: A fresh login after sign-out returns 200 on /api/me; a normal not-yet-signed-out token still works; existing auth tests unchanged.
+
+QAMind-Run: run-20261102T063924Z
+QAMind-Issue: ISSUE-004
+QAMind-Classification: verified
+---
+eb323b1 fix(qa): ISSUE-003 apply tax to the discounted subtotal
+Root cause: priceOrder computed tax from the undiscounted subtotal instead of subtotal minus discount.
+Regression test: test/regression-tax-after-discount.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original orders against a freshly started app over real HTTP: 80 x p-102 now gives discount 5000, tax 9500, total 104500; 12 x p-107 gives tax 10259 and total 112848 (was 10799 / 113388). Running demo not restarted, so the portal confirmation was not re-viewed.
+Adjacent check: 79 x p-102 (below threshold, no discount) still gives tax 9875 and total 108625; the existing pricing tests are unchanged.
+
+QAMind-Run: run-20261102T063924Z
+QAMind-Issue: ISSUE-003
+QAMind-Classification: verified
+---
+24b7044 fix(qa): ISSUE-002 restrict the customers list to admins
+Root cause: The customers route was registered without roles, so the role check was skipped for every signed-in user.
+Regression test: test/regression-customers-admin-only.test.mjs (fails without the fix, passes with it)
+Verification: Repeated GET /api/admin/customers against a freshly started app over real HTTP: acme1, acme2, bright1 and zain1 get 403 with no items in the body, anonymous gets 401 (running demo not restarted).
+Adjacent check: Admin still gets 200 with a non-empty customers list; the Admin Portal Customers page uses this call with an admin sign-in.
+
+QAMind-Run: run-20261102T063924Z
+QAMind-Issue: ISSUE-002
+QAMind-Classification: verified
+---
+a0994a2 fix(qa): ISSUE-001 hide other companies' orders from client users
+Root cause: getOrder looked up the order by id only and never compared the order's company with the caller's company.
+Regression test: test/regression-order-isolation.test.mjs (fails without the fix, passes with it)
+Verification: Repeated the original steps against a freshly started copy of the app over real HTTP (the running demo was not restarted): acme1 reads o-1001 (200), bright1 and zain1 get 404 for the same id.
+Adjacent check: Same-company colleague (acme2) and admin still get 200 for o-1001; unknown id still returns 404 (existing test passes).
+
+QAMind-Run: run-20261102T063924Z
+QAMind-Issue: ISSUE-001
+QAMind-Classification: verified
+---

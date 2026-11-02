@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { MAX_NEXT_STEPS, MAX_SUMMARY_LINES, MISSING_PLAIN, lintAdminLanguage } from "../lib/adminreport.ts";
+import { MAX_NEXT_STEPS, MAX_SUMMARY_LINES, MISSING_PLAIN, STATUS_CONFIRM, STATUS_FIXED, STATUS_NOT_FIXED, branchLine, lintAdminLanguage } from "../lib/adminreport.ts";
 
 /**
  * The admin report must agree with the technical report (spec §11.3): same issue set, same severities, nothing added,
@@ -47,6 +47,15 @@ export function checkConsistency(runDir: string): ConsistencyResult {
   for (const m of findingsSection.matchAll(/^### (ISSUE-\d+) (🔴|🟠|🟡) (Critical|Important|Minor): /gm)) result.technical.push({ id: m[1] as string, severity: SEV_WORD[m[2] as string] as string });
   const techCounts = /🔴 Critical: \*\*(\d+)\*\*\s+🟠 Important: \*\*(\d+)\*\*\s+🟡 Minor: \*\*(\d+)\*\*/.exec(tech);
   const techNotTested = (section(`\n${tech}`, "Not tested").match(/^- \*\*/gm) ?? []).length;
+  // In a fix run each finding says what became of it ("Fix outcome"), and a "Fix run" section names the branch.
+  const outcomes = new Map<string, string>();
+  for (const block of findingsSection.split(/^### /m).slice(1)) {
+    const id = /^(ISSUE-\d+)/.exec(block)?.[1];
+    const o = /^- \*\*Fix outcome:\*\* (verified|best-effort|reverted|deferred|not attempted)/m.exec(block)?.[1];
+    if (id && o) outcomes.set(id, o);
+  }
+  const fixRun = section(`\n${tech}`, "Fix run");
+  const techBranch = /^- \*\*Branch:\*\* `([^`]+)`/m.exec(fixRun)?.[1];
 
   // ---- admin report: first line, summary, problems, sections ----
   const lines = admin.split("\n");
@@ -73,6 +82,10 @@ export function checkConsistency(runDir: string): ConsistencyResult {
     const [, id, anchor] = dev[0] as RegExpExecArray;
     if (id !== anchor) errors.push(`Problem "${title}": the For developers link text (${id}) and target (${anchor}) differ.`);
     result.admin.push({ id: id as string, severity: SEV_WORD[head[1] as string] as string });
+    const status = /^- \*\*Status:\*\* (.+)$/m.exec(b)?.[1]?.trim() ?? "";
+    const outcome = outcomes.get(id as string) ?? "not attempted";
+    const expected = outcome === "verified" ? STATUS_FIXED : outcome === "best-effort" ? STATUS_CONFIRM : STATUS_NOT_FIXED;
+    if (!(outcome === "verified" || outcome === "best-effort" ? status === expected : status.startsWith(expected))) errors.push(`${id} is "${outcome}" in the technical report but its status in the admin report is "${status}" (expected "${expected}").`);
     for (const label of ["Where", "What happens", "Who is affected", "How to see it yourself", "What should happen", "Screenshot", "Status", "Ticket"]) {
       if (!new RegExp(`^- \\*\\*${label}:\\*\\*`, "m").test(b)) errors.push(`Problem "${title}" is missing "${label}".`);
     }
@@ -101,10 +114,20 @@ export function checkConsistency(runDir: string): ConsistencyResult {
     for (const k of Object.keys(actual)) if (stated[k] !== actual[k]) errors.push(`The admin summary says ${stated[k]} ${k} but the technical report lists ${actual[k]}.`);
   } else errors.push("The admin summary has no problem-count line.");
 
-  // The verdict must not contradict the counts (default rules, spec §13.13).
-  if (first.startsWith("✅") && (actual["critical"] !== 0 || (actual["important"] ?? 0) > 2)) errors.push("The verdict says Ready, but there are critical problems or more than 2 important ones.");
-  if (first.startsWith("⛔") && actual["critical"] === 0 && !/environment/i.test(first)) errors.push("The verdict says Not ready but there are no critical problems and no environment problem.");
-  if (first.startsWith("⚠️") && actual["critical"] !== 0) errors.push("The verdict says Ready with risks, but there are critical problems.");
+  // The verdict must not contradict the counts (default rules, spec §13.13). Problems fixed and verified on the fix branch are not open.
+  const open = { critical: 0, important: 0, minor: 0 } as Record<string, number>;
+  for (const x of result.technical) if (outcomes.get(x.id) !== "verified") open[x.severity] = (open[x.severity] ?? 0) + 1;
+  if (first.startsWith("✅") && (open["critical"] !== 0 || (open["important"] ?? 0) > 2)) errors.push("The verdict says Ready, but there are critical problems or more than 2 important ones still open.");
+  if (first.startsWith("⛔") && open["critical"] === 0 && !/environment/i.test(first)) errors.push("The verdict says Not ready but there are no critical problems still open and no environment problem.");
+  if (first.startsWith("⚠️") && open["critical"] !== 0) errors.push("The verdict says Ready with risks, but there are critical problems still open.");
+
+  // ---- the fix run, when there is one: the branch line, the regression warning ----
+  if (fixRun) {
+    if (!techBranch) errors.push('The technical "Fix run" section has no branch line.');
+    else if (!admin.split("\n").some((l) => l.replace(/^>\s*-\s+|^-\s+/, "") === branchLine(techBranch))) errors.push(`In a fix run the admin report must say: "${branchLine(techBranch)}"`);
+    if (/REGRESSION after the fixes/.test(fixRun) && !/After the fixes, an automatic check that used to pass now fails/.test(admin)) errors.push("The technical report flags a regression after the fixes, but the admin report does not say so.");
+    if (!admin.includes("\n## What was fixed")) errors.push('The admin report has no "What was fixed" section in a fix run.');
+  } else if (/\n## What was fixed/.test(admin)) errors.push('The admin report has a "What was fixed" section, but the technical report has no "Fix run" section.');
 
   const adminNotTested = (section(`\n${admin}`, "What was not tested").match(/^- \*\*/gm) ?? []).length;
   if (techNotTested !== adminNotTested) errors.push(`The technical report lists ${techNotTested} not-tested areas but the admin report lists ${adminNotTested}.`);

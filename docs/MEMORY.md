@@ -1,4 +1,4 @@
-# Memory and state (Phases 1, 4 and 5)
+# Memory and state (Phases 1, 4, 5 and 6)
 
 All of this is **private to the user and the machine**: it lives in `$QAMIND_HOME` (default `~/.qamind`), never in the
 project's git, and is never uploaded. One store serves every host on the machine.
@@ -16,6 +16,7 @@ $QAMIND_HOME/
     │   ├── risk-areas.json           where problems have been found, with severity and date (Phase 4)
     │   ├── learnings.jsonl           short, confirmed lessons about this product (Phase 4)
     │   ├── false-alarms.jsonl        things reported once that were not bugs, so they are not reported again (Phase 4)
+    │   ├── fix-log.jsonl             every fix `/qa` attempted: outcome, files, test, root cause (Phase 6)
     │   ├── archive/                  learnings that lost confidence or fell out of the cap, kept for review
     │   └── runs/<run-id>.json        one summary per finished run
     ├── state/
@@ -67,6 +68,11 @@ A finding matches when at least 60% of the alarm's symptom words appear in the f
 three words). The lint treats a match as an **error** when the alarm came from the owner or the spec (unless the finding
 explains why it is different), and only as a **warning** when it came from the agent's own reproduction, because a
 reproduction can be wrong.
+
+### `fix-log.jsonl`
+`id (F-001…), run, issue, severity, area, title, outcome (verified | best-effort | reverted | deferred), branch, commit, files, test_files, root_cause, reason, at`. Written by the fix tools, never by hand: one entry for
+each fix attempted in a `/qa` run, including the ones that were reverted or deferred, so a later run knows what was fixed and where, and what did not work. Titles and root causes are screened like every saved text; one that would not pass is replaced by
+"[withheld: it contained sensitive data]", never saved. At most 300 entries stay; older ones go to `archive/`. `memory_get_context` shows the latest eight (`fix_log`), and `memory_list` with `what: "fix-log"` shows all of them.
 
 ### `risk-areas.json`
 Per area, the most recent events (`run, date, severity`). The score is `Σ weight × recency`, with weights 10 / 4 / 1 for
@@ -124,6 +130,7 @@ two cannot disagree. Every text field has a length limit and every list a count 
 | `memory_update_risk` | flag an area with no confirmed finding; once per run and area; stands down when a finding covers the area | note 200 |
 | `memory_update_product_map` | record pages (and endpoints without a spec); paths lose host, query and hash, ids collapse; returns what differs from the map | 100 pages, 500 endpoints per call; 300 pages, 1,000 endpoints per run |
 | `lessons_propose` | one generic lesson for the owner's pending list | text 20 to 280, reason 10 to 280 |
+| `fix_*` (10 tools) | the fix loop of `/qa`: preflight, branch, begin, run tests, commit with proof, revert, defer, final suite, continue, status | see [decision 0003](decisions/0003-fix-mode.md) |
 
 Redaction applies to every text that is saved: a refusal names the kind of data found and never repeats it. A page title that fails is dropped with a warning (the page is still recorded).
 
