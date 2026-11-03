@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { cmdBaseline, cmdBrowsers, cmdMail, cmdPerf, cmdSweep, cmdTicket } from "./coverage.ts";
+import { cmdEscaped, cmdMetrics } from "./metrics.ts";
 import { emit, num, opts, UsageError } from "./util.ts";
 import { AutoUsageError, autoCommand } from "../../core/auto-qa/commands.ts";
 import { approveAutoSkill, onPrompt, onStop, safely } from "../../core/auto-qa/gate.ts";
@@ -359,6 +360,9 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
   sweep run --run ID [--browsers chromium,webkit] [--viewports mobile] [--pages id,id]
                                visit the key pages in each browser and screen size: audit leads, load time, a screenshot compared with its baseline (data/sweep.json)
   perf check --run ID | perf api --run ID   time a few read-only calls to the endpoints in data/perf-endpoints.json against the budget and the recent runs (data/perf-api.json)
+  escaped add --area A --title T [--severity S] [--source manual|sentry|ticket|other] [--ref ID] [--note TEXT]   a bug that reached production: matched to what the runs said about its area, and the area's risk is raised (the owner's)
+  escaped list                 the bugs that escaped, and what the runs had said about each area
+  metrics [--project DIR]      how the agent is doing: the last runs, precision, escaped bugs, the trend once there are six runs
   ticket check --run ID | ticket status --run ID   ticket mode: check the criteria written to data/ticket.json (derived ones need the person's confirmation), then see which criteria have a result
   mail status | mail wait --run ID --to ADDRESS [--flow TEXT] [--kind transactional|notification|marketing|invitation] [--language ur] [--subject-contains T] [--timeout-s N]
                                read the email the product sent from the sandbox (mail.catcher) and check recipient, placeholders, links, unsubscribe, language; nothing is sent
@@ -772,6 +776,10 @@ export async function main(argv: string[]): Promise<number> {
         return await cmdPerf(sub, rest, home);
       case "ticket":
         return cmdTicket(sub, rest, home);
+      case "escaped":
+        return cmdEscaped(sub, rest, home);
+      case "metrics":
+        return cmdMetrics(sub ? [sub, ...rest] : rest, home);
       case "mail":
         return await cmdMail("email", sub, rest, home);
       case "sms":

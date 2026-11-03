@@ -8,7 +8,7 @@ export interface RiskEvent {
   date: string;
   severity: Severity;
   /** Where the event came from: a confirmed finding (the default, written at run finish) or an area the agent flagged mid-run. */
-  source?: "finding" | "agent" | "feedback";
+  source?: "finding" | "agent" | "feedback" | "escaped";
   /** Why the agent flagged the area (agent events only). Screened: no secrets or personal data. */
   note?: string;
 }
@@ -39,6 +39,8 @@ export interface ScoredArea {
 const WEIGHT: Record<Severity, number> = { critical: 10, important: 4, minor: 1 };
 const HALF_LIFE_DAYS = 90;
 const MAX_EVENTS = 30;
+/** A bug that reached production counts double: it is confirmed, where a finding is what a run reported. */
+export const ESCAPED_FACTOR = 2;
 export const MAX_AREAS = 200;
 
 export const areaKey = (area: string): string => area.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
@@ -108,6 +110,19 @@ export function flagRisk(store: string, runId: string, date: Date, input: FlagIn
   return { area: entry.area, events_for_run: entry.events.filter((e) => e.run === runId), replaced };
 }
 
+/** An area where a bug escaped to production raises its risk (spec 13.16). The event is kept under the escaped bug's own id, so a run's bookkeeping never replaces it. */
+export function recordEscapedRisk(store: string, escapedId: string, date: Date, input: { area: string; severity: Severity; surface?: string; note?: string }): void {
+  const key = areaKey(input.area);
+  if (!key) throw new Error("A risk area needs a name.");
+  const file = loadRisk(store);
+  let entry = file.areas.find((a) => areaKey(a.area) === key);
+  if (!entry) file.areas.push((entry = { area: input.area.trim(), ...(input.surface ? { surface: input.surface } : {}), events: [] }));
+  entry.events = entry.events.filter((e) => e.run !== escapedId);
+  entry.events.unshift({ run: escapedId, date: date.toISOString(), severity: input.severity, source: "escaped", ...(input.note ? { note: input.note } : {}) });
+  tidy(file, date);
+  writeMemoryJson(memoryPaths(store).riskAreas, file as unknown as Record<string, unknown>);
+}
+
 export function scoreAreas(file: RiskFile, now = new Date()): ScoredArea[] {
   const order: Severity[] = ["critical", "important", "minor"];
   return file.areas
@@ -115,7 +130,7 @@ export function scoreAreas(file: RiskFile, now = new Date()): ScoredArea[] {
     .map((a) => ({
       area: a.area,
       ...(a.surface ? { surface: a.surface } : {}),
-      score: Math.round(a.events.reduce((s, e) => s + WEIGHT[e.severity] * Math.pow(0.5, daysBetween(e.date, now) / HALF_LIFE_DAYS), 0) * 100) / 100,
+      score: Math.round(a.events.reduce((s, e) => s + WEIGHT[e.severity] * (e.source === "escaped" ? ESCAPED_FACTOR : 1) * Math.pow(0.5, daysBetween(e.date, now) / HALF_LIFE_DAYS), 0) * 100) / 100,
       occurrences: new Set(a.events.map((e) => e.run)).size,
       worst_severity: a.events.map((e) => e.severity).sort((x, y) => order.indexOf(x) - order.indexOf(y))[0] as Severity,
       last_seen: a.events[0]?.date ?? "",

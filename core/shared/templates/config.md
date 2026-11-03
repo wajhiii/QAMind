@@ -130,6 +130,16 @@ health:
 # sms:
 #   catcher: https://sms-sandbox.example.test/api/messages   # a test endpoint that lists the messages it received
 
+# The release verdict on the first line of the admin report (optional). The defaults are shown. The rules are frozen into each run when it starts.
+# A key journey that was not tested can never be "Ready", and a broken test environment is always "Not ready": no rule changes that.
+# release:
+#   rules:
+#     max_critical: 0              # more open critical problems than this is a violation
+#     max_important: 2             # more open important problems than this is a violation
+#     # max_minor: 20              # optional: more open minor problems than this is a violation (no limit by default)
+#     allow_regressed: false       # false: a problem that came back after being fixed keeps the verdict from being "Ready"
+#     not_ready_when: [critical]   # violations of these mean "Not ready"; any other violation means "Ready with risks". Also: important, minor, regressed, flows-untested
+
 # CI / pull-request mode (optional): `qamind ci` tests a pull request, report-only, and posts one comment that it updates on every push.
 # ci:
 #   fail_on: [critical, environment-problem]   # any of these fails the run (exit code 1, failing status). Also: important, minor, came-back, bank-failure, not-ready

@@ -207,6 +207,19 @@ ticket.json + ticket-results.json (agent) ─► ticket check (derived ⇒ confi
 `core/lib/perf/` the budgets, history and API timer; `core/lib/mail/` the catchers, a small MIME reader and the checks; `core/lib/ticket.ts` the criteria; `core/lib/coverage-report.ts` what the reports show and what the lint asks. The CLI's commands for all of it are in `cli/src/coverage.ts`.
 Whose decision it is: `baseline accept` and `browsers install` are the owner's (the hook refuses them in a run, as it refuses writes to `baselines/` and `perf.json`).
 
+## The release verdict and agent performance
+
+([decision 0011](decisions/0011-release-verdict-and-metrics.md))
+
+```
+config release.rules ─► run start: frozen into meta.json (release_rules) ─► computeVerdict(data): violations ─► Ready | Ready with risks | Not ready  (admin report line, CI gate, summary)
+run finish ─► metricFromRun(data) ─► memory/metrics.json (one record per finished run; not a broken-environment run)
+qamind escaped add ─► matchEscaped(area, last runs' area marks) ─► verdict missed | reported-before | partly-checked | not-checked | never-covered ─► metrics.json + a risk event (source: escaped)
+agentPerformance(store, current run) ─► "Agent performance" in the technical report, and `memory stats`
+```
+
+`core/lib/verdict.ts` is the only place the verdict is decided; `core/lib/metrics.ts` holds the records, the escaped bugs and the summary, `core/lib/metrics-report.ts` the section of the report, `cli/src/metrics.ts` the commands. Precision comes from the feedback file at read time. Recording an escaped bug is the owner's (the hook refuses `escaped add` and writes to `metrics.json` in a run).
+
 ## Formats and versioning
 
 Every file QAMind writes carries `schema_version`. Memory is at schema 2 (`perf.json` joined it in 7.9, and the baselines live in the store's `baselines/` folder); a store written by an older QAMind is **migrated on first use** after a byte-for-byte copy to `backups/<time>-schema-N-to-M/` and a line per file in `backups/migrations.log.jsonl` (`core/lib/memory/migrate.ts`); a store written by a newer QAMind is refused untouched.

@@ -34,6 +34,7 @@ import type { RunPolicy } from "./urlpolicy.ts";
 import { KNOWLEDGE_VERSION, QAMIND_VERSION } from "./version.ts";
 import { cleanRef, readTicketData, ticketCounts } from "./ticket.ts";
 import { apiPerfPoints } from "./perf/api.ts";
+import { metricFromRun, observedCounts, recordRunMetrics } from "./metrics.ts";
 import { recordPerf } from "./perf/store.ts";
 import { sweepPerfPoints } from "./sweep/service.ts";
 import { withStoreLock } from "./memory/lock.ts";
@@ -389,6 +390,7 @@ export function startRun(opts: StartOptions): StartResult {
     host: opts.host,
     ...(opts.focus ? { focus: opts.focus } : {}),
     ...(ticketRef ? { ticket_ref: ticketRef } : {}),
+    release_rules: config.release.rules,
     started: now.toISOString(),
     critical_flows: criticalFlows,
     ...(git.branch ? { branch: git.branch } : {}),
@@ -533,6 +535,10 @@ export function finishRun(opts: FinishOptions): RunSummary {
     summary.fixes = { branch: fixState.branch, base_commit: fixState.base_commit.slice(0, 7), verified: by("verified"), best_effort: by("best-effort"), reverted: by("reverted"), deferred: by("deferred"), commits: fixState.attempts.filter((a) => a.commit && (a.status === "verified" || a.status === "best-effort")).map((a) => a.commit as string).map((c) => c.slice(0, 7)), suite: fixState.comparison?.verdict ?? "not-run" };
   }
   writeJson(path.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
+  // The run's record for the agent's performance (spec 13.16): from the finished run, and not from one whose test environment was broken (it says nothing about the agent).
+  if (!health || health.environment_ok !== false) {
+    withStoreLock(marker.store, () => recordRunMetrics(marker.store, metricFromRun(data, { finished: summary.finished, duration_s, ...(usage.cost_usd !== undefined ? { cost_usd: usage.cost_usd } : {}), ...(usage.tokens !== undefined ? { tokens: usage.tokens } : {}), tests_saved: gate.saved }, observedCounts(marker.run_dir))));
+  }
   // Re-render both reports so they carry the final duration, stop reason and memory updates (what changed uses the saved result).
   writeReports(marker.run_dir, marker.store);
   fs.rmSync(markerPath(marker.store), { force: true });

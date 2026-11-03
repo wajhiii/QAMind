@@ -606,6 +606,7 @@ test("the biggest risk and next steps the agent wrote before the fixes are not s
   const fx = makeFixture({ allJourneys: true });
   const adminFile = path.join(fx.runDir, "data", "admin.json");
   writeJson(adminFile, { biggest_risk: "Customers can read other companies' orders.", next_steps: ["Have a developer fix the access problems first."] });
+  fs.utimesSync(adminFile, new Date("2026-11-03T08:00:00Z"), new Date("2026-11-03T08:00:00Z")); // the file's own time, not the clock of the machine running the test
   writeReports(fx.runDir, fx.store); // the baseline report, with what the agent wrote before any fix
   await readyFor001(fx);
   fx.write(T1, REGRESSION_PRICE);

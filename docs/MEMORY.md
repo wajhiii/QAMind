@@ -95,8 +95,14 @@ Written when a run finishes (and by feedback); a run cannot write it by hand.
 One test per line: `id` (T-001), `kind` (api or ui), `title`, `area`, `status` (active, quarantined, retired), `card` {protects, fails_when, not_duplicate}, `protects_bug`, `from_run`, `from_issue`, `plan` (API: requests and what each must answer) or `ui` and `steps`, `revisions`,
 and `stats` {runs, passes, failures, flaky, flips, last, history (p, f or x = passed only on a retry), avg_ms}. Retired tests move to `memory/archive/test-bank.jsonl` with the reason.
 
+### `metrics.json` (Phase 7.10)
+
+`runs`: one record per finished run (not one whose test environment was broken), at most 200: `run_id, finished, mode, trigger, verdict, findings` {critical, important, minor, unconfirmed}, `bugs` {new, still_open, came_back}, `coverage` {journeys_tested, journeys_total, areas_tested, areas_partial, areas_not_tested, pages, endpoints, api_probes}, `bank` {total, ran, passed, failed, pass_rate}, `tests_saved, duration_s, cost_usd, tokens` `areas` (each area of the coverage matrix with its status) and `finding_list` (id, area and title of each finding, up to 40).
+`escaped`: `id` (ESC-001), `area, title, severity, source` (manual, sentry, ticket, other), `ref`, `recorded`, `by`, `note`, `verdict` (what the runs had said about the area: `missed`, `reported-before`, `partly-checked`, `not-checked`, `never-covered`) and `matched` (the run, the area it matched and, for a tested area, the findings that looked related). Written by `run finish` and by `qamind escaped add` (the owner's); a run cannot write it by hand.
+Precision is not stored: it is worked out from the feedback file whenever it is shown.
+
 ### `risk-areas.json`
-Per area, the most recent events (`run, date, severity`). The score is `Σ weight × recency`, with weights 10 / 4 / 1 for
+Per area, the most recent events (`run, date, severity`, and `source`: a finding, the agent's flag, a person's feedback, or an escaped bug, whose event is kept under its own id). The score is `Σ weight × recency`, with weights 10 / 4 / 1 for
 critical / important / minor and a recency half-life of 90 days, so an old problem fades and a repeated one stays on top.
 
 ### `product-map.json`

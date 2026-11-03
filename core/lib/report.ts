@@ -5,6 +5,7 @@ import type { BankResults } from "./bank/results.ts";
 import type { Lifecycle } from "./memory/bugs.ts";
 import path from "node:path";
 import { SEVERITIES } from "./config.ts";
+import type { ReleaseRules } from "./config.ts";
 import { describeChanges } from "./memory/productmap.ts";
 import type { Severity } from "./config.ts";
 import { readJson, writeJson } from "./fsutil.ts";
@@ -15,6 +16,8 @@ import type { FixState } from "./fix/state.ts";
 import { findSecretLeaks } from "./redact.ts";
 import { flowStatus } from "./verdict.ts";
 import { lintCoverage, readCoverageData, renderTechnicalCoverage } from "./coverage-report.ts";
+import type { AgentPerformance } from "./metrics.ts";
+import { renderAgentPerformance } from "./metrics-report.ts";
 import type { CoverageData } from "./coverage-report.ts";
 import { lintTicketResults, readTicketData, renderTechnicalChecklist } from "./ticket.ts";
 import type { TicketData } from "./ticket.ts";
@@ -202,6 +205,8 @@ export interface RunMeta {
   bank_skipped?: string;
   /** The critical journeys from the config, in order (copied at run start). */
   critical_flows?: string[];
+  /** The release rules in force when the run started (spec 13.13), so a later render of the reports gives the verdict the run gave, whatever the config says by then. */
+  release_rules?: ReleaseRules;
   /** Ticket mode (spec 13.4): the ticket this run tests, as it was given (an id, an address without its query, a file, or "pasted text"). */
   ticket_ref?: string;
   /** Written by `run finish`: what was saved to memory. */
@@ -414,6 +419,8 @@ function duration(seconds?: number): string {
 }
 
 export interface TechnicalContext {
+  /** How the agent is doing across runs (spec 13.16): rendered as the "Agent performance" section. */
+  performance?: AgentPerformance;
   /** Earlier finished runs of this project, newest first (for the trend table). */
   previous?: Array<{ run_id: string; started: string; mode: string; counts: { critical: number; important: number; minor: number; unconfirmed: number }; coverage: { tested: number; partial: number; not_tested: number }; journeys?: { total: number; tested: number }; not_tested_count: number }>;
 }
@@ -553,6 +560,8 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
   if (!ctx.previous?.length) L.push("", "_No earlier run to compare with._");
   else if (ctx.previous[0] && ctx.previous[0].mode !== m?.mode) L.push("", `_The last run was a ${ctx.previous[0].mode} run and this one is ${m?.mode ?? "?"}, so the rows are not directly comparable._`);
   L.push("");
+
+  if (ctx.performance) L.push(...renderAgentPerformance(ctx.performance, m?.run_id));
 
   L.push("## Test plan (charters)", "");
   if (data.charters.length === 0) L.push("_No charters recorded._", "");

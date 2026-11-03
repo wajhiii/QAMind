@@ -23,6 +23,8 @@ export interface MemoryPaths {
   feedback: string;
   /** The test bank: saved checks with their value cards and run statistics (spec 13.3). Lives in the project's `test-bank/` folder, beside `memory/`. */
   bank: string;
+  /** How the agent is doing run by run, and the bugs that escaped to production (spec 13.16). */
+  metrics: string;
   /** How long pages and API endpoints took in recent runs, so a slowdown is noticed even when it is under budget (spec 13.11). */
   perf: string;
   archiveDir: string;
@@ -42,6 +44,7 @@ export function memoryPaths(store: string): MemoryPaths {
     bugs: path.join(dir, "bugs.jsonl"),
     feedback: path.join(dir, "feedback.jsonl"),
     bank: path.join(storeSubdirs(store).testBank, "bank.jsonl"),
+    metrics: path.join(dir, "metrics.json"),
     perf: path.join(dir, "perf.json"),
     archiveDir: path.join(dir, "archive"),
     runs: storeSubdirs(store).runs,

@@ -1,0 +1,38 @@
+# 0011: The release verdict's rules, and how the agent is measured
+
+Status: accepted (Phase 7.10). Date: 2026-11-03.
+
+## The release verdict (spec 13.13)
+
+The verdict existed since Phase 3 with the default rules. What changed is that a project can write its own, and that the rules are part of the run.
+
+- **`release.rules` in the config**: `max_critical` (0), `max_important` (2), `max_minor` (no limit), `allow_regressed` (false), `not_ready_when` (`[critical]`). A *violation* is a count above its limit, a problem that came back, a key journey not tested, or no health check; a violation of a condition listed in `not_ready_when` makes the verdict "Not ready", any other violation "Ready with risks", none "Ready". With no rules written the result is exactly the Phase 3 verdict (the same words, the same tests).
+- **Two things no rule can change**, because the spec says so and because the alternative is a report that lies: a key journey that was not tested can never be "Ready" (`flows-untested` can only be added to `not_ready_when`, never removed from the violations; a rule named `require_flows_tested` is refused with that explanation), and a broken test environment is always "Not ready, the environment has a problem".
+- **A critical problem the rules allow is still a risk**: with `max_critical: 1` and one open critical problem the first line says "Ready with risks: 1 critical problem is open (your release rules allow 1)". The rules move the line; they do not hide what is open.
+- **The rules are frozen into the run's `meta.json` when it starts** (`release_rules`). A report rendered later, by `run finish`, by `report build` or by CI judging an earlier run, gives the verdict the run gave, whatever the config says by then. (Without this, editing the config after a run would change the first line of an old report.)
+- The CI gate's `not-ready` condition and the admin report read the same function, so a project's rules apply to its pull requests too.
+
+## Agent performance (spec 13.16)
+
+- **`memory/metrics.json`** holds one record per **finished** run (not one whose test environment was broken: it says nothing about the agent): findings by severity, what they are across runs, coverage (key journeys, areas, pages, endpoints, probes), the test bank's pass rate (a pass on a retry is a pass; skipped and quarantined tests are not counted as run), duration, cost and tokens when the host gave them, the verdict, and the status of every area of the coverage matrix. At most 200 runs. A run is replaced by its own later record, never doubled.
+- **Precision is never stored.** It is worked out from the feedback file whenever it is shown, so a verdict given a month later improves the number; it needs 5 judged findings (Phase 7.7's rule) and says so otherwise.
+- **The trend** is the latest three runs against the three before, only from six runs on, and says that runs of different modes are mixed. Two runs show a table and the sentence "a trend needs at least 6 runs". The "Agent performance" section of the technical report and `memory stats` (`/qa-memory-review stats`) show the same numbers from one function.
+- **Escaped bugs**: `qamind escaped add --area ... --title ...` (the owner's; a run cannot record one, nor write `metrics.json`). The bug is placed by what the newest of the last ten runs that covered a similar area **said about it**: `partly-checked`, `not-checked` (listed as not tested), or, when the run marked the area as **tested**, whether the run **had reported anything like it**: `reported-before` or `missed` (marked as passing, and nothing the run found looks like it: the agent's miss, the number that matters); `never-covered` when no recent run covered it. The output **names the findings it considered**, so the owner can judge the placement.
+  - How "similar" is decided (and what was tried first): areas are compared by their words with plurals ignored, **leaving out the words most of a run's area names share** ("order" in an ordering app). The first version matched findings to coverage rows by area name and, on the demo, every tested area matched every finding; dropping the shared words then matched none, because agents name a finding's area ("Orders / pagination") differently from a coverage row ("Orders list: search and pagination"). So **the pivot is the escaped bug's own area**: its distinctive words against the text (area and title) of each finding the run recorded (`finding_list`, up to 40 per run). One shared distinctive word is enough for a short area name, two for a long phrase (four or more distinctive words), which shares one word with almost anything; words like "by", "and" and "for" and anything under three letters never count. The aim is to err toward excusing the agent rather than accusing it, and to show the findings so a person can overrule the reading.
+  - Recording raises the area's risk (an event of its own kind under the bug's id, so no run's bookkeeping can replace it, with the same half-life as findings, and **counting double**: a bug confirmed in production outweighs what a run reported at the same severity, which matters because the context lists only the eight riskiest areas), which is what the next run is told by `memory_get_context`. Saying it twice (same reference, or same area and title) changes nothing.
+- **Sentry and tickets labelled `escaped` are Phase 8.** The record has a `source` (`sentry`, `ticket`) so they need no new format; until then a person records them, and the stats say so when none is recorded.
+
+## Found while building
+
+- A first test of the verdict wording found "1 important problems are open" (the old text only ever ran for three or more); counts now use the singular and plural helper.
+- The mutation checks found the six-run threshold untested (tests had one and six runs); a five-run test was added.
+- **The real-agent runs rejected three placement rules before the fourth held**: matching findings to coverage rows by name tied every finding to every area on the demo; dropping the shared words then tied none; comparing the escaped bug's area with the findings' text still tied seven of eight findings to an area through the words "by", "and" and "id"; and with those out, an escaped bug (an "important" event) fell out of the context's top eight risk areas behind the run's own findings, so escaped events count double. Each was found by reading a real run's placements.
+
+## Not done, or not verified
+
+- **Escaped bugs from Sentry or from labelled tickets**: not built (Phase 8).
+- **The placement is a heuristic on words.** "Order creation" and "Orders API" meet; "Checkout" and "Payments" do not. A bug in an area under another name is reported as `never-covered` (which understates the agent's miss rate), and one shared word with any finding says "reported before" (which can excuse the agent). The matched area and the findings considered are always shown, so a person can overrule the reading; nothing is changed by it except the area's risk.
+- **The real-agent runs could not show a clean "missed" on demand**: on the buggy demo a quick run reports something in most areas it tests. The "missed" and "reported before" placements, and the words rule, are covered by unit tests built from run records; the real runs check that whatever verdict is given agrees with the findings it lists.
+- **The trend is a direction.** It mixes run modes, a `quick` run next to a `full` one, and it does not say the agent is better: that needs a held-out project (after all phases).
+- **Cost and tokens are only what the host gave**; on a host that gives none the columns are "-".
+- Linux and Windows were not run (the new tests are in the Windows job's list).

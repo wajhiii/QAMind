@@ -10,6 +10,8 @@ import { loadLearnings } from "./memory/learnings.ts";
 import { lintLifecycle, refreshLifecycle } from "./memory/runlife.ts";
 import { detectChanges } from "./memory/update.ts";
 import { assignIds, lintRun, readRunData, renderTechnicalReport } from "./report.ts";
+import { agentPerformance, metricFromRun, observedCounts } from "./metrics.ts";
+import type { AgentPerformance } from "./metrics.ts";
 import type { Finding, LintResult, RunData } from "./report.ts";
 import { checkConsistency } from "../scripts/consistency-check.ts";
 import type { RunSummary } from "./run.ts";
@@ -46,6 +48,16 @@ export interface ReportContext {
   refreshChanges?: boolean;
 }
 
+/** The agent's performance with this run counted live (it may not have finished): from its data files, as it would be recorded. */
+function performanceFor(store: string, runDir: string, data: ReturnType<typeof readRunData>): AgentPerformance | undefined {
+  const m = data.meta;
+  if (!m?.run_id) return undefined;
+  const started = Date.parse(m.started);
+  const finished = m.finished ?? new Date().toISOString();
+  const duration = m.duration_s ?? Math.max(0, Math.round((Date.parse(finished) - started) / 1000));
+  return agentPerformance(store, metricFromRun(data, { finished, duration_s: duration, ...(m.usage?.cost_usd !== undefined ? { cost_usd: m.usage.cost_usd } : {}), ...(m.usage?.tokens !== undefined ? { tokens: m.usage.tokens } : {}), tests_saved: m.bank_saved ?? 0 }, observedCounts(runDir)));
+}
+
 export function renderReports(runDir: string, store?: string, ctx?: ReportContext): RenderedReports {
   const first = readRunData(runDir);
   assignIds(runDir, first);
@@ -54,7 +66,8 @@ export function renderReports(runDir: string, store?: string, ctx?: ReportContex
   const data = readRunData(runDir);
   const previous = previousRuns(store, data.meta?.run_id);
   const model = buildAdminModel(data, previous);
-  return { data, model, technical: renderTechnicalReport(data, { previous }), admin: renderAdminMarkdown(model) };
+  const performance = store ? performanceFor(store, runDir, data) : undefined;
+  return { data, model, technical: renderTechnicalReport(data, { previous, ...(performance ? { performance } : {}) }), admin: renderAdminMarkdown(model) };
 }
 
 /** Write TECHNICAL-REPORT.md and ADMIN-REPORT.md from the same structured data. */

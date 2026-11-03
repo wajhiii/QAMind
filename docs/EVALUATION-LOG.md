@@ -612,3 +612,47 @@ and `tests/core/ci-templates.test.ts` (the generated GitHub, GitLab and nightly 
 - **The coverage instructions are followed by an LLM**: in attempts 1, 3 and 4 run A made **no browser tool call at all** (it was asked about other browsers and sizes, so it went straight to the sweep), and its page list came from reading the product's files; a project whose routes cannot be read that way needs the browser pass first (Step 4 says so), and a different prompt (`/qa-only full` alone) would explore by hand as well.
 - **Single runs**, a $0.5 to $1 run each; variation between runs is real (attempts 1 and 2 differ from 3 and 4).
 - The mail checks ran against the stand-in, **not Mailpit**, MailHog or Mailtrap (see the decision). Firefox was not run. The machine was shared with other work; runs were at low priority, one process at a time.
+
+## Phase 7.10: the release verdict and agent metrics
+
+`scripts/eval-metrics.ts` runs **real headless Claude Code 2.1.314** (model `claude-sonnet-5-5`) with the built QAMind plugin against a copy of the demo app (without its answer key), with a scratch `QAMIND_HOME` and the release rules `{"max_critical":100,"max_important":0,"not_ready_when":["important"]}` (chosen so that the default verdict and the project's verdict **differ**: a run that follows the defaults gets the wrong first line). Two `/qamind:qa-only quick` runs, everything checked from the files, the store and the tool-call stream. Records: `docs/baselines/phase-7.10-metrics.{json,md}` (final) and `-attempt-1` to `-attempt-7`.
+
+- **Run 1** (focused on the orders API): the verdict must follow the rules frozen in the run's `meta.json`; `memory/metrics.json` must hold the run. Then, as the owner (outside the run), the harness records escaped bugs with `qamind escaped add`: two in areas run 1 tested, one in an area nobody covered (`Warehouse stock levels`). The placement is checked against what run 1's records said, and the risk of each area must go up.
+- **Run 2**: the verdict must follow the same rules; the technical report must carry an "Agent performance" table with both runs, the escaped bugs with where each landed; the agent's memory context must name the escaped areas; `memory stats` must show the same numbers.
+
+### The final attempt (attempt 8), from the files
+| Check | Result |
+|---|---|
+| Run 1, the verdict | `⛔ Not ready to release: 3 important problems are open.` (2 critical, 3 important, 1 minor): the two critical problems are allowed by the project's rules, the three important ones are not; the rules are in the run's `meta.json` |
+| Run 1, the record | `memory/metrics.json` has the run with its verdict, findings, coverage and the areas with their status |
+| Escaped bugs | `ESC-001` and `ESC-002` placed `reported-before` (the findings considered: ISSUE-004 and ISSUE-005 for the list area, ISSUE-001 for the access area), `ESC-003` placed `never-covered`; the risk of all three areas went up |
+| Run 2, the report | the "Agent performance" table has both runs; "Escaped bugs: 3 recorded: 2 in an area where a problem had been reported; 1 in an area no recent run covered", with the ids; precision "not available yet" (nobody has given feedback); trend "needs at least 6 runs; this project has 2" |
+| Run 2, the agent's context | the two tested areas where a bug escaped are named in the memory context |
+| Run 2, `memory stats` | 2 runs, 3 escaped bugs with the same placements |
+| Secrets, owner-only | no fixture password reached the agent through QAMind; no owner-only command tried by either run |
+| Cost / time | run 1 2.77 min $0.63, run 2 2.13 min $0.48, total $1.11 |
+
+### Eight attempts, and what each found
+| Attempt | Result | Why |
+|---|---|---|
+| 1 | fail | The harness assumed run 1 marks some area tested **without** a finding, and run 1 gave none. Not a product fault: the harness now accepts either outcome, as long as it is consistent with the findings that are listed. |
+| 2, 3 | pass | Passed the checks, but reading the placements showed the area-name matching tied **every** tested area to **every** finding, so "reported before" was said for areas whose findings were elsewhere. Fixed (distinctive words: words most areas share are dropped); the record then shows which findings were considered. |
+| 4 | fail | `memory/metrics.json has 0 runs`. Not reproduced. The likely cause is a second store made by an agent command run without `--run` from a subfolder; the harness now picks the store whose `project.json` lists the workspace in `paths_seen`. **Not proved**: it did not come back in the four attempts after. |
+| 5 | pass | Placements still tied 6 and 7 of 7 findings: the words "by", "and", "id" were counted as shared. Fixed with a stop-word list and a minimum word length of 3. |
+| 6 | pass | Placement precise (ISSUE-004; ISSUE-001). |
+| 7 | fail | The agent's memory context did not name both escaped areas: an escaped **important** bug weighed the same as an ordinary run event and fell out of the top 8 risk areas. Fixed: an escaped bug counts **double** in the risk score (`ESCAPED_FACTOR = 2`). The placement of a long area name also needed a second shared word (**two-word rule**: an area with four or more distinctive words needs two shared). |
+| 8 | pass | Clean. |
+
+- **Most of the placement fixes came from reading the records, not from a check failing**: attempts 2, 3 and 5 passed their checks while the placement was too generous (attempts 5 and 7 still show it considering 6 to 8 findings for an area). A pass is not the same as the placement being right.
+- Defects found **before** any agent run, by the new tests: see the decision (`docs/decisions/0011-release-verdict-and-metrics.md`). One surviving mutation (the six-run threshold for a trend) became a boundary test.
+- The release rules refuse an unknown key by name, and say that a key journey not tested can never be Ready under any rule.
+
+### Tests
+Full suite: **502 tests, 497 passed, 0 failed, 5 skipped** (485 before this phase; 17 new: 6 in `release-rules.test.ts`, 11 in `metrics.test.ts`). The two new files cover: rules refused by name when unknown or invalid; a critical allowed by the rules still shown as a risk; "environment broken" and "key journey not tested" never Ready under any rule; the same run read under different rules; metrics recorded once per finished run and not for a broken environment; the six-run boundary for a trend; escaped-bug placement (`missed`, `reported-before`, `partly-checked`, `not-checked`, `never-covered`), including word order, stop words and a long area phrase; an escaped bug counting double in the risk score; `qamind escaped add|list` through the CLI; and the safety hook refusing `escaped add` and `metrics.json` from inside a run. Each new rule was also broken on purpose to see a test fail (all caught after the six-run boundary test was added).
+- **One older test failed on the day, and not because of this phase.** `fix-loop.test.ts` ("the biggest risk and next steps the agent wrote before the fixes are not shown after them") compares the file time of `admin.json` with a fix stamped 2026-11-03 09:00 UTC; the file got the machine's real clock, and today the real clock passed that moment. It failed the same way on a clean `main` (`d3e5691`). The test now sets the file's own time; no product code changed for it.
+
+### What this does not show
+- **The placement of an escaped bug is a word heuristic**, not an understanding of the product. It shows which findings it considered, so a person can judge it; a wrong placement is a wrong label on the agent's performance, never a changed verdict. Real runs could not be made to show a clean `missed` on demand (an area the run tested and found nothing in); that placement is covered by unit tests only.
+- **Precision** is derived from people's feedback on findings and needs 5 judged findings; **the trend** needs 6 runs. Neither has data in this project yet, so the report says "not available yet" rather than a number.
+- **Escaped bugs come from the owner's hand** (`qamind escaped add`). Sources that fill it by themselves (Sentry, a ticket label for production bugs) are Phase 8.
+- **Single runs**, a $0.5 to $1 run each, on one demo app; variation between runs is real. The "0 runs" fault in attempt 4 is unexplained. Firefox, Mailpit, MailHog and Mailtrap have never been run live (Phase 7.9). The machine was shared with other work; runs were at low priority, one process at a time.

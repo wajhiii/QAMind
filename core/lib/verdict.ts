@@ -1,3 +1,5 @@
+import { DEFAULT_RELEASE_RULES } from "./config.ts";
+import type { ReleaseBlocker, ReleaseRules } from "./config.ts";
 import type { CoverageRow, Finding, RunData } from "./report.ts";
 
 export type VerdictLevel = "ready" | "ready-with-risks" | "not-ready";
@@ -36,9 +38,10 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 const sentence = (s: string) => s.trim().replace(/[.\s]+$/, "");
 
 /**
- * Default release rules (spec §13.13): Ready only with 0 critical problems, at most 2 important ones, a passing health
- * check, no bug that came back after being fixed, and every critical journey tested. Never "Ready" if a journey was not tested. (Per-project
- * rule overrides arrive with a later phase.)
+ * The release readiness verdict (spec §13.13). Default rules: Ready only with 0 critical problems, at most 2 important ones, a passing health
+ * check, no bug that came back after being fixed, and every critical journey tested; a critical problem makes it "Not ready", anything else "Ready with risks".
+ * A project may change the limits and which violations mean "Not ready" (`release.rules` in the config, frozen into the run's meta at its start so a later render
+ * gives the same verdict); it cannot make a run "Ready" when a key journey was not tested, or when the test environment was broken.
  */
 export function computeVerdict(data: RunData): Verdict {
   const v = verdictFromOpenFindings(data);
@@ -60,10 +63,18 @@ export function computeVerdict(data: RunData): Verdict {
   return { ...v, level, reasons, line };
 }
 
+/** What was found wrong against the release rules: a violation with the condition it belongs to (or none, for a risk that is never a reason for "Not ready"). */
+interface Violation {
+  blocker?: ReleaseBlocker;
+  text: string;
+}
+
 function verdictFromOpenFindings(data: RunData): Verdict {
+  const rules: ReleaseRules = data.meta?.release_rules ?? DEFAULT_RELEASE_RULES;
   const open = data.findings.filter(isOpen);
   const critical = open.filter((f) => f.severity === "critical");
   const important = open.filter((f) => f.severity === "important");
+  const minor = open.filter((f) => f.severity === "minor");
   const plainTitle = (f: Finding) => sentence(f.plain?.title ?? f.title);
 
   if (data.health && !data.health.environment_ok) {
@@ -74,26 +85,34 @@ function verdictFromOpenFindings(data: RunData): Verdict {
       line: "⛔ **Not ready to release:** the test environment has a problem, so nothing could be checked (see below).",
     };
   }
-  if (critical.length > 0) {
-    const first = plainTitle(critical[0] as Finding);
-    const more = important.length > 2 ? ` and ${plural(important.length, "important problem", "important problems")}` : "";
-    return {
-      level: "not-ready",
-      environment_problem: false,
-      reasons: critical.map(plainTitle),
-      line: `⛔ **Not ready to release:** ${plural(critical.length, "critical problem", "critical problems")} found${more}, for example: ${first}.`,
-    };
-  }
 
-  const risks: string[] = [];
+  const found: Violation[] = [];
+  if (critical.length > rules.max_critical) found.push({ blocker: "critical", text: `${plural(critical.length, "critical problem", "critical problems")} found` });
+  else if (critical.length > 0) found.push({ text: `${plural(critical.length, "critical problem is", "critical problems are")} open (your release rules allow ${rules.max_critical})` });
+  if (important.length > rules.max_important) found.push({ blocker: "important", text: `${plural(important.length, "important problem is", "important problems are")} open` });
+  if (rules.max_minor !== undefined && minor.length > rules.max_minor) found.push({ blocker: "minor", text: `${plural(minor.length, "minor problem is", "minor problems are")} open (your release rules allow ${rules.max_minor})` });
   const back = (data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed").length;
-  if (back > 0) risks.push(`${plural(back, "problem", "problems")} came back after being fixed`);
-  if (important.length > 2) risks.push(`${important.length} important problems are open`);
+  if (back > 0 && !rules.allow_regressed) found.push({ blocker: "regressed", text: `${plural(back, "problem", "problems")} came back after being fixed` });
   const flows = flowStatus(data);
-  if (flows.total === 0) risks.push("the key journeys were not listed, so they could not be confirmed as checked");
-  else if (flows.untested.length > 0) risks.push(`${plural(flows.untested.length, "key journey was", "key journeys were")} not fully checked`);
-  if (!data.health) risks.push("the test environment was not confirmed healthy");
-  if (risks.length === 0) {
+  if (flows.total === 0) found.push({ blocker: "flows-untested", text: "the key journeys were not listed, so they could not be confirmed as checked" });
+  else if (flows.untested.length > 0) found.push({ blocker: "flows-untested", text: `${plural(flows.untested.length, "key journey was", "key journeys were")} not fully checked` });
+  if (!data.health) found.push({ text: "the test environment was not confirmed healthy" });
+
+  const blocking = found.filter((v) => v.blocker && rules.not_ready_when.includes(v.blocker));
+  if (blocking.length > 0) {
+    // The default rule keeps its words: the first critical problem, by name, and the important ones when there are more than the rules allow.
+    if (blocking.some((v) => v.blocker === "critical")) {
+      const more = important.length > rules.max_important ? ` and ${plural(important.length, "important problem", "important problems")}` : "";
+      return {
+        level: "not-ready",
+        environment_problem: false,
+        reasons: [...critical.map(plainTitle), ...blocking.filter((v) => v.blocker !== "critical").map((v) => v.text)],
+        line: `⛔ **Not ready to release:** ${plural(critical.length, "critical problem", "critical problems")} found${more}, for example: ${plainTitle(critical[0] as Finding)}.`,
+      };
+    }
+    return { level: "not-ready", environment_problem: false, reasons: found.map((v) => v.text), line: `⛔ **Not ready to release:** ${blocking.map((v) => v.text).join("; ")}.` };
+  }
+  if (found.length === 0) {
     return {
       level: "ready",
       environment_problem: false,
@@ -101,5 +120,5 @@ function verdictFromOpenFindings(data: RunData): Verdict {
       line: `✅ **Ready to release:** no critical problems, ${plural(important.length, "important problem", "important problems")}, and every key journey was checked.`,
     };
   }
-  return { level: "ready-with-risks", environment_problem: false, reasons: risks, line: `⚠️ **Ready with risks:** ${risks.join("; ")}.` };
+  return { level: "ready-with-risks", environment_problem: false, reasons: found.map((v) => v.text), line: `⚠️ **Ready with risks:** ${found.map((v) => v.text).join("; ")}.` };
 }

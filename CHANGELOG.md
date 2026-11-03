@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.10 (Phase 7.10, unreleased)
+
+The release verdict's rules, agent performance metrics and escaped bugs ([decision 0011](docs/decisions/0011-release-verdict-and-metrics.md)).
+
+- **Release rules** (`release.rules` in the config): `max_critical`, `max_important`, `max_minor`, `allow_regressed` and `not_ready_when` (which violations mean "Not ready" and which only "Ready with risks"); the defaults are the spec's and give the same verdict as before. A critical problem the rules allow is still shown as a risk. **No rule can make a run "Ready" when a key journey was not tested, or turn a broken test environment into anything but "Not ready"** (a rule that tries is refused, with the reason). **The rules are frozen into each run's `meta.json` when it starts**, so a report rendered later gives the verdict the run gave; the CI gate reads the same function.
+- **Agent performance** (`memory/metrics.json`, schema 2): one record per finished run (not a run with a broken test environment): findings, bugs across runs, coverage (journeys, areas, pages, endpoints, probes), the bank's pass rate, duration, cost and tokens when the host gave them, the verdict, and what each area's status was. New **"Agent performance" section in the technical report** (the last five runs, precision, escaped bugs, and from six runs a trend of the latest three against the three before) and the same in `memory stats` (`/qa-memory-review stats`) and `qamind metrics`. Precision is worked out from people's verdicts when shown (it needs 5 judged findings).
+- **Escaped bugs** (`qamind escaped add | list`, the owner's): a bug that reached production is placed by what the newest runs said about its area (**missed** when a run marked it as tested and nothing it found looks like the bug, reported before (with the findings it considered named), partly checked, not tested, never covered), recorded, and the area's **risk is raised** (a risk event of its own kind that **counts double**, so the next run is told). Idempotent by reference or by area and title. The record has a `source` (`sentry`, `ticket`) for Phase 8.
+- Owner-only (hook): `escaped add` and writes to `metrics.json`.
+- Found by testing and fixed: "1 important problems are open" (the verdict's wording only ever ran for three or more); a test of the six-run threshold was missing (found by breaking it).
+- New: `scripts/eval-metrics.ts` (the real-agent test), tests `release-rules` and `metrics`, the Windows job's list, `docs/MEMORY.md` (`metrics.json`).
+- Not in this phase: escaped bugs read from Sentry or from labelled tickets (Phase 8); a trend that compares only runs of one mode; a measure of whether the agent is better (needs a held-out project).
+
 ## 0.7.9 (Phase 7.9, unreleased)
 
 Coverage depth ([decision 0010](docs/decisions/0010-coverage-depth.md), [docs/COVERAGE.md](docs/COVERAGE.md)).

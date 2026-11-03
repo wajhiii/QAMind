@@ -170,6 +170,23 @@ export interface PerformanceSettings {
 }
 export const DEFAULT_PERFORMANCE: PerformanceSettings = { page_load_ms: 3000, api_p95_ms: 800, regression_pct: 30, pages: {}, endpoints: {} };
 
+/** The release readiness verdict (spec 13.13): what may be open before a release is "Ready", and what makes it "Not ready" rather than "Ready with risks". */
+export const RELEASE_BLOCKERS = ["critical", "important", "minor", "regressed", "flows-untested"] as const;
+export type ReleaseBlocker = (typeof RELEASE_BLOCKERS)[number];
+export interface ReleaseRules {
+  /** More open critical problems than this is a violation. Default 0. */
+  max_critical: number;
+  /** More open important problems than this is a violation. Default 2. */
+  max_important: number;
+  /** More open minor problems than this is a violation. Default: no limit. */
+  max_minor?: number;
+  /** A problem that came back after being fixed. Default false: it keeps the verdict from being "Ready". */
+  allow_regressed: boolean;
+  /** Violations of these make the verdict "Not ready"; any other violation makes it "Ready with risks". Default: critical. A broken test environment is always "Not ready", and a key journey that was not tested can never be "Ready". */
+  not_ready_when: ReleaseBlocker[];
+}
+export const DEFAULT_RELEASE_RULES: ReleaseRules = { max_critical: 0, max_important: 2, allow_regressed: false, not_ready_when: ["critical"] };
+
 export interface QamindConfig {
   schema_version: number;
   environment: { name: string; confirmed_non_production: boolean };
@@ -192,6 +209,7 @@ export interface QamindConfig {
   viewports: Viewport[];
   visual: VisualSettings;
   performance: PerformanceSettings;
+  release: { rules: ReleaseRules };
 }
 
 export interface ConfigCheck {
@@ -515,6 +533,53 @@ function normalizePerformance(raw: unknown, problems: string[]): PerformanceSett
   };
 }
 
+const RELEASE_KEYS = ["max_critical", "max_important", "max_minor", "allow_regressed", "not_ready_when"];
+
+function normalizeRelease(raw: unknown, problems: string[]): { rules: ReleaseRules } {
+  const rules: ReleaseRules = { ...DEFAULT_RELEASE_RULES, not_ready_when: [...DEFAULT_RELEASE_RULES.not_ready_when] };
+  if (raw === undefined || raw === null) return { rules };
+  if (!isObj(raw)) {
+    problems.push("release must be a mapping with a `rules` mapping.");
+    return { rules };
+  }
+  for (const k of Object.keys(raw)) if (k !== "rules") problems.push(`release.${k} is not a setting (the verdict's rules go under release.rules).`);
+  const r = raw["rules"];
+  if (r === undefined || r === null) return { rules };
+  if (!isObj(r)) {
+    problems.push(`release.rules must be a mapping (${RELEASE_KEYS.join(", ")}).`);
+    return { rules };
+  }
+  for (const k of Object.keys(r)) {
+    if (!RELEASE_KEYS.includes(k)) problems.push(`release.rules.${k} is not a rule. Use ${RELEASE_KEYS.join(", ")}. (A key journey that was not tested can never be "Ready": that is not a rule to switch off; to make it "Not ready" put flows-untested in not_ready_when.)`);
+  }
+  const count = (key: "max_critical" | "max_important" | "max_minor"): void => {
+    const v = r[key];
+    if (v === undefined || v === null) return;
+    if (typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= 1000) rules[key] = v;
+    else problems.push(`release.rules.${key} must be a whole number from 0 to 1000.`);
+  };
+  count("max_critical");
+  count("max_important");
+  count("max_minor");
+  if (r["allow_regressed"] !== undefined) {
+    if (typeof r["allow_regressed"] === "boolean") rules.allow_regressed = r["allow_regressed"];
+    else problems.push("release.rules.allow_regressed must be true or false.");
+  }
+  if (r["not_ready_when"] !== undefined) {
+    const v = r["not_ready_when"];
+    if (!Array.isArray(v)) problems.push(`release.rules.not_ready_when must be a list of: ${RELEASE_BLOCKERS.join(", ")}.`);
+    else {
+      const out: ReleaseBlocker[] = [];
+      for (const c of v) {
+        if (typeof c === "string" && (RELEASE_BLOCKERS as readonly string[]).includes(c)) out.push(c as ReleaseBlocker);
+        else problems.push(`release.rules.not_ready_when: "${String(c)}" is not a condition. Use ${RELEASE_BLOCKERS.join(", ")}.`);
+      }
+      rules.not_ready_when = [...new Set(out)];
+    }
+  }
+  return { rules };
+}
+
 export function normalizeConfig(raw: unknown, problems: string[]): QamindConfig | undefined {
   if (!isObj(raw)) {
     problems.push("The front matter at the top of config.md is empty or not a YAML mapping.");
@@ -623,6 +688,7 @@ export function normalizeConfig(raw: unknown, problems: string[]): QamindConfig 
     viewports: normalizeViewports(raw["viewports"], problems),
     visual: normalizeVisual(raw["visual"], problems),
     performance: normalizePerformance(raw["performance"], problems),
+    release: normalizeRelease(raw["release"], problems),
   };
   return config;
 }

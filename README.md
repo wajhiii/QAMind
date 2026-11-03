@@ -244,6 +244,19 @@ qamind baseline status | accept --run ID [--pages a,b]                       qam
 
 Details, settings and limits (Mailpit, MailHog and Mailtrap were not run against live services; Firefox was not run): [docs/COVERAGE.md](docs/COVERAGE.md), [decision 0010](docs/decisions/0010-coverage-depth.md).
 
+## The release verdict and how the agent is doing
+
+- **The first line of the admin report** is one of ✅ Ready to release, ⚠️ Ready with risks (the risks listed) or ⛔ Not ready (the main reasons in one sentence). By default: Ready only with no critical problem, at most two important ones, a healthy test environment, no problem that came back, and every key journey tested. **It can never say Ready if a key journey was not tested**, and a broken test environment is always Not ready. You can change the limits and what means Not ready (`release.rules` in `.qa/config.md`, commented in the file QAMind creates); a run keeps the rules it started with, so editing the config later does not change an old report.
+- **Agent performance.** Every finished run adds a record (problems found, coverage, the test bank's pass rate, minutes, cost, the verdict) to the project's memory. The technical report's **Agent performance** section and `/qamind:qa-memory-review stats` show the last runs, **precision** (the share of findings you judged that were real; from 5 judged on), and, from six runs, a trend.
+- **Bugs that reached production.** `qamind escaped add --area "Orders" --title "..."` records one (yours to run; Sentry and labelled tickets will do it in a later phase). QAMind says what the runs had said about that area: **missed** (marked as tested, nothing found: the agent's miss), reported before, partly checked, not tested, or never covered. The area's risk is raised, so the next run looks there first.
+
+```
+qamind escaped add --area A --title T [--severity critical|important|minor] [--source manual|sentry|ticket|other] [--ref ID] [--note TEXT]
+qamind escaped list        qamind metrics        qamind memory stats
+```
+
+Rules, limits and what is not measured: [decision 0011](docs/decisions/0011-release-verdict-and-metrics.md).
+
 ## CI and pull requests (`qamind ci`)
 
 `qamind ci` tests a pull request headlessly and says the result where your team looks: **one comment** that is rewritten on every push, a **commit status** (`qamind`), an **exit code** (0 pass or warn, 1 fail, 2 could not check) and the reports as **artifacts**. It is always report-only: it never fixes, commits or pushes, and it cannot be started by a QA run.
@@ -293,9 +306,9 @@ Private-data masking and its limits (names and addresses in free text, images) a
 | 7.6 ✅ | Reliability: environment problems are not bugs, test data setup, time budgets, private-data masking and scan, memory migration with backup |
 | 7.7 ✅ | Test bank (run first, flaky tests quarantined, export to Playwright), bugs across runs (new, still open, fixed, came back), your feedback changes the next run |
 | 7.8 ✅ | `qamind ci` (one pull request comment kept up to date, a status, exit codes, artifacts), `ci.fail_on` / `ci.warn_on`, GitHub and GitLab templates, `qamind schedule` |
-| 7.9 ✅ (this) | Coverage depth: ticket mode with a criteria checklist, email and SMS sandbox checks, visual baselines, other browsers (WebKit, Firefox) and screen sizes, page and API speed against budgets and recent runs |
-| 7.10 | release verdict and metrics (Codex whenever the owner asks) |
-| 8 | Linear and Sentry, polish |
+| 7.9 ✅ | Coverage depth: ticket mode with a criteria checklist, email and SMS sandbox checks, visual baselines, other browsers (WebKit, Firefox) and screen sizes, page and API speed against budgets and recent runs |
+| 7.10 ✅ (this) | Release verdict rules in the config (frozen into each run), agent performance metrics per run (precision, coverage, bank pass rate, trend), escaped bugs placed by what the runs had said about their area, risk raised |
+| 8 (next) | Linear and Sentry (they will record escaped bugs by themselves), polish; Codex whenever the owner asks |
 
 ## Development
 

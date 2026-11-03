@@ -45,7 +45,7 @@ Report in plain words: no JSON, ids only where the user needs them to decide.
 
 ## Stats
 
-`{{CLI}} memory stats`. Report plainly: how many runs, when, the last few (problems found, minutes, areas tested), the **trend only if it says it is available** (otherwise say how many runs are needed), how much memory is in use and how often it was applied, and the global lessons (pending, approved, loaded here, times applied).
+`{{CLI}} memory stats`. Report plainly: how many runs, when, the last few (problems found, minutes, areas tested), the **trend only if it says it is available** (otherwise say how many runs are needed), how much memory is in use and how often it was applied, and the global lessons (pending, approved, loaded here, times applied). Then how the agent is doing (`performance`): the last runs with their verdicts, **precision** (only if it is available: it needs at least 5 findings the owner judged), and the **escaped bugs** (bugs that reached production, and how many were in an area a run had marked as passing: those are the agent's misses). If none is recorded, say how: the owner records one with `{{CLI}} escaped add --area ... --title ...` (that is the owner's command, not part of a QA run). Never call the agent better or worse than the numbers show.
 Always end with what **cannot be measured yet** (`not_available_yet`). Do not call anything an improvement unless the numbers show it, and say that runs of different modes make a trend a direction, not a measurement.
 
 ## Always

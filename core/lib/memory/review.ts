@@ -15,6 +15,8 @@ import type { Scope } from "./service.ts";
 import { daysBetween, memoryPaths, readJsonl } from "./store.ts";
 import { recentRunSummaries } from "./context.ts";
 import type { RunSummary } from "../run.ts";
+import { agentPerformance, loadMetrics } from "../metrics.ts";
+import type { AgentPerformance } from "../metrics.ts";
 
 /**
  * The owner's memory review (`/qa-memory-review`): what memory holds, what looks stale enough to archive, and the numbers over time. Reading is free;
@@ -129,6 +131,8 @@ export interface MemoryStats {
   /** The project's bugs across runs (spec 13.12) and the test bank (spec 13.3). */
   bugs: { total: number; open: number; came_back: number; fixed: number; accepted: number; not_a_bug: number };
   bank: ReturnType<typeof summariseBank>;
+  /** How the agent is doing (spec 13.16): the last runs, precision from your verdicts, bugs that escaped to production, and the trend once there are six runs. */
+  performance: AgentPerformance;
   not_available_yet: string[];
 }
 
@@ -177,6 +181,7 @@ export function memoryStats(scope: Scope, now = new Date()): MemoryStats {
     feedback: fb,
     bugs: { total: allBugs.length, open: allBugs.filter((b) => ["new", "still-open", "regressed"].includes(b.status)).length, came_back: allBugs.filter((b) => b.status === "regressed").length, fixed: allBugs.filter((b) => b.status === "fixed").length, accepted: allBugs.filter((b) => b.status === "accepted").length, not_a_bug: allBugs.filter((b) => b.status === "not-a-bug").length },
     bank: summariseBank(loadBank(scope.store).tests),
-    not_available_yet: [...(fb.precision ? [] : [`Precision (true findings out of all findings): it needs at least 5 findings that you judged with /qa-feedback; so far ${fb.judged}.`]), "Escaped bugs (production errors in areas marked as passing): they need Sentry or labelled tickets, which arrive in a later phase."],
+    performance: agentPerformance(scope.store),
+    not_available_yet: [...(fb.precision ? [] : [`Precision (true findings out of all findings): it needs at least 5 findings that you judged with /qa-feedback; so far ${fb.judged}.`]), ...(loadMetrics(scope.store).escaped.length ? [] : ["Escaped bugs (production errors in areas marked as passing): none are recorded. Record one with `qamind escaped add`; Sentry and ticket labels will record them by themselves in a later phase."])],
   };
 }

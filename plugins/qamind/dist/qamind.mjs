@@ -114,17 +114,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path63) {
-      const ctrl = callVisitor(key, node, visitor, path63);
+    function visit_(key, node, visitor, path64) {
+      const ctrl = callVisitor(key, node, visitor, path64);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path63, ctrl);
-        return visit_(key, ctrl, visitor, path63);
+        replaceNode(key, path64, ctrl);
+        return visit_(key, ctrl, visitor, path64);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path63 = Object.freeze(path63.concat(node));
+          path64 = Object.freeze(path64.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path63);
+            const ci = visit_(i, node.items[i], visitor, path64);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -135,13 +135,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path63 = Object.freeze(path63.concat(node));
-          const ck = visit_("key", node.key, visitor, path63);
+          path64 = Object.freeze(path64.concat(node));
+          const ck = visit_("key", node.key, visitor, path64);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path63);
+          const cv = visit_("value", node.value, visitor, path64);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -162,17 +162,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path63) {
-      const ctrl = await callVisitor(key, node, visitor, path63);
+    async function visitAsync_(key, node, visitor, path64) {
+      const ctrl = await callVisitor(key, node, visitor, path64);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path63, ctrl);
-        return visitAsync_(key, ctrl, visitor, path63);
+        replaceNode(key, path64, ctrl);
+        return visitAsync_(key, ctrl, visitor, path64);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path63 = Object.freeze(path63.concat(node));
+          path64 = Object.freeze(path64.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path63);
+            const ci = await visitAsync_(i, node.items[i], visitor, path64);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -183,13 +183,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path63 = Object.freeze(path63.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path63);
+          path64 = Object.freeze(path64.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path64);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path63);
+          const cv = await visitAsync_("value", node.value, visitor, path64);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -216,23 +216,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path63) {
+    function callVisitor(key, node, visitor, path64) {
       if (typeof visitor === "function")
-        return visitor(key, node, path63);
+        return visitor(key, node, path64);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path63);
+        return visitor.Map?.(key, node, path64);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path63);
+        return visitor.Seq?.(key, node, path64);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path63);
+        return visitor.Pair?.(key, node, path64);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path63);
+        return visitor.Scalar?.(key, node, path64);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path63);
+        return visitor.Alias?.(key, node, path64);
       return void 0;
     }
-    function replaceNode(key, path63, node) {
-      const parent = path63[path63.length - 1];
+    function replaceNode(key, path64, node) {
+      const parent = path64[path64.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -844,10 +844,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path63, value) {
+    function collectionFromPath(schema, path64, value) {
       let v = value;
-      for (let i = path63.length - 1; i >= 0; --i) {
-        const k = path63[i];
+      for (let i = path64.length - 1; i >= 0; --i) {
+        const k = path64[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -866,7 +866,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path63) => path63 == null || typeof path63 === "object" && !!path63[Symbol.iterator]().next().done;
+    var isEmptyPath = (path64) => path64 == null || typeof path64 === "object" && !!path64[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -896,11 +896,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path63, value) {
-        if (isEmptyPath(path63))
+      addIn(path64, value) {
+        if (isEmptyPath(path64))
           this.add(value);
         else {
-          const [key, ...rest] = path63;
+          const [key, ...rest] = path64;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -914,8 +914,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path63) {
-        const [key, ...rest] = path63;
+      deleteIn(path64) {
+        const [key, ...rest] = path64;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -929,8 +929,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path63, keepScalar) {
-        const [key, ...rest] = path63;
+      getIn(path64, keepScalar) {
+        const [key, ...rest] = path64;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -948,8 +948,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path63) {
-        const [key, ...rest] = path63;
+      hasIn(path64) {
+        const [key, ...rest] = path64;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -959,8 +959,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path63, value) {
-        const [key, ...rest] = path63;
+      setIn(path64, value) {
+        const [key, ...rest] = path64;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -3475,9 +3475,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path63, value) {
+      addIn(path64, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path63, value);
+          this.contents.addIn(path64, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3552,14 +3552,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path63) {
-        if (Collection.isEmptyPath(path63)) {
+      deleteIn(path64) {
+        if (Collection.isEmptyPath(path64)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path63) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path64) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3574,10 +3574,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path63, keepScalar) {
-        if (Collection.isEmptyPath(path63))
+      getIn(path64, keepScalar) {
+        if (Collection.isEmptyPath(path64))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path63, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path64, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3588,10 +3588,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path63) {
-        if (Collection.isEmptyPath(path63))
+      hasIn(path64) {
+        if (Collection.isEmptyPath(path64))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path63) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path64) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3608,13 +3608,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path63, value) {
-        if (Collection.isEmptyPath(path63)) {
+      setIn(path64, value) {
+        if (Collection.isEmptyPath(path64)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path63), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path64), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path63, value);
+          this.contents.setIn(path64, value);
         }
       }
       /**
@@ -3775,7 +3775,7 @@ ${pointer2}
 var require_resolve_props = __commonJS({
   "node_modules/yaml/dist/compose/resolve-props.js"(exports) {
     "use strict";
-    function resolveProps(tokens2, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
+    function resolveProps(tokens3, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
       let spaceBefore = false;
       let atNewline = startOnNewline;
       let hasSpace = startOnNewline;
@@ -3790,7 +3790,7 @@ var require_resolve_props = __commonJS({
       let comma = null;
       let found = null;
       let start = null;
-      for (const token of tokens2) {
+      for (const token of tokens3) {
         if (reqSpace) {
           if (token.type !== "space" && token.type !== "newline" && token.type !== "comma")
             onError(token.offset, "MISSING_CHAR", "Tags and anchors must be separated from the next token by white space");
@@ -3881,7 +3881,7 @@ var require_resolve_props = __commonJS({
             hasSpace = false;
         }
       }
-      const last = tokens2[tokens2.length - 1];
+      const last = tokens3[tokens3.length - 1];
       const end = last ? last.offset + last.source.length : offset;
       if (reqSpace && next && next.type !== "space" && next.type !== "newline" && next.type !== "comma" && (next.type !== "scalar" || next.source !== "")) {
         onError(next.offset, "MISSING_CHAR", "Tags and anchors must be separated from the next token by white space");
@@ -5221,8 +5221,8 @@ ${cb}` : comment2;
        * @param forceDoc - If the stream contains no document, still emit a final document including any comments and directives that would be applied to a subsequent document.
        * @param endOffset - Should be set if `forceDoc` is also set, to set the document range end and to indicate errors correctly.
        */
-      *compose(tokens2, forceDoc = false, endOffset = -1) {
-        for (const token of tokens2)
+      *compose(tokens3, forceDoc = false, endOffset = -1) {
+        for (const token of tokens3)
           yield* this.next(token);
         yield* this.end(forceDoc, endOffset);
       }
@@ -5575,9 +5575,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path63) => {
+    visit.itemAtPath = (cst, path64) => {
       let item = cst;
-      for (const [field, index] of path63) {
+      for (const [field, index] of path64) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5586,23 +5586,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path63) => {
-      const parent = visit.itemAtPath(cst, path63.slice(0, -1));
-      const field = path63[path63.length - 1][0];
+    visit.parentCollection = (cst, path64) => {
+      const parent = visit.itemAtPath(cst, path64.slice(0, -1));
+      const field = path64[path64.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path63, item, visitor) {
-      let ctrl = visitor(item, path63);
+    function _visit(path64, item, visitor) {
+      let ctrl = visitor(item, path64);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path63.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path64.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5613,10 +5613,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path63);
+            ctrl = ctrl(item, path64);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path63) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path64) : ctrl;
     }
     exports.visit = visit;
   }
@@ -7370,8 +7370,8 @@ var require_dist = __commonJS({
 // cli/src/main.ts
 import { execFileSync as execFileSync6 } from "node:child_process";
 import fs39 from "node:fs";
-import os5 from "node:os";
-import path62 from "node:path";
+import os6 from "node:os";
+import path63 from "node:path";
 import { parseArgs as parseArgs3 } from "node:util";
 
 // cli/src/coverage.ts
@@ -7499,6 +7499,8 @@ var DEFAULT_VIEWPORTS = [
 ];
 var DEFAULT_VISUAL_THRESHOLD = 0.2;
 var DEFAULT_PERFORMANCE = { page_load_ms: 3e3, api_p95_ms: 800, regression_pct: 30, pages: {}, endpoints: {} };
+var RELEASE_BLOCKERS = ["critical", "important", "minor", "regressed", "flows-untested"];
+var DEFAULT_RELEASE_RULES = { max_critical: 0, max_important: 2, allow_regressed: false, not_ready_when: ["critical"] };
 function splitFrontMatter(text3) {
   const m = /^﻿?---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n([\s\S]*))?$/.exec(text3);
   return m ? { yaml: m[1] ?? "", body: m[2] ?? "" } : null;
@@ -7778,15 +7780,60 @@ function normalizePerformance(raw, problems) {
     if (v !== void 0 && !(typeof v === "number" && v >= 50 && v <= 6e5)) problems.push(`performance.${key} must be a number of milliseconds from 50 to 600000.`);
     return typeof v === "number" && v >= 50 && v <= 6e5 ? v : DEFAULT_PERFORMANCE[key];
   };
-  const pct = o["regression_pct"];
-  if (pct !== void 0 && !(typeof pct === "number" && pct >= 5 && pct <= 1e3)) problems.push("performance.regression_pct must be a percentage from 5 to 1000.");
+  const pct2 = o["regression_pct"];
+  if (pct2 !== void 0 && !(typeof pct2 === "number" && pct2 >= 5 && pct2 <= 1e3)) problems.push("performance.regression_pct must be a percentage from 5 to 1000.");
   return {
     page_load_ms: ms("page_load_ms"),
     api_p95_ms: ms("api_p95_ms"),
-    regression_pct: typeof pct === "number" && pct >= 5 && pct <= 1e3 ? pct : DEFAULT_PERFORMANCE.regression_pct,
+    regression_pct: typeof pct2 === "number" && pct2 >= 5 && pct2 <= 1e3 ? pct2 : DEFAULT_PERFORMANCE.regression_pct,
     pages: budgetMap(o["pages"], "performance.pages", problems),
     endpoints: budgetMap(o["endpoints"], "performance.endpoints", problems)
   };
+}
+var RELEASE_KEYS = ["max_critical", "max_important", "max_minor", "allow_regressed", "not_ready_when"];
+function normalizeRelease(raw, problems) {
+  const rules = { ...DEFAULT_RELEASE_RULES, not_ready_when: [...DEFAULT_RELEASE_RULES.not_ready_when] };
+  if (raw === void 0 || raw === null) return { rules };
+  if (!isObj(raw)) {
+    problems.push("release must be a mapping with a `rules` mapping.");
+    return { rules };
+  }
+  for (const k of Object.keys(raw)) if (k !== "rules") problems.push(`release.${k} is not a setting (the verdict's rules go under release.rules).`);
+  const r = raw["rules"];
+  if (r === void 0 || r === null) return { rules };
+  if (!isObj(r)) {
+    problems.push(`release.rules must be a mapping (${RELEASE_KEYS.join(", ")}).`);
+    return { rules };
+  }
+  for (const k of Object.keys(r)) {
+    if (!RELEASE_KEYS.includes(k)) problems.push(`release.rules.${k} is not a rule. Use ${RELEASE_KEYS.join(", ")}. (A key journey that was not tested can never be "Ready": that is not a rule to switch off; to make it "Not ready" put flows-untested in not_ready_when.)`);
+  }
+  const count = (key) => {
+    const v = r[key];
+    if (v === void 0 || v === null) return;
+    if (typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= 1e3) rules[key] = v;
+    else problems.push(`release.rules.${key} must be a whole number from 0 to 1000.`);
+  };
+  count("max_critical");
+  count("max_important");
+  count("max_minor");
+  if (r["allow_regressed"] !== void 0) {
+    if (typeof r["allow_regressed"] === "boolean") rules.allow_regressed = r["allow_regressed"];
+    else problems.push("release.rules.allow_regressed must be true or false.");
+  }
+  if (r["not_ready_when"] !== void 0) {
+    const v = r["not_ready_when"];
+    if (!Array.isArray(v)) problems.push(`release.rules.not_ready_when must be a list of: ${RELEASE_BLOCKERS.join(", ")}.`);
+    else {
+      const out = [];
+      for (const c of v) {
+        if (typeof c === "string" && RELEASE_BLOCKERS.includes(c)) out.push(c);
+        else problems.push(`release.rules.not_ready_when: "${String(c)}" is not a condition. Use ${RELEASE_BLOCKERS.join(", ")}.`);
+      }
+      rules.not_ready_when = [...new Set(out)];
+    }
+  }
+  return { rules };
 }
 function normalizeConfig(raw, problems) {
   if (!isObj(raw)) {
@@ -7888,7 +7935,8 @@ function normalizeConfig(raw, problems) {
     browsers: normalizeBrowsers(raw["browsers"], problems),
     viewports: normalizeViewports(raw["viewports"], problems),
     visual: normalizeVisual(raw["visual"], problems),
-    performance: normalizePerformance(raw["performance"], problems)
+    performance: normalizePerformance(raw["performance"], problems),
+    release: normalizeRelease(raw["release"], problems)
   };
   return config;
 }
@@ -8831,7 +8879,7 @@ function record(ctx, rec) {
 }
 
 // core/lib/memory/service.ts
-import path42 from "node:path";
+import path44 from "node:path";
 
 // core/lib/paths.ts
 import os from "node:os";
@@ -8956,8 +9004,8 @@ function listKnownProjects(home) {
 }
 
 // core/lib/run.ts
-import fs20 from "node:fs";
-import path38 from "node:path";
+import fs21 from "node:fs";
+import path40 from "node:path";
 
 // core/lib/git.ts
 import { execFileSync as execFileSync3 } from "node:child_process";
@@ -9081,6 +9129,7 @@ function memoryPaths(store) {
     bugs: path12.join(dir, "bugs.jsonl"),
     feedback: path12.join(dir, "feedback.jsonl"),
     bank: path12.join(storeSubdirs(store).testBank, "bank.jsonl"),
+    metrics: path12.join(dir, "metrics.json"),
     perf: path12.join(dir, "perf.json"),
     archiveDir: path12.join(dir, "archive"),
     runs: storeSubdirs(store).runs,
@@ -9209,7 +9258,7 @@ function assertSafeText(what, text3, knownSecrets = []) {
 var daysBetween = (from, to) => Math.max(0, (to.getTime() - new Date(from).getTime()) / 864e5);
 
 // core/lib/report.ts
-import fs12 from "node:fs";
+import fs13 from "node:fs";
 
 // core/lib/bank/results.ts
 import path13 from "node:path";
@@ -9220,7 +9269,7 @@ function bankForLifecycle(r) {
 }
 
 // core/lib/report.ts
-import path22 from "node:path";
+import path24 from "node:path";
 
 // core/lib/memory/productmap.ts
 import path14 from "node:path";
@@ -9412,9 +9461,11 @@ function computeVerdict(data) {
   return { ...v, level, reasons, line };
 }
 function verdictFromOpenFindings(data) {
+  const rules = data.meta?.release_rules ?? DEFAULT_RELEASE_RULES;
   const open = data.findings.filter(isOpen);
   const critical = open.filter((f) => f.severity === "critical");
   const important = open.filter((f) => f.severity === "important");
+  const minor = open.filter((f) => f.severity === "minor");
   const plainTitle = (f) => sentence(f.plain?.title ?? f.title);
   if (data.health && !data.health.environment_ok) {
     return {
@@ -9424,25 +9475,31 @@ function verdictFromOpenFindings(data) {
       line: "\u26D4 **Not ready to release:** the test environment has a problem, so nothing could be checked (see below)."
     };
   }
-  if (critical.length > 0) {
-    const first = plainTitle(critical[0]);
-    const more = important.length > 2 ? ` and ${plural(important.length, "important problem", "important problems")}` : "";
-    return {
-      level: "not-ready",
-      environment_problem: false,
-      reasons: critical.map(plainTitle),
-      line: `\u26D4 **Not ready to release:** ${plural(critical.length, "critical problem", "critical problems")} found${more}, for example: ${first}.`
-    };
-  }
-  const risks = [];
+  const found = [];
+  if (critical.length > rules.max_critical) found.push({ blocker: "critical", text: `${plural(critical.length, "critical problem", "critical problems")} found` });
+  else if (critical.length > 0) found.push({ text: `${plural(critical.length, "critical problem is", "critical problems are")} open (your release rules allow ${rules.max_critical})` });
+  if (important.length > rules.max_important) found.push({ blocker: "important", text: `${plural(important.length, "important problem is", "important problems are")} open` });
+  if (rules.max_minor !== void 0 && minor.length > rules.max_minor) found.push({ blocker: "minor", text: `${plural(minor.length, "minor problem is", "minor problems are")} open (your release rules allow ${rules.max_minor})` });
   const back = (data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed").length;
-  if (back > 0) risks.push(`${plural(back, "problem", "problems")} came back after being fixed`);
-  if (important.length > 2) risks.push(`${important.length} important problems are open`);
+  if (back > 0 && !rules.allow_regressed) found.push({ blocker: "regressed", text: `${plural(back, "problem", "problems")} came back after being fixed` });
   const flows = flowStatus(data);
-  if (flows.total === 0) risks.push("the key journeys were not listed, so they could not be confirmed as checked");
-  else if (flows.untested.length > 0) risks.push(`${plural(flows.untested.length, "key journey was", "key journeys were")} not fully checked`);
-  if (!data.health) risks.push("the test environment was not confirmed healthy");
-  if (risks.length === 0) {
+  if (flows.total === 0) found.push({ blocker: "flows-untested", text: "the key journeys were not listed, so they could not be confirmed as checked" });
+  else if (flows.untested.length > 0) found.push({ blocker: "flows-untested", text: `${plural(flows.untested.length, "key journey was", "key journeys were")} not fully checked` });
+  if (!data.health) found.push({ text: "the test environment was not confirmed healthy" });
+  const blocking = found.filter((v) => v.blocker && rules.not_ready_when.includes(v.blocker));
+  if (blocking.length > 0) {
+    if (blocking.some((v) => v.blocker === "critical")) {
+      const more = important.length > rules.max_important ? ` and ${plural(important.length, "important problem", "important problems")}` : "";
+      return {
+        level: "not-ready",
+        environment_problem: false,
+        reasons: [...critical.map(plainTitle), ...blocking.filter((v) => v.blocker !== "critical").map((v) => v.text)],
+        line: `\u26D4 **Not ready to release:** ${plural(critical.length, "critical problem", "critical problems")} found${more}, for example: ${plainTitle(critical[0])}.`
+      };
+    }
+    return { level: "not-ready", environment_problem: false, reasons: found.map((v) => v.text), line: `\u26D4 **Not ready to release:** ${blocking.map((v) => v.text).join("; ")}.` };
+  }
+  if (found.length === 0) {
     return {
       level: "ready",
       environment_problem: false,
@@ -9450,7 +9507,7 @@ function verdictFromOpenFindings(data) {
       line: `\u2705 **Ready to release:** no critical problems, ${plural(important.length, "important problem", "important problems")}, and every key journey was checked.`
     };
   }
-  return { level: "ready-with-risks", environment_problem: false, reasons: risks, line: `\u26A0\uFE0F **Ready with risks:** ${risks.join("; ")}.` };
+  return { level: "ready-with-risks", environment_problem: false, reasons: found.map((v) => v.text), line: `\u26A0\uFE0F **Ready with risks:** ${found.map((v) => v.text).join("; ")}.` };
 }
 
 // core/lib/coverage-report.ts
@@ -9626,8 +9683,8 @@ function budgetStatus(budget, startedIso, now) {
 function parseUsage(cost, durationS) {
   const note = cost?.trim() || "not available on this host";
   const usd = /\$\s*([0-9]+(?:\.[0-9]+)?)|\b([0-9]+(?:\.[0-9]+)?)\s*(?:usd|dollars)\b/i.exec(note);
-  const tokens2 = /\b([0-9][0-9,]*)\s*(?:k\s*)?tokens?\b/i.exec(note);
-  const tokenCount = tokens2 ? Number(tokens2[1].replace(/,/g, "")) * (/k\s*tokens?/i.test(tokens2[0]) ? 1e3 : 1) : void 0;
+  const tokens3 = /\b([0-9][0-9,]*)\s*(?:k\s*)?tokens?\b/i.exec(note);
+  const tokenCount = tokens3 ? Number(tokens3[1].replace(/,/g, "")) * (/k\s*tokens?/i.test(tokens3[0]) ? 1e3 : 1) : void 0;
   const usdValue = usd ? Number(usd[1] ?? usd[2]) : void 0;
   return { duration_s: durationS, ...usdValue !== void 0 && Number.isFinite(usdValue) ? { cost_usd: usdValue } : {}, ...tokenCount !== void 0 && Number.isFinite(tokenCount) ? { tokens: tokenCount } : {}, note };
 }
@@ -10006,16 +10063,970 @@ function lintCoverage(c, data) {
   return { errors, warnings };
 }
 
-// core/lib/ticket.ts
+// core/lib/metrics.ts
+import path22 from "node:path";
+
+// core/lib/memory/feedback.ts
+import fs12 from "node:fs";
 import path21 from "node:path";
+
+// core/lib/memory/falsealarms.ts
+var SOURCES = ["owner", "reproduction", "spec"];
+var one = (s) => s.replace(/\s+/g, " ").trim();
+function loadFalseAlarms(store, now = /* @__PURE__ */ new Date()) {
+  const read = readJsonl(memoryPaths(store).falseAlarms);
+  const warnings = [...read.warnings];
+  const ids = read.records.map((r) => String(r.id ?? "")).filter(Boolean);
+  const alarms = [];
+  for (const r of read.records) {
+    if (!r.symptom || typeof r.symptom !== "string") {
+      warnings.push(`A false alarm without a symptom was ignored${r.id ? ` (${r.id})` : ""}.`);
+      continue;
+    }
+    const id = r.id ? String(r.id) : nextId("FA", ids);
+    if (!r.id) ids.push(id);
+    alarms.push({ ...r, id, area: String(r.area ?? "general"), symptom: r.symptom, reason: String(r.reason ?? "marked as not a bug"), source: SOURCES.includes(r.source) ? r.source : "owner", created: String(r.created ?? now.toISOString()), hits: Number(r.hits ?? 0) || 0 });
+  }
+  return { alarms, warnings, unparsed: read.unparsed };
+}
+function addFalseAlarm(store, input, opts2 = {}) {
+  const now = opts2.now ?? /* @__PURE__ */ new Date();
+  const symptom = one(input.symptom);
+  const reason = one(input.reason);
+  const area = one(input.area);
+  if (symptom.length < 12 || reason.length < 8 || !area) throw new Error("A false alarm needs an area, a symptom (what was seen) and a reason (why it is not a bug).");
+  assertSafeText("this false alarm", `${area} ${symptom} ${reason}`, opts2.knownSecrets ?? []);
+  const loaded = loadFalseAlarms(store, now);
+  const dup = loaded.alarms.find((a) => similarity(a.symptom, symptom) >= 0.7);
+  if (dup) return { action: "existing", alarm: dup, warnings: loaded.warnings };
+  const alarm = {
+    id: nextId("FA", loaded.alarms.map((a) => a.id)),
+    area,
+    symptom,
+    reason,
+    source: input.source ?? "reproduction",
+    ...input.run ? { evidence_run: input.run } : {},
+    ...input.feedback ? { feedback: input.feedback } : {},
+    created: now.toISOString(),
+    hits: 0
+  };
+  writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", [...loaded.alarms, alarm], loaded.unparsed);
+  return { action: "created", alarm, warnings: loaded.warnings };
+}
+var MATCH_AT = 0.6;
+function matchFalseAlarms(findings, alarms) {
+  const out = [];
+  for (const f of findings) {
+    if (f.not_a_known_false_alarm?.trim()) continue;
+    const text3 = [f.title, f.summary, f.area, f.type].filter(Boolean).join(" ");
+    for (const a of alarms) {
+      if (tokens(a.symptom).length < 3) continue;
+      const score = coverage(`${a.symptom}`, text3);
+      if (score >= MATCH_AT) out.push({ finding: f, alarm: a, score });
+    }
+  }
+  return out;
+}
+function markFalseAlarmsSeen(store, ids, now = /* @__PURE__ */ new Date()) {
+  const loaded = loadFalseAlarms(store, now);
+  const touched = [];
+  for (const a of loaded.alarms) {
+    if (ids.includes(a.id)) {
+      a.hits += 1;
+      a.last_seen = now.toISOString();
+      touched.push(a.id);
+    }
+  }
+  if (touched.length) writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", loaded.alarms, loaded.unparsed);
+  return touched;
+}
+function archiveFalseAlarm(store, id, reason, now = /* @__PURE__ */ new Date()) {
+  const loaded = loadFalseAlarms(store, now);
+  const a = loaded.alarms.find((x) => x.id === id);
+  if (!a) throw new Error(`No false alarm ${id}.`);
+  appendArchive(store, "false-alarms", [{ ...a, archived_at: now.toISOString(), archived_reason: reason }]);
+  writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", loaded.alarms.filter((x) => x.id !== id), loaded.unparsed);
+  return a;
+}
+
+// core/lib/memory/learnings.ts
+var LEARNING_TYPES = ["behavior", "pitfall", "test-tip", "fix-pattern", "env-quirk"];
+var LEARNINGS_CAP = 200;
+var ARCHIVE_BELOW = 3;
+var MERGE_AT = 0.6;
+var clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
+var one2 = (s) => s.replace(/\s+/g, " ").trim();
+function loadLearnings(store, now = /* @__PURE__ */ new Date()) {
+  const read = readJsonl(memoryPaths(store).learnings);
+  const warnings = [...read.warnings];
+  const ids = read.records.map((r) => String(r.id ?? "")).filter(Boolean);
+  const active = [];
+  for (const r of read.records) {
+    if (!r.text || typeof r.text !== "string") {
+      warnings.push(`A learning without text was ignored${r.id ? ` (${r.id})` : ""}.`);
+      continue;
+    }
+    const id = r.id ? String(r.id) : nextId("L", ids);
+    if (!r.id) ids.push(id);
+    let type = r.type;
+    if (!LEARNING_TYPES.includes(type)) {
+      warnings.push(`${id} has an unknown type "${String(r.type)}"; treated as "behavior".`);
+      type = "behavior";
+    }
+    active.push({
+      ...r,
+      id,
+      type,
+      area: String(r.area ?? "general"),
+      text: r.text,
+      evidence_run: String(r.evidence_run ?? "manual"),
+      confidence: clamp(Number(r.confidence ?? 5) || 5, 1, 10),
+      created: String(r.created ?? now.toISOString()),
+      last_confirmed: String(r.last_confirmed ?? r.created ?? now.toISOString()),
+      hits: Number(r.hits ?? 0) || 0
+    });
+  }
+  return { active, warnings, unparsed: read.unparsed };
+}
+function save(store, active, unparsed, now) {
+  let kept = active;
+  let archived = [];
+  if (active.length > LEARNINGS_CAP) {
+    const ranked = [...active].sort((a, b) => learningScore(b, now) - learningScore(a, now));
+    kept = ranked.slice(0, LEARNINGS_CAP);
+    archived = ranked.slice(LEARNINGS_CAP);
+    appendArchive(store, "learnings", archived.map((l) => ({ ...l, archived_at: now.toISOString(), archived_reason: "over the size limit; lowest-scoring learnings are archived" })));
+  }
+  writeJsonl(memoryPaths(store).learnings, "learnings", kept, unparsed);
+  return archived;
+}
+function learningScore(l, now) {
+  return l.confidence / 10 * Math.pow(0.5, daysBetween(l.last_confirmed, now) / 120) + Math.min(l.hits, 10) * 0.02;
+}
+function learn(store, input, opts2 = {}) {
+  const now = opts2.now ?? /* @__PURE__ */ new Date();
+  if (!LEARNING_TYPES.includes(input.type)) throw new Error(`type must be one of ${LEARNING_TYPES.join(", ")}.`);
+  const text3 = one2(input.text);
+  const area = one2(input.area);
+  if (text3.length < 12 || text3.length > 400) throw new Error("A learning is one atomic statement of 12 to 400 characters.");
+  if (!area || area.length > 120) throw new Error("A learning needs an area (a short label, up to 120 characters).");
+  assertSafeText("this learning", `${area} ${text3}`, opts2.knownSecrets ?? []);
+  const loaded = loadLearnings(store, now);
+  const similar = loaded.active.filter((l) => l.type === input.type).map((l) => ({ l, s: similarity(l.text, text3) })).filter((x) => x.s >= MERGE_AT).sort((a, b) => b.s - a.s)[0];
+  if (similar) {
+    similar.l.confidence = clamp(similar.l.confidence + 1, 1, 10);
+    similar.l.last_confirmed = now.toISOString();
+    const archived2 = save(store, loaded.active, loaded.unparsed, now);
+    return { action: "merged", learning: similar.l, archived: archived2, warnings: loaded.warnings };
+  }
+  const learning = {
+    id: nextId("L", loaded.active.map((l) => l.id)),
+    type: input.type,
+    area,
+    text: text3,
+    evidence_run: input.run,
+    confidence: clamp(Math.round(input.confidence ?? 5), 1, 10),
+    created: now.toISOString(),
+    last_confirmed: now.toISOString(),
+    hits: 0
+  };
+  loaded.active.push(learning);
+  const archived = save(store, loaded.active, loaded.unparsed, now);
+  return { action: "created", learning, archived, warnings: loaded.warnings };
+}
+function adjustLearning(store, id, direction, run, now = /* @__PURE__ */ new Date()) {
+  const loaded = loadLearnings(store, now);
+  const l = loaded.active.find((x) => x.id === id);
+  if (!l) throw new Error(`No active learning ${id}.`);
+  if (direction === "confirm") {
+    l.confidence = clamp(l.confidence + 1, 1, 10);
+    l.last_confirmed = now.toISOString();
+    save(store, loaded.active, loaded.unparsed, now);
+    return { learning: l, archived: false };
+  }
+  l.confidence = clamp(l.confidence - 2, 1, 10);
+  l.contradicted_in = [...l["contradicted_in"] ?? [], run];
+  if (l.confidence < ARCHIVE_BELOW) {
+    appendArchive(store, "learnings", [{ ...l, archived_at: now.toISOString(), archived_reason: `contradicted (run ${run}); confidence fell below ${ARCHIVE_BELOW}` }]);
+    save(store, loaded.active.filter((x) => x.id !== id), loaded.unparsed, now);
+    return { learning: l, archived: true };
+  }
+  save(store, loaded.active, loaded.unparsed, now);
+  return { learning: l, archived: false };
+}
+function markApplied(store, ids, now = /* @__PURE__ */ new Date()) {
+  const loaded = loadLearnings(store, now);
+  const applied = [];
+  const unknown = [];
+  for (const id of ids) {
+    const l = loaded.active.find((x) => x.id === id);
+    if (!l) unknown.push(id);
+    else {
+      l.hits += 1;
+      applied.push(l);
+    }
+  }
+  if (applied.length) save(store, loaded.active, loaded.unparsed, now);
+  return { applied, unknown };
+}
+function archiveLearning(store, id, reason, now = /* @__PURE__ */ new Date()) {
+  const loaded = loadLearnings(store, now);
+  const l = loaded.active.find((x) => x.id === id);
+  if (!l) throw new Error(`No active learning ${id}.`);
+  appendArchive(store, "learnings", [{ ...l, archived_at: now.toISOString(), archived_reason: reason }]);
+  save(store, loaded.active.filter((x) => x.id !== id), loaded.unparsed, now);
+  return l;
+}
+
+// core/lib/memory/bugs.ts
+import crypto2 from "node:crypto";
+
+// core/lib/memory/risk.ts
+var WEIGHT = { critical: 10, important: 4, minor: 1 };
+var HALF_LIFE_DAYS = 90;
+var MAX_EVENTS = 30;
+var ESCAPED_FACTOR = 2;
+var MAX_AREAS = 200;
+var areaKey = (area) => area.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+function loadRisk(store) {
+  return readMemoryJson(memoryPaths(store).riskAreas) ?? { schema_version: MEMORY_SCHEMA, updated: (/* @__PURE__ */ new Date(0)).toISOString(), areas: [] };
+}
+var isAgentEvent = (e) => e.source === "agent";
+function tidy(file3, date) {
+  for (const a of file3.areas) a.events = a.events.sort((x, y) => y.date.localeCompare(x.date)).slice(0, MAX_EVENTS);
+  file3.areas = file3.areas.filter((a) => a.events.length > 0).slice(0, MAX_AREAS);
+  file3.updated = date.toISOString();
+}
+function recordRisk(store, runId, date, findings) {
+  const file3 = loadRisk(store);
+  for (const a of file3.areas) a.events = a.events.filter((e) => e.run !== runId || isAgentEvent(e) || e.source === "feedback");
+  for (const f of findings) {
+    const key = areaKey(f.area);
+    if (!key) continue;
+    let entry = file3.areas.find((a) => areaKey(a.area) === key);
+    if (!entry) file3.areas.push(entry = { area: f.area.trim(), ...f.surface ? { surface: f.surface } : {}, events: [] });
+    entry.events = entry.events.filter((e) => !(e.run === runId && isAgentEvent(e)));
+    entry.events.unshift({ run: runId, date: date.toISOString(), severity: f.severity });
+  }
+  tidy(file3, date);
+  writeMemoryJson(memoryPaths(store).riskAreas, file3);
+  return file3;
+}
+function recordEscapedRisk(store, escapedId, date, input) {
+  const key = areaKey(input.area);
+  if (!key) throw new Error("A risk area needs a name.");
+  const file3 = loadRisk(store);
+  let entry = file3.areas.find((a) => areaKey(a.area) === key);
+  if (!entry) file3.areas.push(entry = { area: input.area.trim(), ...input.surface ? { surface: input.surface } : {}, events: [] });
+  entry.events = entry.events.filter((e) => e.run !== escapedId);
+  entry.events.unshift({ run: escapedId, date: date.toISOString(), severity: input.severity, source: "escaped", ...input.note ? { note: input.note } : {} });
+  tidy(file3, date);
+  writeMemoryJson(memoryPaths(store).riskAreas, file3);
+}
+function scoreAreas(file3, now = /* @__PURE__ */ new Date()) {
+  const order = ["critical", "important", "minor"];
+  return file3.areas.filter((a) => a.events.length > 0).map((a) => ({
+    area: a.area,
+    ...a.surface ? { surface: a.surface } : {},
+    score: Math.round(a.events.reduce((s, e) => s + WEIGHT[e.severity] * (e.source === "escaped" ? ESCAPED_FACTOR : 1) * Math.pow(0.5, daysBetween(e.date, now) / HALF_LIFE_DAYS), 0) * 100) / 100,
+    occurrences: new Set(a.events.map((e) => e.run)).size,
+    worst_severity: a.events.map((e) => e.severity).sort((x, y) => order.indexOf(x) - order.indexOf(y))[0],
+    last_seen: a.events[0]?.date ?? ""
+  })).sort((a, b) => b.score - a.score || a.area.localeCompare(b.area));
+}
+function recordFeedbackRisk(store, runId, date, area, severity, note) {
+  const file3 = loadRisk(store);
+  const key = areaKey(area);
+  if (!key) return;
+  let entry = file3.areas.find((a) => areaKey(a.area) === key);
+  if (!entry) file3.areas.push(entry = { area: area.trim(), events: [] });
+  entry.events.unshift({ run: runId, date: date.toISOString(), severity, source: "feedback", note });
+  tidy(file3, date);
+  writeMemoryJson(memoryPaths(store).riskAreas, file3);
+}
+function archiveRiskArea(store, area, reason, now = /* @__PURE__ */ new Date()) {
+  const file3 = loadRisk(store);
+  const key = areaKey(area);
+  const found = file3.areas.find((a) => areaKey(a.area) === key);
+  if (!found) throw new Error(`No risk area "${area}". Use \`qamind memory review\` to see the exact names.`);
+  appendArchive(store, "risk-areas", [{ ...found, archived_at: now.toISOString(), archived_reason: reason }]);
+  file3.areas = file3.areas.filter((a) => a !== found);
+  file3.updated = now.toISOString();
+  writeMemoryJson(memoryPaths(store).riskAreas, file3);
+  return found;
+}
+
+// core/lib/memory/bugs.ts
+var BUG_STATUSES = ["new", "still-open", "fixed", "regressed", "accepted", "not-a-bug", "duplicate"];
+var OPEN_BUG_STATUSES = ["new", "still-open", "regressed"];
+var isOpenBug = (b) => OPEN_BUG_STATUSES.includes(b.status);
+var MAX_HISTORY = 40;
+var MAX_BUGS = 1e3;
+var SEV = (s) => SEVERITIES.includes(s) ? s : "minor";
+var WORDS_TO_DROP = /* @__PURE__ */ new Set(["the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "is", "are", "was", "were", "be", "it", "that", "this", "with", "as", "at", "by", "from", "not", "no", "but", "if", "then", "when", "which", "than", "so", "its", "into", "instead", "also", "again", "now", "after", "before", "returns", "return", "responds", "shows", "show", "gives", "give", "gets", "got", "error", "fails", "fail", "failed", "failure", "wrong", "incorrect", "problem", "issue", "bug"]);
+var SYMBOLS = /[()[\]{}<>'"`\\%;|&$*^~]/g;
+function symptomTokens(text3) {
+  const cleaned = text3.replace(/\bISSUE-\d+\b|\bUNCONFIRMED-\d+\b|\bBUG-\d+\b|\bQA-[\w-]+/gi, " ").replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, " ").replace(/\b\d{4}-\d{2}-\d{2}(?:T[\d:.]+Z?)?\b/g, " ").replace(/\b\d{5,}\b/g, " ");
+  const symbols = [...new Set((cleaned.match(SYMBOLS) ?? []).map((c) => `sym${c.charCodeAt(0)}`))];
+  const words = cleaned.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").split(" ").filter((w) => w.length > 0 && !WORDS_TO_DROP.has(w)).map((w) => w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w);
+  return [.../* @__PURE__ */ new Set([...words, ...symbols])].sort();
+}
+var triggerOf = (tokens3) => tokens3.filter((t) => /^\d+$/.test(t) || t.startsWith("sym"));
+var jaccard = (a, b) => {
+  const A = new Set(a);
+  const B = new Set(b);
+  if (A.size === 0 || B.size === 0) return 0;
+  let both = 0;
+  for (const t of A) if (B.has(t)) both++;
+  return both / (A.size + B.size - both);
+};
+var symptomOf = (f) => symptomTokens(`${f.title} ${f.steps?.[0] ?? ""}`);
+function fingerprintOf(f) {
+  return crypto2.createHash("sha1").update(`${areaKey(f.area)}|${(f.type || "").toLowerCase().trim()}|${symptomOf(f).join(" ")}`).digest("hex").slice(0, 12);
+}
+var STRONG = 0.75;
+var POSSIBLE = 0.35;
+function matchBug(bugs, f, protects = []) {
+  const byId = (id) => {
+    let b = bugs.find((x) => x.id === id);
+    for (let i = 0; b?.duplicate_of && i < 5; i++) b = bugs.find((x) => x.id === b?.duplicate_of) ?? b;
+    return b;
+  };
+  if (f.bug === "new") return { candidates: [] };
+  if (f.bug) {
+    const b = byId(f.bug);
+    if (b) return { bug: b, how: "explicit", candidates: [] };
+  }
+  for (const id of protects) {
+    const b = byId(id);
+    if (b) return { bug: b, how: "bank-test", candidates: [] };
+  }
+  const fp = fingerprintOf(f);
+  const exact = bugs.find((b) => b.fingerprint === fp);
+  if (exact) return { bug: byId(exact.id) ?? exact, how: "fingerprint", candidates: [] };
+  const mine = symptomOf(f);
+  const myTrigger = triggerOf(mine).join(" ");
+  const scored = bugs.filter((b) => b.status !== "duplicate" && (areaKey(b.area) === areaKey(f.area) || !!f.surface && b.surface === f.surface)).map((b) => {
+    const theirs = symptomOf({ ...b, steps: b.first_step ? [b.first_step] : [] });
+    const text3 = Math.max(jaccard(mine, theirs), similarity(`${f.title} ${f.summary ?? ""}`, `${b.title} ${b.summary}`) * 0.9);
+    return { bug: b, score: Math.round(text3 * 100) / 100, sameTrigger: triggerOf(theirs).join(" ") === myTrigger };
+  }).sort((a, b) => b.score - a.score);
+  const best = scored[0];
+  if (best && best.score >= STRONG && best.sameTrigger && areaKey(best.bug.area) === areaKey(f.area)) return { bug: byId(best.bug.id) ?? best.bug, how: "similar", candidates: [] };
+  return { candidates: scored.filter((s) => s.score >= POSSIBLE).slice(0, 3).map(({ bug, score }) => ({ bug, score })) };
+}
+function loadBugs(store) {
+  const read = readJsonl(memoryPaths(store).bugs);
+  const warnings = [...read.warnings];
+  const bugs = [];
+  for (const r of read.records) {
+    if (!r.id || !r.title || !r.fingerprint) {
+      warnings.push(`A bug record without ${!r.id ? "an id" : !r.title ? "a title" : "a fingerprint"} was ignored.`);
+      continue;
+    }
+    const status2 = BUG_STATUSES.includes(r.status) ? r.status : "still-open";
+    const seen = r.last_seen ?? r.first_seen ?? { run: "unknown", at: (/* @__PURE__ */ new Date(0)).toISOString() };
+    bugs.push({
+      ...r,
+      id: String(r.id),
+      fingerprint: String(r.fingerprint),
+      area: String(r.area ?? "general"),
+      type: String(r.type ?? "other"),
+      surface: String(r.surface ?? "other"),
+      title: String(r.title),
+      summary: String(r.summary ?? ""),
+      severity: SEV(r.severity),
+      status: status2,
+      first_seen: r.first_seen ?? seen,
+      last_seen: seen,
+      times_seen: typeof r.times_seen === "number" ? r.times_seen : 1,
+      history: Array.isArray(r.history) ? r.history : []
+    });
+  }
+  return { bugs, warnings, unparsed: read.unparsed };
+}
+function saveBugs(store, bugs, unparsed = []) {
+  let keep = bugs;
+  if (bugs.length > MAX_BUGS) {
+    const droppable = bugs.filter((b) => b.status === "fixed").sort((a, b) => a.last_seen.at.localeCompare(b.last_seen.at)).slice(0, bugs.length - MAX_BUGS);
+    const ids = new Set(droppable.map((b) => b.id));
+    appendArchive(store, "bugs", droppable);
+    keep = bugs.filter((b) => !ids.has(b.id));
+  }
+  writeJsonl(memoryPaths(store).bugs, "bugs", keep, unparsed);
+}
+var bugEffectiveSeverity = (b) => b.severity_override?.level ?? b.severity;
+var when = (iso) => iso.slice(0, 10);
+function classifyRun(bugs, input) {
+  const protects = (f) => (f.bank_tests ?? []).map((t) => input.bank.find((b) => b.test === t)?.bug).filter((x) => !!x);
+  const findings = [];
+  const seenBugs = /* @__PURE__ */ new Set();
+  const newByFingerprint = /* @__PURE__ */ new Map();
+  let nextNew = bugs.map((b) => b.id);
+  const issueOf = (f, i) => f.id ?? `finding-${i + 1}`;
+  for (const [i, f] of input.findings.entries()) {
+    const m = matchBug(bugs, f, protects(f));
+    if (!m.bug) {
+      const fp = fingerprintOf(f);
+      const same = newByFingerprint.get(fp);
+      const id = same ?? nextId("BUG", nextNew);
+      if (!same) {
+        newByFingerprint.set(fp, id);
+        nextNew = [...nextNew, id];
+      }
+      seenBugs.add(id);
+      findings.push({
+        issue: issueOf(f, i),
+        bug: id,
+        status: "new",
+        times_seen: 1,
+        first_seen: input.now.toISOString(),
+        ...m.candidates.length ? { ambiguous: m.candidates.map((c) => ({ bug: c.bug.id, title: c.bug.title, score: c.score })) } : {}
+      });
+      continue;
+    }
+    const b = m.bug;
+    seenBugs.add(b.id);
+    const status2 = b.status === "fixed" ? "regressed" : b.status === "accepted" ? "accepted" : b.status === "not-a-bug" ? "not-a-bug" : "still-open";
+    findings.push({
+      issue: issueOf(f, i),
+      bug: b.id,
+      status: status2,
+      times_seen: b.last_seen.run === input.runId ? b.times_seen : b.times_seen + 1,
+      first_seen: b.first_seen.at,
+      ...status2 === "regressed" && b.fixed ? { fixed_on: b.fixed.at } : {},
+      ...m.how ? { how: m.how } : {}
+    });
+  }
+  const fixed = [];
+  const notRechecked = [];
+  for (const b of bugs.filter(isOpenBug)) {
+    if (seenBugs.has(b.id)) continue;
+    const bankPass = input.bank.find((t) => t.bug === b.id && t.passed);
+    const recheck = input.rechecks.find((r) => r.bug === b.id && r.result === "passes");
+    const stillFailing = input.bank.some((t) => t.bug === b.id && !t.passed);
+    if (stillFailing) continue;
+    if (bankPass || recheck) fixed.push({ bug: b.id, title: b.title, ...b.plain_title ? { plain_title: b.plain_title } : {}, area: b.area, severity: bugEffectiveSeverity(b), how: bankPass ? `The saved check ${bankPass.test} for this problem passes now.` : recheck.how, source: bankPass ? "bank-test" : "recheck", last_seen_run: b.last_seen.run });
+    else notRechecked.push({ bug: b.id, title: b.title, ...b.plain_title ? { plain_title: b.plain_title } : {}, status: b.status, severity: bugEffectiveSeverity(b) });
+  }
+  const acceptedSeen = findings.filter((f) => f.status === "accepted").map((f) => bugs.find((b) => b.id === f.bug)).filter((b) => !!b?.accepted).map((b) => ({ bug: b.id, title: b.title, by: b.accepted.by, at: b.accepted.at, ...b.accepted.note ? { note: b.accepted.note } : {} }));
+  return { schema_version: 1, run_id: input.runId, computed_at: input.now.toISOString(), applied: false, findings, fixed, not_rechecked: notRechecked, accepted_seen: acceptedSeen };
+}
+var push = (b, e) => {
+  b.history = [...b.history, e].slice(-MAX_HISTORY);
+};
+function applyLifecycle(store, life, findings, now) {
+  const loaded = loadBugs(store);
+  const bugs = loaded.bugs;
+  const lines = [];
+  let created = 0;
+  let still = 0;
+  let back = 0;
+  const run = life.run_id;
+  for (const [i, fl] of life.findings.entries()) {
+    const f = findings.find((x) => x.id === fl.issue) ?? findings[i];
+    if (!f) continue;
+    let b = bugs.find((x) => x.id === fl.bug);
+    if (!b) {
+      b = {
+        id: fl.bug,
+        fingerprint: fingerprintOf(f),
+        area: f.area,
+        type: f.type,
+        surface: f.surface ?? "other",
+        title: f.title,
+        ...f.plain_title ? { plain_title: f.plain_title } : {},
+        summary: (f.summary ?? "").slice(0, 400),
+        severity: f.severity,
+        status: "new",
+        first_seen: { run, at: now.toISOString() },
+        last_seen: { run, at: now.toISOString() },
+        times_seen: 1,
+        ...f.steps?.[0] ? { first_step: f.steps[0].slice(0, 200) } : {},
+        ...f.memory_applied?.length ? { memory_applied: f.memory_applied } : {},
+        history: [{ at: now.toISOString(), run, event: "new" }]
+      };
+      bugs.push(b);
+      created++;
+      continue;
+    }
+    if (b.last_seen.run === run) continue;
+    if (fl.status === "regressed") {
+      b.previously_fixed = b.fixed ?? b.previously_fixed ?? { at: b.last_seen.at, how: "recorded as fixed" };
+      delete b.fixed;
+      b.status = "regressed";
+      push(b, { at: now.toISOString(), run, event: "regressed", note: `It had been fixed on ${when(b.previously_fixed.at)} and was found again.` });
+      back++;
+    } else if (fl.status === "still-open") {
+      b.status = "still-open";
+      push(b, { at: now.toISOString(), run, event: "seen" });
+      still++;
+    } else {
+      push(b, { at: now.toISOString(), run, event: "seen", note: fl.status });
+    }
+    b.times_seen += 1;
+    b.last_seen = { run, at: now.toISOString() };
+    b.title = f.title;
+    if (f.plain_title) b.plain_title = f.plain_title;
+    b.summary = (f.summary ?? b.summary).slice(0, 400);
+    b.severity = f.severity;
+    if (f.steps?.[0]) b.first_step = f.steps[0].slice(0, 200);
+    if (f.memory_applied?.length) b.memory_applied = f.memory_applied;
+  }
+  let fixedNow = 0;
+  for (const fx of life.fixed) {
+    const b = bugs.find((x) => x.id === fx.bug);
+    if (!b || !isOpenBug(b)) continue;
+    b.status = "fixed";
+    b.fixed = { run, at: now.toISOString(), how: fx.how };
+    push(b, { at: now.toISOString(), run, event: "fixed", note: fx.how });
+    fixedNow++;
+  }
+  saveBugs(store, bugs, loaded.unparsed);
+  if (created + still + back + fixedNow > 0) lines.push(`Bugs: ${created} new, ${still} still open, ${back} came back, ${fixedNow} fixed since the last check.`);
+  return lines;
+}
+function summariseBugs(bugs) {
+  const order = ["regressed", "new", "still-open"];
+  const sev = (s) => SEVERITIES.indexOf(s);
+  return {
+    open: bugs.filter(isOpenBug).sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status) || sev(bugEffectiveSeverity(a)) - sev(bugEffectiveSeverity(b)) || b.last_seen.at.localeCompare(a.last_seen.at)).slice(0, 25).map((b) => ({ id: b.id, area: b.area, title: b.title, times_seen: b.times_seen, status: b.status, severity: bugEffectiveSeverity(b), first_seen: when(b.first_seen.at), last_seen: when(b.last_seen.at) })),
+    fixed_recently: bugs.filter((b) => b.status === "fixed" && b.fixed).sort((a, b) => b.fixed.at.localeCompare(a.fixed.at)).slice(0, 10).map((b) => ({ id: b.id, area: b.area, title: b.title, fixed_on: when(b.fixed.at) })),
+    accepted: bugs.filter((b) => b.status === "accepted" && b.accepted).slice(0, 15).map((b) => ({ id: b.id, area: b.area, title: b.title, by: b.accepted.by, at: when(b.accepted.at) })),
+    not_a_bug: bugs.filter((b) => b.status === "not-a-bug").slice(0, 15).map((b) => ({ id: b.id, title: b.title }))
+  };
+}
+
+// core/lib/memory/feedback.ts
+var VERDICTS = ["not-a-bug", "wrong-severity", "duplicate-of", "confirmed", "fixed", "wont-fix", "good-catch"];
+var one3 = (s) => s.replace(/\s+/g, " ").trim();
+function loadFeedback(store) {
+  const read = readJsonl(memoryPaths(store).feedback);
+  const records = read.records.filter((r) => !!r.id && !!r.bug && VERDICTS.includes(r.verdict) && !!r.by && !!r.at).map((r) => ({ ...r, effects: Array.isArray(r.effects) ? r.effects : [] }));
+  const dropped = read.records.length - records.length;
+  return { records, warnings: [...read.warnings, ...dropped ? [`${dropped} feedback record(s) without a bug, verdict, name or date were ignored.`] : []], unparsed: read.unparsed };
+}
+function parseVerdict(text3) {
+  const t = one3(text3).replace(/[“”]/g, '"').replace(/’/g, "'");
+  const patterns = [
+    [/^not[\s-]+a[\s-]+bug\b[\s:,.-]*/i, "not-a-bug"],
+    [/^wrong[\s-]+severity\b[\s:,=-]*/i, "wrong-severity"],
+    [/^duplicate(?:[\s-]+of)?\b[\s:,=-]*/i, "duplicate-of"],
+    [/^confirmed\b[\s:,.-]*/i, "confirmed"],
+    [/^(?:won'?t|will\s+not)[\s-]+fix\b[\s:,.-]*/i, "wont-fix"],
+    [/^fixed\b[\s:,.-]*/i, "fixed"],
+    [/^good[\s-]+catch\b[\s:,.-]*/i, "good-catch"]
+  ];
+  for (const [re, verdict] of patterns) {
+    const m = re.exec(t);
+    if (!m) continue;
+    const rest = t.slice(m[0].length).trim();
+    if (verdict === "wrong-severity") {
+      const lvl = /^(critical|important|minor)\b[\s:,.-]*/i.exec(rest);
+      return lvl ? { verdict, value: lvl[1].toLowerCase(), ...rest.slice(lvl[0].length).trim() ? { note: rest.slice(lvl[0].length).trim() } : {} } : { verdict };
+    }
+    if (verdict === "duplicate-of") {
+      const id = /^((?:ISSUE|BUG)-\d+)\b[\s:,.-]*/i.exec(rest);
+      return id ? { verdict, value: id[1].toUpperCase(), ...rest.slice(id[0].length).trim() ? { note: rest.slice(id[0].length).trim() } : {} } : { verdict };
+    }
+    return { verdict, ...rest ? { note: rest } : {} };
+  }
+  return void 0;
+}
+function summaries(store) {
+  const dir = memoryPaths(store).runs;
+  if (!fs12.existsSync(dir)) return [];
+  return fs12.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().map((f) => readJson(path21.join(dir, f))).filter((s) => !!s);
+}
+function resolveBug(store, target, run) {
+  const t = target.trim().toUpperCase();
+  const loaded = loadBugs(store);
+  if (/^BUG-\d+$/.test(t)) {
+    const bug = loaded.bugs.find((b) => b.id === t);
+    if (!bug) throw new Error(`No bug ${t} in this project's memory. Use \`qamind bugs list\` to see them.`);
+    return { bug, bugs: loaded.bugs, unparsed: loaded.unparsed };
+  }
+  if (/^ISSUE-\d+$/.test(t)) {
+    const all = summaries(store);
+    const pool = run ? all.filter((s) => s.run_id === run) : all;
+    if (run && pool.length === 0) throw new Error(`No finished run ${run} in this project's history.`);
+    for (const s of pool) {
+      const f = s.findings?.find((x) => x.id === t);
+      if (!f) continue;
+      if (!f.bug) throw new Error(`${t} in ${s.run_id} has no bug id (that run was made before bugs were tracked). Give the bug itself (BUG-nnn) or tell the agent in a new run.`);
+      const bug = loaded.bugs.find((b) => b.id === f.bug);
+      if (!bug) throw new Error(`${t} in ${s.run_id} points at ${f.bug}, which is not in memory.`);
+      return { bug, issue: t, run: s.run_id, bugs: loaded.bugs, unparsed: loaded.unparsed };
+    }
+    throw new Error(`No finding ${t}${run ? ` in ${run}` : " in any finished run of this project"}. Finding numbers belong to one run: say which with --run, or use the bug id (BUG-nnn).`);
+  }
+  throw new Error(`"${target}" is not a finding or bug id: use ISSUE-003 (a finding in a report) or BUG-002.`);
+}
+var event = (e, now) => ({ at: now.toISOString(), ...e });
+var dateOf = (now) => now.toISOString().slice(0, 10);
+function addFeedback(store, input, now = /* @__PURE__ */ new Date()) {
+  const by = one3(input.by);
+  if (by.length < 2 || by.length > 80) throw new Error("Say who is giving the feedback (--by NAME): a name of 2 to 80 characters.");
+  if (!VERDICTS.includes(input.verdict)) throw new Error(`Unknown verdict "${input.verdict}". Use one of: ${VERDICTS.join(", ")}.`);
+  const note = input.note ? one3(input.note).slice(0, 400) : void 0;
+  assertSafeText("this feedback", `${by} ${note ?? ""}`);
+  const target = resolveBug(store, input.target, input.run);
+  const bug = target.bug;
+  const bugs = target.bugs;
+  let level;
+  let parent;
+  if (input.verdict === "wrong-severity") {
+    if (!SEVERITIES.includes(input.value)) throw new Error(`wrong-severity needs the right level: ${SEVERITIES.join(", ")}.`);
+    level = input.value;
+  }
+  if (input.verdict === "duplicate-of") {
+    if (!input.value) throw new Error("duplicate-of needs the finding or bug it duplicates (ISSUE-002 or BUG-004).");
+    parent = resolveBug(store, input.value, input.run).bug;
+    if (parent.id === bug.id) throw new Error("A bug cannot be a duplicate of itself.");
+  }
+  if (input.verdict === "not-a-bug" && (note ?? "").length < 8) throw new Error("not-a-bug needs a reason (--note, at least a short sentence): it becomes a known false alarm, and the next run needs to know why it is not a bug.");
+  const feedback = loadFeedback(store);
+  const id = nextId("F", feedback.records.map((r) => r.id));
+  const effects = [];
+  const warnings = [...feedback.warnings];
+  const idForAlarm = { id, by, at: now.toISOString() };
+  const label = `${bug.id} "${bug.title}"`;
+  switch (input.verdict) {
+    case "not-a-bug": {
+      const r = addFalseAlarm(store, { area: bug.area, symptom: `${bug.title}. ${bug.summary}`.slice(0, 300), reason: note, source: "owner", ...bug.last_seen.run ? { run: bug.last_seen.run } : {}, feedback: idForAlarm }, { now });
+      bug.status = "not-a-bug";
+      bug.not_a_bug = { by, at: now.toISOString(), ...note ? { note } : {} };
+      bug.history = [...bug.history, event({ event: "not-a-bug", by, ...note ? { note } : {} }, now)].slice(-40);
+      effects.push(`${label} is marked as not a bug. ${r.action === "created" ? `It is now a known false alarm (${r.alarm.id}), so a later run will not report it again.` : `It matches the known false alarm ${r.alarm.id}, which already stops it being reported.`}`);
+      break;
+    }
+    case "wrong-severity": {
+      const was = bug.severity_override?.level ?? bug.severity;
+      bug.severity_override = { level, by, at: now.toISOString(), ...note ? { note } : {} };
+      bug.history = [...bug.history, event({ event: "severity", by, note: `${was} to ${level}${note ? `: ${note}` : ""}` }, now)].slice(-40);
+      effects.push(`${label} will be shown as ${level} (it was ${was}) in the next reports, with the name of the person who set it.`);
+      try {
+        const l = learn(store, { type: "behavior", area: bug.area, text: `In ${bug.area}, a problem like "${bug.title}" counts as ${level}, not ${was}. Severity set by ${by} on ${dateOf(now)}.`, run: bug.last_seen.run, confidence: 6 }, { now });
+        effects.push(`Saved as a learning (${l.learning.id}) so similar problems in ${bug.area} are judged the same way.`);
+      } catch (e) {
+        warnings.push(`The severity was recorded, but it could not be saved as a learning: ${e.message}`);
+      }
+      break;
+    }
+    case "duplicate-of": {
+      bug.status = "duplicate";
+      bug.duplicate_of = parent.id;
+      bug.history = [...bug.history, event({ event: "duplicate", by, note: `of ${parent.id}` }, now)].slice(-40);
+      effects.push(`${label} is a duplicate of ${parent.id}: findings that match it are counted under ${parent.id} from now on.`);
+      break;
+    }
+    case "confirmed":
+    case "good-catch": {
+      bug.confirmed_by = [...bug.confirmed_by ?? [], { by, at: now.toISOString() }].slice(-10);
+      bug.history = [...bug.history, event({ event: "confirmed", by, ...note ? { note } : {} }, now)].slice(-40);
+      let raised = 0;
+      for (const lid of bug.memory_applied ?? []) {
+        try {
+          adjustLearning(store, lid, "confirm", bug.last_seen.run, now);
+          raised++;
+        } catch {
+        }
+      }
+      recordFeedbackRisk(store, bug.last_seen.run, now, bug.area, bug.severity_override?.level ?? bug.severity, `${input.verdict} from ${by}`);
+      effects.push(`${label} is confirmed. ${bug.area} counts as a riskier area now${raised ? `, and ${raised} learning(s) that shaped it are more trusted` : ""}.`);
+      break;
+    }
+    case "fixed": {
+      if (bug.status === "fixed") warnings.push(`${bug.id} was already recorded as fixed.`);
+      bug.previously_fixed = bug.fixed;
+      bug.status = "fixed";
+      bug.fixed = { at: now.toISOString(), how: `${by} reports it fixed${note ? `: ${note}` : ""}`, by };
+      bug.history = [...bug.history, event({ event: "fixed", by, ...note ? { note } : {} }, now)].slice(-40);
+      effects.push(`${label} is recorded as fixed. If a later run finds it again, it will be shown as having come back.`);
+      break;
+    }
+    case "wont-fix": {
+      bug.status = "accepted";
+      bug.accepted = { by, at: now.toISOString(), ...note ? { note } : {} };
+      bug.history = [...bug.history, event({ event: "accepted", by, ...note ? { note } : {} }, now)].slice(-40);
+      effects.push(`${label} is accepted: later reports list it under "Known, accepted" and do not count it as a problem.`);
+      break;
+    }
+  }
+  const record2 = {
+    id,
+    bug: bug.id,
+    ...target.issue ? { issue: target.issue } : {},
+    ...target.run ? { run: target.run } : {},
+    verdict: input.verdict,
+    ...level ? { level } : {},
+    ...parent ? { duplicate_of: parent.id } : {},
+    ...note ? { note } : {},
+    by,
+    at: now.toISOString(),
+    via: input.via ?? "command",
+    effects
+  };
+  saveBugs(store, bugs, target.unparsed);
+  writeJsonl(memoryPaths(store).feedback, "feedback", [...feedback.records, record2], feedback.unparsed);
+  return { record: record2, effects, warnings };
+}
+function importAdminFeedback(store, runDir, by, now = /* @__PURE__ */ new Date()) {
+  const file3 = path21.join(runDir, "ADMIN-REPORT.md");
+  if (!fs12.existsSync(file3)) throw new Error(`No ADMIN-REPORT.md in ${runDir}.`);
+  const run = path21.basename(runDir);
+  const out = [];
+  const blocks = fs12.readFileSync(file3, "utf8").split(/^### /m).slice(1);
+  for (const block of blocks) {
+    const issue = /\[(ISSUE-\d+)\]\(/.exec(block)?.[1];
+    const line = /\*\*Your feedback \(optional\):\*\*\s*(.*)$/m.exec(block)?.[1] ?? "";
+    const text3 = one3(line.replace(/_{2,}/g, ""));
+    if (!issue || !text3) continue;
+    const parsed = parseVerdict(text3);
+    if (!parsed) {
+      out.push({ issue, text: text3, problem: "It does not start with a verdict. Start with one of: not a bug, confirmed, won't fix, fixed, good catch, wrong severity <level>, duplicate of ISSUE-nnn (then a note). Give it with `qamind feedback add` instead." });
+      continue;
+    }
+    const already = loadFeedback(store).records.some((r) => r.run === run && r.issue === issue && r.verdict === parsed.verdict && r.via === "admin-report" && (r.note ?? "") === (parsed.note ?? ""));
+    if (already) {
+      out.push({ issue, text: text3, problem: "Already imported." });
+      continue;
+    }
+    try {
+      const r = addFeedback(store, { target: issue, run, verdict: parsed.verdict, ...parsed.value ? { value: parsed.value } : {}, ...parsed.note ? { note: parsed.note } : {}, by, via: "admin-report" }, now);
+      out.push({ issue, text: text3, applied: r.record, effects: r.effects });
+    } catch (e) {
+      out.push({ issue, text: text3, problem: e.message });
+    }
+  }
+  return out;
+}
+var MIN_VERDICTS = 5;
+function feedbackStats(store) {
+  const { records } = loadFeedback(store);
+  const by = {};
+  for (const r of records) by[r.verdict] = (by[r.verdict] ?? 0) + 1;
+  const last = /* @__PURE__ */ new Map();
+  for (const r of records) last.set(r.bug, r.verdict);
+  const judged = [...last.values()].filter((v) => v !== "duplicate-of");
+  const real = judged.filter((v) => v !== "not-a-bug").length;
+  const enough = judged.length >= MIN_VERDICTS;
+  return {
+    total: records.length,
+    judged: judged.length,
+    by_verdict: by,
+    ...enough ? { precision: { real, judged: judged.length, rate: Math.round(real / judged.length * 100) / 100 } } : {},
+    note: records.length === 0 ? "Nobody has given feedback on a finding yet." : enough ? "Precision is the share of judged findings that were real (not marked not-a-bug)." : `Precision needs at least ${MIN_VERDICTS} judged findings; there ${judged.length === 1 ? "is" : "are"} ${judged.length}.`
+  };
+}
+
+// core/lib/metrics.ts
+var ESCAPED_SOURCES = ["manual", "sentry", "ticket", "other"];
+var MAX_RUNS = 200;
+var MAX_AREA_MARKS = 80;
+var MAX_FINDING_NOTES = 40;
+var MATCH_RUNS = 10;
+function loadMetrics(store) {
+  const f = readMemoryJson(memoryPaths(store).metrics);
+  return { ...f?.schema_version !== void 0 ? { schema_version: f.schema_version } : {}, runs: Array.isArray(f?.runs) ? f.runs : [], escaped: Array.isArray(f?.escaped) ? f.escaped : [] };
+}
+function saveMetrics(store, f) {
+  writeMemoryJson(memoryPaths(store).metrics, { runs: f.runs.slice(-MAX_RUNS), escaped: f.escaped });
+}
+var stem = (w) => w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w;
+var STOP2 = /* @__PURE__ */ new Set(["and", "the", "for", "with", "from", "via", "per", "any", "all", "not", "are", "was", "has", "its", "our", "your", "into", "over", "under", "after", "before", "when", "that", "this", "than", "then", "also"]);
+var tokens2 = (area) => [...new Set(areaKey(area).split(" ").filter((w) => w.length >= 3 && !STOP2.has(w)).map(stem))];
+var AREA_MATCH = 0.5;
+function commonWords(areas) {
+  if (areas.length < 3) return /* @__PURE__ */ new Set();
+  const counts = /* @__PURE__ */ new Map();
+  for (const a of areas) for (const t of tokens2(a)) counts.set(t, (counts.get(t) ?? 0) + 1);
+  return new Set([...counts].filter(([, n]) => n / areas.length >= 0.6).map(([t]) => t));
+}
+function distinctiveSimilarity(a, b, skip2) {
+  const keep = (name) => {
+    const t = tokens2(name);
+    const d = t.filter((w) => !skip2.has(w));
+    return d.length ? d : t;
+  };
+  const x = keep(a);
+  const y = keep(b);
+  if (x.length === 0 || y.length === 0) return 0;
+  return x.filter((t) => y.includes(t)).length / Math.min(x.length, y.length);
+}
+function metricFromRun(data, run, extra) {
+  const meta = data.meta;
+  const flows = flowStatus(data);
+  const count = (sev) => data.findings.filter((f) => f.severity === sev).length;
+  const statuses = (st) => data.coverage.filter((c) => c.status === st).length;
+  const life = data.lifecycle?.findings ?? [];
+  const areas = data.coverage.slice(0, MAX_AREA_MARKS).map((c) => ({ area: c.area, status: c.status, surface: c.surface }));
+  const finding_list = data.findings.slice(0, MAX_FINDING_NOTES).map((f) => ({ id: f.id ?? "", area: f.area, title: f.title.length > 100 ? `${f.title.slice(0, 99)}\u2026` : f.title }));
+  const bank = data.bank;
+  const ran = bank ? bank.passed + bank.flaky + bank.failed : 0;
+  return {
+    run_id: meta?.run_id ?? "",
+    finished: run.finished,
+    mode: meta?.mode ?? "unknown",
+    trigger: meta?.trigger ?? "manual",
+    verdict: computeVerdict(data).level,
+    findings: { critical: count("critical"), important: count("important"), minor: count("minor"), unconfirmed: data.unconfirmed.length },
+    bugs: { new: life.filter((l) => l.status === "new").length, still_open: life.filter((l) => l.status === "still-open").length, came_back: life.filter((l) => l.status === "regressed").length },
+    coverage: { journeys_tested: flows.tested.length, journeys_total: flows.total, areas_tested: statuses("tested"), areas_partial: statuses("partial"), areas_not_tested: statuses("not-tested"), pages: extra.pages, endpoints: extra.endpoints, api_probes: data.apiSummaries.reduce((n, s) => n + s.total, 0) },
+    ...bank && bank.total > 0 ? { bank: { total: bank.total, ran, passed: bank.passed + bank.flaky, failed: bank.failed, pass_rate: ran > 0 ? Math.round((bank.passed + bank.flaky) / ran * 100) / 100 : 0 } } : {},
+    tests_saved: run.tests_saved ?? 0,
+    duration_s: run.duration_s,
+    ...run.cost_usd !== void 0 ? { cost_usd: run.cost_usd } : {},
+    ...run.tokens !== void 0 ? { tokens: run.tokens } : {},
+    areas,
+    finding_list
+  };
+}
+function observedCounts(runDir) {
+  const n = (f) => {
+    try {
+      const v = readJson(path22.join(runDir, "data", f));
+      return Array.isArray(v) ? v.length : 0;
+    } catch {
+      return 0;
+    }
+  };
+  return { pages: n("pages.json"), endpoints: n("endpoints.json") };
+}
+function recordRunMetrics(store, metric) {
+  const f = loadMetrics(store);
+  f.runs = [...f.runs.filter((r) => r.run_id !== metric.run_id), metric].sort((a, b) => a.finished.localeCompare(b.finished));
+  saveMetrics(store, f);
+}
+var clean = (s) => s.replace(/\s+/g, " ").trim();
+function sharesDistinctiveWord(escapedArea, text3, skip2) {
+  const own = tokens2(escapedArea).filter((w) => !skip2.has(w));
+  const words = own.length ? own : tokens2(escapedArea);
+  const there = new Set(tokens2(text3));
+  return words.filter((w) => there.has(w)).length >= (words.length >= 4 ? 2 : 1);
+}
+function matchEscaped(area, runs) {
+  for (const r of [...runs].sort((a, b) => b.finished.localeCompare(a.finished)).slice(0, MATCH_RUNS)) {
+    const common = commonWords(r.areas.map((a2) => a2.area));
+    const best = r.areas.map((a2) => ({ a: a2, score: distinctiveSimilarity(area, a2.area, common) })).filter((x) => x.score >= AREA_MATCH).sort((x, y) => y.score - x.score)[0];
+    if (!best) continue;
+    const { a } = best;
+    const base = { run_id: r.run_id, finished: r.finished, area: a.area, status: a.status };
+    if (a.status !== "tested") return { verdict: a.status === "partial" ? "partly-checked" : "not-checked", matched: base };
+    const related = (r.finding_list ?? []).filter((f) => sharesDistinctiveWord(area, `${f.area} ${f.title}`, common)).map((f) => f.id).filter(Boolean);
+    return { verdict: related.length > 0 ? "reported-before" : "missed", matched: { ...base, findings: related } };
+  }
+  return { verdict: "never-covered" };
+}
+function addEscaped(store, input, now) {
+  const area = clean(input.area);
+  const title = clean(input.title);
+  const note = input.note ? clean(input.note) : void 0;
+  const ref = input.ref ? clean(input.ref) : void 0;
+  const by = input.by ? clean(input.by) : void 0;
+  if (area.length < 3 || area.length > 80) throw new Error("An escaped bug needs the area it is in (3 to 80 characters), in the words the reports use for areas.");
+  if (title.length < 8 || title.length > 200) throw new Error("An escaped bug needs a title of 8 to 200 characters that says what went wrong in production.");
+  if (input.severity && !SEVERITIES.includes(input.severity)) throw new Error("severity must be critical, important or minor.");
+  if (input.source && !ESCAPED_SOURCES.includes(input.source)) throw new Error(`source must be one of ${ESCAPED_SOURCES.join(", ")}.`);
+  if (ref && ref.length > 120) throw new Error("ref is the id in the system the bug came from (up to 120 characters).");
+  if (note && note.length > 400) throw new Error("note is up to 400 characters.");
+  assertSafeText("this escaped bug", `${area} ${title} ${ref ?? ""} ${note ?? ""} ${by ?? ""}`);
+  const source = input.source ?? "manual";
+  const f = loadMetrics(store);
+  const same = f.escaped.find((e) => ref ? e.ref === ref && e.source === source : areaKey(e.area) === areaKey(area) && areaKey(e.title) === areaKey(title));
+  if (same) return { bug: same, already: true };
+  const severity = input.severity ?? "important";
+  const { verdict, matched } = matchEscaped(area, f.runs);
+  const bug = { id: nextId("ESC", f.escaped.map((e) => e.id)), area, title, severity, source, ...ref ? { ref } : {}, recorded: now.toISOString(), ...by ? { by } : {}, ...note ? { note } : {}, verdict, ...matched ? { matched } : {} };
+  f.escaped.push(bug);
+  saveMetrics(store, f);
+  recordEscapedRisk(store, bug.id, now, { area, severity, note: `A bug reached production here: ${title}${verdict === "missed" ? " (a run had marked this area as passing)" : ""}` });
+  return { bug, already: false };
+}
+var VERDICT_WORDS = {
+  missed: "a run had marked this area as tested and found nothing: the agent missed it",
+  "reported-before": "a run had reported a problem in this area",
+  "partly-checked": "a run had checked this area only partly",
+  "not-checked": "a run had listed this area as not tested",
+  "never-covered": "no recent run covered this area"
+};
+var avg = (xs) => xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length * 100) / 100 : 0;
+function agentPerformance(store, current) {
+  const f = loadMetrics(store);
+  const runs = [...f.runs.filter((r) => r.run_id !== current?.run_id), ...current ? [current] : []].sort((a, b) => a.finished.localeCompare(b.finished));
+  const fb = feedbackStats(store);
+  const kinds = (v) => f.escaped.filter((e) => e.verdict === v).length;
+  const share = (r) => r.coverage.journeys_total > 0 ? r.coverage.journeys_tested / r.coverage.journeys_total : 0;
+  const notes = [];
+  let trend;
+  if (runs.length >= 6) {
+    const earlier = runs.slice(-6, -3);
+    const latest = runs.slice(-3);
+    const pair = (g) => [avg(earlier.map(g)), avg(latest.map(g))];
+    const withBank = (rs) => rs.filter((r) => r.bank);
+    const costed = (rs) => rs.filter((r) => r.cost_usd !== void 0);
+    trend = {
+      serious_per_run: pair((r) => r.findings.critical + r.findings.important),
+      journeys_tested_share: pair(share),
+      areas_tested: pair((r) => r.coverage.areas_tested),
+      minutes: pair((r) => r.duration_s / 60),
+      ...withBank(earlier).length && withBank(latest).length ? { bank_pass_rate: [avg(withBank(earlier).map((r) => r.bank?.pass_rate ?? 0)), avg(withBank(latest).map((r) => r.bank?.pass_rate ?? 0))] } : {},
+      ...costed(earlier).length && costed(latest).length ? { cost_usd: [avg(costed(earlier).map((r) => r.cost_usd ?? 0)), avg(costed(latest).map((r) => r.cost_usd ?? 0))] } : {}
+    };
+    notes.push("The trend compares the latest 3 runs with the 3 before them. Runs of different modes are mixed, so it is a direction, not a measurement.");
+  } else notes.push(`A trend needs at least 6 runs; this project has ${runs.length}.`);
+  if (f.escaped.length === 0) notes.push("No escaped bug is recorded. Record one with `qamind escaped add` (Sentry and ticket labels will do it by themselves in a later phase); until then this count cannot show a miss.");
+  return {
+    runs: runs.slice(-5),
+    total_runs: runs.length,
+    precision: fb.precision,
+    precision_note: fb.note,
+    escaped: { total: f.escaped.length, missed: kinds("missed"), reported_before: kinds("reported-before"), partly_checked: kinds("partly-checked"), not_checked: kinds("not-checked"), never_covered: kinds("never-covered"), recent: f.escaped.slice(-3).reverse() },
+    ...trend ? { trend } : {},
+    notes
+  };
+}
+
+// core/lib/metrics-report.ts
+var pct = (x) => `${Math.round(x * 100)}%`;
+var cell2 = (s) => s.replace(/\s+/g, " ").replace(/\|/g, "\\|").trim();
+var VERDICT_MARK = { ready: "\u2705 Ready", "ready-with-risks": "\u26A0\uFE0F Risks", "not-ready": "\u26D4 Not ready" };
+var arrow = (pair, fmt = String) => `${fmt(pair[0])} \u2192 ${fmt(pair[1])}`;
+function renderAgentPerformance(p, currentRunId) {
+  const L = ["## Agent performance", "", "_How the agent is doing on this project: from run records, people's verdicts and bugs that reached production (spec 13.16). Numbers that need data nobody has given yet are said to be unavailable._", ""];
+  L.push("| Run | Mode | Verdict | \u{1F534} + \u{1F7E0} | \u{1F7E1} | Key journeys | Areas tested | Bank pass rate | Minutes | Cost |", "|---|---|---|---|---|---|---|---|---|---|");
+  for (const r of p.runs) {
+    const j = r.coverage.journeys_total > 0 ? `${r.coverage.journeys_tested}/${r.coverage.journeys_total}` : "-";
+    L.push(`| ${r.run_id === currentRunId ? "**this run**" : cell2(r.run_id)} | ${r.mode} | ${VERDICT_MARK[r.verdict]} | ${r.findings.critical + r.findings.important} | ${r.findings.minor} | ${j} | ${r.coverage.areas_tested} | ${r.bank ? `${pct(r.bank.pass_rate)} (${r.bank.passed}/${r.bank.ran})` : "-"} | ${Math.round(r.duration_s / 60 * 10) / 10} | ${r.cost_usd !== void 0 ? `$${r.cost_usd.toFixed(2)}` : "-"} |`);
+  }
+  L.push("");
+  L.push(p.precision ? `- **Precision:** ${p.precision.real} of ${p.precision.judged} judged findings were real (${pct(p.precision.rate)}). ${p.precision_note}` : `- **Precision:** not available yet. ${p.precision_note}`);
+  const e = p.escaped;
+  if (e.total === 0) L.push("- **Escaped bugs:** none recorded.");
+  else {
+    const parts = [e.missed ? `${e.missed} in an area a run had marked as passing (the agent's miss)` : "", e.reported_before ? `${e.reported_before} in an area where a problem had been reported` : "", e.partly_checked ? `${e.partly_checked} in a partly checked area` : "", e.not_checked ? `${e.not_checked} in an area listed as not tested` : "", e.never_covered ? `${e.never_covered} in an area no recent run covered` : ""].filter(Boolean);
+    L.push(`- **Escaped bugs:** ${e.total} recorded: ${parts.join("; ")}.`);
+    for (const b of e.recent) L.push(`  - ${b.id} (${b.severity}, ${b.recorded.slice(0, 10)}) ${cell2(b.title)} \u2014 ${cell2(b.area)}: ${VERDICT_WORDS[b.verdict]}${b.matched ? ` (${cell2(b.matched.area)} in ${b.matched.run_id})` : ""}`);
+  }
+  if (p.trend) {
+    const t = p.trend;
+    L.push(`- **Trend** (latest 3 runs against the 3 before): serious problems per run ${arrow(t.serious_per_run)}; key journeys tested ${arrow(t.journeys_tested_share, pct)}; areas tested per run ${arrow(t.areas_tested)}${t.bank_pass_rate ? `; bank pass rate ${arrow(t.bank_pass_rate, pct)}` : ""}; minutes per run ${arrow(t.minutes)}${t.cost_usd ? `; cost per run ${arrow(t.cost_usd, (n) => `$${n.toFixed(2)}`)}` : ""}.`);
+  }
+  for (const n of p.notes) L.push(`- _${cell2(n)}_`);
+  L.push("");
+  return L;
+}
+
+// core/lib/ticket.ts
+import path23 from "node:path";
 var TICKET_SOURCES = ["linear", "github", "file", "url", "pasted", "other"];
 var CRITERION_STATUSES = ["met", "not-met", "not-testable"];
-var ticketFilePath = (runDir) => path21.join(runDir, "data", "ticket.json");
-var ticketResultsPath = (runDir) => path21.join(runDir, "data", "ticket-results.json");
+var ticketFilePath = (runDir) => path23.join(runDir, "data", "ticket.json");
+var ticketResultsPath = (runDir) => path23.join(runDir, "data", "ticket-results.json");
 var MAX_CRITERIA = 30;
-var one = (s) => s.replace(/\s+/g, " ").trim();
+var one4 = (s) => s.replace(/\s+/g, " ").trim();
 function cleanRef(ref) {
-  const r = one(ref).slice(0, 200);
+  const r = one4(ref).slice(0, 200);
   if (/^https?:\/\//i.test(r)) {
     try {
       const u = new URL(r);
@@ -10031,12 +11042,12 @@ function checkTicket(raw, opts2) {
   const warnings = [];
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, errors: ['data/ticket.json must be { "ref", "source", "title", "criteria": [ { "id": "AC-1", "text", "origin": "stated|derived" } ] }.'], warnings, assumed: [] };
   const o = raw;
-  const ref = typeof o["ref"] === "string" ? one(o["ref"]) : "";
+  const ref = typeof o["ref"] === "string" ? one4(o["ref"]) : "";
   if (!ref) errors.push('"ref" is the ticket id, its address, the file or "pasted text".');
   else if (opts2.expectedRef && cleanRef(ref) !== opts2.expectedRef) errors.push(`"ref" is "${ref}" but the run was started for "${opts2.expectedRef}".`);
   const source = o["source"];
   if (!TICKET_SOURCES.includes(source)) errors.push(`"source" must be one of ${TICKET_SOURCES.join(", ")}.`);
-  const title = typeof o["title"] === "string" ? one(o["title"]) : "";
+  const title = typeof o["title"] === "string" ? one4(o["title"]) : "";
   if (!title || title.length > 200) errors.push('"title" is the ticket title, up to 200 characters.');
   const list3 = o["criteria"];
   if (!Array.isArray(list3) || list3.length === 0) errors.push('"criteria" needs at least one acceptance criterion (derive them when the ticket has none, and say so with origin "derived").');
@@ -10051,10 +11062,10 @@ function checkTicket(raw, opts2) {
     if (!/^AC-\d{1,3}$/.test(id)) errors.push(`${at}: "id" must look like AC-1.`);
     else if (seen.has(id)) errors.push(`${at}: the id ${id} is used twice.`);
     seen.add(id);
-    const text3 = typeof x["text"] === "string" ? one(x["text"]) : "";
+    const text3 = typeof x["text"] === "string" ? one4(x["text"]) : "";
     if (text3.length < 8 || text3.length > 500) errors.push(`${at} (${id}): "text" is one testable statement of 8 to 500 characters.`);
     if (x["origin"] !== "stated" && x["origin"] !== "derived") errors.push(`${at} (${id}): "origin" is "stated" (the ticket says it) or "derived" (you worked it out).`);
-    const plain = typeof x["plain"] === "string" ? one(x["plain"]) : void 0;
+    const plain = typeof x["plain"] === "string" ? one4(x["plain"]) : void 0;
     for (const [what, v] of [["text", text3], ["plain", plain ?? ""]]) {
       if (v && opts2.privacy && findPii(v, opts2.privacy).length > 0) errors.push(`${at} (${id}): "${what}" holds private data (an email address, number or ID). Describe it without the data: a ticket's examples are not copied into the reports.`);
     }
@@ -10107,7 +11118,7 @@ function lintTicketResults(runDir, data, known, meta) {
       errors.push(`${at}: "status" must be met, not-met or not-testable.`);
       continue;
     }
-    if (one(r.why ?? "").length < 12) errors.push(`${at}: "why" is a real sentence: ${r.status === "met" ? "what you did and saw" : r.status === "not-met" ? "what went wrong" : "why it cannot be tested here"}.`);
+    if (one4(r.why ?? "").length < 12) errors.push(`${at}: "why" is a real sentence: ${r.status === "met" ? "what you did and saw" : r.status === "not-met" ? "what went wrong" : "why it cannot be tested here"}.`);
     if (r.status === "met" && !(r.evidence?.length || r.tests?.length)) errors.push(`${at}: a criterion is only "met" with something to show for it: "evidence" (files in the run folder) or "tests" (bank tests that check it).`);
     if (r.status === "not-met") {
       const refs = r.findings ?? [];
@@ -10130,7 +11141,7 @@ function checklistRows(d, plain) {
       origin: c.origin,
       assumed: d.assumed.includes(c.id),
       status: r && CRITERION_STATUSES.includes(r.status) ? r.status : "no-result",
-      why: one((plain ? r?.plain_why || r?.why : r?.why) ?? ""),
+      why: one4((plain ? r?.plain_why || r?.why : r?.why) ?? ""),
       evidence: r?.evidence ?? [],
       findings: r?.findings ?? [],
       tests: r?.tests ?? []
@@ -10141,21 +11152,21 @@ function ticketCounts(d) {
   const rows = checklistRows(d, false);
   return { total: rows.length, met: rows.filter((r) => r.status === "met").length, not_met: rows.filter((r) => r.status === "not-met").length, not_testable: rows.filter((r) => r.status === "not-testable" || r.status === "no-result").length, assumed: d.assumed.length };
 }
-var cell2 = (s) => one(s).replace(/\|/g, "\\|");
+var cell3 = (s) => one4(s).replace(/\|/g, "\\|");
 function renderTechnicalChecklist(d) {
   const c = ticketCounts(d);
   const t = d.ticket;
-  const L = [`## Ticket: ${cell2(t.ref)} (acceptance criteria)`, "", `**${cell2(t.title)}**: ${c.met} of ${c.total} criteria met, ${c.not_met} not met, ${c.not_testable} could not be tested.${c.assumed ? ` ${c.assumed} criteria were derived by QAMind and nobody could confirm them (assumed).` : ""}`, ""];
+  const L = [`## Ticket: ${cell3(t.ref)} (acceptance criteria)`, "", `**${cell3(t.title)}**: ${c.met} of ${c.total} criteria met, ${c.not_met} not met, ${c.not_testable} could not be tested.${c.assumed ? ` ${c.assumed} criteria were derived by QAMind and nobody could confirm them (assumed).` : ""}`, ""];
   L.push("| Criterion | Result | Why | Findings | Tests |", "|---|---|---|---|---|");
-  for (const r of checklistRows(d, false)) L.push(`| **${r.id}** ${cell2(r.text)}${r.assumed ? " _(assumed)_" : r.origin === "derived" ? " _(derived, confirmed)_" : ""} | ${MARK[r.status]} | ${cell2(r.why)} | ${r.findings.map((f) => `[${f}](#${f})`).join(", ") || "-"} | ${r.tests.join(", ") || "-"} |`);
+  for (const r of checklistRows(d, false)) L.push(`| **${r.id}** ${cell3(r.text)}${r.assumed ? " _(assumed)_" : r.origin === "derived" ? " _(derived, confirmed)_" : ""} | ${MARK[r.status]} | ${cell3(r.why)} | ${r.findings.map((f) => `[${f}](#${f})`).join(", ") || "-"} | ${r.tests.join(", ") || "-"} |`);
   L.push("");
   return L;
 }
 function renderAdminChecklist(d) {
   const c = ticketCounts(d);
   const t = d.ticket;
-  const L = [`## What was asked for (${cell2(t.title)})`, "", `${c.met} of ${c.total} things that were asked for are working${c.not_met ? `, ${c.not_met} are not` : ""}${c.not_testable ? `, ${c.not_testable} could not be checked` : ""}.${c.assumed ? ` ${c.assumed} of them were worked out by the checker because the request did not say what "done" means, and nobody could confirm them.` : ""}`, ""];
-  for (const r of checklistRows(d, true)) L.push(`- ${MARK[r.status]}: ${cell2(r.text)}${r.assumed ? " (assumed)" : ""}${r.why ? ` \u2014 ${cell2(r.why)}` : ""}`);
+  const L = [`## What was asked for (${cell3(t.title)})`, "", `${c.met} of ${c.total} things that were asked for are working${c.not_met ? `, ${c.not_met} are not` : ""}${c.not_testable ? `, ${c.not_testable} could not be checked` : ""}.${c.assumed ? ` ${c.assumed} of them were worked out by the checker because the request did not say what "done" means, and nobody could confirm them.` : ""}`, ""];
+  for (const r of checklistRows(d, true)) L.push(`- ${MARK[r.status]}: ${cell3(r.text)}${r.assumed ? " (assumed)" : ""}${r.why ? ` \u2014 ${cell3(r.why)}` : ""}`);
   L.push("");
   return L;
 }
@@ -10165,7 +11176,7 @@ var SURFACES = ["api", "ui", "cross", "permissions", "business-rule", "other"];
 function compactFinding(f, bug) {
   return { id: f.id ?? "", title: f.title, severity: f.severity, surface: f.surface, area: f.area, type: f.type, ...f.ui ? { ui: f.ui } : {}, ...bug ? { bug } : {}, ...f.steps?.[0] ? { first_step: f.steps[0].slice(0, 200) } : {} };
 }
-var dataFile = (runDir, name) => path22.join(runDir, "data", name);
+var dataFile = (runDir, name) => path24.join(runDir, "data", name);
 function readList(runDir, name) {
   const v = readJson(dataFile(runDir, name));
   if (v === void 0) return [];
@@ -10173,11 +11184,11 @@ function readList(runDir, name) {
   return v;
 }
 function readRunData(runDir) {
-  const apiDir = path22.join(runDir, "data", "api-results");
+  const apiDir = path24.join(runDir, "data", "api-results");
   const apiSummaries = [];
-  if (fs12.existsSync(apiDir)) {
-    for (const f of fs12.readdirSync(apiDir).filter((x) => x.endsWith(".json")).sort()) {
-      const r = readJson(path22.join(apiDir, f));
+  if (fs13.existsSync(apiDir)) {
+    for (const f of fs13.readdirSync(apiDir).filter((x) => x.endsWith(".json")).sort()) {
+      const r = readJson(path24.join(apiDir, f));
       if (r?.summary) apiSummaries.push({ file: `data/api-results/${f}`, ...r.summary });
     }
   }
@@ -10194,7 +11205,7 @@ function readRunData(runDir) {
     const changed = fix.attempts.filter((a) => (a.status === "verified" || a.status === "best-effort" || a.status === "reverted") && a.finished_at).map((a) => Date.parse(a.finished_at));
     if (changed.length === 0) return false;
     try {
-      return fs12.statSync(dataFile(runDir, "admin.json")).mtimeMs < Math.max(...changed);
+      return fs13.statSync(dataFile(runDir, "admin.json")).mtimeMs < Math.max(...changed);
     } catch {
       return false;
     }
@@ -10417,6 +11428,7 @@ function renderTechnicalReport(data, ctx = {}) {
   if (!ctx.previous?.length) L.push("", "_No earlier run to compare with._");
   else if (ctx.previous[0] && ctx.previous[0].mode !== m?.mode) L.push("", `_The last run was a ${ctx.previous[0].mode} run and this one is ${m?.mode ?? "?"}, so the rows are not directly comparable._`);
   L.push("");
+  if (ctx.performance) L.push(...renderAgentPerformance(ctx.performance, m?.run_id));
   L.push("## Test plan (charters)", "");
   if (data.charters.length === 0) L.push("_No charters recorded._", "");
   for (const c of data.charters) {
@@ -10533,8 +11545,8 @@ function renderTechnicalReport(data, ctx = {}) {
   return L.join("\n");
 }
 function insideRun(runDir, rel) {
-  const abs = path22.resolve(runDir, rel);
-  const root = path22.resolve(runDir) + path22.sep;
+  const abs = path24.resolve(runDir, rel);
+  const root = path24.resolve(runDir) + path24.sep;
   return abs.startsWith(root) ? abs : null;
 }
 function lintRun(runDir, data, knownSecrets = []) {
@@ -10563,7 +11575,7 @@ function lintRun(runDir, data, knownSecrets = []) {
     for (const e of f.evidence ?? []) {
       const abs = insideRun(runDir, e);
       if (!abs) errors.push(`${tag}: evidence path "${e}" is outside the run folder.`);
-      else if (!fs12.existsSync(abs)) errors.push(`${tag}: evidence file "${e}" does not exist.`);
+      else if (!fs13.existsSync(abs)) errors.push(`${tag}: evidence file "${e}" does not exist.`);
     }
     if (!f.regression_test) warnings.push(`${tag}: no regression test proposed.`);
   }
@@ -10579,7 +11591,7 @@ function lintRun(runDir, data, knownSecrets = []) {
     if (!Array.isArray(p.how_to_see_it)) errors.push(`${tag}: plain.how_to_see_it must be a list (an empty list means it cannot be seen on screen).`);
     if (p.screenshot) {
       const abs = insideRun(runDir, p.screenshot);
-      if (!abs || !fs12.existsSync(abs)) errors.push(`${tag}: plain.screenshot "${p.screenshot}" does not exist inside the run folder.`);
+      if (!abs || !fs13.existsSync(abs)) errors.push(`${tag}: plain.screenshot "${p.screenshot}" does not exist inside the run folder.`);
     }
   }
   for (const n of data.notTested) if (!n.plain?.area?.trim() || !n.plain?.reason?.trim()) errors.push(`not-tested.json: "${n.area}" needs a plain { area, reason } for the admin report.`);
@@ -10602,25 +11614,25 @@ function lintRun(runDir, data, knownSecrets = []) {
   const cov = lintCoverage(data.checks, data);
   errors.push(...cov.errors);
   warnings.push(...cov.warnings);
-  const dataDir = path22.join(runDir, "data");
-  if (fs12.existsSync(dataDir)) {
-    const newestData = Math.max(0, ...fs12.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs12.statSync(path22.join(dataDir, f)).mtimeMs));
+  const dataDir = path24.join(runDir, "data");
+  if (fs13.existsSync(dataDir)) {
+    const newestData = Math.max(0, ...fs13.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs13.statSync(path24.join(dataDir, f)).mtimeMs));
     for (const name of ["TECHNICAL-REPORT.md", "ADMIN-REPORT.md"]) {
-      const file3 = path22.join(runDir, name);
-      if (fs12.existsSync(file3) && fs12.statSync(file3).mtimeMs + 1 < newestData) errors.push(`${name} is older than the data it is built from: run \`report build\` again.`);
+      const file3 = path24.join(runDir, name);
+      if (fs13.existsSync(file3) && fs13.statSync(file3).mtimeMs + 1 < newestData) errors.push(`${name} is older than the data it is built from: run \`report build\` again.`);
     }
   }
   for (const row of data.coverage) {
     if (row.status === "tested" && /not tested|blocked|skipped/i.test(row.note ?? "")) errors.push(`coverage "${row.area}" is marked tested but its note says otherwise.`);
   }
   if (data.findings.length === 0 && data.coverage.length === 0) warnings.push("No findings and no coverage rows: the report would not show what was checked.");
-  const scan = [path22.join(runDir, "TECHNICAL-REPORT.md")];
+  const scan = [path24.join(runDir, "TECHNICAL-REPORT.md")];
   for (const sub of ["evidence", "data"]) {
-    const dir = path22.join(runDir, sub);
-    if (!fs12.existsSync(dir)) continue;
+    const dir = path24.join(runDir, sub);
+    if (!fs13.existsSync(dir)) continue;
     const walk = (d) => {
-      for (const e of fs12.readdirSync(d, { withFileTypes: true })) {
-        const p = path22.join(d, e.name);
+      for (const e of fs13.readdirSync(d, { withFileTypes: true })) {
+        const p = path24.join(d, e.name);
         if (e.isDirectory()) walk(p);
         else if (/\.(json|md|txt|log|yml|yaml|har|html)$/i.test(e.name)) scan.push(p);
       }
@@ -10628,17 +11640,17 @@ function lintRun(runDir, data, knownSecrets = []) {
     walk(dir);
   }
   for (const file3 of scan) {
-    if (!fs12.existsSync(file3)) continue;
-    const isPlan = path22.relative(runDir, file3).split(path22.sep).join("/").startsWith("data/plans/");
-    const leaks = findSecretLeaks(fs12.readFileSync(file3, "utf8"), knownSecrets, { generic: !isPlan });
-    for (const leak of leaks) errors.push(`${path22.relative(runDir, file3)}: contains ${leak}; redact it before reporting.`);
+    if (!fs13.existsSync(file3)) continue;
+    const isPlan = path24.relative(runDir, file3).split(path24.sep).join("/").startsWith("data/plans/");
+    const leaks = findSecretLeaks(fs13.readFileSync(file3, "utf8"), knownSecrets, { generic: !isPlan });
+    for (const leak of leaks) errors.push(`${path24.relative(runDir, file3)}: contains ${leak}; redact it before reporting.`);
   }
   return { ok: errors.length === 0, errors, warnings };
 }
 
 // core/lib/memory/migrate.ts
-import fs13 from "node:fs";
-import path23 from "node:path";
+import fs14 from "node:fs";
+import path25 from "node:path";
 var unchanged = (file3) => ({ id: `${file3}-1-to-2`, file: file3, from: 1, to: 2, describe: `${file3}: no change to the content; the version number moves to 2 so that a store is at one version`, up: (v) => v });
 var MIGRATIONS = [
   {
@@ -10670,14 +11682,14 @@ function memoryFiles(store) {
     { kind: "feedback", file: p.feedback, jsonl: true },
     { kind: "test-bank", file: p.bank, jsonl: true }
   ];
-  if (fs13.existsSync(p.runs)) {
-    for (const f of fs13.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path23.join(p.runs, f), jsonl: false });
+  if (fs14.existsSync(p.runs)) {
+    for (const f of fs14.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path25.join(p.runs, f), jsonl: false });
   }
-  return refs.filter((r) => fs13.existsSync(r.file));
+  return refs.filter((r) => fs14.existsSync(r.file));
 }
 function jsonVersion(file3) {
   try {
-    const v = JSON.parse(fs13.readFileSync(file3, "utf8")).schema_version;
+    const v = JSON.parse(fs14.readFileSync(file3, "utf8")).schema_version;
     return typeof v === "number" ? v : void 0;
   } catch {
     return void 0;
@@ -10692,7 +11704,7 @@ function headerOf(line) {
   }
 }
 function jsonlVersion(file3) {
-  for (const raw of fs13.readFileSync(file3, "utf8").split(/\r?\n/)) {
+  for (const raw of fs14.readFileSync(file3, "utf8").split(/\r?\n/)) {
     const line = raw.trim();
     if (!line || line.startsWith("#")) continue;
     const v = headerOf(line)?.schema_version;
@@ -10737,14 +11749,14 @@ function migrateStore(store, opts2 = {}) {
   const next = /* @__PURE__ */ new Map();
   for (const { ref, steps } of pending) {
     const to = steps[steps.length - 1]?.to ?? target;
-    const where = path23.basename(ref.file);
+    const where = path25.basename(ref.file);
     if (!ref.jsonl) {
-      const value = JSON.parse(fs13.readFileSync(ref.file, "utf8"));
+      const value = JSON.parse(fs14.readFileSync(ref.file, "utf8"));
       next.set(ref.file, JSON.stringify({ ...applySteps(value, steps, where), schema_version: to }, null, 2) + "\n");
       continue;
     }
     let sawHeader = false;
-    const out = fs13.readFileSync(ref.file, "utf8").split(/\r?\n/).map((raw) => {
+    const out = fs14.readFileSync(ref.file, "utf8").split(/\r?\n/).map((raw) => {
       const line = raw.trim();
       if (!line || line.startsWith("#")) return raw;
       if (!sawHeader) {
@@ -10764,23 +11776,23 @@ function migrateStore(store, opts2 = {}) {
     next.set(ref.file, out.join("\n"));
   }
   const lowest = Math.min(...pending.map((p) => p.from));
-  const backup = path23.join(storeSubdirs(store).backups, `${stampOf(now)}-schema-${lowest}-to-${target}`);
+  const backup = path25.join(storeSubdirs(store).backups, `${stampOf(now)}-schema-${lowest}-to-${target}`);
   for (const { ref } of pending) {
-    const dest = path23.join(backup, path23.relative(store, ref.file));
-    ensureDir(path23.dirname(dest));
-    fs13.copyFileSync(ref.file, dest);
+    const dest = path25.join(backup, path25.relative(store, ref.file));
+    ensureDir(path25.dirname(dest));
+    fs14.copyFileSync(ref.file, dest);
   }
   const log = [];
   const report = { migrated: [], backup };
   for (const { ref, from, steps } of pending) {
     const tmp = `${ref.file}.${process.pid}.tmp`;
-    fs13.writeFileSync(tmp, next.get(ref.file), "utf8");
-    fs13.renameSync(tmp, ref.file);
-    const entry = { file: path23.relative(store, ref.file).split(path23.sep).join("/"), from, to: steps[steps.length - 1]?.to ?? target, migrations: steps.map((s) => s.id) };
+    fs14.writeFileSync(tmp, next.get(ref.file), "utf8");
+    fs14.renameSync(tmp, ref.file);
+    const entry = { file: path25.relative(store, ref.file).split(path25.sep).join("/"), from, to: steps[steps.length - 1]?.to ?? target, migrations: steps.map((s) => s.id) };
     report.migrated.push(entry);
-    log.push(JSON.stringify({ at: now.toISOString(), ...entry, backup: path23.relative(store, backup).split(path23.sep).join("/"), describe: steps.map((s) => s.describe) }));
+    log.push(JSON.stringify({ at: now.toISOString(), ...entry, backup: path25.relative(store, backup).split(path25.sep).join("/"), describe: steps.map((s) => s.describe) }));
   }
-  fs13.appendFileSync(path23.join(storeSubdirs(store).backups, "migrations.log.jsonl"), `${log.join("\n")}
+  fs14.appendFileSync(path25.join(storeSubdirs(store).backups, "migrations.log.jsonl"), `${log.join("\n")}
 `, "utf8");
   return report;
 }
@@ -10792,217 +11804,9 @@ function ensureMigrated(store) {
   return report;
 }
 
-// core/lib/memory/falsealarms.ts
-var SOURCES = ["owner", "reproduction", "spec"];
-var one2 = (s) => s.replace(/\s+/g, " ").trim();
-function loadFalseAlarms(store, now = /* @__PURE__ */ new Date()) {
-  const read = readJsonl(memoryPaths(store).falseAlarms);
-  const warnings = [...read.warnings];
-  const ids = read.records.map((r) => String(r.id ?? "")).filter(Boolean);
-  const alarms = [];
-  for (const r of read.records) {
-    if (!r.symptom || typeof r.symptom !== "string") {
-      warnings.push(`A false alarm without a symptom was ignored${r.id ? ` (${r.id})` : ""}.`);
-      continue;
-    }
-    const id = r.id ? String(r.id) : nextId("FA", ids);
-    if (!r.id) ids.push(id);
-    alarms.push({ ...r, id, area: String(r.area ?? "general"), symptom: r.symptom, reason: String(r.reason ?? "marked as not a bug"), source: SOURCES.includes(r.source) ? r.source : "owner", created: String(r.created ?? now.toISOString()), hits: Number(r.hits ?? 0) || 0 });
-  }
-  return { alarms, warnings, unparsed: read.unparsed };
-}
-function addFalseAlarm(store, input, opts2 = {}) {
-  const now = opts2.now ?? /* @__PURE__ */ new Date();
-  const symptom = one2(input.symptom);
-  const reason = one2(input.reason);
-  const area = one2(input.area);
-  if (symptom.length < 12 || reason.length < 8 || !area) throw new Error("A false alarm needs an area, a symptom (what was seen) and a reason (why it is not a bug).");
-  assertSafeText("this false alarm", `${area} ${symptom} ${reason}`, opts2.knownSecrets ?? []);
-  const loaded = loadFalseAlarms(store, now);
-  const dup = loaded.alarms.find((a) => similarity(a.symptom, symptom) >= 0.7);
-  if (dup) return { action: "existing", alarm: dup, warnings: loaded.warnings };
-  const alarm = {
-    id: nextId("FA", loaded.alarms.map((a) => a.id)),
-    area,
-    symptom,
-    reason,
-    source: input.source ?? "reproduction",
-    ...input.run ? { evidence_run: input.run } : {},
-    ...input.feedback ? { feedback: input.feedback } : {},
-    created: now.toISOString(),
-    hits: 0
-  };
-  writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", [...loaded.alarms, alarm], loaded.unparsed);
-  return { action: "created", alarm, warnings: loaded.warnings };
-}
-var MATCH_AT = 0.6;
-function matchFalseAlarms(findings, alarms) {
-  const out = [];
-  for (const f of findings) {
-    if (f.not_a_known_false_alarm?.trim()) continue;
-    const text3 = [f.title, f.summary, f.area, f.type].filter(Boolean).join(" ");
-    for (const a of alarms) {
-      if (tokens(a.symptom).length < 3) continue;
-      const score = coverage(`${a.symptom}`, text3);
-      if (score >= MATCH_AT) out.push({ finding: f, alarm: a, score });
-    }
-  }
-  return out;
-}
-function markFalseAlarmsSeen(store, ids, now = /* @__PURE__ */ new Date()) {
-  const loaded = loadFalseAlarms(store, now);
-  const touched = [];
-  for (const a of loaded.alarms) {
-    if (ids.includes(a.id)) {
-      a.hits += 1;
-      a.last_seen = now.toISOString();
-      touched.push(a.id);
-    }
-  }
-  if (touched.length) writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", loaded.alarms, loaded.unparsed);
-  return touched;
-}
-function archiveFalseAlarm(store, id, reason, now = /* @__PURE__ */ new Date()) {
-  const loaded = loadFalseAlarms(store, now);
-  const a = loaded.alarms.find((x) => x.id === id);
-  if (!a) throw new Error(`No false alarm ${id}.`);
-  appendArchive(store, "false-alarms", [{ ...a, archived_at: now.toISOString(), archived_reason: reason }]);
-  writeJsonl(memoryPaths(store).falseAlarms, "false-alarms", loaded.alarms.filter((x) => x.id !== id), loaded.unparsed);
-  return a;
-}
-
-// core/lib/memory/learnings.ts
-var LEARNING_TYPES = ["behavior", "pitfall", "test-tip", "fix-pattern", "env-quirk"];
-var LEARNINGS_CAP = 200;
-var ARCHIVE_BELOW = 3;
-var MERGE_AT = 0.6;
-var clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
-var one3 = (s) => s.replace(/\s+/g, " ").trim();
-function loadLearnings(store, now = /* @__PURE__ */ new Date()) {
-  const read = readJsonl(memoryPaths(store).learnings);
-  const warnings = [...read.warnings];
-  const ids = read.records.map((r) => String(r.id ?? "")).filter(Boolean);
-  const active = [];
-  for (const r of read.records) {
-    if (!r.text || typeof r.text !== "string") {
-      warnings.push(`A learning without text was ignored${r.id ? ` (${r.id})` : ""}.`);
-      continue;
-    }
-    const id = r.id ? String(r.id) : nextId("L", ids);
-    if (!r.id) ids.push(id);
-    let type = r.type;
-    if (!LEARNING_TYPES.includes(type)) {
-      warnings.push(`${id} has an unknown type "${String(r.type)}"; treated as "behavior".`);
-      type = "behavior";
-    }
-    active.push({
-      ...r,
-      id,
-      type,
-      area: String(r.area ?? "general"),
-      text: r.text,
-      evidence_run: String(r.evidence_run ?? "manual"),
-      confidence: clamp(Number(r.confidence ?? 5) || 5, 1, 10),
-      created: String(r.created ?? now.toISOString()),
-      last_confirmed: String(r.last_confirmed ?? r.created ?? now.toISOString()),
-      hits: Number(r.hits ?? 0) || 0
-    });
-  }
-  return { active, warnings, unparsed: read.unparsed };
-}
-function save(store, active, unparsed, now) {
-  let kept = active;
-  let archived = [];
-  if (active.length > LEARNINGS_CAP) {
-    const ranked = [...active].sort((a, b) => learningScore(b, now) - learningScore(a, now));
-    kept = ranked.slice(0, LEARNINGS_CAP);
-    archived = ranked.slice(LEARNINGS_CAP);
-    appendArchive(store, "learnings", archived.map((l) => ({ ...l, archived_at: now.toISOString(), archived_reason: "over the size limit; lowest-scoring learnings are archived" })));
-  }
-  writeJsonl(memoryPaths(store).learnings, "learnings", kept, unparsed);
-  return archived;
-}
-function learningScore(l, now) {
-  return l.confidence / 10 * Math.pow(0.5, daysBetween(l.last_confirmed, now) / 120) + Math.min(l.hits, 10) * 0.02;
-}
-function learn(store, input, opts2 = {}) {
-  const now = opts2.now ?? /* @__PURE__ */ new Date();
-  if (!LEARNING_TYPES.includes(input.type)) throw new Error(`type must be one of ${LEARNING_TYPES.join(", ")}.`);
-  const text3 = one3(input.text);
-  const area = one3(input.area);
-  if (text3.length < 12 || text3.length > 400) throw new Error("A learning is one atomic statement of 12 to 400 characters.");
-  if (!area || area.length > 120) throw new Error("A learning needs an area (a short label, up to 120 characters).");
-  assertSafeText("this learning", `${area} ${text3}`, opts2.knownSecrets ?? []);
-  const loaded = loadLearnings(store, now);
-  const similar = loaded.active.filter((l) => l.type === input.type).map((l) => ({ l, s: similarity(l.text, text3) })).filter((x) => x.s >= MERGE_AT).sort((a, b) => b.s - a.s)[0];
-  if (similar) {
-    similar.l.confidence = clamp(similar.l.confidence + 1, 1, 10);
-    similar.l.last_confirmed = now.toISOString();
-    const archived2 = save(store, loaded.active, loaded.unparsed, now);
-    return { action: "merged", learning: similar.l, archived: archived2, warnings: loaded.warnings };
-  }
-  const learning = {
-    id: nextId("L", loaded.active.map((l) => l.id)),
-    type: input.type,
-    area,
-    text: text3,
-    evidence_run: input.run,
-    confidence: clamp(Math.round(input.confidence ?? 5), 1, 10),
-    created: now.toISOString(),
-    last_confirmed: now.toISOString(),
-    hits: 0
-  };
-  loaded.active.push(learning);
-  const archived = save(store, loaded.active, loaded.unparsed, now);
-  return { action: "created", learning, archived, warnings: loaded.warnings };
-}
-function adjustLearning(store, id, direction, run, now = /* @__PURE__ */ new Date()) {
-  const loaded = loadLearnings(store, now);
-  const l = loaded.active.find((x) => x.id === id);
-  if (!l) throw new Error(`No active learning ${id}.`);
-  if (direction === "confirm") {
-    l.confidence = clamp(l.confidence + 1, 1, 10);
-    l.last_confirmed = now.toISOString();
-    save(store, loaded.active, loaded.unparsed, now);
-    return { learning: l, archived: false };
-  }
-  l.confidence = clamp(l.confidence - 2, 1, 10);
-  l.contradicted_in = [...l["contradicted_in"] ?? [], run];
-  if (l.confidence < ARCHIVE_BELOW) {
-    appendArchive(store, "learnings", [{ ...l, archived_at: now.toISOString(), archived_reason: `contradicted (run ${run}); confidence fell below ${ARCHIVE_BELOW}` }]);
-    save(store, loaded.active.filter((x) => x.id !== id), loaded.unparsed, now);
-    return { learning: l, archived: true };
-  }
-  save(store, loaded.active, loaded.unparsed, now);
-  return { learning: l, archived: false };
-}
-function markApplied(store, ids, now = /* @__PURE__ */ new Date()) {
-  const loaded = loadLearnings(store, now);
-  const applied = [];
-  const unknown = [];
-  for (const id of ids) {
-    const l = loaded.active.find((x) => x.id === id);
-    if (!l) unknown.push(id);
-    else {
-      l.hits += 1;
-      applied.push(l);
-    }
-  }
-  if (applied.length) save(store, loaded.active, loaded.unparsed, now);
-  return { applied, unknown };
-}
-function archiveLearning(store, id, reason, now = /* @__PURE__ */ new Date()) {
-  const loaded = loadLearnings(store, now);
-  const l = loaded.active.find((x) => x.id === id);
-  if (!l) throw new Error(`No active learning ${id}.`);
-  appendArchive(store, "learnings", [{ ...l, archived_at: now.toISOString(), archived_reason: reason }]);
-  save(store, loaded.active.filter((x) => x.id !== id), loaded.unparsed, now);
-  return l;
-}
-
 // core/lib/memory/memorylog.ts
-import path24 from "node:path";
-var file = (runDir) => path24.join(runDir, "data", "memory-log.json");
+import path26 from "node:path";
+var file = (runDir) => path26.join(runDir, "data", "memory-log.json");
 function readMemoryLog(runDir) {
   const v = readJson(file(runDir));
   return Array.isArray(v) ? v : [];
@@ -11011,69 +11815,6 @@ function appendMemoryLog(runDir, entry, now = /* @__PURE__ */ new Date()) {
   const all = readMemoryLog(runDir);
   all.push({ ...entry, at: now.toISOString() });
   writeJson(file(runDir), all);
-}
-
-// core/lib/memory/risk.ts
-var WEIGHT = { critical: 10, important: 4, minor: 1 };
-var HALF_LIFE_DAYS = 90;
-var MAX_EVENTS = 30;
-var MAX_AREAS = 200;
-var areaKey = (area) => area.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
-function loadRisk(store) {
-  return readMemoryJson(memoryPaths(store).riskAreas) ?? { schema_version: MEMORY_SCHEMA, updated: (/* @__PURE__ */ new Date(0)).toISOString(), areas: [] };
-}
-var isAgentEvent = (e) => e.source === "agent";
-function tidy(file3, date) {
-  for (const a of file3.areas) a.events = a.events.sort((x, y) => y.date.localeCompare(x.date)).slice(0, MAX_EVENTS);
-  file3.areas = file3.areas.filter((a) => a.events.length > 0).slice(0, MAX_AREAS);
-  file3.updated = date.toISOString();
-}
-function recordRisk(store, runId, date, findings) {
-  const file3 = loadRisk(store);
-  for (const a of file3.areas) a.events = a.events.filter((e) => e.run !== runId || isAgentEvent(e) || e.source === "feedback");
-  for (const f of findings) {
-    const key = areaKey(f.area);
-    if (!key) continue;
-    let entry = file3.areas.find((a) => areaKey(a.area) === key);
-    if (!entry) file3.areas.push(entry = { area: f.area.trim(), ...f.surface ? { surface: f.surface } : {}, events: [] });
-    entry.events = entry.events.filter((e) => !(e.run === runId && isAgentEvent(e)));
-    entry.events.unshift({ run: runId, date: date.toISOString(), severity: f.severity });
-  }
-  tidy(file3, date);
-  writeMemoryJson(memoryPaths(store).riskAreas, file3);
-  return file3;
-}
-function scoreAreas(file3, now = /* @__PURE__ */ new Date()) {
-  const order = ["critical", "important", "minor"];
-  return file3.areas.filter((a) => a.events.length > 0).map((a) => ({
-    area: a.area,
-    ...a.surface ? { surface: a.surface } : {},
-    score: Math.round(a.events.reduce((s, e) => s + WEIGHT[e.severity] * Math.pow(0.5, daysBetween(e.date, now) / HALF_LIFE_DAYS), 0) * 100) / 100,
-    occurrences: new Set(a.events.map((e) => e.run)).size,
-    worst_severity: a.events.map((e) => e.severity).sort((x, y) => order.indexOf(x) - order.indexOf(y))[0],
-    last_seen: a.events[0]?.date ?? ""
-  })).sort((a, b) => b.score - a.score || a.area.localeCompare(b.area));
-}
-function recordFeedbackRisk(store, runId, date, area, severity, note) {
-  const file3 = loadRisk(store);
-  const key = areaKey(area);
-  if (!key) return;
-  let entry = file3.areas.find((a) => areaKey(a.area) === key);
-  if (!entry) file3.areas.push(entry = { area: area.trim(), events: [] });
-  entry.events.unshift({ run: runId, date: date.toISOString(), severity, source: "feedback", note });
-  tidy(file3, date);
-  writeMemoryJson(memoryPaths(store).riskAreas, file3);
-}
-function archiveRiskArea(store, area, reason, now = /* @__PURE__ */ new Date()) {
-  const file3 = loadRisk(store);
-  const key = areaKey(area);
-  const found = file3.areas.find((a) => areaKey(a.area) === key);
-  if (!found) throw new Error(`No risk area "${area}". Use \`qamind memory review\` to see the exact names.`);
-  appendArchive(store, "risk-areas", [{ ...found, archived_at: now.toISOString(), archived_reason: reason }]);
-  file3.areas = file3.areas.filter((a) => a !== found);
-  file3.updated = now.toISOString();
-  writeMemoryJson(memoryPaths(store).riskAreas, file3);
-  return found;
 }
 
 // core/lib/memory/update.ts
@@ -11129,7 +11870,7 @@ function recordEnvQuirks(store, runId, health, now) {
 }
 
 // core/lib/bank/gate.ts
-import path25 from "node:path";
+import path27 from "node:path";
 
 // core/lib/schema.ts
 var isObj2 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -11317,7 +12058,7 @@ var notFoundValue = (p) => {
 };
 function fillPath(ep, mode, own = false) {
   const needs = [];
-  const path63 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
+  const path64 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
     const param = ep.parameters.find((p) => p.in === "path" && p.name === name) ?? { name, in: "path", required: true };
     if (mode === "not-found") return encodeURIComponent(String(notFoundValue(param)));
     const resource = lastSegment(ep.path.slice(0, offset));
@@ -11326,7 +12067,7 @@ function fillPath(ep, mode, own = false) {
     needs.push(variable);
     return `{{${variable}}}`;
   });
-  return { path: path63, needs };
+  return { path: path64, needs };
 }
 function withReferences(value, vars) {
   if (Array.isArray(value)) return value.map((v) => withReferences(v, vars));
@@ -11486,19 +12227,19 @@ function generatePlan(inv, opts2) {
   const unresolved = [];
   const isOwn = (v) => v.endsWith("IdOwn") || v.endsWith("Own");
   const stemOf = (v) => v.replace(/(Id)?Own$/, "").replace(/Id$/, "").toLowerCase();
-  const names = (stem) => [stem, `${stem}s`, `${stem.replace(/y$/, "")}ies`];
+  const names = (stem2) => [stem2, `${stem2}s`, `${stem2.replace(/y$/, "")}ies`];
   const nextId2 = () => `S${String(setups.length + 1).padStart(3, "0")}`;
   const creates = [];
   for (const variable of [...wantedVars].filter(isOwn)) {
-    const stem = stemOf(variable);
-    const source = inv.endpoints.filter((e) => e.method === "POST" && !e.path.includes("{") && e.request_body?.schema && names(stem).includes(lastSegment(e.path)) && !SIDE_EFFECT.test(`${e.path} ${e.operation_id ?? ""}`)).sort((a, b) => a.path.length - b.path.length)[0];
+    const stem2 = stemOf(variable);
+    const source = inv.endpoints.filter((e) => e.method === "POST" && !e.path.includes("{") && e.request_body?.schema && names(stem2).includes(lastSegment(e.path)) && !SIDE_EFFECT.test(`${e.path} ${e.operation_id ?? ""}`)).sort((a, b) => a.path.length - b.path.length)[0];
     if (!source || !source.request_body?.schema) {
       unresolved.push(variable);
       continue;
     }
     creates.push({
       id: "",
-      title: `Setup: create a ${opts2.prefix} ${stem} to use as ${variable}`,
+      title: `Setup: create a ${opts2.prefix} ${stem2} to use as ${variable}`,
       operation: source.operation,
       method: "POST",
       path: source.path,
@@ -11509,15 +12250,15 @@ function generatePlan(inv, opts2) {
     });
   }
   for (const variable of [...wantedVars].filter((v) => !isOwn(v))) {
-    const stem = stemOf(variable);
-    const source = inv.endpoints.filter((e) => e.method === "GET" && !e.path.includes("{") && !e.parameters.some((p) => p.required && p.in !== "path") && names(stem).includes(lastSegment(e.path))).sort((a, b) => a.path.length - b.path.length)[0];
+    const stem2 = stemOf(variable);
+    const source = inv.endpoints.filter((e) => e.method === "GET" && !e.path.includes("{") && !e.parameters.some((p) => p.required && p.in !== "path") && names(stem2).includes(lastSegment(e.path))).sort((a, b) => a.path.length - b.path.length)[0];
     if (!source) {
       unresolved.push(variable);
       continue;
     }
     setups.push({
       id: nextId2(),
-      title: `Setup: capture an existing ${stem} id as ${variable}`,
+      title: `Setup: capture an existing ${stem2} id as ${variable}`,
       operation: source.operation,
       method: "GET",
       path: source.path,
@@ -11538,7 +12279,7 @@ var MAX_ACTIVE_TESTS = 300;
 var MAX_PROBES = 8;
 var MAX_STEPS = 40;
 var TARGET_KEYS = ["role", "text", "label", "testid", "selector"];
-var one4 = (s) => s.replace(/\s+/g, " ").trim();
+var one5 = (s) => s.replace(/\s+/g, " ").trim();
 var emptyStats = () => ({ runs: 0, passes: 0, failures: 0, flaky: 0, flips: 0, history: [], avg_ms: 0 });
 function loadBank(store) {
   const read = readJsonl(memoryPaths(store).bank);
@@ -11666,7 +12407,7 @@ function signatureOf(t) {
     return `${s.do} ${tg}`;
   });
 }
-var jaccard = (a, b) => {
+var jaccard2 = (a, b) => {
   const A = new Set(a);
   const B = new Set(b);
   if (A.size === 0 || B.size === 0) return 0;
@@ -11676,14 +12417,14 @@ var jaccard = (a, b) => {
 };
 function findDuplicate(tests, cand, ignoreId) {
   const sig = signatureOf(cand);
-  return tests.find((t) => t.status !== "retired" && t.id !== ignoreId && t.kind === cand.kind && (jaccard(signatureOf(t), sig) >= 0.8 || areaKey(t.area) === areaKey(cand.area) && similarity(t.title, cand.title) >= 0.75));
+  return tests.find((t) => t.status !== "retired" && t.id !== ignoreId && t.kind === cand.kind && (jaccard2(signatureOf(t), sig) >= 0.8 || areaKey(t.area) === areaKey(cand.area) && similarity(t.title, cand.title) >= 0.75));
 }
 function saveTest(store, input, ctx) {
-  const title = one4(input.title);
-  const area = one4(input.area);
+  const title = one5(input.title);
+  const area = one5(input.area);
   if (title.length < 8 || title.length > 140) throw new Error("A test needs a title of 8 to 140 characters that says what it checks.");
   if (!area) throw new Error("A test needs an area (the same wording the findings and coverage use).");
-  const card = { protects: one4(input.card?.protects ?? ""), fails_when: one4(input.card?.fails_when ?? ""), not_duplicate: one4(input.card?.not_duplicate ?? "") };
+  const card = { protects: one5(input.card?.protects ?? ""), fails_when: one5(input.card?.fails_when ?? ""), not_duplicate: one5(input.card?.not_duplicate ?? "") };
   for (const [k, v] of Object.entries(card)) if (v.length < 12) throw new Error(`The value card needs "${k}" (a real sentence): ${k === "protects" ? "what this test protects" : k === "fails_when" ? "what has to be wrong for it to fail" : "why it is not a duplicate of a test already in the bank"}.`);
   const warnings = [];
   let errors = [];
@@ -11730,7 +12471,7 @@ function saveTest(store, input, ctx) {
     area,
     status: "active",
     card,
-    ...input.tags?.length ? { tags: input.tags.map(one4).filter(Boolean).slice(0, 8) } : {},
+    ...input.tags?.length ? { tags: input.tags.map(one5).filter(Boolean).slice(0, 8) } : {},
     ...input.protects_bug ? { protects_bug: input.protects_bug } : {},
     ...input.from_run ? { from_run: input.from_run } : {},
     ...input.from_issue ? { from_issue: input.from_issue } : {},
@@ -11850,7 +12591,7 @@ function linkBankToBugs(store, runId, bugOf) {
 var BANK_SKIP_FILE = "bank-skip.json";
 function bankGate(i) {
   const saved = loadBank(i.store).tests.filter((t) => t.created >= i.started).length;
-  const raw = readJson(path25.join(i.runDir, "data", BANK_SKIP_FILE));
+  const raw = readJson(path27.join(i.runDir, "data", BANK_SKIP_FILE));
   const reason = typeof raw?.reason === "string" ? raw.reason.replace(/\s+/g, " ").trim() : "";
   const serious = i.findings.filter((f) => (f.severity === "critical" || f.severity === "important") && f.fix_status !== "fixed-verified");
   const exempt = i.trigger === "auto" || i.trigger === "ci" || i.budgetOver || i.environmentBroken || serious.length === 0;
@@ -11859,257 +12600,13 @@ function bankGate(i) {
   const ids = serious.map((f) => f.id ?? f.title).slice(0, 6).join(", ");
   return {
     saved: 0,
-    problem: `This run found ${serious.length} critical or important problem(s) (${ids}${serious.length > 6 ? ", ..." : ""}) and saved no test for any of them, so the next run cannot check them first. Save the checks worth keeping with bank_save_test (see shared/test-bank.md: one for each problem you reproduced twice, with from_issue), or, if none of them can be written as an API or UI test, say why in ${path25.join(i.runDir, "data", BANK_SKIP_FILE)} as {"reason": "..."} (a real sentence). Then finish again.${reason ? " The reason in that file is too short to count." : ""}`
+    problem: `This run found ${serious.length} critical or important problem(s) (${ids}${serious.length > 6 ? ", ..." : ""}) and saved no test for any of them, so the next run cannot check them first. Save the checks worth keeping with bank_save_test (see shared/test-bank.md: one for each problem you reproduced twice, with from_issue), or, if none of them can be written as an API or UI test, say why in ${path27.join(i.runDir, "data", BANK_SKIP_FILE)} as {"reason": "..."} (a real sentence). Then finish again.${reason ? " The reason in that file is too short to count." : ""}`
   };
 }
 
 // core/lib/memory/runlife.ts
-import path26 from "node:path";
-
-// core/lib/memory/bugs.ts
-import crypto2 from "node:crypto";
-var BUG_STATUSES = ["new", "still-open", "fixed", "regressed", "accepted", "not-a-bug", "duplicate"];
-var OPEN_BUG_STATUSES = ["new", "still-open", "regressed"];
-var isOpenBug = (b) => OPEN_BUG_STATUSES.includes(b.status);
-var MAX_HISTORY = 40;
-var MAX_BUGS = 1e3;
-var SEV = (s) => SEVERITIES.includes(s) ? s : "minor";
-var WORDS_TO_DROP = /* @__PURE__ */ new Set(["the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "is", "are", "was", "were", "be", "it", "that", "this", "with", "as", "at", "by", "from", "not", "no", "but", "if", "then", "when", "which", "than", "so", "its", "into", "instead", "also", "again", "now", "after", "before", "returns", "return", "responds", "shows", "show", "gives", "give", "gets", "got", "error", "fails", "fail", "failed", "failure", "wrong", "incorrect", "problem", "issue", "bug"]);
-var SYMBOLS = /[()[\]{}<>'"`\\%;|&$*^~]/g;
-function symptomTokens(text3) {
-  const cleaned = text3.replace(/\bISSUE-\d+\b|\bUNCONFIRMED-\d+\b|\bBUG-\d+\b|\bQA-[\w-]+/gi, " ").replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, " ").replace(/\b\d{4}-\d{2}-\d{2}(?:T[\d:.]+Z?)?\b/g, " ").replace(/\b\d{5,}\b/g, " ");
-  const symbols = [...new Set((cleaned.match(SYMBOLS) ?? []).map((c) => `sym${c.charCodeAt(0)}`))];
-  const words = cleaned.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").split(" ").filter((w) => w.length > 0 && !WORDS_TO_DROP.has(w)).map((w) => w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w);
-  return [.../* @__PURE__ */ new Set([...words, ...symbols])].sort();
-}
-var triggerOf = (tokens2) => tokens2.filter((t) => /^\d+$/.test(t) || t.startsWith("sym"));
-var jaccard2 = (a, b) => {
-  const A = new Set(a);
-  const B = new Set(b);
-  if (A.size === 0 || B.size === 0) return 0;
-  let both = 0;
-  for (const t of A) if (B.has(t)) both++;
-  return both / (A.size + B.size - both);
-};
-var symptomOf = (f) => symptomTokens(`${f.title} ${f.steps?.[0] ?? ""}`);
-function fingerprintOf(f) {
-  return crypto2.createHash("sha1").update(`${areaKey(f.area)}|${(f.type || "").toLowerCase().trim()}|${symptomOf(f).join(" ")}`).digest("hex").slice(0, 12);
-}
-var STRONG = 0.75;
-var POSSIBLE = 0.35;
-function matchBug(bugs, f, protects = []) {
-  const byId = (id) => {
-    let b = bugs.find((x) => x.id === id);
-    for (let i = 0; b?.duplicate_of && i < 5; i++) b = bugs.find((x) => x.id === b?.duplicate_of) ?? b;
-    return b;
-  };
-  if (f.bug === "new") return { candidates: [] };
-  if (f.bug) {
-    const b = byId(f.bug);
-    if (b) return { bug: b, how: "explicit", candidates: [] };
-  }
-  for (const id of protects) {
-    const b = byId(id);
-    if (b) return { bug: b, how: "bank-test", candidates: [] };
-  }
-  const fp = fingerprintOf(f);
-  const exact = bugs.find((b) => b.fingerprint === fp);
-  if (exact) return { bug: byId(exact.id) ?? exact, how: "fingerprint", candidates: [] };
-  const mine = symptomOf(f);
-  const myTrigger = triggerOf(mine).join(" ");
-  const scored = bugs.filter((b) => b.status !== "duplicate" && (areaKey(b.area) === areaKey(f.area) || !!f.surface && b.surface === f.surface)).map((b) => {
-    const theirs = symptomOf({ ...b, steps: b.first_step ? [b.first_step] : [] });
-    const text3 = Math.max(jaccard2(mine, theirs), similarity(`${f.title} ${f.summary ?? ""}`, `${b.title} ${b.summary}`) * 0.9);
-    return { bug: b, score: Math.round(text3 * 100) / 100, sameTrigger: triggerOf(theirs).join(" ") === myTrigger };
-  }).sort((a, b) => b.score - a.score);
-  const best = scored[0];
-  if (best && best.score >= STRONG && best.sameTrigger && areaKey(best.bug.area) === areaKey(f.area)) return { bug: byId(best.bug.id) ?? best.bug, how: "similar", candidates: [] };
-  return { candidates: scored.filter((s) => s.score >= POSSIBLE).slice(0, 3).map(({ bug, score }) => ({ bug, score })) };
-}
-function loadBugs(store) {
-  const read = readJsonl(memoryPaths(store).bugs);
-  const warnings = [...read.warnings];
-  const bugs = [];
-  for (const r of read.records) {
-    if (!r.id || !r.title || !r.fingerprint) {
-      warnings.push(`A bug record without ${!r.id ? "an id" : !r.title ? "a title" : "a fingerprint"} was ignored.`);
-      continue;
-    }
-    const status2 = BUG_STATUSES.includes(r.status) ? r.status : "still-open";
-    const seen = r.last_seen ?? r.first_seen ?? { run: "unknown", at: (/* @__PURE__ */ new Date(0)).toISOString() };
-    bugs.push({
-      ...r,
-      id: String(r.id),
-      fingerprint: String(r.fingerprint),
-      area: String(r.area ?? "general"),
-      type: String(r.type ?? "other"),
-      surface: String(r.surface ?? "other"),
-      title: String(r.title),
-      summary: String(r.summary ?? ""),
-      severity: SEV(r.severity),
-      status: status2,
-      first_seen: r.first_seen ?? seen,
-      last_seen: seen,
-      times_seen: typeof r.times_seen === "number" ? r.times_seen : 1,
-      history: Array.isArray(r.history) ? r.history : []
-    });
-  }
-  return { bugs, warnings, unparsed: read.unparsed };
-}
-function saveBugs(store, bugs, unparsed = []) {
-  let keep = bugs;
-  if (bugs.length > MAX_BUGS) {
-    const droppable = bugs.filter((b) => b.status === "fixed").sort((a, b) => a.last_seen.at.localeCompare(b.last_seen.at)).slice(0, bugs.length - MAX_BUGS);
-    const ids = new Set(droppable.map((b) => b.id));
-    appendArchive(store, "bugs", droppable);
-    keep = bugs.filter((b) => !ids.has(b.id));
-  }
-  writeJsonl(memoryPaths(store).bugs, "bugs", keep, unparsed);
-}
-var bugEffectiveSeverity = (b) => b.severity_override?.level ?? b.severity;
-var when = (iso) => iso.slice(0, 10);
-function classifyRun(bugs, input) {
-  const protects = (f) => (f.bank_tests ?? []).map((t) => input.bank.find((b) => b.test === t)?.bug).filter((x) => !!x);
-  const findings = [];
-  const seenBugs = /* @__PURE__ */ new Set();
-  const newByFingerprint = /* @__PURE__ */ new Map();
-  let nextNew = bugs.map((b) => b.id);
-  const issueOf = (f, i) => f.id ?? `finding-${i + 1}`;
-  for (const [i, f] of input.findings.entries()) {
-    const m = matchBug(bugs, f, protects(f));
-    if (!m.bug) {
-      const fp = fingerprintOf(f);
-      const same = newByFingerprint.get(fp);
-      const id = same ?? nextId("BUG", nextNew);
-      if (!same) {
-        newByFingerprint.set(fp, id);
-        nextNew = [...nextNew, id];
-      }
-      seenBugs.add(id);
-      findings.push({
-        issue: issueOf(f, i),
-        bug: id,
-        status: "new",
-        times_seen: 1,
-        first_seen: input.now.toISOString(),
-        ...m.candidates.length ? { ambiguous: m.candidates.map((c) => ({ bug: c.bug.id, title: c.bug.title, score: c.score })) } : {}
-      });
-      continue;
-    }
-    const b = m.bug;
-    seenBugs.add(b.id);
-    const status2 = b.status === "fixed" ? "regressed" : b.status === "accepted" ? "accepted" : b.status === "not-a-bug" ? "not-a-bug" : "still-open";
-    findings.push({
-      issue: issueOf(f, i),
-      bug: b.id,
-      status: status2,
-      times_seen: b.last_seen.run === input.runId ? b.times_seen : b.times_seen + 1,
-      first_seen: b.first_seen.at,
-      ...status2 === "regressed" && b.fixed ? { fixed_on: b.fixed.at } : {},
-      ...m.how ? { how: m.how } : {}
-    });
-  }
-  const fixed = [];
-  const notRechecked = [];
-  for (const b of bugs.filter(isOpenBug)) {
-    if (seenBugs.has(b.id)) continue;
-    const bankPass = input.bank.find((t) => t.bug === b.id && t.passed);
-    const recheck = input.rechecks.find((r) => r.bug === b.id && r.result === "passes");
-    const stillFailing = input.bank.some((t) => t.bug === b.id && !t.passed);
-    if (stillFailing) continue;
-    if (bankPass || recheck) fixed.push({ bug: b.id, title: b.title, ...b.plain_title ? { plain_title: b.plain_title } : {}, area: b.area, severity: bugEffectiveSeverity(b), how: bankPass ? `The saved check ${bankPass.test} for this problem passes now.` : recheck.how, source: bankPass ? "bank-test" : "recheck", last_seen_run: b.last_seen.run });
-    else notRechecked.push({ bug: b.id, title: b.title, ...b.plain_title ? { plain_title: b.plain_title } : {}, status: b.status, severity: bugEffectiveSeverity(b) });
-  }
-  const acceptedSeen = findings.filter((f) => f.status === "accepted").map((f) => bugs.find((b) => b.id === f.bug)).filter((b) => !!b?.accepted).map((b) => ({ bug: b.id, title: b.title, by: b.accepted.by, at: b.accepted.at, ...b.accepted.note ? { note: b.accepted.note } : {} }));
-  return { schema_version: 1, run_id: input.runId, computed_at: input.now.toISOString(), applied: false, findings, fixed, not_rechecked: notRechecked, accepted_seen: acceptedSeen };
-}
-var push = (b, e) => {
-  b.history = [...b.history, e].slice(-MAX_HISTORY);
-};
-function applyLifecycle(store, life, findings, now) {
-  const loaded = loadBugs(store);
-  const bugs = loaded.bugs;
-  const lines = [];
-  let created = 0;
-  let still = 0;
-  let back = 0;
-  const run = life.run_id;
-  for (const [i, fl] of life.findings.entries()) {
-    const f = findings.find((x) => x.id === fl.issue) ?? findings[i];
-    if (!f) continue;
-    let b = bugs.find((x) => x.id === fl.bug);
-    if (!b) {
-      b = {
-        id: fl.bug,
-        fingerprint: fingerprintOf(f),
-        area: f.area,
-        type: f.type,
-        surface: f.surface ?? "other",
-        title: f.title,
-        ...f.plain_title ? { plain_title: f.plain_title } : {},
-        summary: (f.summary ?? "").slice(0, 400),
-        severity: f.severity,
-        status: "new",
-        first_seen: { run, at: now.toISOString() },
-        last_seen: { run, at: now.toISOString() },
-        times_seen: 1,
-        ...f.steps?.[0] ? { first_step: f.steps[0].slice(0, 200) } : {},
-        ...f.memory_applied?.length ? { memory_applied: f.memory_applied } : {},
-        history: [{ at: now.toISOString(), run, event: "new" }]
-      };
-      bugs.push(b);
-      created++;
-      continue;
-    }
-    if (b.last_seen.run === run) continue;
-    if (fl.status === "regressed") {
-      b.previously_fixed = b.fixed ?? b.previously_fixed ?? { at: b.last_seen.at, how: "recorded as fixed" };
-      delete b.fixed;
-      b.status = "regressed";
-      push(b, { at: now.toISOString(), run, event: "regressed", note: `It had been fixed on ${when(b.previously_fixed.at)} and was found again.` });
-      back++;
-    } else if (fl.status === "still-open") {
-      b.status = "still-open";
-      push(b, { at: now.toISOString(), run, event: "seen" });
-      still++;
-    } else {
-      push(b, { at: now.toISOString(), run, event: "seen", note: fl.status });
-    }
-    b.times_seen += 1;
-    b.last_seen = { run, at: now.toISOString() };
-    b.title = f.title;
-    if (f.plain_title) b.plain_title = f.plain_title;
-    b.summary = (f.summary ?? b.summary).slice(0, 400);
-    b.severity = f.severity;
-    if (f.steps?.[0]) b.first_step = f.steps[0].slice(0, 200);
-    if (f.memory_applied?.length) b.memory_applied = f.memory_applied;
-  }
-  let fixedNow = 0;
-  for (const fx of life.fixed) {
-    const b = bugs.find((x) => x.id === fx.bug);
-    if (!b || !isOpenBug(b)) continue;
-    b.status = "fixed";
-    b.fixed = { run, at: now.toISOString(), how: fx.how };
-    push(b, { at: now.toISOString(), run, event: "fixed", note: fx.how });
-    fixedNow++;
-  }
-  saveBugs(store, bugs, loaded.unparsed);
-  if (created + still + back + fixedNow > 0) lines.push(`Bugs: ${created} new, ${still} still open, ${back} came back, ${fixedNow} fixed since the last check.`);
-  return lines;
-}
-function summariseBugs(bugs) {
-  const order = ["regressed", "new", "still-open"];
-  const sev = (s) => SEVERITIES.indexOf(s);
-  return {
-    open: bugs.filter(isOpenBug).sort((a, b) => order.indexOf(a.status) - order.indexOf(b.status) || sev(bugEffectiveSeverity(a)) - sev(bugEffectiveSeverity(b)) || b.last_seen.at.localeCompare(a.last_seen.at)).slice(0, 25).map((b) => ({ id: b.id, area: b.area, title: b.title, times_seen: b.times_seen, status: b.status, severity: bugEffectiveSeverity(b), first_seen: when(b.first_seen.at), last_seen: when(b.last_seen.at) })),
-    fixed_recently: bugs.filter((b) => b.status === "fixed" && b.fixed).sort((a, b) => b.fixed.at.localeCompare(a.fixed.at)).slice(0, 10).map((b) => ({ id: b.id, area: b.area, title: b.title, fixed_on: when(b.fixed.at) })),
-    accepted: bugs.filter((b) => b.status === "accepted" && b.accepted).slice(0, 15).map((b) => ({ id: b.id, area: b.area, title: b.title, by: b.accepted.by, at: when(b.accepted.at) })),
-    not_a_bug: bugs.filter((b) => b.status === "not-a-bug").slice(0, 15).map((b) => ({ id: b.id, title: b.title }))
-  };
-}
-
-// core/lib/memory/runlife.ts
-var file2 = (runDir, name) => path26.join(runDir, "data", name);
+import path28 from "node:path";
+var file2 = (runDir, name) => path28.join(runDir, "data", name);
 var lifecycleFile = (runDir) => file2(runDir, "lifecycle.json");
 var readLifecycle = (runDir) => readJson(lifecycleFile(runDir));
 var readRechecks = (runDir) => {
@@ -12252,8 +12749,8 @@ function lintLifecycle(store, runDir, findings, unconfirmed) {
 }
 
 // core/lib/reports.ts
-import fs15 from "node:fs";
-import path28 from "node:path";
+import fs16 from "node:fs";
+import path30 from "node:path";
 
 // core/lib/adminreport.ts
 var MISSING_PLAIN = "(plain-language text not written yet)";
@@ -12275,8 +12772,8 @@ var GLOSSARY = [
   ["Seen only once", "Something we noticed but could not repeat. It is not counted as a problem until it is confirmed."],
   ["Not tested", "Something we did not check, with the reason. It is never reported as working."]
 ];
-var one5 = (s) => (s ?? "").replace(/\s+/g, " ").trim();
-var cell3 = (s) => one5(s).replace(/\|/g, "\\|");
+var one6 = (s) => (s ?? "").replace(/\s+/g, " ").trim();
+var cell4 = (s) => one6(s).replace(/\|/g, "\\|");
 var plural2 = (n, a, b) => `${n} ${n === 1 ? a : b}`;
 var MODE_TEXT = {
   full: "full check (everything we could reach)",
@@ -12365,7 +12862,7 @@ function fixesOf(data) {
   if (!fix) return void 0;
   const lines = [];
   for (const f of [...data.findings].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""))) {
-    const title = one5(f.plain?.title) || f.title;
+    const title = one6(f.plain?.title) || f.title;
     const o = f.fix?.outcome;
     if (o === "verified") lines.push(`\u2705 ${title}: fixed and checked.`);
     else if (o === "best-effort") lines.push(`\u26A0\uFE0F ${title}: fixed, but a person needs to confirm it.`);
@@ -12392,17 +12889,17 @@ function historyOf(data, f) {
 }
 function toProblem(f, data) {
   const p = f.plain;
-  const complete = !!p && !!one5(p.title) && !!one5(p.where) && !!one5(p.what_happens) && !!one5(p.who_is_affected) && !!one5(p.expected) && Array.isArray(p.how_to_see_it);
+  const complete = !!p && !!one6(p.title) && !!one6(p.where) && !!one6(p.what_happens) && !!one6(p.who_is_affected) && !!one6(p.expected) && Array.isArray(p.how_to_see_it);
   const shot = p?.screenshot ?? f.evidence.find((e) => IMAGE.test(e));
   return {
     id: f.id ?? "ISSUE-???",
     severity: f.severity,
-    title: one5(p?.title) || f.title,
-    where: one5(p?.where) || MISSING_PLAIN,
-    what: one5(p?.what_happens) || MISSING_PLAIN,
-    who: one5(p?.who_is_affected) || MISSING_PLAIN,
-    steps: (p?.how_to_see_it ?? []).map(one5).filter(Boolean),
-    expected: one5(p?.expected) || MISSING_PLAIN,
+    title: one6(p?.title) || f.title,
+    where: one6(p?.where) || MISSING_PLAIN,
+    what: one6(p?.what_happens) || MISSING_PLAIN,
+    who: one6(p?.who_is_affected) || MISSING_PLAIN,
+    steps: (p?.how_to_see_it ?? []).map(one6).filter(Boolean),
+    expected: one6(p?.expected) || MISSING_PLAIN,
     ...shot ? { screenshot: shot } : {},
     status: statusText(f),
     ...p?.ticket ? { ticket: p.ticket } : {},
@@ -12454,10 +12951,10 @@ function buildAdminModel(data, previous = []) {
   const cameBackIds = new Set((data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed").map((l) => l.issue));
   const problems = [...data.findings].sort((a, b) => Number(cameBackIds.has(b.id ?? "")) - Number(cameBackIds.has(a.id ?? "")) || SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? "")).map((f) => toProblem(f, data));
   const notTested = mergedNotTested(data).map((n) => {
-    if (n.plain?.area?.trim() && n.plain?.reason?.trim()) return { area: one5(n.plain.area), reason: one5(n.plain.reason) };
+    if (n.plain?.area?.trim() && n.plain?.reason?.trim()) return { area: one6(n.plain.area), reason: one6(n.plain.reason) };
     const row = n.fromCoverage;
-    if (row) return { area: `${areaOf(row.surface, row.ui)} \u2192 ${one5(row.area)}`, reason: /^(not covered|reason not recorded)\.?$/i.test(one5(row.note)) || !one5(row.note) ? "This was not checked in this run." : one5(row.note) };
-    return { area: one5(n.area), reason: one5(n.reason) };
+    if (row) return { area: `${areaOf(row.surface, row.ui)} \u2192 ${one6(row.area)}`, reason: /^(not covered|reason not recorded)\.?$/i.test(one6(row.note)) || !one6(row.note) ? "This was not checked in this run." : one6(row.note) };
+    return { area: one6(n.area), reason: one6(n.reason) };
   });
   const fine = areas.filter((a) => a.result === "\u2705").length;
   const withProblems = areas.filter((a) => /^Problems found/.test(a.note)).length;
@@ -12466,13 +12963,13 @@ function buildAdminModel(data, previous = []) {
   const areaParts = [`${fine} fine`, `${withProblems} with problems`, ...partly > 0 ? [`${partly} partly checked`] : [], `${notChecked} not checked`];
   const meta = data.meta;
   const authored = data.adminStale ? void 0 : data.admin;
-  const biggest = one5(authored?.biggest_risk) || (open[0] && open.some((f) => f.severity !== "minor") ? `${one5(toProblem(topOpen(open), data).title)}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
+  const biggest = one6(authored?.biggest_risk) || (open[0] && open.some((f) => f.severity !== "minor") ? `${one6(toProblem(topOpen(open), data).title)}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
   const names = notTested.slice(0, 3).map((n) => n.area.length > 60 ? `${n.area.slice(0, 57)}...` : n.area);
   const summary = [
     `Checked on ${plainDate(meta?.started)} \xB7 Environment: ${meta?.environment ?? "unknown"} \xB7 Type of check: ${MODE_TEXT[meta?.mode ?? ""] ?? meta?.mode ?? "unknown"}`,
     `We looked at ${plural2(areas.length, "area", "areas")}: ${areaParts.join(", ")}.`,
     `Problems: \u{1F534} ${found.critical} critical \xB7 \u{1F7E0} ${found.important} important \xB7 \u{1F7E1} ${found.minor} minor${fixedVerified > 0 ? ` \xB7 ${fixedVerified} of them fixed and checked` : ""}`,
-    ...cameBackIds.size > 0 ? [`\u26A0\uFE0F ${plural2(cameBackIds.size, "problem came", "problems came")} back after being fixed: ${problems.filter((p) => p.cameBack).slice(0, 3).map((p) => one5(p.title).replace(/[.\s]+$/, "")).join("; ")}${cameBackIds.size > 3 ? ` and ${cameBackIds.size - 3} more` : ""}.`] : [],
+    ...cameBackIds.size > 0 ? [`\u26A0\uFE0F ${plural2(cameBackIds.size, "problem came", "problems came")} back after being fixed: ${problems.filter((p) => p.cameBack).slice(0, 3).map((p) => one6(p.title).replace(/[.\s]+$/, "")).join("; ")}${cameBackIds.size > 3 ? ` and ${cameBackIds.size - 3} more` : ""}.`] : [],
     `Biggest risk: ${biggest}`,
     notTested.length ? `Not tested: ${names.join("; ")}${notTested.length > 3 ? ` and ${notTested.length - 3} more` : ""}.` : "Not tested: nothing; everything planned was checked."
   ];
@@ -12487,12 +12984,12 @@ function buildAdminModel(data, previous = []) {
   if (counts.critical > 0) fallbackSteps.push(fixedVerified > 0 ? "Have a developer fix the critical problems that are still open." : "Have a developer fix the critical problems first.");
   if (notTested.length > 0) fallbackSteps.push("Arrange what is needed to check the areas that were not tested (see the list below).");
   if (problems.length > 0) fallbackSteps.push("Run the check again after the fixes to confirm them.");
-  const authoredSteps = (authored?.next_steps ?? []).map(one5).filter(Boolean);
+  const authoredSteps = (authored?.next_steps ?? []).map(one6).filter(Boolean);
   const nextSteps = (authoredSteps.length ? authoredSteps : fallbackSteps).slice(0, MAX_NEXT_STEPS);
-  const fixedSince = (data.lifecycle?.fixed ?? []).map((x) => `${one5(x.plain_title ?? `A problem in "${x.area}" found earlier`).replace(/[.\s]+$/, "")}: ${x.source === "bank-test" ? "the saved automatic check for it passes now" : one5(x.how).replace(/[.\s]+$/, "")}.`);
+  const fixedSince = (data.lifecycle?.fixed ?? []).map((x) => `${one6(x.plain_title ?? `A problem in "${x.area}" found earlier`).replace(/[.\s]+$/, "")}: ${x.source === "bank-test" ? "the saved automatic check for it passes now" : one6(x.how).replace(/[.\s]+$/, "")}.`);
   const knownAccepted = (data.accepted ?? []).map((f) => {
     const l = data.lifecycle?.accepted_seen.find((a) => a.bug === f.bug);
-    return `${one5(f.plain?.title) || f.title}${l ? ` (accepted by ${l.by} on ${dayText(l.at)}${l.note ? `: ${one5(l.note)}` : ""})` : ""}.`.replace(/\.\.$/, ".");
+    return `${one6(f.plain?.title) || f.title}${l ? ` (accepted by ${l.by} on ${dayText(l.at)}${l.note ? `: ${one6(l.note)}` : ""})` : ""}.`.replace(/\.\.$/, ".");
   });
   const ticketLines = data.ticket?.ticket ? renderAdminChecklist(data.ticket) : [];
   const checkedLines = data.checks ? renderAdminCoverage(data.checks) : [];
@@ -12505,7 +13002,7 @@ function renderAdminMarkdown(m) {
   }
   L.push("> **30-second summary**", ...m.summary.map((s) => `> - ${s}`), "");
   L.push("## What we found, by area", "", "| Area | Result | Notes |", "|---|---|---|");
-  for (const a of m.areas) L.push(`| ${cell3(a.area)} | ${a.result} | ${cell3(a.note)} |`);
+  for (const a of m.areas) L.push(`| ${cell4(a.area)} | ${a.result} | ${cell4(a.note)} |`);
   if (m.areas.length === 0) L.push("| (nothing was recorded) | \u26D4 | No areas were checked. |");
   L.push("", "\u2705 nothing wrong found \xB7 \u26A0\uFE0F problems found or only partly checked \xB7 \u26D4 serious problems or not checked", "");
   if (m.ticketLines.length) L.push(...m.ticketLines);
@@ -12517,7 +13014,7 @@ function renderAdminMarkdown(m) {
     if (notes.length) L.push(notes.join(" "), "");
   }
   for (const p of m.problems) {
-    L.push(`### ${ICON2[p.severity]} ${LABEL2[p.severity]}: ${one5(p.title)}`, "");
+    L.push(`### ${ICON2[p.severity]} ${LABEL2[p.severity]}: ${one6(p.title)}`, "");
     L.push(`- **Where:** ${p.where}`, `- **What happens:** ${p.what}`, `- **Who is affected:** ${p.who}`);
     if (p.steps.length) {
       L.push("- **How to see it yourself:**");
@@ -12540,7 +13037,7 @@ function renderAdminMarkdown(m) {
   L.push("## Compared with the last check", "", ...m.trend.map((t) => `- ${t}`), "");
   L.push("## What was not tested", "");
   if (m.notTested.length === 0) L.push("Everything planned was checked.", "");
-  else L.push(...m.notTested.map((n) => `- **${one5(n.area)}**: ${one5(n.reason)}`), "");
+  else L.push(...m.notTested.map((n) => `- **${one6(n.area)}**: ${one6(n.reason)}`), "");
   if (m.nextSteps.length) L.push("## Suggested next steps", "", ...m.nextSteps.map((s, i) => `${i + 1}. ${s}`), "");
   L.push("## Words used in this report", "", ...GLOSSARY.map(([w, d]) => `- **${w}**: ${d}`), "");
   L.push(
@@ -12575,8 +13072,8 @@ function lintAdminLanguage(markdown) {
 }
 
 // core/scripts/consistency-check.ts
-import fs14 from "node:fs";
-import path27 from "node:path";
+import fs15 from "node:fs";
+import path29 from "node:path";
 var SEV_WORD = { "\u{1F534}": "critical", "\u{1F7E0}": "important", "\u{1F7E1}": "minor" };
 var VERDICT = /^(✅ \*\*Ready to release|⚠️ \*\*Ready with risks|⛔ \*\*Not ready to release)/;
 function section(text3, heading) {
@@ -12591,16 +13088,16 @@ function checkConsistency(runDir) {
   const errors = [];
   const warnings = [];
   const result = { ok: true, errors, warnings, technical: [], admin: [] };
-  const techFile = path27.join(runDir, "TECHNICAL-REPORT.md");
-  const adminFile = path27.join(runDir, "ADMIN-REPORT.md");
+  const techFile = path29.join(runDir, "TECHNICAL-REPORT.md");
+  const adminFile = path29.join(runDir, "ADMIN-REPORT.md");
   for (const f of [techFile, adminFile]) {
-    if (!fs14.existsSync(f)) {
-      errors.push(`${path27.basename(f)} does not exist: run \`report build\` first.`);
+    if (!fs15.existsSync(f)) {
+      errors.push(`${path29.basename(f)} does not exist: run \`report build\` first.`);
     }
   }
   if (errors.length) return { ...result, ok: false };
-  const tech = fs14.readFileSync(techFile, "utf8");
-  const admin = fs14.readFileSync(adminFile, "utf8");
+  const tech = fs15.readFileSync(techFile, "utf8");
+  const admin = fs15.readFileSync(adminFile, "utf8");
   const findingsSection = section(`
 ${tech}`, "Findings");
   for (const m of findingsSection.matchAll(/^### (ISSUE-\d+) (🔴|🟠|🟡) (Critical|Important|Minor): /gm)) result.technical.push({ id: m[1], severity: SEV_WORD[m[2]] });
@@ -12699,8 +13196,16 @@ ${admin}`, "Suggested next steps").match(/^\d+\. /gm) ?? []).length;
 function previousRuns(store, currentRunId, limit = 3) {
   if (!store) return [];
   const dir = storeSubdirs(store).runs;
-  if (!fs15.existsSync(dir)) return [];
-  return fs15.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().map((f) => readJson(path28.join(dir, f))).filter((r) => !!r && r.run_id !== currentRunId).slice(0, limit);
+  if (!fs16.existsSync(dir)) return [];
+  return fs16.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().map((f) => readJson(path30.join(dir, f))).filter((r) => !!r && r.run_id !== currentRunId).slice(0, limit);
+}
+function performanceFor(store, runDir, data) {
+  const m = data.meta;
+  if (!m?.run_id) return void 0;
+  const started = Date.parse(m.started);
+  const finished = m.finished ?? (/* @__PURE__ */ new Date()).toISOString();
+  const duration2 = m.duration_s ?? Math.max(0, Math.round((Date.parse(finished) - started) / 1e3));
+  return agentPerformance(store, metricFromRun(data, { finished, duration_s: duration2, ...m.usage?.cost_usd !== void 0 ? { cost_usd: m.usage.cost_usd } : {}, ...m.usage?.tokens !== void 0 ? { tokens: m.usage.tokens } : {}, tests_saved: m.bank_saved ?? 0 }, observedCounts(runDir)));
 }
 function renderReports(runDir, store, ctx) {
   const first = readRunData(runDir);
@@ -12710,15 +13215,16 @@ function renderReports(runDir, store, ctx) {
   const data = readRunData(runDir);
   const previous = previousRuns(store, data.meta?.run_id);
   const model = buildAdminModel(data, previous);
-  return { data, model, technical: renderTechnicalReport(data, { previous }), admin: renderAdminMarkdown(model) };
+  const performance = store ? performanceFor(store, runDir, data) : void 0;
+  return { data, model, technical: renderTechnicalReport(data, { previous, ...performance ? { performance } : {} }), admin: renderAdminMarkdown(model) };
 }
 function writeReports(runDir, store, ctx) {
   const r = renderReports(runDir, store, ctx);
   const privacy = contextForRun(runDir);
   const technical = maskText(r.technical, privacy).text;
   const admin = maskText(r.admin, privacy).text;
-  fs15.writeFileSync(path28.join(runDir, "TECHNICAL-REPORT.md"), technical, "utf8");
-  fs15.writeFileSync(path28.join(runDir, "ADMIN-REPORT.md"), admin, "utf8");
+  fs16.writeFileSync(path30.join(runDir, "TECHNICAL-REPORT.md"), technical, "utf8");
+  fs16.writeFileSync(path30.join(runDir, "ADMIN-REPORT.md"), admin, "utf8");
   return { ...r, technical, admin };
 }
 function lintFixRun(data, errors, warnings) {
@@ -12768,25 +13274,25 @@ function lintReports(runDir, knownSecrets = [], store) {
   }
   lintFixRun(data, errors, warnings);
   const scan = scanRun(runDir, contextForRun(runDir));
-  for (const leak of scan.leaks.slice(0, 10)) errors.push(`Privacy: ${leak.file} holds ${leak.count} unmasked item(s) (${Object.entries(leak.kinds).map(([k, n]) => `${n} ${k}`).join(", ")}). Run \`qamind privacy mask --run ${path28.basename(runDir)}\`, rebuild the reports and lint again.`);
-  if (scan.leaks.length > 10) errors.push(`Privacy: ${scan.leaks.length - 10} more file(s) hold unmasked data (\`qamind privacy scan --run ${path28.basename(runDir)}\` lists them all).`);
-  if (!fs15.existsSync(path28.join(runDir, "data", "pages.json"))) warnings.push("data/pages.json was not written: the product map will not learn which screens exist, and what changed since the last run cannot be reported for screens.");
+  for (const leak of scan.leaks.slice(0, 10)) errors.push(`Privacy: ${leak.file} holds ${leak.count} unmasked item(s) (${Object.entries(leak.kinds).map(([k, n]) => `${n} ${k}`).join(", ")}). Run \`qamind privacy mask --run ${path30.basename(runDir)}\`, rebuild the reports and lint again.`);
+  if (scan.leaks.length > 10) errors.push(`Privacy: ${scan.leaks.length - 10} more file(s) hold unmasked data (\`qamind privacy scan --run ${path30.basename(runDir)}\` lists them all).`);
+  if (!fs16.existsSync(path30.join(runDir, "data", "pages.json"))) warnings.push("data/pages.json was not written: the product map will not learn which screens exist, and what changed since the last run cannot be reported for screens.");
   return { ok: errors.length === 0, errors, warnings, consistency };
 }
 
 // core/auto-qa/settings.ts
-import path29 from "node:path";
+import path31 from "node:path";
 var AUTO_SCHEMA = 1;
 var AUTO_MODES = ["diff", "quick", "full", "fix", "ask"];
 var DEFAULT_MODE = "diff";
 var DEFAULT_COOLDOWN_MINUTES = 3;
 var DEFAULT_TIME_BUDGET_MINUTES = 5;
 var DEFAULT_IGNORE = ["*.md", "docs/**", "package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb", "composer.lock", "Gemfile.lock", "poetry.lock", "Pipfile.lock", "go.sum", "Cargo.lock"];
-var projectAutoFile = (store) => path29.join(store, "auto.json");
-var globalAutoFile = (home) => path29.join(home, "auto.json");
+var projectAutoFile = (store) => path31.join(store, "auto.json");
+var globalAutoFile = (home) => path31.join(home, "auto.json");
 var AutoTooNewError = class extends Error {
   constructor(file3, found) {
-    super(`${path29.basename(file3)} was written by a newer QAMind (auto-QA settings schema ${found}, this QAMind understands ${AUTO_SCHEMA}). Update QAMind before changing auto-QA settings.`);
+    super(`${path31.basename(file3)} was written by a newer QAMind (auto-QA settings schema ${found}, this QAMind understands ${AUTO_SCHEMA}). Update QAMind before changing auto-QA settings.`);
   }
 };
 function readJsonTolerant(file3) {
@@ -12845,7 +13351,7 @@ function validate(patch) {
 }
 function updateAutoFile(file3, lockDir, patch) {
   validate(patch);
-  ensureDir(path29.dirname(file3));
+  ensureDir(path31.dirname(file3));
   return withStoreLock(lockDir, () => {
     const cur = readAutoFile(file3);
     if (cur.too_new) throw new AutoTooNewError(file3, cur.too_new);
@@ -12860,9 +13366,9 @@ function updateAutoFile(file3, lockDir, patch) {
 }
 
 // core/auto-qa/state.ts
-import path30 from "node:path";
+import path32 from "node:path";
 var KEEP_SESSIONS = 30;
-var stateFile = (store, name) => path30.join(storeSubdirs(store).state, name);
+var stateFile = (store, name) => path32.join(storeSubdirs(store).state, name);
 var NEXT_RUN = "next-run.json";
 var TASK_START = "task-start.json";
 var AUTO_LAST = "auto-last.json";
@@ -12911,13 +13417,13 @@ function writeLastRun(store, run) {
 }
 
 // core/lib/envprep.ts
-import path32 from "node:path";
+import path34 from "node:path";
 
 // core/lib/fix/testrun.ts
 import { spawn, spawnSync } from "node:child_process";
 
 // core/lib/fix/protect.ts
-import path31 from "node:path";
+import path33 from "node:path";
 var BUILT_IN_PROTECTED = [
   { glob: ".git", why: "git's own data" },
   { glob: ".env*", why: "credential and environment files" },
@@ -13006,11 +13512,11 @@ function globToRegExp2(raw) {
   return new RegExp(anchored ? `^${body}(?:/.*)?$` : `(?:^|/)${body}(?:/.*)?$`, "i");
 }
 function relativeToRoot(root, p, cwd = root) {
-  const abs = path31.resolve(cwd, p);
-  const rel = path31.relative(path31.resolve(root), abs);
+  const abs = path33.resolve(cwd, p);
+  const rel = path33.relative(path33.resolve(root), abs);
   if (rel === "") return "";
-  if (rel === ".." || rel.startsWith(`..${path31.sep}`) || path31.isAbsolute(rel)) return void 0;
-  return rel.split(path31.sep).join("/");
+  if (rel === ".." || rel.startsWith(`..${path33.sep}`) || path33.isAbsolute(rel)) return void 0;
+  return rel.split(path33.sep).join("/");
 }
 function compileRules(doNotTouch = []) {
   return [
@@ -13086,7 +13592,7 @@ function failedTestNames(output) {
 }
 
 // core/lib/envprep.ts
-var prepFile = (runDir) => path32.join(runDir, "data", "env-prep.json");
+var prepFile = (runDir) => path34.join(runDir, "data", "env-prep.json");
 var readPrep = (runDir) => readJson(prepFile(runDir));
 var hasCommands = (s) => !!(s.seed_command || s.reset_command || s.snapshot_command);
 function shouldPrepare(setup, mode) {
@@ -13135,7 +13641,7 @@ async function prepareEnvironment(o) {
       }
     }
   }
-  ensureDir(path32.dirname(prepFile(o.runDir)));
+  ensureDir(path34.dirname(prepFile(o.runDir)));
   writeJson(prepFile(o.runDir), prep);
   return prep;
 }
@@ -13155,8 +13661,8 @@ function prepCheck(prep) {
 }
 
 // core/lib/stack.ts
-import fs16 from "node:fs";
-import path33 from "node:path";
+import fs17 from "node:fs";
+import path35 from "node:path";
 var JS_FRAMEWORKS = [
   ["next", "nextjs"],
   ["react", "react"],
@@ -13180,7 +13686,7 @@ var JS_TEST_RUNNERS = [
 ];
 function readIf(file3) {
   try {
-    return fs16.readFileSync(file3, "utf8");
+    return fs17.readFileSync(file3, "utf8");
   } catch {
     return "";
   }
@@ -13191,14 +13697,14 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   const runners = /* @__PURE__ */ new Set();
   const commands = {};
   let packageManager;
-  const pkg = readJson(path33.join(root, "package.json"));
+  const pkg = readJson(path35.join(root, "package.json"));
   if (pkg) {
     languages.add("javascript");
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
     for (const [dep, name] of JS_FRAMEWORKS) if (deps[dep]) frameworks.add(name);
     for (const [dep, name] of JS_TEST_RUNNERS) if (deps[dep]) runners.add(name);
-    if (deps["typescript"] || exists(path33.join(root, "tsconfig.json"))) languages.add("typescript");
-    packageManager = exists(path33.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path33.join(root, "yarn.lock")) ? "yarn" : exists(path33.join(root, "bun.lock")) ? "bun" : "npm";
+    if (deps["typescript"] || exists(path35.join(root, "tsconfig.json"))) languages.add("typescript");
+    packageManager = exists(path35.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path35.join(root, "yarn.lock")) ? "yarn" : exists(path35.join(root, "bun.lock")) ? "bun" : "npm";
     const run = packageManager === "npm" ? "npm run" : packageManager;
     if (pkg.scripts?.["test"] && !/no test specified/.test(pkg.scripts["test"])) {
       commands.test = packageManager === "npm" ? "npm test" : `${packageManager} test`;
@@ -13208,7 +13714,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (pkg.scripts?.["dev"]) commands.dev = `${run} dev`;
     else if (pkg.scripts?.["start"]) commands.dev = packageManager === "npm" ? "npm start" : `${packageManager} start`;
   }
-  const composer = readIf(path33.join(root, "composer.json"));
+  const composer = readIf(path35.join(root, "composer.json"));
   if (composer) {
     languages.add("php");
     if (/laravel\/framework/.test(composer)) frameworks.add("laravel");
@@ -13216,23 +13722,23 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (/pestphp/.test(composer)) runners.add("pest");
     packageManager ??= "composer";
   }
-  const py = readIf(path33.join(root, "requirements.txt")) + readIf(path33.join(root, "pyproject.toml"));
-  if (py || exists(path33.join(root, "manage.py"))) {
+  const py = readIf(path35.join(root, "requirements.txt")) + readIf(path35.join(root, "pyproject.toml"));
+  if (py || exists(path35.join(root, "manage.py"))) {
     languages.add("python");
-    if (/django/i.test(py) || exists(path33.join(root, "manage.py"))) frameworks.add("django");
+    if (/django/i.test(py) || exists(path35.join(root, "manage.py"))) frameworks.add("django");
     if (/fastapi/i.test(py)) frameworks.add("fastapi");
     if (/flask/i.test(py)) frameworks.add("flask");
     if (/pytest/i.test(py)) runners.add("pytest");
     packageManager ??= "pip";
   }
-  if (/rails/.test(readIf(path33.join(root, "Gemfile")))) {
+  if (/rails/.test(readIf(path35.join(root, "Gemfile")))) {
     languages.add("ruby");
     frameworks.add("rails");
-    if (/rspec/.test(readIf(path33.join(root, "Gemfile")))) runners.add("rspec");
+    if (/rspec/.test(readIf(path35.join(root, "Gemfile")))) runners.add("rspec");
     packageManager ??= "bundler";
   }
   try {
-    if (fs16.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"))) {
+    if (fs17.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"))) {
       languages.add("csharp");
       frameworks.add("dotnet");
       commands.test ??= "dotnet test";
@@ -13251,7 +13757,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   };
 }
 function saveStack(memoryDir, stack) {
-  const file3 = path33.join(memoryDir, "stack.json");
+  const file3 = path35.join(memoryDir, "stack.json");
   const prev = readJson(file3);
   const strip = (s) => JSON.stringify({ ...s, detected_at: void 0 });
   if (prev && strip(prev) === strip(stack)) return { changed: false };
@@ -13264,12 +13770,12 @@ var QAMIND_VERSION = true ? "0.1.0" : "dev";
 var KNOWLEDGE_VERSION = true ? "0.1.2" : "dev";
 
 // core/lib/sweep/service.ts
-import fs19 from "node:fs";
-import path37 from "node:path";
+import fs20 from "node:fs";
+import path39 from "node:path";
 
 // core/lib/sweep/engine.ts
-import fs18 from "node:fs";
-import path36 from "node:path";
+import fs19 from "node:fs";
+import path38 from "node:path";
 
 // core/lib/bank/uisteps.ts
 function describeTarget(t) {
@@ -13371,10 +13877,10 @@ async function runUiStep(page, base, s, ctx) {
 }
 
 // core/lib/sweep/pages.ts
-import path34 from "node:path";
+import path36 from "node:path";
 var MAX_SWEEP_PAGES = 40;
 var ID = /^[a-z0-9][a-z0-9_-]{0,40}$/;
-var sweepPagesFile = (runDir) => path34.join(runDir, "data", "sweep-pages.json");
+var sweepPagesFile = (runDir) => path36.join(runDir, "data", "sweep-pages.json");
 function validateSweepPages(raw, config) {
   const errors = [];
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, errors: ['data/sweep-pages.json must be an object: { "pages": [ { "id", "title", "ui", "role", "path" } ], "logins": { "<role>": [steps] } }.'] };
@@ -13440,7 +13946,7 @@ function validateSweepPages(raw, config) {
 }
 function loadSweepPages(runDir, config) {
   const raw = readJson(sweepPagesFile(runDir));
-  if (raw === void 0) return { ok: false, errors: [`No ${path34.join("data", "sweep-pages.json")} in the run folder. Write the key pages first (the format is in the coverage instructions).`] };
+  if (raw === void 0) return { ok: false, errors: [`No ${path36.join("data", "sweep-pages.json")} in the run folder. Write the key pages first (the format is in the coverage instructions).`] };
   return validateSweepPages(raw, config);
 }
 function matrixFor(mode, config, pick2) {
@@ -13475,8 +13981,8 @@ function matrixFor(mode, config, pick2) {
 }
 
 // core/lib/sweep/visual.ts
-import fs17 from "node:fs";
-import path35 from "node:path";
+import fs18 from "node:fs";
+import path37 from "node:path";
 
 // core/lib/sweep/png.ts
 import zlib from "node:zlib";
@@ -13668,8 +14174,8 @@ function compareImages(baseline, current, thresholdPercent) {
 }
 var baselineKey = (k) => `${k.page}|${k.role}|${k.browser}|${k.viewport}`;
 var safe = (s) => s.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "x";
-var baselinesDir = (store) => path35.join(store, "baselines");
-var indexFile = (store) => path35.join(baselinesDir(store), "index.json");
+var baselinesDir = (store) => path37.join(store, "baselines");
+var indexFile = (store) => path37.join(baselinesDir(store), "index.json");
 function loadBaselines(store) {
   const idx = readJson(indexFile(store));
   return idx && typeof idx === "object" && idx.entries ? idx : { schema_version: 1, entries: {} };
@@ -13677,15 +14183,15 @@ function loadBaselines(store) {
 function findBaseline(store, key) {
   const entry = loadBaselines(store).entries[baselineKey(key)];
   if (!entry) return void 0;
-  const file3 = path35.join(baselinesDir(store), entry.file);
-  return fs17.existsSync(file3) ? { entry, file: file3 } : void 0;
+  const file3 = path37.join(baselinesDir(store), entry.file);
+  return fs18.existsSync(file3) ? { entry, file: file3 } : void 0;
 }
 function acceptBaseline(store, key, screenshot, run, now, by) {
-  const img = decodePng(fs17.readFileSync(screenshot));
+  const img = decodePng(fs18.readFileSync(screenshot));
   const idx = loadBaselines(store);
   const file3 = `${safe(key.page)}__${safe(key.role)}__${safe(key.browser)}__${safe(key.viewport)}.png`;
   ensureDir(baselinesDir(store));
-  fs17.copyFileSync(screenshot, path35.join(baselinesDir(store), file3));
+  fs18.copyFileSync(screenshot, path37.join(baselinesDir(store), file3));
   const entry = { ...key, file: file3, width: img.width, height: img.height, accepted_run: run, accepted_at: now.toISOString(), ...by ? { accepted_by: by } : {} };
   idx.entries[baselineKey(key)] = entry;
   writeJson(indexFile(store), idx);
@@ -13698,11 +14204,11 @@ function baselineSummary(store) {
 function compareWithBaseline(store, key, screenshotFile, diffFile, thresholdPercent) {
   const found = findBaseline(store, key);
   if (!found) return { state: "no-baseline" };
-  const result = compareImages(decodePng(fs17.readFileSync(found.file)), decodePng(fs17.readFileSync(screenshotFile)), thresholdPercent);
+  const result = compareImages(decodePng(fs18.readFileSync(found.file)), decodePng(fs18.readFileSync(screenshotFile)), thresholdPercent);
   const { diff, ...rest } = result;
   if (diff) {
-    ensureDir(path35.dirname(diffFile));
-    fs17.writeFileSync(diffFile, encodePng(diff));
+    ensureDir(path37.dirname(diffFile));
+    fs18.writeFileSync(diffFile, encodePng(diff));
   }
   return { state: result.differs ? "different" : "same", diff: rest, baseline: found.entry, baselineFile: found.file };
 }
@@ -13849,7 +14355,7 @@ async function runSweep(ctx, opts2) {
   const safeText = (s) => maskText(redact(s), ctx.privacy).text;
   const baseOf = new Map(ctx.config.web_uis.map((u) => [u.name, u.url]));
   const creds = new Map(ctx.roles.map((r) => [r.name, r]));
-  const evidence = path36.join(ctx.outDir, "evidence", "sweep");
+  const evidence = path38.join(ctx.outDir, "evidence", "sweep");
   const maskScript = buildMaskScript({ selectors: ctx.config.privacy.mask_selectors, patterns: ctx.config.privacy.mask_patterns, prefix: ctx.config.test_data_prefix, allow: ctx.roles.map((r) => r.username) });
   const auditScript = readAuditScript();
   const history = loadPerf(ctx.store);
@@ -13903,7 +14409,7 @@ async function runSweep(ctx, opts2) {
     }
   }
   if (results.visual_summary.no_baseline > 0) results.notes.push(`${results.visual_summary.no_baseline} picture(s) have no baseline yet, so nothing was compared. After a run you judge good, \`qamind baseline accept --run ${ctx.runId}\` saves them as the baseline for later runs.`);
-  ensureDir(path36.join(ctx.outDir, "data"));
+  ensureDir(path38.join(ctx.outDir, "data"));
   writeJson(sweepResultsFile(ctx.outDir), JSON.parse(safeText(JSON.stringify(results))));
   return results;
 }
@@ -14012,18 +14518,18 @@ async function visitPage(a, context, p, blockedCount) {
     if (ctx.config.visual.ignore_selectors.length) await page.addStyleTag({ content: `${ctx.config.visual.ignore_selectors.join(", ")} { visibility: hidden !important; }` }).catch(() => void 0);
     ensureDir(a.evidence);
     const name = `${slug3(p.id)}__${slug3(p.role ?? "anon")}__${engine}__${slug3(vp.name)}`;
-    const shot = path36.join(a.evidence, `${name}.png`);
+    const shot = path38.join(a.evidence, `${name}.png`);
     await page.screenshot({ path: shot, fullPage: true, animations: "disabled", caret: "hide", timeout: 15e3, ...probe.height > MAX_SHOT_HEIGHT ? { clip: { x: 0, y: 0, width: vp.width, height: MAX_SHOT_HEIGHT } } : {} });
-    visit.screenshot = path36.join("evidence", "sweep", `${name}.png`);
+    visit.screenshot = path38.join("evidence", "sweep", `${name}.png`);
     const key = { page: p.id, role: p.role ?? "-", browser: engine, viewport: vp.name };
     try {
-      const cmp = compareWithBaseline(ctx.store, key, shot, path36.join(a.evidence, "diff", `${name}.png`), ctx.config.visual.threshold);
+      const cmp = compareWithBaseline(ctx.store, key, shot, path38.join(a.evidence, "diff", `${name}.png`), ctx.config.visual.threshold);
       if (cmp.state === "no-baseline") visit.visual = { state: "no-baseline" };
       else {
-        const before = path36.join("evidence", "sweep", "before", `${name}.png`);
+        const before = path38.join("evidence", "sweep", "before", `${name}.png`);
         if (cmp.state === "different") {
-          ensureDir(path36.join(a.evidence, "before"));
-          fs18.copyFileSync(cmp.baselineFile, path36.join(ctx.outDir, before));
+          ensureDir(path38.join(a.evidence, "before"));
+          fs19.copyFileSync(cmp.baselineFile, path38.join(ctx.outDir, before));
         }
         visit.visual = {
           state: cmp.state,
@@ -14033,7 +14539,7 @@ async function visitPage(a, context, p, blockedCount) {
           size_changed: cmp.diff.size_changed,
           baseline_run: cmp.baseline.accepted_run,
           baseline_at: cmp.baseline.accepted_at,
-          ...cmp.state === "different" ? { before, after: visit.screenshot, diff: path36.join("evidence", "sweep", "diff", `${name}.png`) } : {}
+          ...cmp.state === "different" ? { before, after: visit.screenshot, diff: path38.join("evidence", "sweep", "diff", `${name}.png`) } : {}
         };
       }
     } catch (e) {
@@ -14091,8 +14597,8 @@ async function runSweepForRun(scope, opts2 = {}) {
   return runSweep(sweepContextForRun(scope), { mode: opts2.mode ?? scope.mode, ...opts2 });
 }
 function acceptBaselines(scope, runId, opts2 = {}) {
-  const runDir = path37.join(scope.project.root, ".qa", "reports", runId);
-  if (!/^[\w.-]+$/.test(runId) || !fs19.existsSync(runDir)) throw new Error(`There is no run folder .qa/reports/${runId} in this project.`);
+  const runDir = path39.join(scope.project.root, ".qa", "reports", runId);
+  if (!/^[\w.-]+$/.test(runId) || !fs20.existsSync(runDir)) throw new Error(`There is no run folder .qa/reports/${runId} in this project.`);
   const sweep = readSweepResults(runDir);
   if (!sweep) throw new Error(`Run ${runId} has no sweep (data/sweep.json), so there are no pictures to accept. Run \`qamind sweep run --run ${runId}\` inside a QA run first.`);
   const now = opts2.now ?? /* @__PURE__ */ new Date();
@@ -14110,8 +14616,8 @@ function acceptBaselines(scope, runId, opts2 = {}) {
         out.skipped.push({ page: v.page, browser: v.browser, viewport: v.viewport, reason: v.error ?? "no picture was taken" });
         continue;
       }
-      const file3 = path37.join(runDir, v.screenshot);
-      if (!fs19.existsSync(file3)) {
+      const file3 = path39.join(runDir, v.screenshot);
+      if (!fs20.existsSync(file3)) {
         out.skipped.push({ page: v.page, browser: v.browser, viewport: v.viewport, reason: "the picture is no longer in the run folder" });
         continue;
       }
@@ -14127,7 +14633,7 @@ function baselineStatus(scope) {
   return { count: s.count, pages: s.pages, entries: s.entries.map((e) => ({ page: e.page, role: e.role, browser: e.browser, viewport: e.viewport, accepted_run: e.accepted_run, accepted_at: e.accepted_at })) };
 }
 function sweepPerfPoints(runDir) {
-  const sweep = readJson(path37.join(runDir, "data", "sweep.json"));
+  const sweep = readJson(path39.join(runDir, "data", "sweep.json"));
   if (!sweep) return [];
   return sweep.visits.filter((v) => !v.error && v.settled_ms !== void 0 && !v.signals.some((s) => s.kind === "never-settled")).map((v) => ({ key: `page|${v.page}|${v.role ?? "-"}|${v.browser}|${v.viewport}`, ms: v.settled_ms }));
 }
@@ -14137,13 +14643,13 @@ var MODES = ["full", "quick", "regression", "diff", "ticket"];
 var MARKER_TTL_HOURS = 8;
 function realOrResolved(p) {
   try {
-    return fs20.realpathSync(p);
+    return fs21.realpathSync(p);
   } catch {
-    return path38.resolve(p);
+    return path40.resolve(p);
   }
 }
 function browserStatus(home, projectRoot, expectedNames) {
-  const state = readJson(path38.join(home, "state", "browser-state.json"));
+  const state = readJson(path40.join(home, "state", "browser-state.json"));
   const key = Object.keys(state ?? {}).find((k) => realOrResolved(k) === realOrResolved(projectRoot));
   if (!state || !key) {
     return {
@@ -14164,12 +14670,12 @@ function browserStatus(home, projectRoot, expectedNames) {
 }
 function copyIfMissing(from, to, created) {
   if (exists(to)) return;
-  ensureDir(path38.dirname(to));
-  fs20.copyFileSync(from, to);
+  ensureDir(path40.dirname(to));
+  fs21.copyFileSync(from, to);
   created.push(to);
 }
 function markerPath(store) {
-  return path38.join(storeSubdirs(store).state, RUN_MARKER_FILE);
+  return path40.join(storeSubdirs(store).state, RUN_MARKER_FILE);
 }
 function readMarker(store) {
   return readJson(markerPath(store));
@@ -14181,9 +14687,9 @@ function findActiveMarkers(home, now = /* @__PURE__ */ new Date()) {
   const root = projectsRoot(home);
   if (!exists(root)) return [];
   const out = [];
-  for (const entry of fs20.readdirSync(root, { withFileTypes: true })) {
+  for (const entry of fs21.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const m = readJson(path38.join(root, entry.name, "state", RUN_MARKER_FILE));
+    const m = readJson(path40.join(root, entry.name, "state", RUN_MARKER_FILE));
     if (m && !isExpired(m, now)) out.push(m);
   }
   return out;
@@ -14195,9 +14701,9 @@ function scanAllMarkers(home) {
   const root = projectsRoot(home);
   if (!exists(root)) return [];
   const out = [];
-  for (const entry of fs20.readdirSync(root, { withFileTypes: true })) {
+  for (const entry of fs21.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const m = readJson(path38.join(root, entry.name, "state", RUN_MARKER_FILE));
+    const m = readJson(path40.join(root, entry.name, "state", RUN_MARKER_FILE));
     if (m) out.push(m);
   }
   return out;
@@ -14205,11 +14711,11 @@ function scanAllMarkers(home) {
 function startRun(opts2) {
   const env = opts2.env ?? process.env;
   const now = opts2.now ?? /* @__PURE__ */ new Date();
-  const root = path38.resolve(opts2.project ?? opts2.cwd);
+  const root = path40.resolve(opts2.project ?? opts2.cwd);
   const ticketRef = opts2.ticket ? cleanRef(opts2.ticket) : void 0;
   if (opts2.mode === "ticket" && !ticketRef) throw new Error('Ticket mode needs the ticket to test: pass ticket (an id, an address, a file path, or "pasted text").');
   if (ticketRef && opts2.mode !== "ticket") throw new Error(`A ticket was given, so the mode is "ticket" (found "${opts2.mode}").`);
-  if (!exists(root) || !fs20.statSync(root).isDirectory()) {
+  if (!exists(root) || !fs21.statSync(root).isDirectory()) {
     return { status: "no-project", message: `The folder ${root} does not exist. Ask the user which project folder to test.`, known_projects: listKnownProjects(opts2.home) };
   }
   if (!opts2.project && !looksLikeProject(root)) {
@@ -14223,13 +14729,13 @@ function startRun(opts2) {
   const { store } = ensureProjectStore(opts2.home, info, now);
   ensureMigrated(store);
   const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store };
-  const configFile = path38.join(root, ".qa", "config.md");
+  const configFile = path40.join(root, ".qa", "config.md");
   const gitignoreAdded = env["QAMIND_TRIGGER"] === "ci" || opts2.trigger === "ci" ? [] : ensureGitignoreEntries(root);
   if (!exists(configFile)) {
     const created = [];
     const core = corePath();
-    copyIfMissing(path38.join(core, "shared", "templates", "config.md"), configFile, created);
-    copyIfMissing(path38.join(core, "shared", "templates", "env.qa.example"), path38.join(root, ".env.qa.example"), created);
+    copyIfMissing(path40.join(core, "shared", "templates", "config.md"), configFile, created);
+    copyIfMissing(path40.join(core, "shared", "templates", "env.qa.example"), path40.join(root, ".env.qa.example"), created);
     return {
       status: "needs-config",
       message: "First run in this project: QAMind created .qa/config.md and .env.qa.example and added .qa/ and .env.qa to .gitignore. Fill in .qa/config.md (every REPLACE_ME), copy .env.qa.example to .env.qa and add the TEST account logins, then run QA again. Nothing was tested.",
@@ -14281,10 +14787,10 @@ function startRun(opts2) {
     }
   }
   let runId = `run-${utcStamp(now)}`;
-  const reports = path38.join(root, ".qa", "reports");
-  for (let n = 2; exists(path38.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
-  const runDir = path38.join(reports, runId);
-  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path38.join(runDir, sub));
+  const reports = path40.join(root, ".qa", "reports");
+  for (let n = 2; exists(path40.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
+  const runDir = path40.join(reports, runId);
+  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path40.join(runDir, sub));
   const criticalFlows = parseCriticalFlows(check.body ?? "");
   const stack = detectStack(root, now);
   saveStack(storeSubdirs(store).memory, stack);
@@ -14328,6 +14834,7 @@ function startRun(opts2) {
     host: opts2.host,
     ...opts2.focus ? { focus: opts2.focus } : {},
     ...ticketRef ? { ticket_ref: ticketRef } : {},
+    release_rules: config.release.rules,
     started: now.toISOString(),
     critical_flows: criticalFlows,
     ...git4.branch ? { branch: git4.branch } : {},
@@ -14335,13 +14842,13 @@ function startRun(opts2) {
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION
   };
-  writeJson(path38.join(runDir, "data", "meta.json"), meta);
+  writeJson(path40.join(runDir, "data", "meta.json"), meta);
   return {
     status: "ready",
     message: "Ready. Credentials are present for the roles listed (values are never shown).",
     project: projectOut,
     gitignore_added: gitignoreAdded,
-    run: { id: runId, dir: runDir, mode: opts2.mode, ...opts2.focus ? { focus: opts2.focus } : {}, ...ticketRef ? { ticket: ticketRef } : {}, readonly, report: path38.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...budget.time_minutes !== void 0 ? { time_minutes: budget.time_minutes } : {}, ...budget.max_cost !== void 0 ? { max_cost: budget.max_cost } : {}, ...budget.deadline ? { deadline: budget.deadline } : {} } },
+    run: { id: runId, dir: runDir, mode: opts2.mode, ...opts2.focus ? { focus: opts2.focus } : {}, ...ticketRef ? { ticket: ticketRef } : {}, readonly, report: path40.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...budget.time_minutes !== void 0 ? { time_minutes: budget.time_minutes } : {}, ...budget.max_cost !== void 0 ? { max_cost: budget.max_cost } : {}, ...budget.deadline ? { deadline: budget.deadline } : {} } },
     config: {
       environment: config.environment.name,
       web_uis: config.web_uis,
@@ -14376,12 +14883,12 @@ function finishRun(opts2) {
     started: marker.started,
     trigger: marker.trigger,
     budgetOver: budgetStatus(marker.budget, marker.started, now).state === "over",
-    environmentBroken: (readJson(path38.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) === false,
+    environmentBroken: (readJson(path40.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) === false,
     findings: prior.findings
   });
   if (gate.problem) throw new Error(gate.problem);
   const lifeResult = applyRunLifecycle(marker.store, marker.run_dir, marker.run_id, now);
-  if ((readJson(path38.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) !== false) {
+  if ((readJson(path40.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) !== false) {
     const points = [...sweepPerfPoints(marker.run_dir), ...apiPerfPoints(marker.run_dir)];
     if (points.length) withStoreLock(marker.store, () => recordPerf(marker.store, points, marker.run_id, now));
   }
@@ -14392,8 +14899,8 @@ function finishRun(opts2) {
   const journeys = flowStatus(data);
   const started = new Date(marker.started).getTime();
   const duration_s = Math.max(0, Math.round((now.getTime() - started) / 1e3));
-  const meta = readJson(path38.join(marker.run_dir, "data", "meta.json"));
-  const health = readJson(path38.join(marker.run_dir, "data", "health.json"));
+  const meta = readJson(path40.join(marker.run_dir, "data", "meta.json"));
+  const health = readJson(path40.join(marker.run_dir, "data", "health.json"));
   const stop_reason = opts2.stopReason ?? (health && health.environment_ok === false ? "environment problem" : "completed");
   const usage = parseUsage(opts2.cost, duration_s);
   const bstat = budgetStatus(marker.budget, marker.started, now);
@@ -14436,7 +14943,7 @@ function finishRun(opts2) {
     knowledge_version: KNOWLEDGE_VERSION,
     ...meta?.branch ? { branch: meta.branch } : {},
     ...meta?.commit ? { commit: meta.commit } : {},
-    report: path38.join(marker.run_dir, "TECHNICAL-REPORT.md")
+    report: path40.join(marker.run_dir, "TECHNICAL-REPORT.md")
   };
   const config = checkConfigFile(marker.project_root, process.env).config;
   const memory = applyRunToMemory({
@@ -14448,23 +14955,26 @@ function finishRun(opts2) {
     roles: (config?.roles ?? []).map((r) => r.name),
     uiUrls: Object.fromEntries((config?.web_uis ?? []).map((u) => [u.name, u.url]))
   });
-  if (meta) writeJson(path38.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...budgetOutcome ? { budget: budgetOutcome } : {}, ...prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...prep.restore ? { restored: prep.restore.ok } : {} } } : {}, bank_saved: gate.saved, ...gate.skipped_reason ? { bank_skipped: gate.skipped_reason } : {}, memory_updated: memory.updated });
+  if (meta) writeJson(path40.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...budgetOutcome ? { budget: budgetOutcome } : {}, ...prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...prep.restore ? { restored: prep.restore.ok } : {} } } : {}, bank_saved: gate.saved, ...gate.skipped_reason ? { bank_skipped: gate.skipped_reason } : {}, memory_updated: memory.updated });
   summary.memory_updated = [...lifeResult.lines, ...memory.updated];
   const fixState = loadFixState(marker.run_dir);
   if (fixState) {
     const by = (o) => fixState.attempts.filter((a) => a.status === o).length;
     summary.fixes = { branch: fixState.branch, base_commit: fixState.base_commit.slice(0, 7), verified: by("verified"), best_effort: by("best-effort"), reverted: by("reverted"), deferred: by("deferred"), commits: fixState.attempts.filter((a) => a.commit && (a.status === "verified" || a.status === "best-effort")).map((a) => a.commit).map((c) => c.slice(0, 7)), suite: fixState.comparison?.verdict ?? "not-run" };
   }
-  writeJson(path38.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
+  writeJson(path40.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
+  if (!health || health.environment_ok !== false) {
+    withStoreLock(marker.store, () => recordRunMetrics(marker.store, metricFromRun(data, { finished: summary.finished, duration_s, ...usage.cost_usd !== void 0 ? { cost_usd: usage.cost_usd } : {}, ...usage.tokens !== void 0 ? { tokens: usage.tokens } : {}, tests_saved: gate.saved }, observedCounts(marker.run_dir))));
+  }
   writeReports(marker.run_dir, marker.store);
-  fs20.rmSync(markerPath(marker.store), { force: true });
+  fs21.rmSync(markerPath(marker.store), { force: true });
   addToDay(marker.store, marker.trigger, duration_s, now);
   writeLastRun(marker.store, { run_id: marker.run_id, trigger: marker.trigger, kind: marker.kind, started: marker.started, finished: summary.finished, ...marker.session_id ? { session_id: marker.session_id } : {} });
   return summary;
 }
 
 // core/lib/runctx.ts
-import path39 from "node:path";
+import path41 from "node:path";
 function loadRunContext(home, runId, env = process.env) {
   if (!runId) throw new Error("--run <run-id> is required (use the id printed by `run start`).");
   const marker = findMarkerByRunId(home, runId);
@@ -14482,7 +14992,7 @@ function loadRunContext(home, runId, env = process.env) {
   return {
     marker,
     projectRoot: marker.project_root,
-    runDir: path39.resolve(marker.run_dir),
+    runDir: path41.resolve(marker.run_dir),
     config: check.config,
     policy: marker.policy,
     roles,
@@ -14491,8 +15001,8 @@ function loadRunContext(home, runId, env = process.env) {
 }
 
 // core/lib/memory/context.ts
-import fs22 from "node:fs";
-import path41 from "node:path";
+import fs23 from "node:fs";
+import path43 from "node:path";
 
 // core/lib/memory/fixlog.ts
 function loadFixLog(store) {
@@ -14507,8 +15017,8 @@ function recentFixes(store, limit = 8) {
 
 // core/lib/memory/lessons.ts
 import crypto3 from "node:crypto";
-import fs21 from "node:fs";
-import path40 from "node:path";
+import fs22 from "node:fs";
+import path42 from "node:path";
 var PENDING_FILE = "pending-lessons.md";
 var APPROVED_FILE = "global-lessons.md";
 var REJECTED_FILE = "rejected-lessons.jsonl";
@@ -14516,7 +15026,7 @@ var USE_FILE = "lesson-use.json";
 var MAX_PENDING = 100;
 var MAX_LOADED = 25;
 var MERGE_AT2 = 0.6;
-var one6 = (s) => s.replace(/\s+/g, " ").trim();
+var one7 = (s) => s.replace(/\s+/g, " ").trim();
 var NOT_GENERIC = [
   [/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/, "an email address"],
   [/https?:\/\/|\bwww\./i, "a web address"],
@@ -14540,11 +15050,11 @@ function knownProjectNames(home, extra = []) {
   const names = new Set(extra);
   for (const p of listKnownProjects(home)) {
     names.add(p.name);
-    for (const seen of p.paths_seen) names.add(path40.basename(seen));
+    for (const seen of p.paths_seen) names.add(path42.basename(seen));
   }
   return [...names].filter((n) => n.trim().length > 0);
 }
-var hashId = (text3) => `H-${crypto3.createHash("sha1").update(one6(text3).toLowerCase()).digest("hex").slice(0, 6)}`;
+var hashId = (text3) => `H-${crypto3.createHash("sha1").update(one7(text3).toLowerCase()).digest("hex").slice(0, 6)}`;
 var HEADER = /^##\s+(.*)$/;
 var LESSON_LINE = /^-\s+\*\*Lesson:\*\*\s*(.+)$/;
 var WHY_LINE = /^-\s+\*\*Why:\*\*\s*(.+)$/;
@@ -14598,13 +15108,13 @@ function parseLessons(text3) {
   for (const b of blocks) if (!b.id) b.id = hashId(b.text);
   return { preamble, blocks };
 }
-var readFile = (file3) => parseLessons(fs21.existsSync(file3) ? fs21.readFileSync(file3, "utf8") : "");
+var readFile = (file3) => parseLessons(fs22.existsSync(file3) ? fs22.readFileSync(file3, "utf8") : "");
 var entryOf = ({ lines: _l, ...e }) => e;
 function writeText(file3, text3) {
-  ensureDir(path40.dirname(file3));
+  ensureDir(path42.dirname(file3));
   const tmp = `${file3}.${process.pid}.tmp`;
-  fs21.writeFileSync(tmp, text3, "utf8");
-  fs21.renameSync(tmp, file3);
+  fs22.writeFileSync(tmp, text3, "utf8");
+  fs22.renameSync(tmp, file3);
 }
 var render = (p, extra = []) => {
   const body = [...p.preamble.join("\n").replace(/\s*$/, "").split("\n"), "", ...p.blocks.flatMap((b) => [...b.lines, ""]), ...extra].join("\n");
@@ -14619,29 +15129,29 @@ var approvedHeader = `# Global lessons
 
 Lessons you approved. **Every QAMind project reads this file** (the newest ${MAX_LOADED} at most, best-used first), so each entry must help on any project: no project names, web addresses, files, tickets or code.
 An entry that breaks that rule is not loaded, and the review says why. You can add, edit or delete entries by hand.`;
-var rejectedRecords = (home) => readJsonl(path40.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
+var rejectedRecords = (home) => readJsonl(path42.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
 function appendRejected(home, rec) {
-  const file3 = path40.join(home, REJECTED_FILE);
+  const file3 = path42.join(home, REJECTED_FILE);
   const prior = readJsonl(file3);
   writeJsonl(file3, "rejected-lessons", [...prior.records, rec], prior.unparsed);
 }
 var allIds = (home) => {
-  const approved = readFile(path40.join(home, APPROVED_FILE)).blocks;
+  const approved = readFile(path42.join(home, APPROVED_FILE)).blocks;
   const origins = approved.flatMap((b) => b.lines.flatMap((l) => [...l.matchAll(/\(was ([A-Z]-\d+)\)/g)].map((m) => m[1])));
-  return [...readFile(path40.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
+  return [...readFile(path42.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
 };
 function listPendingLessons(home) {
-  return readFile(path40.join(home, PENDING_FILE)).blocks.map(entryOf);
+  return readFile(path42.join(home, PENDING_FILE)).blocks.map(entryOf);
 }
 function approveLesson(home, id, opts2 = {}) {
-  const pendingFile = path40.join(home, PENDING_FILE);
-  const approvedFile = path40.join(home, APPROVED_FILE);
+  const pendingFile = path42.join(home, PENDING_FILE);
+  const approvedFile = path42.join(home, APPROVED_FILE);
   return withStoreLock(home, () => {
     const pending = readFile(pendingFile);
     const at = pending.blocks.findIndex((b) => b.id === id);
     if (at < 0) throw new Error(`No pending lesson ${id}.${pending.blocks.length ? ` Pending: ${pending.blocks.map((b) => b.id).join(", ")}.` : " Nothing is pending."}`);
     const block = pending.blocks[at];
-    const text3 = one6(opts2.text ?? block.text);
+    const text3 = one7(opts2.text ?? block.text);
     if (text3.length < 20 || text3.length > 280) throw new Error("A lesson is one generic statement of 20 to 280 characters.");
     const problems = [...genericProblems(`${text3} ${block.reason ?? ""} ${block.area ?? ""}`, { projectNames: knownProjectNames(home) }), ...screenForSecretsAndPii(text3).map((p) => p)];
     if (problems.length) throw new Error(`${id} cannot be approved as written: it ${[...new Set(problems)].join("; ")}. Every project reads approved lessons, so reword it (describe the kind of problem, not this product) and approve it again with the new text.`);
@@ -14660,15 +15170,15 @@ function approveLesson(home, id, opts2 = {}) {
   });
 }
 function rejectLesson(home, id, reason, now = /* @__PURE__ */ new Date()) {
-  const pendingFile = path40.join(home, PENDING_FILE);
-  const approvedFile = path40.join(home, APPROVED_FILE);
+  const pendingFile = path42.join(home, PENDING_FILE);
+  const approvedFile = path42.join(home, APPROVED_FILE);
   return withStoreLock(home, () => {
     for (const [file3, was] of [[pendingFile, "pending"], [approvedFile, "approved"]]) {
       const parsed = readFile(file3);
       const at = parsed.blocks.findIndex((b) => b.id === id);
       if (at < 0) continue;
       const block = parsed.blocks[at];
-      const why = reason ? one6(reason).slice(0, 280) : void 0;
+      const why = reason ? one7(reason).slice(0, 280) : void 0;
       parsed.blocks.splice(at, 1);
       writeText(file3, render(parsed));
       appendRejected(home, { id, text: block.text, ...why ? { reason: why } : {}, was, rejected_at: now.toISOString() });
@@ -14679,14 +15189,14 @@ function rejectLesson(home, id, reason, now = /* @__PURE__ */ new Date()) {
 }
 var readLessonUse = (home) => {
   try {
-    const v = readJson(path40.join(home, USE_FILE));
+    const v = readJson(path42.join(home, USE_FILE));
     return v && typeof v === "object" && !Array.isArray(v) ? v : {};
   } catch {
     return {};
   }
 };
 function loadApprovedLessons(home, ctx = {}) {
-  const entries = readFile(path40.join(home, APPROVED_FILE)).blocks;
+  const entries = readFile(path42.join(home, APPROVED_FILE)).blocks;
   const use = readLessonUse(home);
   const ok = [];
   const skipped = [];
@@ -14706,7 +15216,7 @@ function loadApprovedLessons(home, ctx = {}) {
   };
 }
 function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
-  const approved = new Set(readFile(path40.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
+  const approved = new Set(readFile(path42.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
   const unique = [...new Set(ids)];
   const recorded = unique.filter((i) => approved.has(i));
   const unknown = unique.filter((i) => !approved.has(i));
@@ -14715,7 +15225,7 @@ function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
     withStoreLock(home, () => {
       const use = readLessonUse(home);
       for (const id of recorded) use[id] = { hits: (use[id]?.hits ?? 0) + 1, last_applied: now.toISOString() };
-      writeJson(path40.join(home, USE_FILE), use);
+      writeJson(path42.join(home, USE_FILE), use);
     });
   }
   return { recorded, unknown };
@@ -14726,7 +15236,7 @@ function lessonOverview(home, ctx = {}) {
   const skipped = new Map(loaded.skipped.map((s) => [s.id, s.problems]));
   return {
     pending: listPendingLessons(home),
-    approved: readFile(path40.join(home, APPROVED_FILE)).blocks.map((b) => ({ ...entryOf(b), hits: use[b.id]?.hits ?? 0, ...use[b.id]?.last_applied ? { last_applied: use[b.id]?.last_applied } : {}, loaded: !skipped.has(b.id) && loaded.lessons.some((l) => l.id === b.id), ...skipped.has(b.id) ? { not_loaded_because: skipped.get(b.id) } : {} })),
+    approved: readFile(path42.join(home, APPROVED_FILE)).blocks.map((b) => ({ ...entryOf(b), hits: use[b.id]?.hits ?? 0, ...use[b.id]?.last_applied ? { last_applied: use[b.id]?.last_applied } : {}, loaded: !skipped.has(b.id) && loaded.lessons.some((l) => l.id === b.id), ...skipped.has(b.id) ? { not_loaded_because: skipped.get(b.id) } : {} })),
     rejected: rejectedRecords(home).map((r) => ({ id: r.id, text: r.text, ...r.reason ? { reason: r.reason } : {}, was: r.was, rejected_at: r.rejected_at })),
     limits: { max_pending: MAX_PENDING, max_loaded: MAX_LOADED }
   };
@@ -14737,8 +15247,8 @@ var PER_TYPE = 6;
 var MAX_PAGES_SHOWN = 40;
 function recentRunSummaries(store, limit = 3) {
   const dir = memoryPaths(store).runs;
-  if (!fs22.existsSync(dir)) return [];
-  return fs22.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path41.join(dir, f))).filter((r) => !!r);
+  if (!fs23.existsSync(dir)) return [];
+  return fs23.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path43.join(dir, f))).filter((r) => !!r);
 }
 function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), opts2 = {}) {
   const paths = memoryPaths(store);
@@ -14800,7 +15310,7 @@ function defaultProjectDir(env = process.env, cwd = process.cwd()) {
 }
 function projectScope(home, opts2 = {}) {
   const env = opts2.env ?? process.env;
-  const root = path42.resolve(opts2.project ?? defaultProjectDir(env, opts2.cwd ?? process.cwd()));
+  const root = path44.resolve(opts2.project ?? defaultProjectDir(env, opts2.cwd ?? process.cwd()));
   let info;
   try {
     info = resolveProject(root);
@@ -14813,7 +15323,7 @@ function projectScope(home, opts2 = {}) {
 }
 var secretsOf = (s) => s.ctx.passwords;
 function projectNamesOf(scope) {
-  return scope.kind === "run" ? [path42.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path42.basename(scope.project.root)];
+  return scope.kind === "run" ? [path44.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path44.basename(scope.project.root)];
 }
 function getContext(scope, limit = 3) {
   const ctx = loadMemoryContext(scope.store, limit, /* @__PURE__ */ new Date(), { home: scope.home, projectNames: projectNamesOf(scope) });
@@ -15107,14 +15617,49 @@ function cmdTicket(sub, rest, home) {
   return lint.errors.length ? 1 : 0;
 }
 
+// cli/src/metrics.ts
+import os3 from "node:os";
+function cmdEscaped(sub, rest, home) {
+  const { values } = opts(rest, { project: { type: "string" }, area: { type: "string" }, title: { type: "string" }, severity: { type: "string" }, source: { type: "string" }, ref: { type: "string" }, note: { type: "string" }, by: { type: "string" } });
+  const scope = projectScope(home, { ...values.project ? { project: values.project } : {} });
+  if (sub === "list") {
+    const f = loadMetrics(scope.store);
+    emit({ total: f.escaped.length, escaped: f.escaped.map((e) => ({ id: e.id, severity: e.severity, area: e.area, title: e.title, source: e.source, ...e.ref ? { ref: e.ref } : {}, recorded: e.recorded.slice(0, 10), what_the_runs_had_said: VERDICT_WORDS[e.verdict], verdict: e.verdict, ...e.matched ? { matched: `${e.matched.area} in ${e.matched.run_id} (${e.matched.status})` } : {} })) });
+    return 0;
+  }
+  if (sub !== "add") throw new UsageError("escaped needs a subcommand: add --area A --title T [--severity critical|important|minor] [--source manual|sentry|ticket|other] [--ref ID] [--note TEXT] [--by NAME] | list");
+  if (!values.area || !values.title) throw new UsageError("escaped add needs --area (the area of the product, in the words the reports use) and --title (what went wrong in production)");
+  if (values.severity && !SEVERITIES.includes(values.severity)) throw new UsageError(`--severity must be one of ${SEVERITIES.join(", ")}`);
+  if (values.source && !ESCAPED_SOURCES.includes(values.source)) throw new UsageError(`--source must be one of ${ESCAPED_SOURCES.join(", ")}`);
+  const r = withStoreLock(
+    scope.store,
+    () => addEscaped(scope.store, { area: values.area, title: values.title, ...values.severity ? { severity: values.severity } : {}, ...values.source ? { source: values.source } : {}, ...values.ref ? { ref: values.ref } : {}, ...values.note ? { note: values.note } : {}, by: values.by ?? os3.userInfo().username }, /* @__PURE__ */ new Date())
+  );
+  emit({
+    id: r.bug.id,
+    already_recorded: r.already,
+    verdict: r.bug.verdict,
+    what_the_runs_had_said: VERDICT_WORDS[r.bug.verdict],
+    ...r.bug.matched ? { matched_area: r.bug.matched.area, in_run: r.bug.matched.run_id, findings_the_run_had_that_look_related: r.bug.matched.findings ?? [] } : {},
+    ...r.already ? {} : { risk: `The risk of "${r.bug.area}" is raised (${r.bug.severity}): the next runs look there first.` }
+  });
+  return 0;
+}
+function cmdMetrics(rest, home) {
+  const { values } = opts(rest, { project: { type: "string" } });
+  const scope = projectScope(home, { ...values.project ? { project: values.project } : {} });
+  emit(agentPerformance(scope.store));
+  return 0;
+}
+
 // core/auto-qa/commands.ts
-import path46 from "node:path";
+import path48 from "node:path";
 import { parseArgs as parseArgs2 } from "node:util";
 
 // core/lib/fix/gitops.ts
 import { spawnSync as spawnSync2 } from "node:child_process";
-import fs23 from "node:fs";
-import path43 from "node:path";
+import fs24 from "node:fs";
+import path45 from "node:path";
 function git2(root, args, input) {
   const r = spawnSync2("git", ["-C", root, "-c", "core.quotepath=off", ...args], { encoding: "utf8", input, maxBuffer: 32 * 1024 * 1024, stdio: ["pipe", "pipe", "pipe"] });
   return { ok: r.status === 0, out: (r.stdout ?? "").toString(), err: (r.stderr ?? "").toString().trim(), code: r.status ?? -1 };
@@ -15129,16 +15674,16 @@ function projectPrefix(root) {
   return text(git2(root, ["rev-parse", "--show-prefix"]));
 }
 function fromRepoRoot(prefix, file3) {
-  return prefix === "" ? file3 : path43.posix.relative(prefix.replace(/\/$/, ""), file3);
+  return prefix === "" ? file3 : path45.posix.relative(prefix.replace(/\/$/, ""), file3);
 }
 var QAMIND_OWN = /^(?:\.qa\/|\.env\.qa(?:$|\.))/;
 var QAMIND_GITIGNORE_LINES = /* @__PURE__ */ new Set(["# QAMind (private test credentials and reports)", ".env.qa", ".qa/"]);
 function gitignoreChangeIsQamindsOnly(root) {
-  const file3 = path43.join(root, ".gitignore");
-  if (!fs23.existsSync(file3)) return false;
+  const file3 = path45.join(root, ".gitignore");
+  if (!fs24.existsSync(file3)) return false;
   const committed = git2(root, ["show", "HEAD:./.gitignore"]);
   const before = (committed.ok ? committed.out : "").split(/\r?\n/);
-  const now = fs23.readFileSync(file3, "utf8").split(/\r?\n/);
+  const now = fs24.readFileSync(file3, "utf8").split(/\r?\n/);
   let kept = 0;
   for (const line of now) {
     if (kept < before.length && line === before[kept]) kept++;
@@ -15168,20 +15713,20 @@ function statusEntries(root, opts2 = {}) {
 }
 
 // core/auto-qa/gate.ts
-import path45 from "node:path";
+import path47 from "node:path";
 
 // core/auto-qa/changes.ts
 import crypto4 from "node:crypto";
-import fs24 from "node:fs";
-import path44 from "node:path";
+import fs25 from "node:fs";
+import path46 from "node:path";
 var MAX_FILES = 2e3;
 var BIG = 5 * 1024 * 1024;
 function hashFile(abs) {
   try {
-    const st = fs24.statSync(abs);
+    const st = fs25.statSync(abs);
     if (!st.isFile()) return "not-a-file";
     if (st.size > BIG) return `big:${st.size}:${Math.round(st.mtimeMs)}`;
-    return crypto4.createHash("sha1").update(fs24.readFileSync(abs)).digest("hex");
+    return crypto4.createHash("sha1").update(fs25.readFileSync(abs)).digest("hex");
   } catch {
     return "deleted";
   }
@@ -15191,7 +15736,7 @@ function takeSnapshot(root) {
   const head = headCommit(root);
   const entries = statusEntries(root);
   const files = {};
-  for (const e of entries.slice(0, MAX_FILES)) files[e.path] = hashFile(path44.join(root, e.path));
+  for (const e of entries.slice(0, MAX_FILES)) files[e.path] = hashFile(path46.join(root, e.path));
   return { ...head ? { head } : {}, files, truncated: entries.length > MAX_FILES };
 }
 function ignorer(globs) {
@@ -15328,11 +15873,11 @@ function onceNotice(where, h, rule, reason, force) {
   return skip(rule, reason, `Auto-QA skipped: ${reason}`);
 }
 function dailyBudget(where, h) {
-  if (!exists(path45.join(where.root, ".qa", "config.md"))) return void 0;
+  if (!exists(path47.join(where.root, ".qa", "config.md"))) return void 0;
   const config = checkConfigFile(where.root, h.env).config;
   const problem = config ? dailyBudgetProblem(where.store, config, h.now) : void 0;
   if (!problem) return void 0;
-  const file3 = path45.join(storeSubdirs(where.store).state, "budget-notice.json");
+  const file3 = path47.join(storeSubdirs(where.store).state, "budget-notice.json");
   const today = dayOf(h.now);
   let told;
   try {
@@ -15341,12 +15886,12 @@ function dailyBudget(where, h) {
     told = void 0;
   }
   if (told === today) return skip("budget", problem);
-  ensureDir(path45.dirname(file3));
+  ensureDir(path47.dirname(file3));
   writeJson(file3, { day: today });
   return skip("budget", problem, `Auto-QA paused for today: ${problem}`);
 }
 function cannotRun(root, h) {
-  if (!exists(path45.join(root, ".qa", "config.md"))) return "this project has no .qa/config.md yet. Run the QAMind qa-only skill once to set it up.";
+  if (!exists(path47.join(root, ".qa", "config.md"))) return "this project has no .qa/config.md yet. Run the QAMind qa-only skill once to set it up.";
   const check = checkConfigFile(root, h.env);
   if (check.status !== "ok" || !check.config) return `.qa/config.md is not usable (${check.status}). Run the QAMind qa-only skill to see what to fix.`;
   const names = check.config.roles.flatMap((r) => [r.username_env, r.password_env]);
@@ -15480,7 +16025,7 @@ function autoCommand(args, h, cwd) {
   if (!sub || sub === "help") return { help: AUTO_HELP };
   if (sub === "global") return globalCommand(rest, h);
   const { values, positionals } = parse(rest, { project: { type: "string" }, session: { type: "string" }, reason: { type: "string" } });
-  const root = path46.resolve(values.project ?? cwd);
+  const root = path48.resolve(values.project ?? cwd);
   if (!exists(root)) throw new AutoUsageError(`The folder ${root} does not exist.`);
   const info = resolveProject(root);
   const store = storeDir(h.home, info.id);
@@ -15500,7 +16045,7 @@ function autoCommand(args, h, cwd) {
       return status(project, store, h);
     case "on": {
       if (!isRepo(info.root)) warnings.push("This folder is not a git repository: auto-QA needs git to see what a task changed, so it will skip every task until it is one.");
-      if (!exists(path46.join(info.root, ".qa", "config.md"))) warnings.push("No .qa/config.md yet: run the QAMind qa-only skill once to set up the config and the test logins. Until then auto-QA skips with a one-line notice.");
+      if (!exists(path48.join(info.root, ".qa", "config.md"))) warnings.push("No .qa/config.md yet: run the QAMind qa-only skill once to set up the config and the test logins. Until then auto-QA skips with a one-line notice.");
       write({ enabled: true, paused_until: void 0 });
       const eff = effectiveFor(store, h);
       const note = eff.enabled ? "" : ` It is still off because ${eff.why}.`;
@@ -15578,7 +16123,7 @@ function status(project, store, h) {
   const last = readLast(store);
   const mine = readAutoFile(projectAutoFile(store));
   const glob = readAutoFile(globalAutoFile(h.home));
-  const cfg = exists(path46.join(project.root, ".qa", "config.md")) ? checkConfigFile(project.root, h.env).config : void 0;
+  const cfg = exists(path48.join(project.root, ".qa", "config.md")) ? checkConfigFile(project.root, h.env).config : void 0;
   const used = dayUsage(store, h.now);
   const daily = cfg?.budget.daily_max !== void 0 ? { max_minutes: cfg.budget.daily_max, used_minutes: used.minutes, runs_today: used.runs, paused_today: used.minutes >= cfg.budget.daily_max } : void 0;
   const trigger = eff.enabled ? eff.mode === "ask" ? "After a task that changes code (documentation, lock files and ignored paths do not count): QAMind asks whether to run QA." : `After a task that changes code (documentation, lock files and ignored paths do not count): a ${eff.mode} QA run, at most one every ${eff.cooldown_minutes} minutes. #noqa in a prompt skips one task.` : "Nothing: auto-QA is off. #qa, #qa-full or #qa-fix in a prompt runs QA once after that task.";
@@ -15602,14 +16147,14 @@ function status(project, store, h) {
 }
 
 // core/auto-qa/hostio.ts
-import fs25 from "node:fs";
+import fs26 from "node:fs";
 var CLAUDE_IO = {
   stop: { input: { session_id: "session_id", cwd: "cwd", stop_hook_active: "stop_hook_active" }, block_output: { decision: "block", reason: "{reason}" }, notice_output: { systemMessage: "{message}" } },
   prompt: { input: { session_id: "session_id", cwd: "cwd", prompt: "prompt" } }
 };
-function dig(value, path63) {
+function dig(value, path64) {
   let cur = value;
-  for (const part of path63.split(".")) {
+  for (const part of path64.split(".")) {
     if (cur === null || typeof cur !== "object") return void 0;
     cur = cur[part];
   }
@@ -15663,7 +16208,7 @@ function parseHookIo(raw) {
 function readHostAutoConfig(file3) {
   if (!file3) return { io: CLAUDE_IO };
   try {
-    const json = JSON.parse(fs25.readFileSync(file3, "utf8"));
+    const json = JSON.parse(fs26.readFileSync(file3, "utf8"));
     const invoke = typeof json.auto_qa?.invoke === "string" ? json.auto_qa.invoke : void 0;
     return { io: parseHookIo(json.auto_qa?.hooks), ...invoke ? { invoke } : {} };
   } catch {
@@ -15672,13 +16217,13 @@ function readHostAutoConfig(file3) {
 }
 
 // core/lib/apirunner.ts
-import fs27 from "node:fs";
-import path48 from "node:path";
+import fs28 from "node:fs";
+import path50 from "node:path";
 
 // core/lib/openapi.ts
 var import_yaml2 = __toESM(require_dist(), 1);
-import fs26 from "node:fs";
-import path47 from "node:path";
+import fs27 from "node:fs";
+import path49 from "node:path";
 var isObj4 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
 var METHODS = ["get", "post", "put", "patch", "delete", "head", "options"];
 function parseSpecText(text3, hint2 = "") {
@@ -15687,7 +16232,7 @@ function parseSpecText(text3, hint2 = "") {
   return (0, import_yaml2.parse)(trimmed);
 }
 function loadSpecFile(file3) {
-  return parseSpecText(fs26.readFileSync(file3, "utf8"), file3);
+  return parseSpecText(fs27.readFileSync(file3, "utf8"), file3);
 }
 function pointer(root, ref) {
   if (!ref.startsWith("#/")) throw new Error(`Only local $ref values are supported (found "${ref}").`);
@@ -15805,8 +16350,8 @@ function statusDeclared(ep, status2) {
   return ep.responses.some((r) => r.status === String(status2) || r.status.toUpperCase() === `${Math.floor(status2 / 100)}XX` || r.status === "default");
 }
 function matchEndpoint(inv, method, requestPath) {
-  const clean = requestPath.split("?")[0] ?? requestPath;
-  const segs = clean.split("/").filter(Boolean);
+  const clean2 = requestPath.split("?")[0] ?? requestPath;
+  const segs = clean2.split("/").filter(Boolean);
   const candidates = inv.endpoints.filter((e) => e.method === method.toUpperCase());
   const score = (e) => {
     const es = e.path.split("/").filter(Boolean);
@@ -15831,7 +16376,7 @@ function matchEndpoint(inv, method, requestPath) {
   return best;
 }
 function resolveSpecPath(source, projectRoot) {
-  return path47.isAbsolute(source) ? source : path47.resolve(projectRoot, source);
+  return path49.isAbsolute(source) ? source : path49.resolve(projectRoot, source);
 }
 
 // core/lib/apirunner.ts
@@ -15903,7 +16448,7 @@ async function runPlan(plan, opts2) {
   const vars = { ...plan.vars ?? {} };
   const sessions = /* @__PURE__ */ new Map();
   let redactor = makeRedactor(opts2.roles.map((r) => r.password));
-  const evidenceDir = path48.join(opts2.runDir, "evidence", "api");
+  const evidenceDir = path50.join(opts2.runDir, "evidence", "api");
   async function authFor(role) {
     if (role === "anonymous") return { secrets: [] };
     const cached = sessions.get(role);
@@ -16044,7 +16589,7 @@ async function runPlan(plan, opts2) {
     let evidence;
     if (signals.length > 0 || failures.length > 0 || probe.keep_evidence === true) {
       ensureDir(evidenceDir);
-      const file3 = path48.join(evidenceDir, `${plan.name}-${raw.id}.json`);
+      const file3 = path50.join(evidenceDir, `${plan.name}-${raw.id}.json`);
       const priv = opts2.privacy;
       const mask = (t) => priv ? maskBody(t, priv) : t;
       const reqBody = probe.raw_body !== void 0 ? mask(redactor.text(probe.raw_body)) : probe.body !== void 0 ? mask(JSON.stringify(redactor.json(probe.body))) : void 0;
@@ -16066,7 +16611,7 @@ async function runPlan(plan, opts2) {
         reproduced
       };
       writeJson(file3, priv ? maskJson(evidenceDoc, priv).value : evidenceDoc);
-      evidence = path48.relative(opts2.runDir, file3).split(path48.sep).join("/");
+      evidence = path50.relative(opts2.runDir, file3).split(path50.sep).join("/");
     }
     for (const [name2, expr] of Object.entries(probe.capture ?? {})) {
       const last = attempts[attempts.length - 1];
@@ -16106,17 +16651,17 @@ async function runPlan(plan, opts2) {
     ...results.some((r) => r.skipped === BUDGET_REASON) ? { budget_reached: results.filter((r) => r.skipped === BUDGET_REASON).length } : {}
   };
   const out = { summary, results, matrix: [...byOp].map(([operation, statuses]) => ({ operation, statuses })) };
-  const dir = path48.join(opts2.runDir, "data", "api-results");
+  const dir = path50.join(opts2.runDir, "data", "api-results");
   ensureDir(dir);
   let name = `${plan.name}.json`;
-  for (let n = 2; fs27.existsSync(path48.join(dir, name)); n++) name = `${plan.name}-${n}.json`;
-  writeJson(path48.join(dir, name), out);
+  for (let n = 2; fs28.existsSync(path50.join(dir, name)); n++) name = `${plan.name}-${n}.json`;
+  writeJson(path50.join(dir, name), out);
   return out;
 }
 
 // core/lib/guardpolicy.ts
-import fs28 from "node:fs";
-import path49 from "node:path";
+import fs29 from "node:fs";
+import path51 from "node:path";
 var BROWSER_INTERNAL = /^(update\.googleapis\.com|accounts\.google\.com|content-autofill\.googleapis\.com|optimizationguide-pa\.googleapis\.com|safebrowsing\.googleapis\.com|clients\d?\.google\.com|clientservices\.googleapis\.com|www\.google\.com|www\.gstatic\.com|edgedl\.me\.gvt1\.com|redirector\.gvt1\.com|android\.clients\.google\.com)$/i;
 function mergedPolicy(markers) {
   return {
@@ -16136,19 +16681,19 @@ function decide(url, markers) {
   return { allowed: r.allowed, reason: r.reason, internal };
 }
 function logBlocked(home, markers, entry) {
-  const targets = markers.length ? markers.map((m) => ({ file: path49.join(m.store, "state", "guard-blocked.jsonl"), run_id: m.run_id })) : [{ file: path49.join(home, "state", "guard-blocked.jsonl"), run_id: "none" }];
+  const targets = markers.length ? markers.map((m) => ({ file: path51.join(m.store, "state", "guard-blocked.jsonl"), run_id: m.run_id })) : [{ file: path51.join(home, "state", "guard-blocked.jsonl"), run_id: "none" }];
   for (const t of targets) {
     try {
-      ensureDir(path49.dirname(t.file));
-      fs28.appendFileSync(t.file, JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), run_id: t.run_id, ...entry }) + "\n", "utf8");
+      ensureDir(path51.dirname(t.file));
+      fs29.appendFileSync(t.file, JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), run_id: t.run_id, ...entry }) + "\n", "utf8");
     } catch {
     }
   }
 }
 function readBlocked(store, runId) {
-  const file3 = path49.join(store, "state", "guard-blocked.jsonl");
-  if (!fs28.existsSync(file3)) return [];
-  return fs28.readFileSync(file3, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((e) => e.run_id === runId);
+  const file3 = path51.join(store, "state", "guard-blocked.jsonl");
+  if (!fs29.existsSync(file3)) return [];
+  return fs29.readFileSync(file3, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((e) => e.run_id === runId);
 }
 function markerSource(home, ttlMs = 1e3) {
   let at = 0;
@@ -16164,8 +16709,8 @@ function markerSource(home, ttlMs = 1e3) {
 }
 
 // core/lib/ci/host.ts
-import fs29 from "node:fs";
-import path50 from "node:path";
+import fs30 from "node:fs";
+import path52 from "node:path";
 var str3 = (v, what) => {
   if (typeof v !== "string" || v.trim() === "") throw new Error(`the host's headless block needs ${what} (a non-empty string)`);
   return v;
@@ -16195,13 +16740,13 @@ function parseHeadless(json) {
 }
 function findHostSpec(hostId, explicit, env = process.env) {
   const given = explicit ?? env["QAMIND_HOST_SPEC"];
-  if (given) return fs29.existsSync(given) ? path50.resolve(given) : void 0;
+  if (given) return fs30.existsSync(given) ? path52.resolve(given) : void 0;
   try {
-    let dir = path50.resolve(corePath());
+    let dir = path52.resolve(corePath());
     for (let i = 0; i < 6; i++) {
-      const f = path50.join(dir, "hosts", hostId, "host.json");
-      if (fs29.existsSync(f)) return f;
-      dir = path50.dirname(dir);
+      const f = path52.join(dir, "hosts", hostId, "host.json");
+      if (fs30.existsSync(f)) return f;
+      dir = path52.dirname(dir);
     }
   } catch {
   }
@@ -16211,9 +16756,9 @@ function loadHeadless(hostId, explicit, env = process.env) {
   const file3 = findHostSpec(hostId, explicit, env);
   if (!file3) throw new Error(`cannot find hosts/${hostId}/host.json (QAMind has to run from a checkout of its repository, as in a CI job that clones it; or pass --host-spec FILE, or --agent-command)`);
   try {
-    return parseHeadless(JSON.parse(fs29.readFileSync(file3, "utf8")));
+    return parseHeadless(JSON.parse(fs30.readFileSync(file3, "utf8")));
   } catch (e) {
-    throw new Error(`${path50.basename(path50.dirname(file3))}/host.json: ${e.message}`);
+    throw new Error(`${path52.basename(path52.dirname(file3))}/host.json: ${e.message}`);
   }
 }
 var fill2 = (s, v) => s.replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m);
@@ -16227,9 +16772,9 @@ var hasAuth = (spec, env) => spec.auth_env_any.some((k) => !!env[k]);
 
 // core/lib/ci/run.ts
 import { execFileSync as execFileSync4, spawn as spawn2 } from "node:child_process";
-import fs31 from "node:fs";
-import os3 from "node:os";
-import path51 from "node:path";
+import fs32 from "node:fs";
+import os4 from "node:os";
+import path53 from "node:path";
 
 // core/lib/ci/comment.ts
 var COMMENT_MARKER = "<!-- qamind-ci:v1 -->";
@@ -16423,7 +16968,7 @@ function evaluateGate(data, settings) {
 }
 
 // core/lib/ci/provider.ts
-import fs30 from "node:fs";
+import fs31 from "node:fs";
 var int = (v) => v && /^\d+$/.test(v) ? Number(v) : void 0;
 function detectCi(env = process.env) {
   const forced = env["QAMIND_CI_PROVIDER"];
@@ -16433,9 +16978,9 @@ function detectCi(env = process.env) {
     let base = env["GITHUB_BASE_REF"] || void 0;
     let head = env["GITHUB_HEAD_REF"] || void 0;
     const eventFile = env["GITHUB_EVENT_PATH"];
-    if (eventFile && fs30.existsSync(eventFile)) {
+    if (eventFile && fs31.existsSync(eventFile)) {
       try {
-        const ev = JSON.parse(fs30.readFileSync(eventFile, "utf8"));
+        const ev = JSON.parse(fs31.readFileSync(eventFile, "utf8"));
         pr = ev.pull_request?.number ?? ev.number;
         sha2 = ev.pull_request?.head?.sha ?? sha2;
         base = ev.pull_request?.base?.ref ?? base;
@@ -16491,7 +17036,7 @@ var git3 = (root, args, timeout = 3e4) => {
 };
 function pluginRoot() {
   const core = corePath();
-  for (const c of [path51.resolve(core, ".."), path51.resolve(core, "..", "plugins", "qamind")]) if (fs31.existsSync(path51.join(c, "dist", "qamind.mjs"))) return c;
+  for (const c of [path53.resolve(core, ".."), path53.resolve(core, "..", "plugins", "qamind")]) if (fs32.existsSync(path53.join(c, "dist", "qamind.mjs"))) return c;
   throw new Error("Cannot find the built QAMind runtime (dist/qamind.mjs) to give the host CLI. Run `node scripts/build.ts` first.");
 }
 function promptFor(invoke, mode, pr, base) {
@@ -16536,9 +17081,9 @@ function runAgent(command2, args, opts2) {
     }, opts2.timeoutMs);
     const done = (code) => {
       clearTimeout(timer);
-      const clean = opts2.redact(out);
+      const clean2 = opts2.redact(out);
       try {
-        fs31.writeFileSync(opts2.logFile, clean, "utf8");
+        fs32.writeFileSync(opts2.logFile, clean2, "utf8");
       } catch {
       }
       let cost;
@@ -16552,7 +17097,7 @@ function runAgent(command2, args, opts2) {
         } catch {
         }
       }
-      resolve({ exit_code: code, timed_out: timedOut, minutes: Math.round((Date.now() - started) / 6e4 * 10) / 10, ...cost !== void 0 ? { cost_usd: cost } : {}, tail: clean.slice(-600) });
+      resolve({ exit_code: code, timed_out: timedOut, minutes: Math.round((Date.now() - started) / 6e4 * 10) / 10, ...cost !== void 0 ? { cost_usd: cost } : {}, tail: clean2.slice(-600) });
     };
     child.on("error", (e) => {
       out += `
@@ -16568,25 +17113,25 @@ var tracked = (root) => ({
   changed: porcelainFiles(root, { untracked: false }).sort()
 });
 function findRun(home, sinceIso) {
-  const projects = path51.join(home, "projects");
-  if (!fs31.existsSync(projects)) return void 0;
+  const projects = path53.join(home, "projects");
+  if (!fs32.existsSync(projects)) return void 0;
   const found = [];
-  for (const p of fs31.readdirSync(projects)) {
-    const runs = path51.join(projects, p, "memory", "runs");
-    if (!fs31.existsSync(runs)) continue;
-    for (const f of fs31.readdirSync(runs)) {
-      const s = readJson(path51.join(runs, f));
+  for (const p of fs32.readdirSync(projects)) {
+    const runs = path53.join(projects, p, "memory", "runs");
+    if (!fs32.existsSync(runs)) continue;
+    for (const f of fs32.readdirSync(runs)) {
+      const s = readJson(path53.join(runs, f));
       if (s && s.trigger === "ci" && s.started >= sinceIso) found.push(s);
     }
   }
   const latest = found.sort((a, b) => b.started.localeCompare(a.started))[0];
-  return latest ? { summary: latest, dir: path51.dirname(latest.report) } : void 0;
+  return latest ? { summary: latest, dir: path53.dirname(latest.report) } : void 0;
 }
 var unfinishedRun = (home) => {
-  const projects = path51.join(home, "projects");
-  if (!fs31.existsSync(projects)) return void 0;
-  for (const p of fs31.readdirSync(projects)) {
-    const m = readJson(path51.join(projects, p, "state", "run-marker.json"));
+  const projects = path53.join(home, "projects");
+  if (!fs32.existsSync(projects)) return void 0;
+  for (const p of fs32.readdirSync(projects)) {
+    const m = readJson(path53.join(projects, p, "state", "run-marker.json"));
     if (m?.run_id) return m.run_id;
   }
   return void 0;
@@ -16596,10 +17141,10 @@ async function runCi(opts2) {
   const env = opts2.env ?? process.env;
   const now = opts2.now ?? (() => /* @__PURE__ */ new Date());
   const log = opts2.log ?? (() => void 0);
-  const root = fs31.realpathSync(path51.resolve(opts2.projectDir));
+  const root = fs32.realpathSync(path53.resolve(opts2.projectDir));
   const started = now();
   const ctx = detectCi(env);
-  const outDir = path51.resolve(opts2.outDir ?? path51.join(root, "qamind-reports"));
+  const outDir = path53.resolve(opts2.outDir ?? path53.join(root, "qamind-reports"));
   ensureDir(outDir);
   const warnings = [];
   const check = checkConfigFile(root, env);
@@ -16608,16 +17153,16 @@ async function runCi(opts2) {
   let ticketRef;
   let ticketProblem;
   if (opts2.ticket) {
-    const abs = path51.resolve(root, opts2.ticket);
-    const rel = path51.relative(root, abs).split(path51.sep).join("/");
-    if (rel.startsWith("..") || path51.isAbsolute(rel)) ticketProblem = `the ticket file ${opts2.ticket} is outside the project`;
+    const abs = path53.resolve(root, opts2.ticket);
+    const rel = path53.relative(root, abs).split(path53.sep).join("/");
+    if (rel.startsWith("..") || path53.isAbsolute(rel)) ticketProblem = `the ticket file ${opts2.ticket} is outside the project`;
     else if (/[\s"'`$;&|<>\\]/.test(rel)) ticketProblem = `the ticket file's path (${rel}) has a space or a special character: use a plain path`;
-    else if (!fs31.existsSync(abs) || !fs31.statSync(abs).isFile()) ticketProblem = `there is no ticket file ${rel} in the project`;
-    else if (fs31.statSync(abs).size > TICKET_FILE_MAX) ticketProblem = `the ticket file ${rel} is larger than ${TICKET_FILE_MAX / 1e3} KB: give a shorter story`;
+    else if (!fs32.existsSync(abs) || !fs32.statSync(abs).isFile()) ticketProblem = `there is no ticket file ${rel} in the project`;
+    else if (fs32.statSync(abs).size > TICKET_FILE_MAX) ticketProblem = `the ticket file ${rel} is larger than ${TICKET_FILE_MAX / 1e3} KB: give a shorter story`;
     else ticketRef = rel;
   }
   const mode = opts2.ticket ? "ticket" : opts2.mode ?? settings.mode;
-  const home = opts2.home ?? (opts2.userStore ? qamindHome(env) : settings.cache_memory ? path51.join(root, ".qamind-ci", "home") : fs31.mkdtempSync(path51.join(os3.tmpdir(), "qamind-ci-")));
+  const home = opts2.home ?? (opts2.userStore ? qamindHome(env) : settings.cache_memory ? path53.join(root, ".qamind-ci", "home") : fs32.mkdtempSync(path53.join(os4.tmpdir(), "qamind-ci-")));
   ensureDir(home);
   const poster = opts2.dryRun ? { canComment: false, canStatus: false, why: ["a dry run posts nothing"] } : apiFor(ctx, settings, opts2.fetchImpl);
   const post = async (state, description) => {
@@ -16632,16 +17177,16 @@ async function runCi(opts2) {
   };
   const conclude = async (outcome, p) => {
     const privacy = p.runDir ? contextForRun(p.runDir, env) : contextFrom(cfg, []);
-    const adminFile = p.runDir ? path51.join(p.runDir, "ADMIN-REPORT.md") : void 0;
-    const adminReport = adminFile && fs31.existsSync(adminFile) ? fs31.readFileSync(adminFile, "utf8") : void 0;
+    const adminFile = p.runDir ? path53.join(p.runDir, "ADMIN-REPORT.md") : void 0;
+    const adminReport = adminFile && fs32.existsSync(adminFile) ? fs32.readFileSync(adminFile, "utf8") : void 0;
     const minutes = Math.round((now().getTime() - started.getTime()) / 6e4 * 10) / 10;
     const body = renderComment({ outcome, ...p.gate ? { gate: p.gate } : {}, ...adminReport ? { adminReport } : {}, ...p.bank ? { bank: p.bank } : {}, mode, ...ctx.sha ? { sha: ctx.sha } : {}, ...ctx.run_url ? { runUrl: ctx.run_url } : {}, ...p.error ? { error: p.error } : {}, minutes, now: now() }, privacy);
-    fs31.writeFileSync(path51.join(outDir, "PR-COMMENT.md"), body, "utf8");
+    fs32.writeFileSync(path53.join(outDir, "PR-COMMENT.md"), body, "utf8");
     if (p.runDir && p.runId) {
       try {
-        fs31.cpSync(p.runDir, path51.join(outDir, p.runId), { recursive: true });
+        fs32.cpSync(p.runDir, path53.join(outDir, p.runId), { recursive: true });
       } catch (e) {
-        warnings.push(`The reports could not be copied to ${path51.basename(outDir)}: ${e.message}`);
+        warnings.push(`The reports could not be copied to ${path53.basename(outDir)}: ${e.message}`);
       }
     }
     let comment2;
@@ -16673,17 +17218,17 @@ async function runCi(opts2) {
       ...p.agent ? { agent: { exit_code: p.agent.exit_code, timed_out: p.agent.timed_out, ...p.agent.cost_usd !== void 0 ? { cost_usd: p.agent.cost_usd } : {}, minutes: p.agent.minutes } } : {},
       store: home
     };
-    writeJson(path51.join(outDir, "ci-result.json"), result);
+    writeJson(path53.join(outDir, "ci-result.json"), result);
     if (env["GITHUB_STEP_SUMMARY"]) {
       try {
-        fs31.appendFileSync(env["GITHUB_STEP_SUMMARY"], `${body.replace(/^<!--.*-->\n/, "")}
+        fs32.appendFileSync(env["GITHUB_STEP_SUMMARY"], `${body.replace(/^<!--.*-->\n/, "")}
 `);
       } catch {
       }
     }
     if (env["GITHUB_OUTPUT"]) {
       try {
-        fs31.appendFileSync(env["GITHUB_OUTPUT"], `outcome=${outcome}
+        fs32.appendFileSync(env["GITHUB_OUTPUT"], `outcome=${outcome}
 exit_code=${result.exit_code}
 ${p.runId ? `run_id=${p.runId}
 ` : ""}`);
@@ -16698,8 +17243,8 @@ ${p.runId ? `run_id=${p.runId}
   }
   if (ticketProblem) return conclude("error", { error: ticketProblem });
   if (opts2.fromRun) {
-    const dir = path51.join(root, ".qa", "reports", opts2.fromRun);
-    if (!fs31.existsSync(path51.join(dir, "data", "meta.json"))) return conclude("error", { error: `there is no run ${opts2.fromRun} in ${path51.join(root, ".qa", "reports")}` });
+    const dir = path53.join(root, ".qa", "reports", opts2.fromRun);
+    if (!fs32.existsSync(path53.join(dir, "data", "meta.json"))) return conclude("error", { error: `there is no run ${opts2.fromRun} in ${path53.join(root, ".qa", "reports")}` });
     const data2 = readRunData(dir);
     const gate2 = evaluateGate(data2, settings);
     return conclude(gate2.outcome, { runDir: dir, runId: opts2.fromRun, gate: gate2, ...data2.bank ? { bank: data2.bank } : {} });
@@ -16744,7 +17289,7 @@ ${p.runId ? `run_id=${p.runId}
   const agent = await runAgent(
     spec ? agentCommandOf(spec, env) : opts2.agentCommand,
     spec ? agentArgs(spec, { prompt, plugin: pluginRoot(), maxCost, mode, ...opts2.model ? { model: opts2.model } : {} }) : [],
-    { shell: !spec, cwd: root, env: childEnv, timeoutMs: opts2.timeoutMs ?? timeoutMinutes * 6e4, logFile: path51.join(outDir, "agent.log"), redact, ...spec ? { costField: spec.cost_field } : {} }
+    { shell: !spec, cwd: root, env: childEnv, timeoutMs: opts2.timeoutMs ?? timeoutMinutes * 6e4, logFile: path53.join(outDir, "agent.log"), redact, ...spec ? { costField: spec.cost_field } : {} }
   );
   log(`QAMind CI: the agent finished after ${agent.minutes} minutes (exit code ${agent.exit_code ?? "none"}${agent.timed_out ? ", stopped at the time limit" : ""}).`);
   const after = tracked(root);
@@ -16767,14 +17312,14 @@ ${p.runId ? `run_id=${p.runId}
 
 // core/lib/ci/templates.ts
 import { execFileSync as execFileSync5 } from "node:child_process";
-import fs32 from "node:fs";
-import path52 from "node:path";
+import fs33 from "node:fs";
+import path54 from "node:path";
 var PLACEHOLDER_REPO = "https://github.com/<owner>/qamind.git";
 function qamindOrigin() {
   try {
-    let dir = path52.resolve(corePath());
-    for (let i = 0; i < 6 && !fs32.existsSync(path52.join(dir, ".git")); i++) dir = path52.dirname(dir);
-    if (!fs32.existsSync(path52.join(dir, ".git"))) return {};
+    let dir = path54.resolve(corePath());
+    for (let i = 0; i < 6 && !fs33.existsSync(path54.join(dir, ".git")); i++) dir = path54.dirname(dir);
+    if (!fs33.existsSync(path54.join(dir, ".git"))) return {};
     const run = (a) => {
       try {
         return execFileSync5("git", ["-C", dir, ...a], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15e3 }).trim() || void 0;
@@ -16961,21 +17506,21 @@ function windowsTask(i) {
 }
 
 // core/lib/bank/service.ts
-import fs34 from "node:fs";
-import path56 from "node:path";
+import fs35 from "node:fs";
+import path58 from "node:path";
 
 // core/lib/bank/export.ts
-import fs33 from "node:fs";
-import path53 from "node:path";
+import fs34 from "node:fs";
+import path55 from "node:path";
 var q2 = (v) => JSON.stringify(v);
 var slug4 = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "test";
 var comment = (s) => s.replace(/\*\//g, "* /").replace(/\r?\n/g, " ");
 function exportDir(projectRoot, given) {
   if (given) return given.replace(/^\.?\/+/, "").replace(/\/+$/, "");
   for (const f of ["playwright.config.ts", "playwright.config.js", "playwright.config.mjs", "playwright.config.cjs"]) {
-    const file3 = path53.join(projectRoot, f);
-    if (!fs33.existsSync(file3)) continue;
-    const m = /testDir\s*:\s*['"`]([^'"`]+)['"`]/.exec(fs33.readFileSync(file3, "utf8"));
+    const file3 = path55.join(projectRoot, f);
+    if (!fs34.existsSync(file3)) continue;
+    const m = /testDir\s*:\s*['"`]([^'"`]+)['"`]/.exec(fs34.readFileSync(file3, "utf8"));
     if (m?.[1]) return `${m[1].replace(/^\.\//, "").replace(/\/+$/, "")}/qamind`;
   }
   return "tests/qamind";
@@ -17151,10 +17696,10 @@ function generateExports(tests, config, dir) {
 }
 
 // core/lib/bank/runner.ts
-import path55 from "node:path";
+import path57 from "node:path";
 
 // core/lib/bank/uirunner.ts
-import path54 from "node:path";
+import path56 from "node:path";
 var clip5 = (s, n = 220) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
 async function createUiRunner(opts2) {
   const pw = findPlaywright();
@@ -17192,9 +17737,9 @@ async function createUiRunner(opts2) {
         let shot;
         try {
           ensureDir(opts2.evidenceDir);
-          const file3 = path54.join(opts2.evidenceDir, `${test.id}.png`);
+          const file3 = path56.join(opts2.evidenceDir, `${test.id}.png`);
           await page.screenshot({ path: file3, timeout: 4e3 });
-          shot = path54.join("evidence", "bank", `${test.id}.png`);
+          shot = path56.join("evidence", "bank", `${test.id}.png`);
         } catch {
         }
         const raw = opts2.redact(e.message).split("\n")[0] ?? "";
@@ -17247,7 +17792,7 @@ async function runBank(ctx, opts2 = {}) {
   let ui;
   let budgetReached = false;
   let apiDown;
-  const evidenceDir = path55.join(ctx.outDir, "evidence", "bank");
+  const evidenceDir = path57.join(ctx.outDir, "evidence", "bank");
   const row = (t, r) => {
     results.push({ test: t.id, title: t.title, area: t.area, kind: t.kind, ...t.protects_bug ? { bug: t.protects_bug } : {}, ms: 0, attempts: 0, ...r });
   };
@@ -17343,7 +17888,7 @@ async function runBank(ctx, opts2 = {}) {
     covered_areas: [...new Set(results.filter((r) => (r.status === "passed" || r.status === "flaky-passed") && !failedAreas.has(r.area)).map((r) => r.area))].sort(),
     ...budgetReached ? { budget_reached: true } : {}
   };
-  ensureDir(path55.join(ctx.outDir, "data"));
+  ensureDir(path57.join(ctx.outDir, "data"));
   writeJson(bankResultsFile(ctx.outDir), JSON.parse(maskText(JSON.stringify(out), ctx.privacy).text));
   return out;
 }
@@ -17353,10 +17898,10 @@ var secretNamesOf = (config) => config.roles.flatMap((r) => [r.username_env, r.p
 function saveBankTest(scope, input, now = /* @__PURE__ */ new Date()) {
   const ctx = scope.ctx;
   if (input.from_issue) {
-    const findings = readJson(path56.join(scope.runDir, "data", "findings.json")) ?? [];
+    const findings = readJson(path58.join(scope.runDir, "data", "findings.json")) ?? [];
     if (!findings.some((f) => f.id === input.from_issue)) throw new Error(`from_issue ${input.from_issue} is not a finding of this run (findings.json has ${findings.map((f) => f.id).filter(Boolean).join(", ") || "none yet"}). Write the findings first, then save the tests that protect them.`);
   }
-  const ticket = readJson(path56.join(scope.runDir, "data", "ticket.json"));
+  const ticket = readJson(path58.join(scope.runDir, "data", "ticket.json"));
   if (input.criteria?.length) {
     const ids = new Set((ticket?.criteria ?? []).map((c) => c.id));
     if (!ticket?.ref) throw new Error("criteria can only be named in a ticket run (data/ticket.json).");
@@ -17374,15 +17919,15 @@ function saveBankTest(scope, input, now = /* @__PURE__ */ new Date()) {
   );
 }
 function saveBankTestFromFile(scope, file3, opts2 = {}) {
-  const base = path56.join(scope.runDir, "data", "bank");
-  const abs = path56.isAbsolute(file3) ? path56.resolve(file3) : path56.resolve(fs34.existsSync(path56.resolve(file3)) && opts2.anywhere ? path56.resolve(file3) : path56.join(base, file3));
-  const inside2 = abs === scope.runDir || abs.startsWith(scope.runDir + path56.sep);
-  if (!opts2.anywhere && !inside2) throw new Error(`The test file has to be inside the run folder (write it to ${path56.join(scope.runDir, "data", "bank", "<name>.json")}).`);
-  if (!fs34.existsSync(abs)) throw new Error(`No test file at ${abs}. Write the test as JSON there first.`);
-  if (fs34.statSync(abs).size > 12e4) throw new Error("The test file is larger than 120 KB: a test checks one thing, split it.");
+  const base = path58.join(scope.runDir, "data", "bank");
+  const abs = path58.isAbsolute(file3) ? path58.resolve(file3) : path58.resolve(fs35.existsSync(path58.resolve(file3)) && opts2.anywhere ? path58.resolve(file3) : path58.join(base, file3));
+  const inside2 = abs === scope.runDir || abs.startsWith(scope.runDir + path58.sep);
+  if (!opts2.anywhere && !inside2) throw new Error(`The test file has to be inside the run folder (write it to ${path58.join(scope.runDir, "data", "bank", "<name>.json")}).`);
+  if (!fs35.existsSync(abs)) throw new Error(`No test file at ${abs}. Write the test as JSON there first.`);
+  if (fs35.statSync(abs).size > 12e4) throw new Error("The test file is larger than 120 KB: a test checks one thing, split it.");
   let input;
   try {
-    input = JSON.parse(fs34.readFileSync(abs, "utf8"));
+    input = JSON.parse(fs35.readFileSync(abs, "utf8"));
   } catch (e) {
     throw new Error(`The test file is not valid JSON: ${e.message}`);
   }
@@ -17408,7 +17953,7 @@ function bankContextForRun(scope) {
   };
 }
 function bankContextStandalone(home, projectDir, now, env = process.env) {
-  const root = path56.resolve(projectDir);
+  const root = path58.resolve(projectDir);
   const info = resolveProject(root);
   const store = storeDir(home, info.id);
   ensureMigrated(store);
@@ -17424,8 +17969,8 @@ function bankContextStandalone(home, projectDir, now, env = process.env) {
   }
   if (roles.length === 0) throw new Error("No test account has both its username and password set in .env.qa. Nothing was tested.");
   const id = `bank-${utcStamp(now)}`;
-  const outDir = path56.join(root, ".qa", "bank-runs", id);
-  ensureDir(path56.join(outDir, "data"));
+  const outDir = path58.join(root, ".qa", "bank-runs", id);
+  ensureDir(path58.join(outDir, "data"));
   return {
     store,
     outDir,
@@ -17474,247 +18019,22 @@ function exportTests(home, projectDir, input) {
   if (missing.length) throw new Error(`No such test: ${missing.join(", ")}.`);
   if (pick2.length === 0) throw new Error("There are no tests to export.");
   const dir = exportDir(scope.project.root, input.dir);
-  if (path56.isAbsolute(dir) || dir.split("/").includes("..")) throw new Error("--dir must be a folder inside the project.");
+  if (path58.isAbsolute(dir) || dir.split("/").includes("..")) throw new Error("--dir must be a folder inside the project.");
   const generated = generateExports(pick2, config, dir);
-  const files = generated.map((f) => ({ path: f.path, tests: f.tests, exists: fs34.existsSync(path56.join(scope.project.root, f.path)) }));
+  const files = generated.map((f) => ({ path: f.path, tests: f.tests, exists: fs35.existsSync(path58.join(scope.project.root, f.path)) }));
   const skipped = [];
   if (input.confirmed) {
     for (const f of generated) {
-      const abs = path56.join(scope.project.root, f.path);
-      if (fs34.existsSync(abs)) {
+      const abs = path58.join(scope.project.root, f.path);
+      if (fs35.existsSync(abs)) {
         skipped.push(f.path);
         continue;
       }
-      ensureDir(path56.dirname(abs));
-      fs34.writeFileSync(abs, f.content, "utf8");
+      ensureDir(path58.dirname(abs));
+      fs35.writeFileSync(abs, f.content, "utf8");
     }
   }
   return { dir, files, written: input.confirmed, skipped_existing: skipped, generated };
-}
-
-// core/lib/memory/feedback.ts
-import fs35 from "node:fs";
-import path57 from "node:path";
-var VERDICTS = ["not-a-bug", "wrong-severity", "duplicate-of", "confirmed", "fixed", "wont-fix", "good-catch"];
-var one7 = (s) => s.replace(/\s+/g, " ").trim();
-function loadFeedback(store) {
-  const read = readJsonl(memoryPaths(store).feedback);
-  const records = read.records.filter((r) => !!r.id && !!r.bug && VERDICTS.includes(r.verdict) && !!r.by && !!r.at).map((r) => ({ ...r, effects: Array.isArray(r.effects) ? r.effects : [] }));
-  const dropped = read.records.length - records.length;
-  return { records, warnings: [...read.warnings, ...dropped ? [`${dropped} feedback record(s) without a bug, verdict, name or date were ignored.`] : []], unparsed: read.unparsed };
-}
-function parseVerdict(text3) {
-  const t = one7(text3).replace(/[“”]/g, '"').replace(/’/g, "'");
-  const patterns = [
-    [/^not[\s-]+a[\s-]+bug\b[\s:,.-]*/i, "not-a-bug"],
-    [/^wrong[\s-]+severity\b[\s:,=-]*/i, "wrong-severity"],
-    [/^duplicate(?:[\s-]+of)?\b[\s:,=-]*/i, "duplicate-of"],
-    [/^confirmed\b[\s:,.-]*/i, "confirmed"],
-    [/^(?:won'?t|will\s+not)[\s-]+fix\b[\s:,.-]*/i, "wont-fix"],
-    [/^fixed\b[\s:,.-]*/i, "fixed"],
-    [/^good[\s-]+catch\b[\s:,.-]*/i, "good-catch"]
-  ];
-  for (const [re, verdict] of patterns) {
-    const m = re.exec(t);
-    if (!m) continue;
-    const rest = t.slice(m[0].length).trim();
-    if (verdict === "wrong-severity") {
-      const lvl = /^(critical|important|minor)\b[\s:,.-]*/i.exec(rest);
-      return lvl ? { verdict, value: lvl[1].toLowerCase(), ...rest.slice(lvl[0].length).trim() ? { note: rest.slice(lvl[0].length).trim() } : {} } : { verdict };
-    }
-    if (verdict === "duplicate-of") {
-      const id = /^((?:ISSUE|BUG)-\d+)\b[\s:,.-]*/i.exec(rest);
-      return id ? { verdict, value: id[1].toUpperCase(), ...rest.slice(id[0].length).trim() ? { note: rest.slice(id[0].length).trim() } : {} } : { verdict };
-    }
-    return { verdict, ...rest ? { note: rest } : {} };
-  }
-  return void 0;
-}
-function summaries(store) {
-  const dir = memoryPaths(store).runs;
-  if (!fs35.existsSync(dir)) return [];
-  return fs35.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().map((f) => readJson(path57.join(dir, f))).filter((s) => !!s);
-}
-function resolveBug(store, target, run) {
-  const t = target.trim().toUpperCase();
-  const loaded = loadBugs(store);
-  if (/^BUG-\d+$/.test(t)) {
-    const bug = loaded.bugs.find((b) => b.id === t);
-    if (!bug) throw new Error(`No bug ${t} in this project's memory. Use \`qamind bugs list\` to see them.`);
-    return { bug, bugs: loaded.bugs, unparsed: loaded.unparsed };
-  }
-  if (/^ISSUE-\d+$/.test(t)) {
-    const all = summaries(store);
-    const pool = run ? all.filter((s) => s.run_id === run) : all;
-    if (run && pool.length === 0) throw new Error(`No finished run ${run} in this project's history.`);
-    for (const s of pool) {
-      const f = s.findings?.find((x) => x.id === t);
-      if (!f) continue;
-      if (!f.bug) throw new Error(`${t} in ${s.run_id} has no bug id (that run was made before bugs were tracked). Give the bug itself (BUG-nnn) or tell the agent in a new run.`);
-      const bug = loaded.bugs.find((b) => b.id === f.bug);
-      if (!bug) throw new Error(`${t} in ${s.run_id} points at ${f.bug}, which is not in memory.`);
-      return { bug, issue: t, run: s.run_id, bugs: loaded.bugs, unparsed: loaded.unparsed };
-    }
-    throw new Error(`No finding ${t}${run ? ` in ${run}` : " in any finished run of this project"}. Finding numbers belong to one run: say which with --run, or use the bug id (BUG-nnn).`);
-  }
-  throw new Error(`"${target}" is not a finding or bug id: use ISSUE-003 (a finding in a report) or BUG-002.`);
-}
-var event = (e, now) => ({ at: now.toISOString(), ...e });
-var dateOf = (now) => now.toISOString().slice(0, 10);
-function addFeedback(store, input, now = /* @__PURE__ */ new Date()) {
-  const by = one7(input.by);
-  if (by.length < 2 || by.length > 80) throw new Error("Say who is giving the feedback (--by NAME): a name of 2 to 80 characters.");
-  if (!VERDICTS.includes(input.verdict)) throw new Error(`Unknown verdict "${input.verdict}". Use one of: ${VERDICTS.join(", ")}.`);
-  const note = input.note ? one7(input.note).slice(0, 400) : void 0;
-  assertSafeText("this feedback", `${by} ${note ?? ""}`);
-  const target = resolveBug(store, input.target, input.run);
-  const bug = target.bug;
-  const bugs = target.bugs;
-  let level;
-  let parent;
-  if (input.verdict === "wrong-severity") {
-    if (!SEVERITIES.includes(input.value)) throw new Error(`wrong-severity needs the right level: ${SEVERITIES.join(", ")}.`);
-    level = input.value;
-  }
-  if (input.verdict === "duplicate-of") {
-    if (!input.value) throw new Error("duplicate-of needs the finding or bug it duplicates (ISSUE-002 or BUG-004).");
-    parent = resolveBug(store, input.value, input.run).bug;
-    if (parent.id === bug.id) throw new Error("A bug cannot be a duplicate of itself.");
-  }
-  if (input.verdict === "not-a-bug" && (note ?? "").length < 8) throw new Error("not-a-bug needs a reason (--note, at least a short sentence): it becomes a known false alarm, and the next run needs to know why it is not a bug.");
-  const feedback = loadFeedback(store);
-  const id = nextId("F", feedback.records.map((r) => r.id));
-  const effects = [];
-  const warnings = [...feedback.warnings];
-  const idForAlarm = { id, by, at: now.toISOString() };
-  const label = `${bug.id} "${bug.title}"`;
-  switch (input.verdict) {
-    case "not-a-bug": {
-      const r = addFalseAlarm(store, { area: bug.area, symptom: `${bug.title}. ${bug.summary}`.slice(0, 300), reason: note, source: "owner", ...bug.last_seen.run ? { run: bug.last_seen.run } : {}, feedback: idForAlarm }, { now });
-      bug.status = "not-a-bug";
-      bug.not_a_bug = { by, at: now.toISOString(), ...note ? { note } : {} };
-      bug.history = [...bug.history, event({ event: "not-a-bug", by, ...note ? { note } : {} }, now)].slice(-40);
-      effects.push(`${label} is marked as not a bug. ${r.action === "created" ? `It is now a known false alarm (${r.alarm.id}), so a later run will not report it again.` : `It matches the known false alarm ${r.alarm.id}, which already stops it being reported.`}`);
-      break;
-    }
-    case "wrong-severity": {
-      const was = bug.severity_override?.level ?? bug.severity;
-      bug.severity_override = { level, by, at: now.toISOString(), ...note ? { note } : {} };
-      bug.history = [...bug.history, event({ event: "severity", by, note: `${was} to ${level}${note ? `: ${note}` : ""}` }, now)].slice(-40);
-      effects.push(`${label} will be shown as ${level} (it was ${was}) in the next reports, with the name of the person who set it.`);
-      try {
-        const l = learn(store, { type: "behavior", area: bug.area, text: `In ${bug.area}, a problem like "${bug.title}" counts as ${level}, not ${was}. Severity set by ${by} on ${dateOf(now)}.`, run: bug.last_seen.run, confidence: 6 }, { now });
-        effects.push(`Saved as a learning (${l.learning.id}) so similar problems in ${bug.area} are judged the same way.`);
-      } catch (e) {
-        warnings.push(`The severity was recorded, but it could not be saved as a learning: ${e.message}`);
-      }
-      break;
-    }
-    case "duplicate-of": {
-      bug.status = "duplicate";
-      bug.duplicate_of = parent.id;
-      bug.history = [...bug.history, event({ event: "duplicate", by, note: `of ${parent.id}` }, now)].slice(-40);
-      effects.push(`${label} is a duplicate of ${parent.id}: findings that match it are counted under ${parent.id} from now on.`);
-      break;
-    }
-    case "confirmed":
-    case "good-catch": {
-      bug.confirmed_by = [...bug.confirmed_by ?? [], { by, at: now.toISOString() }].slice(-10);
-      bug.history = [...bug.history, event({ event: "confirmed", by, ...note ? { note } : {} }, now)].slice(-40);
-      let raised = 0;
-      for (const lid of bug.memory_applied ?? []) {
-        try {
-          adjustLearning(store, lid, "confirm", bug.last_seen.run, now);
-          raised++;
-        } catch {
-        }
-      }
-      recordFeedbackRisk(store, bug.last_seen.run, now, bug.area, bug.severity_override?.level ?? bug.severity, `${input.verdict} from ${by}`);
-      effects.push(`${label} is confirmed. ${bug.area} counts as a riskier area now${raised ? `, and ${raised} learning(s) that shaped it are more trusted` : ""}.`);
-      break;
-    }
-    case "fixed": {
-      if (bug.status === "fixed") warnings.push(`${bug.id} was already recorded as fixed.`);
-      bug.previously_fixed = bug.fixed;
-      bug.status = "fixed";
-      bug.fixed = { at: now.toISOString(), how: `${by} reports it fixed${note ? `: ${note}` : ""}`, by };
-      bug.history = [...bug.history, event({ event: "fixed", by, ...note ? { note } : {} }, now)].slice(-40);
-      effects.push(`${label} is recorded as fixed. If a later run finds it again, it will be shown as having come back.`);
-      break;
-    }
-    case "wont-fix": {
-      bug.status = "accepted";
-      bug.accepted = { by, at: now.toISOString(), ...note ? { note } : {} };
-      bug.history = [...bug.history, event({ event: "accepted", by, ...note ? { note } : {} }, now)].slice(-40);
-      effects.push(`${label} is accepted: later reports list it under "Known, accepted" and do not count it as a problem.`);
-      break;
-    }
-  }
-  const record2 = {
-    id,
-    bug: bug.id,
-    ...target.issue ? { issue: target.issue } : {},
-    ...target.run ? { run: target.run } : {},
-    verdict: input.verdict,
-    ...level ? { level } : {},
-    ...parent ? { duplicate_of: parent.id } : {},
-    ...note ? { note } : {},
-    by,
-    at: now.toISOString(),
-    via: input.via ?? "command",
-    effects
-  };
-  saveBugs(store, bugs, target.unparsed);
-  writeJsonl(memoryPaths(store).feedback, "feedback", [...feedback.records, record2], feedback.unparsed);
-  return { record: record2, effects, warnings };
-}
-function importAdminFeedback(store, runDir, by, now = /* @__PURE__ */ new Date()) {
-  const file3 = path57.join(runDir, "ADMIN-REPORT.md");
-  if (!fs35.existsSync(file3)) throw new Error(`No ADMIN-REPORT.md in ${runDir}.`);
-  const run = path57.basename(runDir);
-  const out = [];
-  const blocks = fs35.readFileSync(file3, "utf8").split(/^### /m).slice(1);
-  for (const block of blocks) {
-    const issue = /\[(ISSUE-\d+)\]\(/.exec(block)?.[1];
-    const line = /\*\*Your feedback \(optional\):\*\*\s*(.*)$/m.exec(block)?.[1] ?? "";
-    const text3 = one7(line.replace(/_{2,}/g, ""));
-    if (!issue || !text3) continue;
-    const parsed = parseVerdict(text3);
-    if (!parsed) {
-      out.push({ issue, text: text3, problem: "It does not start with a verdict. Start with one of: not a bug, confirmed, won't fix, fixed, good catch, wrong severity <level>, duplicate of ISSUE-nnn (then a note). Give it with `qamind feedback add` instead." });
-      continue;
-    }
-    const already = loadFeedback(store).records.some((r) => r.run === run && r.issue === issue && r.verdict === parsed.verdict && r.via === "admin-report" && (r.note ?? "") === (parsed.note ?? ""));
-    if (already) {
-      out.push({ issue, text: text3, problem: "Already imported." });
-      continue;
-    }
-    try {
-      const r = addFeedback(store, { target: issue, run, verdict: parsed.verdict, ...parsed.value ? { value: parsed.value } : {}, ...parsed.note ? { note: parsed.note } : {}, by, via: "admin-report" }, now);
-      out.push({ issue, text: text3, applied: r.record, effects: r.effects });
-    } catch (e) {
-      out.push({ issue, text: text3, problem: e.message });
-    }
-  }
-  return out;
-}
-var MIN_VERDICTS = 5;
-function feedbackStats(store) {
-  const { records } = loadFeedback(store);
-  const by = {};
-  for (const r of records) by[r.verdict] = (by[r.verdict] ?? 0) + 1;
-  const last = /* @__PURE__ */ new Map();
-  for (const r of records) last.set(r.bug, r.verdict);
-  const judged = [...last.values()].filter((v) => v !== "duplicate-of");
-  const real = judged.filter((v) => v !== "not-a-bug").length;
-  const enough = judged.length >= MIN_VERDICTS;
-  return {
-    total: records.length,
-    judged: judged.length,
-    by_verdict: by,
-    ...enough ? { precision: { real, judged: judged.length, rate: Math.round(real / judged.length * 100) / 100 } } : {},
-    note: records.length === 0 ? "Nobody has given feedback on a finding yet." : enough ? "Precision is the share of judged findings that were real (not marked not-a-bug)." : `Precision needs at least ${MIN_VERDICTS} judged findings; there ${judged.length === 1 ? "is" : "are"} ${judged.length}.`
-  };
 }
 
 // core/lib/health.ts
@@ -17804,7 +18124,7 @@ async function healthWithPrep(args) {
 }
 
 // core/lib/hooks.ts
-import path58 from "node:path";
+import path59 from "node:path";
 var GIT_MUTATION = /\bgit\s+(?:-[A-Za-z]\s+\S+\s+)*(add|commit|push|pull|fetch\s+--prune|merge|rebase|reset|checkout|switch|restore|stash|cherry-pick|revert|rm|mv|clean|tag|apply|am|worktree|branch\s+-[dDmM])\b/;
 var INSTALLS = /\b(npm|pnpm|yarn|bun)\s+(install|i|add|remove|uninstall|update|upgrade|ci)\b|\bpip3?\s+install\b|\bcomposer\s+(install|require|update|remove)\b|\bbundle\s+(install|update)\b|\bdotnet\s+add\b/;
 var IN_PLACE_EDIT = /\bsed\s+(?:-[A-Za-z]*i|--in-place)\b|\bperl\s+-[A-Za-z]*i\b/;
@@ -17813,23 +18133,23 @@ var AMP_REDIRECT = /&>{1,2}\s*([^\s&|;)]+)/g;
 var stripQuoted = (cmd) => cmd.replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, '""');
 var CREDENTIAL_FILE = /(^|[\\/\s"'=])\.env\.qa(?![.\w-])/;
 function inside(child, parent) {
-  const rel = path58.relative(parent, child);
-  return rel === "" || !rel.startsWith("..") && !path58.isAbsolute(rel);
+  const rel = path59.relative(parent, child);
+  return rel === "" || !rel.startsWith("..") && !path59.isAbsolute(rel);
 }
 function allowedWriteRoots(marker, home, tmpDirs) {
-  return [path58.join(marker.project_root, ".qa"), home, ...tmpDirs];
+  return [path59.join(marker.project_root, ".qa"), home, ...tmpDirs];
 }
-var OWNER_FILES = /* @__PURE__ */ new Set(["global-lessons.md", "pending-lessons.md", "rejected-lessons.jsonl", "lesson-use.json", "auto.json", "feedback.jsonl", "bugs.jsonl", "bank.jsonl", "perf.json"]);
-var OWNER_FILE_IN_COMMAND = /(?:global-lessons\.md|pending-lessons\.md|rejected-lessons\.jsonl|lesson-use\.json|auto\.json|feedback\.jsonl|bugs\.jsonl|bank\.jsonl|perf\.json|[\\/]baselines[\\/])/;
+var OWNER_FILES = /* @__PURE__ */ new Set(["global-lessons.md", "pending-lessons.md", "rejected-lessons.jsonl", "lesson-use.json", "auto.json", "feedback.jsonl", "bugs.jsonl", "bank.jsonl", "perf.json", "metrics.json"]);
+var OWNER_FILE_IN_COMMAND = /(?:global-lessons\.md|pending-lessons\.md|rejected-lessons\.jsonl|lesson-use\.json|auto\.json|feedback\.jsonl|bugs\.jsonl|bank\.jsonl|perf\.json|metrics\.json|[\\/]baselines[\\/])/;
 var WRITES_FILES = /(?:>|\btee\b|\bsed\s+-[A-Za-z]*i|\b(?:mv|cp|rm|truncate|dd|install|ln)\b|\b(?:node|python3?|perl|ruby)\b)/;
 var EXPORT_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+tests\s+export\b/;
-var OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|feedback\s+(?:add|import)|tests\s+(?:retire|quarantine|unquarantine)|baseline\s+accept|browsers\s+install|ci|schedule|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
+var OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|feedback\s+(?:add|import)|tests\s+(?:retire|quarantine|unquarantine)|baseline\s+accept|browsers\s+install|escaped\s+add|ci|schedule|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
 function ownerOnly(tool, ti, abs, home) {
-  const why = "Approving lessons, archiving memory, giving feedback on findings, retiring or quarantining a saved test, accepting baseline pictures, installing a browser, starting a CI run or writing CI files, and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-feedback, /qa-tests, /qa-auto).";
+  const why = "Approving lessons, archiving memory, giving feedback on findings, retiring or quarantining a saved test, accepting baseline pictures, installing a browser, recording a bug that escaped to production, starting a CI run or writing CI files, and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-feedback, /qa-tests, /qa-auto).";
   if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
     const target = String(ti["file_path"] ?? ti["notebook_path"] ?? "");
-    if (target && OWNER_FILES.has(path58.basename(target)) && inside(abs(target), home)) return `${why} (${path58.basename(target)} is the user's file.)`;
-    if (target && inside(abs(target), home) && abs(target).split(path58.sep).includes("baselines")) return `${why} (The saved baseline pictures are the user's: only \`qamind baseline accept\` changes them, and only the user runs it.)`;
+    if (target && OWNER_FILES.has(path59.basename(target)) && inside(abs(target), home)) return `${why} (${path59.basename(target)} is the user's file.)`;
+    if (target && inside(abs(target), home) && abs(target).split(path59.sep).includes("baselines")) return `${why} (The saved baseline pictures are the user's: only \`qamind baseline accept\` changes them, and only the user runs it.)`;
   }
   if (tool === "Bash") {
     const cmd = String(ti["command"] ?? "");
@@ -17845,10 +18165,10 @@ function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new D
   const tool = input.tool_name ?? "";
   const ti = input.tool_input ?? {};
   const cwd = input.cwd ?? marker.project_root;
-  const abs = (p) => path58.resolve(cwd, p);
+  const abs = (p) => path59.resolve(cwd, p);
   if (tool === "Read" || tool === "Grep" || tool === "Glob") {
     const target = String(ti["file_path"] ?? ti["path"] ?? ti["pattern"] ?? "");
-    if (CREDENTIAL_FILE.test(`/${target}`) || path58.basename(target) === ".env.qa") {
+    if (CREDENTIAL_FILE.test(`/${target}`) || path59.basename(target) === ".env.qa") {
       return { decision: "deny", reason: "QAMind never reads .env.qa: credentials must not enter the conversation. Use the secret names in the roles table (the browser tool and the qamind CLI substitute the values)." };
     }
   }
@@ -17865,8 +18185,8 @@ function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new D
   const roots = allowedWriteRoots(marker, home, tmpDirs);
   if (tool.startsWith("mcp__plugin_qamind_browser__")) {
     const name = ti["filename"];
-    if (typeof name === "string" && name.trim() !== "" && !roots.some((r) => inside(path58.resolve(marker.project_root, name), r))) {
-      return { decision: "deny", reason: `The browser tool would save "${name}" in the project folder. Save evidence inside the run folder with an absolute path, for example ${path58.join(marker.run_dir, "screenshots", "<slug>.png")}, so the project stays untouched.` };
+    if (typeof name === "string" && name.trim() !== "" && !roots.some((r) => inside(path59.resolve(marker.project_root, name), r))) {
+      return { decision: "deny", reason: `The browser tool would save "${name}" in the project folder. Save evidence inside the run folder with an absolute path, for example ${path59.join(marker.run_dir, "screenshots", "<slug>.png")}, so the project stays untouched.` };
     }
   }
   const owner = ownerOnly(tool, ti, abs, home);
@@ -17931,7 +18251,7 @@ function decideFixRun(marker, tool, ti, abs, home, tmpDirs) {
       if (problem) return { decision: "deny", reason: `This command writes to ${raw}: ${problem}` };
     }
     for (const words of commandWords(cmd)) {
-      if (!FILE_COMMANDS.has(path58.basename(words[0] ?? ""))) continue;
+      if (!FILE_COMMANDS.has(path59.basename(words[0] ?? ""))) continue;
       for (const w of words.slice(1)) {
         if (!w || w.startsWith("-") || /^[\d.]+$/.test(w) || /^[ugoa]*[+=-][rwxX]+$/.test(w)) continue;
         const problem = why(w);
@@ -17947,7 +18267,7 @@ function toHookOutput(d) {
 
 // core/lib/memory/review.ts
 import fs36 from "node:fs";
-import path59 from "node:path";
+import path60 from "node:path";
 var LOW_CONFIDENCE = 4;
 var STALE_DAYS = 180;
 var UNUSED_DAYS = 90;
@@ -17956,9 +18276,9 @@ var OLD_RISK_DAYS = 365;
 var archivedCounts = (store) => {
   const dir = memoryPaths(store).archiveDir;
   if (!fs36.existsSync(dir)) return {};
-  return Object.fromEntries(fs36.readdirSync(dir).filter((f) => f.endsWith(".jsonl")).map((f) => [f.replace(/\.jsonl$/, ""), readJsonl(path59.join(dir, f)).records.length]));
+  return Object.fromEntries(fs36.readdirSync(dir).filter((f) => f.endsWith(".jsonl")).map((f) => [f.replace(/\.jsonl$/, ""), readJsonl(path60.join(dir, f)).records.length]));
 };
-var projectOf = (scope) => scope.kind === "project" ? { id: scope.project.id, name: scope.project.name } : { id: path59.basename(scope.store), name: path59.basename(scope.ctx.projectRoot) };
+var projectOf = (scope) => scope.kind === "project" ? { id: scope.project.id, name: scope.project.name } : { id: path60.basename(scope.store), name: path60.basename(scope.ctx.projectRoot) };
 function reviewOverview(scope, now = /* @__PURE__ */ new Date()) {
   const learned = loadLearnings(scope.store, now);
   const alarms = loadFalseAlarms(scope.store, now);
@@ -17999,7 +18319,7 @@ function pruneMemory(scope, target, reason, now = /* @__PURE__ */ new Date()) {
     return { archived: archiveRiskArea(scope.store, target.risk, why, now).area, kind: "risk area", reason: why };
   });
 }
-var avg = (xs) => xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length * 10) / 10 : 0;
+var avg2 = (xs) => xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length * 10) / 10 : 0;
 function memoryStats(scope, now = /* @__PURE__ */ new Date()) {
   const all = recentRunSummaries(scope.store, 1e3).reverse();
   const point = (r) => ({ run_id: r.run_id, finished: r.finished, mode: r.mode, trigger: r.trigger, critical: r.counts.critical, important: r.counts.important, minor: r.counts.minor, minutes: Math.round(r.duration_s / 60 * 10) / 10, tested: r.coverage.tested, not_tested: r.coverage.not_tested });
@@ -18010,9 +18330,9 @@ function memoryStats(scope, now = /* @__PURE__ */ new Date()) {
   const trend = pts.length >= 6 ? {
     available: true,
     note: "The average of the latest 3 runs against the 3 before them. Runs of different modes are mixed, so read it as a direction, not a measurement.",
-    serious_problems_per_run: { earlier: avg(earlier.map((p) => p.critical + p.important)), latest: avg(latest.map((p) => p.critical + p.important)) },
-    minutes_per_run: { earlier: avg(earlier.map((p) => p.minutes)), latest: avg(latest.map((p) => p.minutes)) },
-    tested_areas_per_run: { earlier: avg(earlier.map((p) => p.tested)), latest: avg(latest.map((p) => p.tested)) }
+    serious_problems_per_run: { earlier: avg2(earlier.map((p) => p.critical + p.important)), latest: avg2(latest.map((p) => p.critical + p.important)) },
+    minutes_per_run: { earlier: avg2(earlier.map((p) => p.minutes)), latest: avg2(latest.map((p) => p.minutes)) },
+    tested_areas_per_run: { earlier: avg2(earlier.map((p) => p.tested)), latest: avg2(latest.map((p) => p.tested)) }
   } : { available: false, note: `A trend needs at least 6 finished runs; this project has ${pts.length}.` };
   const learned = loadLearnings(scope.store, now).active;
   const alarms = loadFalseAlarms(scope.store, now).alarms;
@@ -18026,7 +18346,7 @@ function memoryStats(scope, now = /* @__PURE__ */ new Date()) {
     runs: { total: pts.length, ...pts[0] ? { first: pts[0].finished.slice(0, 10) } : {}, ...pts.length ? { last: pts[pts.length - 1].finished.slice(0, 10) } : {}, by_mode: count((r) => r.mode), by_trigger: count((r) => r.trigger), recent: pts.slice(-10) },
     trend,
     memory: {
-      learnings: { active: learned.length, archived: archivedCounts(scope.store)["learnings"] ?? 0, used_at_least_once: learned.filter((l) => l.hits > 0).length, times_applied: learned.reduce((n, l) => n + l.hits, 0), average_confidence: avg(learned.map((l) => l.confidence)) },
+      learnings: { active: learned.length, archived: archivedCounts(scope.store)["learnings"] ?? 0, used_at_least_once: learned.filter((l) => l.hits > 0).length, times_applied: learned.reduce((n, l) => n + l.hits, 0), average_confidence: avg2(learned.map((l) => l.confidence)) },
       false_alarms: { active: alarms.length, times_skipped: alarms.reduce((n, a) => n + a.hits, 0) },
       risk_areas: loadRisk(scope.store).areas.filter((a) => a.events.length > 0).length,
       fixes
@@ -18035,15 +18355,16 @@ function memoryStats(scope, now = /* @__PURE__ */ new Date()) {
     feedback: fb,
     bugs: { total: allBugs.length, open: allBugs.filter((b) => ["new", "still-open", "regressed"].includes(b.status)).length, came_back: allBugs.filter((b) => b.status === "regressed").length, fixed: allBugs.filter((b) => b.status === "fixed").length, accepted: allBugs.filter((b) => b.status === "accepted").length, not_a_bug: allBugs.filter((b) => b.status === "not-a-bug").length },
     bank: summariseBank(loadBank(scope.store).tests),
-    not_available_yet: [...fb.precision ? [] : [`Precision (true findings out of all findings): it needs at least 5 findings that you judged with /qa-feedback; so far ${fb.judged}.`], "Escaped bugs (production errors in areas marked as passing): they need Sentry or labelled tickets, which arrive in a later phase."]
+    performance: agentPerformance(scope.store),
+    not_available_yet: [...fb.precision ? [] : [`Precision (true findings out of all findings): it needs at least 5 findings that you judged with /qa-feedback; so far ${fb.judged}.`], ...loadMetrics(scope.store).escaped.length ? [] : ["Escaped bugs (production errors in areas marked as passing): none are recorded. Record one with `qamind escaped add`; Sentry and ticket labels will record them by themselves in a later phase."]]
   };
 }
 
 // core/scripts/browser-launcher.ts
 import { spawn as spawn3 } from "node:child_process";
 import fs37 from "node:fs";
-import os4 from "node:os";
-import path60 from "node:path";
+import os5 from "node:os";
+import path61 from "node:path";
 import { createRequire as createRequire2 } from "node:module";
 
 // core/scripts/guard-proxy.ts
@@ -18145,38 +18466,38 @@ function resolvePlaywrightMcp() {
   try {
     const req = createRequire2(import.meta.url);
     const pkg = req.resolve("@playwright/mcp/package.json");
-    return { command: process.execPath, args: [path60.join(path60.dirname(pkg), "cli.js")] };
+    return { command: process.execPath, args: [path61.join(path61.dirname(pkg), "cli.js")] };
   } catch {
     return { command: process.platform === "win32" ? "npx.cmd" : "npx", args: ["--yes", `@playwright/mcp@${PLAYWRIGHT_MCP_VERSION}`] };
   }
 }
 async function runBrowserLauncher() {
   const home = qamindHome();
-  const projectRoot = fs37.realpathSync(path60.resolve(defaultProjectDir()));
+  const projectRoot = fs37.realpathSync(path61.resolve(defaultProjectDir()));
   const guard = await startGuardProxy(home);
   const secrets = {};
-  const envFile = path60.join(projectRoot, ".env.qa");
+  const envFile = path61.join(projectRoot, ".env.qa");
   if (fs37.existsSync(envFile)) Object.assign(secrets, parseDotenv(fs37.readFileSync(envFile, "utf8")));
   try {
-    if (fs37.existsSync(path60.join(projectRoot, ".qa", "config.md"))) {
+    if (fs37.existsSync(path61.join(projectRoot, ".qa", "config.md"))) {
       const cfg = checkConfigFile(projectRoot).config;
       for (const r of cfg?.roles ?? []) for (const n of [r.username_env, r.password_env]) if (process.env[n]) secrets[n] = process.env[n];
     }
   } catch {
   }
-  const tmp = fs37.mkdtempSync(path60.join(os4.tmpdir(), "qamind-browser-"));
+  const tmp = fs37.mkdtempSync(path61.join(os5.tmpdir(), "qamind-browser-"));
   fs37.chmodSync(tmp, 448);
-  const secretsFile = path60.join(tmp, "secrets.env");
+  const secretsFile = path61.join(tmp, "secrets.env");
   fs37.writeFileSync(secretsFile, Object.entries(secrets).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("\n") + "\n", { mode: 384 });
-  const outDir = path60.join(tmp, "output");
+  const outDir = path61.join(tmp, "output");
   ensureDir(outDir);
-  const stateFile2 = path60.join(home, "state", "browser-state.json");
+  const stateFile2 = path61.join(home, "state", "browser-state.json");
   const state = readJson(stateFile2) ?? {};
   state[projectRoot] = { secret_names: Object.keys(secrets).sort(), proxy_port: guard.port, pid: process.pid, started: (/* @__PURE__ */ new Date()).toISOString() };
   writeJson(stateFile2, state);
   const auditScript = (() => {
     try {
-      const f = path60.join(corePath(), "shared", "page-audit.js");
+      const f = path61.join(corePath(), "shared", "page-audit.js");
       return fs37.existsSync(f) ? f : void 0;
     } catch {
       return void 0;
@@ -18184,12 +18505,12 @@ async function runBrowserLauncher() {
   })();
   const maskScript = (() => {
     try {
-      const f = path60.join(corePath(), "shared", "page-mask.js");
+      const f = path61.join(corePath(), "shared", "page-mask.js");
       if (!fs37.existsSync(f)) return void 0;
-      const config = fs37.existsSync(path60.join(projectRoot, ".qa", "config.md")) ? checkConfigFile(projectRoot).config : void 0;
+      const config = fs37.existsSync(path61.join(projectRoot, ".qa", "config.md")) ? checkConfigFile(projectRoot).config : void 0;
       const names = config?.roles.map((r) => secrets[r.username_env]).filter((v) => !!v) ?? [];
       const cfg = { selectors: config?.privacy.mask_selectors ?? [], patterns: config?.privacy.mask_patterns ?? [], prefix: config?.test_data_prefix ?? "QA-", allow: names };
-      const out = path60.join(tmp, "page-mask.js");
+      const out = path61.join(tmp, "page-mask.js");
       fs37.writeFileSync(out, `globalThis.__QAMIND_MASK_CONFIG = ${JSON.stringify(cfg)};
 ${fs37.readFileSync(f, "utf8")}`, { mode: 384 });
       return out;
@@ -18240,7 +18561,7 @@ ${fs37.readFileSync(f, "utf8")}`, { mode: 384 });
 
 // core/scripts/export-html.ts
 import fs38 from "node:fs";
-import path61 from "node:path";
+import path62 from "node:path";
 var esc2 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 var SEV_CLASS = { critical: "sev-critical", important: "sev-important", minor: "sev-minor" };
 var SEV_LABEL = { critical: "\u{1F534} Critical", important: "\u{1F7E0} Important", minor: "\u{1F7E1} Minor" };
@@ -18312,9 +18633,9 @@ function exportAdminHtml(runDir, store, opts2 = {}) {
   let total = 0;
   const embed = (rel) => {
     if (opts2.embedImages === false) return void 0;
-    const abs = path61.resolve(runDir, rel);
-    if (!abs.startsWith(path61.resolve(runDir) + path61.sep) || !fs38.existsSync(abs)) return void skipped.push(rel);
-    const mime = MIME[path61.extname(abs).toLowerCase()];
+    const abs = path62.resolve(runDir, rel);
+    if (!abs.startsWith(path62.resolve(runDir) + path62.sep) || !fs38.existsSync(abs)) return void skipped.push(rel);
+    const mime = MIME[path62.extname(abs).toLowerCase()];
     const size = fs38.statSync(abs).size;
     if (!mime || size > MAX_IMAGE_BYTES || total + size > MAX_TOTAL_IMAGE_BYTES) return void skipped.push(rel);
     total += size;
@@ -18322,7 +18643,7 @@ function exportAdminHtml(runDir, store, opts2 = {}) {
     return `data:${mime};base64,${fs38.readFileSync(abs).toString("base64")}`;
   };
   const html = renderAdminHtml(model, `QAMind report: ${data.meta?.environment ?? "test"} check on ${plainDate(data.meta?.started)}`, { embed });
-  const file3 = opts2.out ? path61.resolve(opts2.out) : path61.join(runDir, "ADMIN-REPORT.html");
+  const file3 = opts2.out ? path62.resolve(opts2.out) : path62.join(runDir, "ADMIN-REPORT.html");
   fs38.writeFileSync(file3, html, "utf8");
   return {
     file: file3,
@@ -18341,7 +18662,7 @@ function whoAmI(given, root) {
     if (n) return n;
   } catch {
   }
-  return os5.userInfo().username;
+  return os6.userInfo().username;
 }
 function cmdFeedback(sub, rest, home) {
   const { values, positionals } = opts(rest, { project: { type: "string" }, note: { type: "string" }, by: { type: "string" }, run: { type: "string" } });
@@ -18358,7 +18679,7 @@ function cmdFeedback(sub, rest, home) {
   }
   if (sub === "import") {
     if (!values.run) throw new UsageError("feedback import needs --run ID (the run whose ADMIN-REPORT.md people wrote in)");
-    const runDir = path62.join(scope.project.root, ".qa", "reports", values.run);
+    const runDir = path63.join(scope.project.root, ".qa", "reports", values.run);
     emit({ run: values.run, lines: importAdminFeedback(scope.store, runDir, whoAmI(values.by, scope.project.root)).map((l) => ({ issue: l.issue, text: l.text, ...l.applied ? { applied: l.applied.verdict, effects: l.effects } : {}, ...l.problem ? { not_applied: l.problem } : {} })) });
     return 0;
   }
@@ -18415,7 +18736,7 @@ async function cmdTests(sub, rest, home) {
     } else {
       const ctx = bankContextStandalone(home, values.project ?? defaultProjectDir(), /* @__PURE__ */ new Date());
       results = await runBank(ctx, runOpts);
-      where = path62.join(path62.relative(process.cwd(), ctx.outDir), "data", "bank-results.json");
+      where = path63.join(path63.relative(process.cwd(), ctx.outDir), "data", "bank-results.json");
     }
     const bad = results.results.filter((r) => r.status === "failed" || r.status === "skipped" || r.status === "flaky-passed" || r.status === "quarantined");
     emit({
@@ -18444,7 +18765,7 @@ async function cmdTests(sub, rest, home) {
     if (!id) throw new UsageError(`tests ${sub} needs a test id (see \`tests status\`)`);
     const scope = projectScope(home, projectOpt);
     const now = /* @__PURE__ */ new Date();
-    const t = withStoreLock(scope.store, () => sub === "retire" ? retireTest(scope.store, id, values.reason ?? "", values.by ?? os5.userInfo().username, now) : setQuarantine(scope.store, id, sub === "quarantine", values.reason, now));
+    const t = withStoreLock(scope.store, () => sub === "retire" ? retireTest(scope.store, id, values.reason ?? "", values.by ?? os6.userInfo().username, now) : setQuarantine(scope.store, id, sub === "quarantine", values.reason, now));
     emit({ id: t.id, status: t.status, title: t.title });
     return 0;
   }
@@ -18471,7 +18792,7 @@ async function cmdCi(sub, rest) {
     "host-spec": { type: "string" },
     write: { type: "boolean", default: false }
   });
-  const root = path62.resolve(values.project ?? process.cwd());
+  const root = path63.resolve(values.project ?? process.cwd());
   const mode = values.mode;
   if (mode === "ticket" && !values.ticket) throw new UsageError("ticket mode needs the ticket: --ticket FILE (a file in the project that says what to test).");
   if (values.ticket && mode !== void 0 && mode !== "ticket") throw new UsageError("--ticket means ticket mode: leave --mode out, or use --mode ticket.");
@@ -18485,9 +18806,9 @@ async function cmdCi(sub, rest) {
       ...values.out ? { outDir: values.out } : {},
       ...values["agent-command"] ? { agentCommand: values["agent-command"] } : {},
       host: values.host,
-      ...values["host-spec"] ? { hostSpec: path62.resolve(values["host-spec"]) } : {},
+      ...values["host-spec"] ? { hostSpec: path63.resolve(values["host-spec"]) } : {},
       ...values.model ? { model: values.model } : {},
-      ...values.home ? { home: path62.resolve(values.home) } : {},
+      ...values.home ? { home: path63.resolve(values.home) } : {},
       userStore: values["user-store"],
       dryRun: values["dry-run"],
       ...values["from-run"] ? { fromRun: values["from-run"] } : {},
@@ -18509,7 +18830,7 @@ async function cmdCi(sub, rest) {
     throw new UsageError(e.message);
   }
   const input = { ref: values.ref ?? origin.tag ?? "main", repoUrl: values["repo-url"] ?? origin.repoUrl ?? PLACEHOLDER_REPO, mode: mode ?? check.config.ci.mode, loginVars: loginVarsOf(check.config), cacheMemory: check.config.ci.cache_memory, headless };
-  const rel = provider === "github" ? ".github/workflows/qamind.yml" : fs39.existsSync(path62.join(root, ".gitlab-ci.yml")) ? ".gitlab/qamind.gitlab-ci.yml" : ".gitlab-ci.yml";
+  const rel = provider === "github" ? ".github/workflows/qamind.yml" : fs39.existsSync(path63.join(root, ".gitlab-ci.yml")) ? ".gitlab/qamind.gitlab-ci.yml" : ".gitlab-ci.yml";
   return writeTemplate(root, rel, provider === "github" ? githubPrWorkflow(input) : gitlabCi(input), values.write, input, provider === "gitlab" && rel !== ".gitlab-ci.yml" ? ["There is already a .gitlab-ci.yml: add `include: .gitlab/qamind.gitlab-ci.yml` to it."] : []);
 }
 function templateNotes(root, input) {
@@ -18525,10 +18846,10 @@ function templateNotes(root, input) {
   return notes;
 }
 function writeTemplate(root, rel, content, write, input, extra) {
-  const file3 = path62.join(root, rel);
+  const file3 = path63.join(root, rel);
   const exists2 = fs39.existsSync(file3);
   if (write && !exists2) {
-    ensureDir(path62.dirname(file3));
+    ensureDir(path63.dirname(file3));
     fs39.writeFileSync(file3, content, "utf8");
   }
   emit({ path: rel, written: write && !exists2, ...exists2 ? { exists: true, note: "The file exists and is never overwritten: move it aside, or copy from the preview." } : {}, notes: [...templateNotes(root, input), ...extra], ...write && !exists2 ? {} : { content } });
@@ -18538,7 +18859,7 @@ function cmdSchedule(sub, rest) {
   const { values } = opts(sub ? [sub, ...rest] : rest, { project: { type: "string" }, provider: { type: "string" }, cron: { type: "string" }, time: { type: "string" }, mode: { type: "string" }, ref: { type: "string" }, "repo-url": { type: "string" }, host: { type: "string", default: "claude" }, "host-spec": { type: "string" }, write: { type: "boolean", default: false } });
   const provider = values.provider;
   if (!["github", "gitlab", "cron", "windows"].includes(provider ?? "")) throw new UsageError("schedule needs --provider github|gitlab|cron|windows");
-  const root = path62.resolve(values.project ?? process.cwd());
+  const root = path63.resolve(values.project ?? process.cwd());
   const mode = values.mode ?? "full";
   if (!CI_MODES.includes(mode)) throw new UsageError(`--mode must be one of ${CI_MODES.join(", ")}`);
   const cron = values.cron ?? "0 2 * * *";
@@ -18622,6 +18943,9 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
   sweep run --run ID [--browsers chromium,webkit] [--viewports mobile] [--pages id,id]
                                visit the key pages in each browser and screen size: audit leads, load time, a screenshot compared with its baseline (data/sweep.json)
   perf check --run ID | perf api --run ID   time a few read-only calls to the endpoints in data/perf-endpoints.json against the budget and the recent runs (data/perf-api.json)
+  escaped add --area A --title T [--severity S] [--source manual|sentry|ticket|other] [--ref ID] [--note TEXT]   a bug that reached production: matched to what the runs said about its area, and the area's risk is raised (the owner's)
+  escaped list                 the bugs that escaped, and what the runs had said about each area
+  metrics [--project DIR]      how the agent is doing: the last runs, precision, escaped bugs, the trend once there are six runs
   ticket check --run ID | ticket status --run ID   ticket mode: check the criteria written to data/ticket.json (derived ones need the person's confirmation), then see which criteria have a result
   mail status | mail wait --run ID --to ADDRESS [--flow TEXT] [--kind transactional|notification|marketing|invitation] [--language ur] [--subject-contains T] [--timeout-s N]
                                read the email the product sent from the sandbox (mail.catcher) and check recipient, placeholders, links, unsubscribe, language; nothing is sent
@@ -18695,11 +19019,11 @@ async function loadInventory(ctx, specArg) {
     doc = loadSpecFile(resolveSpecPath(source, ctx.projectRoot));
   }
   const inv = buildInventory(doc, source);
-  writeJson(path62.join(ctx.runDir, "data", "api-inventory.json"), inv);
+  writeJson(path63.join(ctx.runDir, "data", "api-inventory.json"), inv);
   return inv;
 }
 function readInventory(ctx) {
-  return readJson(path62.join(ctx.runDir, "data", "api-inventory.json"));
+  return readJson(path63.join(ctx.runDir, "data", "api-inventory.json"));
 }
 async function cmdApi(sub, rest, home) {
   if (sub === "inventory") {
@@ -18747,10 +19071,10 @@ async function cmdApi(sub, rest, home) {
     });
     plan.name = values.name ?? (values.role ? `baseline-${role}` : "baseline");
     const rel = `data/plans/${plan.name}.json`;
-    writeJson(path62.join(ctx.runDir, rel), plan);
+    writeJson(path63.join(ctx.runDir, rel), plan);
     const byTag = {};
     for (const p of plan.probes) for (const t of p.tags ?? []) byTag[t] = (byTag[t] ?? 0) + 1;
-    emit({ plan_file: path62.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
+    emit({ plan_file: path63.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
     return 0;
   }
   if (sub === "run") {
@@ -18760,9 +19084,9 @@ async function cmdApi(sub, rest, home) {
     const base = ctx.config.api.base_url;
     if (!base) throw new UsageError("api.base_url is not set in .qa/config.md");
     const given = values.plan;
-    const byName = path62.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
-    const planFile = exists(path62.resolve(given)) ? path62.resolve(given) : exists(byName) ? byName : void 0;
-    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path62.join(ctx.runDir, "data", "plans")}.`);
+    const byName = path63.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
+    const planFile = exists(path63.resolve(given)) ? path63.resolve(given) : exists(byName) ? byName : void 0;
+    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path63.join(ctx.runDir, "data", "plans")}.`);
     const plan = readJson(planFile);
     const result = await runPlan(plan, {
       baseUrl: base,
@@ -18803,8 +19127,8 @@ async function cmdReport(sub, rest, home) {
       refreshChanges: true
     });
     emit({
-      technical_report: path62.join(ctx.runDir, "TECHNICAL-REPORT.md"),
-      admin_report: path62.join(ctx.runDir, "ADMIN-REPORT.md"),
+      technical_report: path63.join(ctx.runDir, "TECHNICAL-REPORT.md"),
+      admin_report: path63.join(ctx.runDir, "ADMIN-REPORT.md"),
       verdict: r.model.verdict.line,
       findings: r.data.findings.map((f) => `${f.id} ${f.severity}: ${f.title}`),
       unconfirmed: r.data.unconfirmed.length,
@@ -18834,7 +19158,7 @@ async function cmdReport(sub, rest, home) {
 async function cmdMemory(sub, rest, home) {
   if (sub === "where") {
     const { values: values2 } = opts(rest, { project: { type: "string" } });
-    const info = resolveProject(path62.resolve(values2.project ?? process.cwd()));
+    const info = resolveProject(path63.resolve(values2.project ?? process.cwd()));
     const { store } = ensureProjectStore(home, info);
     emit({ project_id: info.id, id_source: info.idSource, store });
     return 0;
@@ -18975,7 +19299,7 @@ async function cmdHook(sub, rest, home) {
     if (reason) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "allow", permissionDecisionReason: reason } }) + "\n");
     return 0;
   }
-  const tmp = [os5.tmpdir(), input.scratchpad_dir].filter((p) => !!p);
+  const tmp = [os6.tmpdir(), input.scratchpad_dir].filter((p) => !!p);
   const decision = decidePreToolUse(input, home, tmp);
   if (decision) process.stdout.write(JSON.stringify(toHookOutput(decision)) + "\n");
   return 0;
@@ -18989,8 +19313,8 @@ async function main(argv) {
         return await cmdRun(sub, rest, home);
       case "config": {
         const { values } = opts(rest, { project: { type: "string" } });
-        const root = path62.resolve(values.project ?? process.cwd());
-        if (!exists(path62.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
+        const root = path63.resolve(values.project ?? process.cwd());
+        if (!exists(path63.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
         const check = checkConfigFile(root);
         const { config: _c, body: _b, ...printable } = check;
         emit(printable);
@@ -18999,9 +19323,9 @@ async function main(argv) {
       case "health": {
         const { values } = opts(sub ? [sub, ...rest] : rest, { run: { type: "string" } });
         const ctx = loadRunContext(home, values.run);
-        ensureDir(path62.join(ctx.runDir, "data"));
+        ensureDir(path63.join(ctx.runDir, "data"));
         const { health: result } = await healthWithPrep({ config: ctx.config, policy: ctx.policy, roles: ctx.roles, projectRoot: ctx.projectRoot, runDir: ctx.runDir, mode: ctx.marker.mode, redact: makeRedactor(ctx.passwords).text });
-        writeJson(path62.join(ctx.runDir, "data", "health.json"), result);
+        writeJson(path63.join(ctx.runDir, "data", "health.json"), result);
         emit(result);
         return result.environment_ok ? 0 : 7;
       }
@@ -19025,6 +19349,10 @@ async function main(argv) {
         return await cmdPerf(sub, rest, home);
       case "ticket":
         return cmdTicket(sub, rest, home);
+      case "escaped":
+        return cmdEscaped(sub, rest, home);
+      case "metrics":
+        return cmdMetrics(sub ? [sub, ...rest] : rest, home);
       case "mail":
         return await cmdMail("email", sub, rest, home);
       case "sms":

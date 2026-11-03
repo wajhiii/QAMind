@@ -72,8 +72,9 @@ formatting; no file paths; no ISSUE ids (the tool adds the one "For developers" 
 - Use the same severity as the technical finding (Critical = people blocked, data wrong, lost or exposed, money affected, a security or
   permission breach; Important = works badly, a workaround exists; Minor = cosmetic or a small annoyance). Never soften a Critical or
   Important problem in the plain wording.
-- The first line (the release verdict) is computed from the default rules: Ready only with no critical problems, at most two important
-  ones, a healthy test environment, and every key journey tested. You cannot edit it, and it can never say Ready if a journey was not tested.
+- The first line (the release verdict) is computed by QAMind from the project's release rules (the default: Ready only with no critical problems, at most two important
+  ones, a healthy test environment, no problem that came back, and every key journey tested; a project may change the limits in `release.rules`, and the run keeps the rules it started with).
+  You cannot edit it, and it can never say Ready if a journey was not tested.
 - Say nothing the technical report does not support. Plain does not mean vaguer or more certain.
 - `biggest_risk` and `next_steps` are your judgement: be concrete ("Have a developer fix the access problem first", not "improve security").
 
