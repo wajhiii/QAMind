@@ -15,6 +15,12 @@ import { checkConfigFile } from "../../core/lib/config.ts";
 import { ensureDir, exists, readJson, writeJson } from "../../core/lib/fsutil.ts";
 import { readBlocked } from "../../core/lib/guardpolicy.ts";
 import { budgetStatus } from "../../core/lib/budget.ts";
+import { CI_MODES, checkConfigFile as checkCfg } from "../../core/lib/config.ts";
+import type { CiMode } from "../../core/lib/config.ts";
+import { loadHeadless } from "../../core/lib/ci/host.ts";
+import { runCi } from "../../core/lib/ci/run.ts";
+import { PLACEHOLDER_REPO, cronLine, describeCron, githubNightlyWorkflow, githubPrWorkflow, gitlabCi, loginVarsOf, qamindOrigin, validCron, windowsTask } from "../../core/lib/ci/templates.ts";
+import type { TemplateInput } from "../../core/lib/ci/templates.ts";
 import { bankContextStandalone, bankStatus, exportTests, runBankForRun, saveBankTestFromFile } from "../../core/lib/bank/service.ts";
 import { retireTest, setQuarantine } from "../../core/lib/bank/bank.ts";
 import { runBank } from "../../core/lib/bank/runner.ts";
@@ -174,6 +180,128 @@ async function cmdTests(sub: string | undefined, rest: string[], home: string): 
   throw new UsageError("tests needs a subcommand: status | run | save | export | prune | retire | quarantine | unquarantine");
 }
 
+/** `qamind ci`, `qamind ci init`: the pull-request mode (spec 13.2) and the workflow files for it. */
+async function cmdCi(sub: string | undefined, rest: string[]): Promise<number> {
+  const init = sub === "init";
+  const args = init ? rest : sub ? [sub, ...rest] : rest;
+  const { values } = opts(args, {
+    project: { type: "string" },
+    mode: { type: "string" },
+    out: { type: "string" },
+    "agent-command": { type: "string" },
+    model: { type: "string" },
+    home: { type: "string" },
+    "user-store": { type: "boolean", default: false },
+    "dry-run": { type: "boolean", default: false },
+    "from-run": { type: "string" },
+    provider: { type: "string" },
+    ref: { type: "string" },
+    "repo-url": { type: "string" },
+    host: { type: "string", default: "claude" },
+    "host-spec": { type: "string" },
+    write: { type: "boolean", default: false },
+  });
+  const root = path.resolve((values.project as string | undefined) ?? process.cwd());
+  const mode = values.mode as string | undefined;
+  if (mode === "ticket") throw new UsageError("ticket mode comes with ticket mode itself (a later phase); use diff, quick, regression or full.");
+  if (mode !== undefined && !(CI_MODES as readonly string[]).includes(mode)) throw new UsageError(`--mode must be one of ${CI_MODES.join(", ")}`);
+  if (!init) {
+    const result = await runCi({
+      projectDir: root,
+      env: process.env,
+      ...(mode ? { mode: mode as CiMode } : {}),
+      ...(values.out ? { outDir: values.out as string } : {}),
+      ...(values["agent-command"] ? { agentCommand: values["agent-command"] as string } : {}),
+      host: values.host as string,
+      ...(values["host-spec"] ? { hostSpec: path.resolve(values["host-spec"] as string) } : {}),
+      ...(values.model ? { model: values.model as string } : {}),
+      ...(values.home ? { home: path.resolve(values.home as string) } : {}),
+      userStore: values["user-store"] as boolean,
+      dryRun: values["dry-run"] as boolean,
+      ...(values["from-run"] ? { fromRun: values["from-run"] as string } : {}),
+      log: (line) => process.stderr.write(`${line}\n`),
+    });
+    emit({ outcome: result.outcome, exit_code: result.exit_code, mode: result.mode, ...(result.run_id ? { run_id: result.run_id } : {}), reasons: result.reasons, ...(result.error ? { error: result.error } : {}), comment: result.comment, status: result.status, ...(result.agent ? { agent: result.agent } : {}), warnings: result.warnings, out_dir: result.out_dir, store: result.store });
+    return result.exit_code;
+  }
+  const provider = values.provider as string | undefined;
+  if (provider !== "github" && provider !== "gitlab") throw new UsageError("ci init needs --provider github|gitlab");
+  const check = checkCfg(root, process.env);
+  if (!check.config) throw new UsageError(`The QAMind config is not usable (${check.status}); fix .qa/config.md first (run /qa-only once to create it), because the workflow names the config's test logins.`);
+  const origin = qamindOrigin();
+  let headless;
+  try {
+    headless = loadHeadless(values.host as string, values["host-spec"] as string | undefined);
+  } catch (e) {
+    throw new UsageError((e as Error).message);
+  }
+  const input: TemplateInput = { ref: (values.ref as string | undefined) ?? origin.tag ?? "main", repoUrl: (values["repo-url"] as string | undefined) ?? origin.repoUrl ?? PLACEHOLDER_REPO, mode: (mode as CiMode | undefined) ?? check.config.ci.mode, loginVars: loginVarsOf(check.config), cacheMemory: check.config.ci.cache_memory, headless };
+  const rel = provider === "github" ? ".github/workflows/qamind.yml" : fs.existsSync(path.join(root, ".gitlab-ci.yml")) ? ".gitlab/qamind.gitlab-ci.yml" : ".gitlab-ci.yml";
+  return writeTemplate(root, rel, provider === "github" ? githubPrWorkflow(input) : gitlabCi(input), values.write as boolean, input, provider === "gitlab" && rel !== ".gitlab-ci.yml" ? ["There is already a .gitlab-ci.yml: add `include: .gitlab/qamind.gitlab-ci.yml` to it."] : []);
+}
+
+function templateNotes(root: string, input: TemplateInput): string[] {
+  const notes: string[] = [];
+  if (!(input.ref.startsWith("v") && /\d/.test(input.ref))) notes.push(`QAMIND_REF is "${input.ref}": there is no release tag of QAMind to pin to yet. Pin it to a release tag as soon as one exists (--ref vX.Y.Z), so CI only runs tested releases.`);
+  if (input.repoUrl === PLACEHOLDER_REPO) notes.push("QAMIND_REPO is a placeholder: set it to the repository QAMind is cloned from (--repo-url).");
+  try {
+    execFileSync("git", ["-C", root, "check-ignore", "-q", ".qa/config.md"], { stdio: "ignore" });
+    notes.push("`.qa/config.md` is git-ignored, so CI will not find it. Commit it (it holds URLs, flows and rules, never passwords): replace the `.qa/` line of .gitignore with `.qa/*` and `!.qa/config.md`.");
+  } catch {
+    /* not ignored, or not a repository */
+  }
+  notes.push(`Add these as secrets of the repository (values never go in the file): ${input.headless.auth_secret}, ${input.loginVars.join(", ")}.`);
+  return notes;
+}
+
+function writeTemplate(root: string, rel: string, content: string, write: boolean, input: TemplateInput, extra: string[]): number {
+  const file = path.join(root, rel);
+  const exists = fs.existsSync(file);
+  if (write && !exists) {
+    ensureDir(path.dirname(file));
+    fs.writeFileSync(file, content, "utf8");
+  }
+  emit({ path: rel, written: write && !exists, ...(exists ? { exists: true, note: "The file exists and is never overwritten: move it aside, or copy from the preview." } : {}), notes: [...templateNotes(root, input), ...extra], ...(write && !exists ? {} : { content }) });
+  return write && exists ? 1 : 0;
+}
+
+/** `qamind schedule` (spec 13.15): CI schedules first, local cron and Windows Task Scheduler as documented options. Report-only, under the budgets of the config. */
+function cmdSchedule(sub: string | undefined, rest: string[]): number {
+  const { values } = opts(sub ? [sub, ...rest] : rest, { project: { type: "string" }, provider: { type: "string" }, cron: { type: "string" }, time: { type: "string" }, mode: { type: "string" }, ref: { type: "string" }, "repo-url": { type: "string" }, host: { type: "string", default: "claude" }, "host-spec": { type: "string" }, write: { type: "boolean", default: false } });
+  const provider = values.provider as string | undefined;
+  if (!["github", "gitlab", "cron", "windows"].includes(provider ?? "")) throw new UsageError("schedule needs --provider github|gitlab|cron|windows");
+  const root = path.resolve((values.project as string | undefined) ?? process.cwd());
+  const mode = ((values.mode as string | undefined) ?? "full") as string;
+  if (!(CI_MODES as readonly string[]).includes(mode)) throw new UsageError(`--mode must be one of ${CI_MODES.join(", ")}`);
+  const cron = (values.cron as string | undefined) ?? "0 2 * * *";
+  if (!validCron(cron)) throw new UsageError(`--cron "${cron}" is not a five-field cron expression (minute hour day month weekday), for example "0 2 * * *".`);
+  const time = (values.time as string | undefined) ?? (/^\d+ \d+ \* \* \*$/.test(cron) ? `${String(cron.split(" ")[1]).padStart(2, "0")}:${String(cron.split(" ")[0]).padStart(2, "0")}` : "02:00");
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new UsageError("--time must be HH:MM (24 hours).");
+  if (provider === "cron") {
+    emit({ provider, schedule: describeCron(cron), crontab_line: cronLine({ cron, mode: mode as CiMode, projectDir: root }), how: "Add the line with `crontab -e`. It runs from the project folder with your own QAMind store (your memory and test bank), report-only; the output goes to ~/.qamind/ci.log and the reports to qamind-reports/ in the project. QAMind never edits your crontab." });
+    return 0;
+  }
+  if (provider === "windows") {
+    emit({ provider, schedule: `daily at ${time}`, command: windowsTask({ time, mode: mode as CiMode, projectDir: root }), how: "Run the command once in a Command Prompt. It creates a task that runs `qamind ci` from the project folder with your own QAMind store, report-only. Remove it with `schtasks /Delete /TN \"QAMind nightly\"`. Not tested on Windows." });
+    return 0;
+  }
+  const check = checkCfg(root, process.env);
+  if (!check.config) throw new UsageError(`The QAMind config is not usable (${check.status}); fix .qa/config.md first.`);
+  const origin = qamindOrigin();
+  let headless;
+  try {
+    headless = loadHeadless(values.host as string, values["host-spec"] as string | undefined);
+  } catch (e) {
+    throw new UsageError((e as Error).message);
+  }
+  const input: TemplateInput = { ref: (values.ref as string | undefined) ?? origin.tag ?? "main", repoUrl: (values["repo-url"] as string | undefined) ?? origin.repoUrl ?? PLACEHOLDER_REPO, mode: mode as CiMode, loginVars: loginVarsOf(check.config), cacheMemory: check.config.ci.cache_memory, headless, cron };
+  if (provider === "gitlab") {
+    emit({ provider, schedule: describeCron(cron), steps: ["Run `qamind ci init --provider gitlab --write` (the generated job already runs in schedules).", `In GitLab open CI/CD > Schedules > New schedule, enter the interval pattern \`${cron}\`, pick the default branch, and add the variable QAMIND_MODE=${mode}.`, "GitLab keeps pipeline schedules in its settings, not in a file, so there is nothing for QAMind to write."], notes: templateNotes(root, input) });
+    return 0;
+  }
+  return writeTemplate(root, ".github/workflows/qamind-nightly.yml", githubNightlyWorkflow(input), values.write as boolean, input, [`GitHub runs this schedule from the default branch only, in UTC (${describeCron(cron)}); a workflow in a repository with no activity for 60 days may be paused by GitHub.`]);
+}
+
 function emit(value: unknown): void {
   process.stdout.write(JSON.stringify(value, null, 2) + "\n");
 }
@@ -214,6 +342,10 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
   lessons reject ID [--reason TEXT]         turn a pending lesson down, or retire an approved one (owner action)
   guard log    --run ID        origins the browser guard blocked during the run
   budget status --run ID       time left in the run's budget; check it before each new area, and stop exploring when it says over
+  ci [--mode diff|quick|regression|full] [--host claude] [--agent-command CMD] [--out DIR] [--dry-run] [--user-store] [--from-run ID]
+                               test a pull request headlessly, report-only: one comment kept up to date, a status, an exit code (0 pass or warn, 1 fail, 2 could not run)
+  ci init --provider github|gitlab [--ref vX.Y.Z] [--repo-url URL] [--write]   the workflow file (preview without --write; never overwrites)
+  schedule --provider github|gitlab|cron|windows [--cron "0 2 * * *"] [--mode full] [--write]   nightly runs
   tests status | prune         the test bank: what it holds and how each test did; stale tests it suggests retiring
   tests run [--run ID] [--only T-001,T-002] [--area A] [--include-quarantined]
                                run the bank (in a QA run: first, before exploring; otherwise on its own). Exit 1 if a test failed twice
@@ -630,6 +762,10 @@ export async function main(argv: string[]): Promise<number> {
         return await cmdReport(sub, rest, home);
       case "memory":
         return await cmdMemory(sub, rest, home);
+      case "ci":
+        return await cmdCi(sub, rest);
+      case "schedule":
+        return cmdSchedule(sub, rest);
       case "tests":
         return await cmdTests(sub, rest, home);
       case "feedback":

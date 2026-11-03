@@ -100,6 +100,29 @@
       "allowed-tools": "Bash(qamind tests status) Bash(qamind tests status *) Bash(qamind tests prune) Bash(qamind tests prune *) Bash(qamind tests run) Bash(qamind tests run *) Bash(qamind tests export)"
     }
   },
+  "headless": {
+    "label": "Claude Code",
+    "command": "claude",
+    "command_env": "QAMIND_CLAUDE_BIN",
+    "args": ["-p", "{prompt}", "--plugin-dir", "{plugin}", "--setting-sources", "project,local", "--permission-mode", "dontAsk", "--output-format", "json", "--no-session-persistence", "--max-budget-usd", "{max_cost}"],
+    "model_args": ["--model", "{model}"],
+    "invoke": "/qamind:qa-only {mode}",
+    "auth_env_any": ["ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN", "CLAUDE_CODE_USE_BEDROCK", "CLAUDE_CODE_USE_VERTEX", "CLAUDE_CODE_USE_FOUNDRY"],
+    "auth_secret": "ANTHROPIC_API_KEY",
+    "auth_hint": "ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN, or a Bedrock, Vertex or Foundry setting",
+    "cost_field": "total_cost_usd",
+    "child_env_remove": ["CLAUDECODE", "CLAUDE_CODE_ENTRYPOINT"],
+    "ci_install": { "npm_package": "@anthropic-ai/claude-code", "version": "2.1.314", "label": "the Claude Code CLI" },
+    "facts": [
+      "headless: `claude -p \"prompt\"`; exit code 0 on success, non-zero on failure; a failure inside the run (missing authentication) is printed as the result (docs read 2026-11-03: code.claude.com/docs/en/headless)",
+      "authentication in CI: ANTHROPIC_API_KEY, or CLAUDE_CODE_OAUTH_TOKEN generated with `claude setup-token` (GitHub Actions page); an API key is recommended for a secret shared across repositories",
+      "--output-format json returns the result, session id, total_cost_usd (a client-side estimate) and permission_denials",
+      "--permission-mode dontAsk denies every call that would otherwise prompt; since 2.1.302 a plain `claude -p` starts in manual mode, where such a call is denied unless something approves it. The skill's allowed-tools approve what a QA run needs, so nothing prompts",
+      "--bare skips hooks, skills, plugins and MCP servers: QAMind's safety hook and plugin would not load, so CI must not use it",
+      "--max-budget-usd caps the spend; --max-turns appears on the GitHub Actions page but not in `claude --help` 2.1.314, so it is not used",
+      "GitHub withholds secrets from pull requests from forks; workflow timeouts and concurrency controls are the cost controls the docs name"
+    ]
+  },
   "auto_qa": {
     "mode": "enforced",
     "hook_env": {

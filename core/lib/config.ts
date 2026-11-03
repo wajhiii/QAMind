@@ -79,6 +79,34 @@ export interface BudgetSettings extends ModeBudget {
   modes: Partial<Record<BudgetMode, ModeBudget>>;
 }
 
+/** What can fail or warn a CI run (spec 13.2). */
+export const CI_CONDITIONS = ["critical", "important", "minor", "environment-problem", "came-back", "bank-failure", "not-ready"] as const;
+export type CiCondition = (typeof CI_CONDITIONS)[number];
+/** `ticket` mode arrives with ticket mode itself (spec 13.4). */
+export const CI_MODES = ["diff", "quick", "regression", "full"] as const;
+export type CiMode = (typeof CI_MODES)[number];
+
+/** CI / pull-request mode (spec 13.2). */
+export interface CiSettings {
+  /** Any of these makes the run fail: exit code 1 and a failing status. Default: a critical problem, or an environment problem. */
+  fail_on: CiCondition[];
+  /** Any of these (when nothing in fail_on matched) is a warning: passing status, a note in the comment. Default: an important problem. */
+  warn_on: CiCondition[];
+  /** Keep a CI-only memory store between runs, restored by the CI's own cache (keyed by repository and branch). Never committed, never mixed with a person's own memory. */
+  cache_memory: boolean;
+  /** The mode a pull request is tested in. */
+  mode: CiMode;
+  /** Post (and update) one comment on the pull request. */
+  comment: boolean;
+  /** Set a commit status. */
+  status: boolean;
+  status_context: string;
+  /** The agent is stopped after this long, whatever the time budget says. */
+  timeout_minutes: number;
+}
+
+export const DEFAULT_CI: CiSettings = { fail_on: ["critical", "environment-problem"], warn_on: ["important"], cache_memory: false, mode: "diff", comment: true, status: true, status_context: "qamind", timeout_minutes: 25 };
+
 /** Private data masking in evidence (spec 13.8). */
 export interface PrivacySettings {
   /** Extra regular expressions (JavaScript syntax) for data that must never be saved. */
@@ -102,6 +130,7 @@ export interface QamindConfig {
   setup: SetupSettings;
   budget: BudgetSettings;
   privacy: PrivacySettings;
+  ci: CiSettings;
 }
 
 export interface ConfigCheck {
@@ -193,6 +222,53 @@ function normalizeBudget(raw: unknown, problems: string[]): BudgetSettings {
     }
   }
   return { ...top, ...(typeof daily === "number" && daily >= 1 && daily <= 10080 ? { daily_max: daily } : {}), modes };
+}
+
+function normalizeCi(raw: unknown, problems: string[]): CiSettings {
+  if (raw === undefined || raw === null) return { ...DEFAULT_CI };
+  if (!isObj(raw)) {
+    problems.push("ci must be a mapping (fail_on, warn_on, cache_memory, mode, comment, status, status_context, timeout_minutes).");
+    return { ...DEFAULT_CI };
+  }
+  const conditions = (key: "fail_on" | "warn_on"): CiCondition[] => {
+    const v = raw[key];
+    if (v === undefined || v === null) return [...DEFAULT_CI[key]];
+    if (!Array.isArray(v)) {
+      problems.push(`ci.${key} must be a list of: ${CI_CONDITIONS.join(", ")}.`);
+      return [...DEFAULT_CI[key]];
+    }
+    const out: CiCondition[] = [];
+    for (const c of v) {
+      if (typeof c === "string" && (CI_CONDITIONS as readonly string[]).includes(c)) out.push(c as CiCondition);
+      else problems.push(`ci.${key}: "${String(c)}" is not a condition. Use ${CI_CONDITIONS.join(", ")}.`);
+    }
+    return [...new Set(out)];
+  };
+  const failOn = conditions("fail_on");
+  const warnOn = conditions("warn_on");
+  for (const c of warnOn) if (failOn.includes(c)) problems.push(`ci: "${c}" is in both fail_on and warn_on; it would fail the run, so take it out of warn_on.`);
+  const bool = (key: "cache_memory" | "comment" | "status"): boolean => {
+    const v = raw[key];
+    if (v === undefined) return DEFAULT_CI[key];
+    if (typeof v !== "boolean") problems.push(`ci.${key} must be true or false.`);
+    return typeof v === "boolean" ? v : DEFAULT_CI[key];
+  };
+  const mode = raw["mode"];
+  if (mode !== undefined && !(typeof mode === "string" && (CI_MODES as readonly string[]).includes(mode))) problems.push(`ci.mode must be one of ${CI_MODES.join(", ")} (ticket mode comes with ticket mode).`);
+  const context = raw["status_context"];
+  if (context !== undefined && !(typeof context === "string" && /^[\w .:/-]{1,60}$/.test(context))) problems.push("ci.status_context must be a short name (letters, digits, space and . : / - _).");
+  const timeout = raw["timeout_minutes"];
+  if (timeout !== undefined && !(typeof timeout === "number" && timeout >= 1 && timeout <= 360)) problems.push("ci.timeout_minutes must be a number of minutes from 1 to 360.");
+  return {
+    fail_on: failOn,
+    warn_on: warnOn.filter((c) => !failOn.includes(c)),
+    cache_memory: bool("cache_memory"),
+    mode: typeof mode === "string" && (CI_MODES as readonly string[]).includes(mode) ? (mode as CiMode) : DEFAULT_CI.mode,
+    comment: bool("comment"),
+    status: bool("status"),
+    status_context: typeof context === "string" && /^[\w .:/-]{1,60}$/.test(context) ? context : DEFAULT_CI.status_context,
+    timeout_minutes: typeof timeout === "number" && timeout >= 1 && timeout <= 360 ? timeout : DEFAULT_CI.timeout_minutes,
+  };
 }
 
 const LIST_MAX = 30;
@@ -335,6 +411,7 @@ export function normalizeConfig(raw: unknown, problems: string[]): QamindConfig 
     setup: normalizeSetup(raw["setup"], problems),
     budget: normalizeBudget(raw["budget"], problems),
     privacy: normalizePrivacy(raw["privacy"], problems),
+    ci: normalizeCi(raw["ci"], problems),
   };
   return config;
 }

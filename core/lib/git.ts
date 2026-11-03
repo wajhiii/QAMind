@@ -1,11 +1,21 @@
 import { execFileSync } from "node:child_process";
 
-function git(root: string, args: string[]): string | undefined {
+function git(root: string, args: string[], raw = false): string | undefined {
   try {
-    return execFileSync("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 16 * 1024 * 1024 }).trim();
+    const out = execFileSync("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 16 * 1024 * 1024 });
+    return raw ? out : out.trim();
   } catch {
     return undefined;
   }
+}
+
+/**
+ * The files `git status --porcelain` lists, with their status columns. The output must not be trimmed: the columns are fixed width, and " M file" loses its leading space (and then the first
+ * character of the name) if the whole text is trimmed. `untracked: false` leaves out files git does not track.
+ */
+export function porcelainFiles(root: string, opts: { untracked?: boolean } = {}): string[] {
+  const out = git(root, ["status", "--porcelain", ...(opts.untracked === false ? ["--untracked-files=no"] : [])], true) ?? "";
+  return out.split("\n").filter(Boolean).map((line) => line.slice(3).trim().replace(/^.* -> /, ""));
 }
 
 export interface GitInfo {
@@ -22,24 +32,22 @@ export function gitInfo(root: string): GitInfo {
   if (git(root, ["rev-parse", "--is-inside-work-tree"]) !== "true") return { is_repo: false, changed_files: [] };
   const branch = git(root, ["rev-parse", "--abbrev-ref", "HEAD"]);
   const commit = git(root, ["rev-parse", "--short", "HEAD"]);
-  const status = git(root, ["status", "--porcelain"]) ?? "";
+  const files = porcelainFiles(root);
   const originHead = git(root, ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"]);
-  const candidates = [originHead, "main", "master"].filter((x): x is string => !!x);
+  // A pull request in CI is checked out detached, with no local main: `qamind ci` names the base it fetched (`origin/<target branch>`).
+  const candidates = [process.env["QAMIND_BASE_REF"], originHead, "main", "master"].filter((x): x is string => !!x);
   const base = candidates.find((c) => git(root, ["rev-parse", "--verify", "--quiet", c]) !== undefined);
   const changed = new Set<string>();
   if (base && branch && branch !== base.replace(/^origin\//, "")) {
     for (const f of (git(root, ["diff", "--name-only", `${base}...HEAD`]) ?? "").split("\n")) if (f) changed.add(f);
   }
-  for (const line of status.split("\n")) {
-    const file = line.slice(3).trim().replace(/^.* -> /, "");
-    if (file && !file.startsWith(".qa/")) changed.add(file);
-  }
+  for (const file of files) if (file && !file.startsWith(".qa/")) changed.add(file);
   return {
     is_repo: true,
     ...(branch ? { branch } : {}),
     ...(commit ? { commit } : {}),
     ...(base ? { base } : {}),
-    dirty: status.length > 0,
+    dirty: files.length > 0,
     changed_files: [...changed].slice(0, 300),
   };
 }

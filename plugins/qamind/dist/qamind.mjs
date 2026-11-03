@@ -114,17 +114,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path50) {
-      const ctrl = callVisitor(key, node, visitor, path50);
+    function visit_(key, node, visitor, path53) {
+      const ctrl = callVisitor(key, node, visitor, path53);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path50, ctrl);
-        return visit_(key, ctrl, visitor, path50);
+        replaceNode(key, path53, ctrl);
+        return visit_(key, ctrl, visitor, path53);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path50 = Object.freeze(path50.concat(node));
+          path53 = Object.freeze(path53.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path50);
+            const ci = visit_(i, node.items[i], visitor, path53);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -135,13 +135,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path50 = Object.freeze(path50.concat(node));
-          const ck = visit_("key", node.key, visitor, path50);
+          path53 = Object.freeze(path53.concat(node));
+          const ck = visit_("key", node.key, visitor, path53);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path50);
+          const cv = visit_("value", node.value, visitor, path53);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -162,17 +162,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path50) {
-      const ctrl = await callVisitor(key, node, visitor, path50);
+    async function visitAsync_(key, node, visitor, path53) {
+      const ctrl = await callVisitor(key, node, visitor, path53);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path50, ctrl);
-        return visitAsync_(key, ctrl, visitor, path50);
+        replaceNode(key, path53, ctrl);
+        return visitAsync_(key, ctrl, visitor, path53);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path50 = Object.freeze(path50.concat(node));
+          path53 = Object.freeze(path53.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path50);
+            const ci = await visitAsync_(i, node.items[i], visitor, path53);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -183,13 +183,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path50 = Object.freeze(path50.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path50);
+          path53 = Object.freeze(path53.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path53);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path50);
+          const cv = await visitAsync_("value", node.value, visitor, path53);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -216,23 +216,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path50) {
+    function callVisitor(key, node, visitor, path53) {
       if (typeof visitor === "function")
-        return visitor(key, node, path50);
+        return visitor(key, node, path53);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path50);
+        return visitor.Map?.(key, node, path53);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path50);
+        return visitor.Seq?.(key, node, path53);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path50);
+        return visitor.Pair?.(key, node, path53);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path50);
+        return visitor.Scalar?.(key, node, path53);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path50);
+        return visitor.Alias?.(key, node, path53);
       return void 0;
     }
-    function replaceNode(key, path50, node) {
-      const parent = path50[path50.length - 1];
+    function replaceNode(key, path53, node) {
+      const parent = path53[path53.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -844,10 +844,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path50, value) {
+    function collectionFromPath(schema, path53, value) {
       let v = value;
-      for (let i = path50.length - 1; i >= 0; --i) {
-        const k = path50[i];
+      for (let i = path53.length - 1; i >= 0; --i) {
+        const k = path53[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -866,7 +866,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path50) => path50 == null || typeof path50 === "object" && !!path50[Symbol.iterator]().next().done;
+    var isEmptyPath = (path53) => path53 == null || typeof path53 === "object" && !!path53[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -896,11 +896,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path50, value) {
-        if (isEmptyPath(path50))
+      addIn(path53, value) {
+        if (isEmptyPath(path53))
           this.add(value);
         else {
-          const [key, ...rest] = path50;
+          const [key, ...rest] = path53;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -914,8 +914,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path50) {
-        const [key, ...rest] = path50;
+      deleteIn(path53) {
+        const [key, ...rest] = path53;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -929,8 +929,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path50, keepScalar) {
-        const [key, ...rest] = path50;
+      getIn(path53, keepScalar) {
+        const [key, ...rest] = path53;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -948,8 +948,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path50) {
-        const [key, ...rest] = path50;
+      hasIn(path53) {
+        const [key, ...rest] = path53;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -959,8 +959,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path50, value) {
-        const [key, ...rest] = path50;
+      setIn(path53, value) {
+        const [key, ...rest] = path53;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -984,13 +984,13 @@ var require_Collection = __commonJS({
 var require_stringifyComment = __commonJS({
   "node_modules/yaml/dist/stringify/stringifyComment.js"(exports) {
     "use strict";
-    var stringifyComment = (str2) => str2.replace(/^(?!$)(?: $)?/gm, "#");
+    var stringifyComment = (str3) => str3.replace(/^(?!$)(?: $)?/gm, "#");
     function indentComment(comment2, indent) {
       if (/^\n+$/.test(comment2))
         return comment2.substring(1);
       return indent ? comment2.replace(/^(?! *$)/gm, indent) : comment2;
     }
-    var lineComment = (str2, indent, comment2) => str2.endsWith("\n") ? indentComment(comment2, indent) : comment2.includes("\n") ? "\n" + indentComment(comment2, indent) : (str2.endsWith(" ") ? "" : " ") + comment2;
+    var lineComment = (str3, indent, comment2) => str3.endsWith("\n") ? indentComment(comment2, indent) : comment2.includes("\n") ? "\n" + indentComment(comment2, indent) : (str3.endsWith(" ") ? "" : " ") + comment2;
     exports.indentComment = indentComment;
     exports.lineComment = lineComment;
     exports.stringifyComment = stringifyComment;
@@ -1144,16 +1144,16 @@ var require_stringifyString = __commonJS({
       lineWidth: ctx.options.lineWidth,
       minContentWidth: ctx.options.minContentWidth
     });
-    var containsDocumentMarker = (str2) => /^(%|---|\.\.\.)/m.test(str2);
-    function lineLengthOverLimit(str2, lineWidth, indentLength) {
+    var containsDocumentMarker = (str3) => /^(%|---|\.\.\.)/m.test(str3);
+    function lineLengthOverLimit(str3, lineWidth, indentLength) {
       if (!lineWidth || lineWidth < 0)
         return false;
       const limit = lineWidth - indentLength;
-      const strLen = str2.length;
+      const strLen = str3.length;
       if (strLen <= limit)
         return false;
       for (let i = 0, start = 0; i < strLen; ++i) {
-        if (str2[i] === "\n") {
+        if (str3[i] === "\n") {
           if (i - start > limit)
             return true;
           start = i + 1;
@@ -1170,11 +1170,11 @@ var require_stringifyString = __commonJS({
       const { implicitKey } = ctx;
       const minMultiLineLength = ctx.options.doubleQuotedMinMultiLineLength;
       const indent = ctx.indent || (containsDocumentMarker(value) ? "  " : "");
-      let str2 = "";
+      let str3 = "";
       let start = 0;
       for (let i = 0, ch = json[i]; ch; ch = json[++i]) {
         if (ch === " " && json[i + 1] === "\\" && json[i + 2] === "n") {
-          str2 += json.slice(start, i) + "\\ ";
+          str3 += json.slice(start, i) + "\\ ";
           i += 1;
           start = i;
           ch = "\\";
@@ -1183,38 +1183,38 @@ var require_stringifyString = __commonJS({
           switch (json[i + 1]) {
             case "u":
               {
-                str2 += json.slice(start, i);
+                str3 += json.slice(start, i);
                 const code = json.substr(i + 2, 4);
                 switch (code) {
                   case "0000":
-                    str2 += "\\0";
+                    str3 += "\\0";
                     break;
                   case "0007":
-                    str2 += "\\a";
+                    str3 += "\\a";
                     break;
                   case "000b":
-                    str2 += "\\v";
+                    str3 += "\\v";
                     break;
                   case "001b":
-                    str2 += "\\e";
+                    str3 += "\\e";
                     break;
                   case "0085":
-                    str2 += "\\N";
+                    str3 += "\\N";
                     break;
                   case "00a0":
-                    str2 += "\\_";
+                    str3 += "\\_";
                     break;
                   case "2028":
-                    str2 += "\\L";
+                    str3 += "\\L";
                     break;
                   case "2029":
-                    str2 += "\\P";
+                    str3 += "\\P";
                     break;
                   default:
                     if (code.substr(0, 2) === "00")
-                      str2 += "\\x" + code.substr(2);
+                      str3 += "\\x" + code.substr(2);
                     else
-                      str2 += json.substr(i, 6);
+                      str3 += json.substr(i, 6);
                 }
                 i += 5;
                 start = i + 1;
@@ -1224,14 +1224,14 @@ var require_stringifyString = __commonJS({
               if (implicitKey || json[i + 2] === '"' || json.length < minMultiLineLength) {
                 i += 1;
               } else {
-                str2 += json.slice(start, i) + "\n\n";
+                str3 += json.slice(start, i) + "\n\n";
                 while (json[i + 2] === "\\" && json[i + 3] === "n" && json[i + 4] !== '"') {
-                  str2 += "\n";
+                  str3 += "\n";
                   i += 2;
                 }
-                str2 += indent;
+                str3 += indent;
                 if (json[i + 2] === " ")
-                  str2 += "\\";
+                  str3 += "\\";
                 i += 1;
                 start = i + 1;
               }
@@ -1240,8 +1240,8 @@ var require_stringifyString = __commonJS({
               i += 1;
           }
       }
-      str2 = start ? str2 + json.slice(start) : json;
-      return implicitKey ? str2 : foldFlowLines.foldFlowLines(str2, indent, foldFlowLines.FOLD_QUOTED, getFoldOptions(ctx, false));
+      str3 = start ? str3 + json.slice(start) : json;
+      return implicitKey ? str3 : foldFlowLines.foldFlowLines(str3, indent, foldFlowLines.FOLD_QUOTED, getFoldOptions(ctx, false));
     }
     function singleQuotedString(value, ctx) {
       if (ctx.options.singleQuote === false || ctx.implicitKey && value.includes("\n") || /[ \t]\n|\n[ \t]/.test(value))
@@ -1325,9 +1325,9 @@ ${indent}`) + "'";
         start = start.replace(/\n+/g, `$&${indent}`);
       }
       const indentSize = indent ? "2" : "1";
-      let header = (startWithSpace ? indentSize : "") + chomp;
+      let header2 = (startWithSpace ? indentSize : "") + chomp;
       if (comment2) {
-        header += " " + commentString(comment2.replace(/ ?[\r\n]+/g, " "));
+        header2 += " " + commentString(comment2.replace(/ ?[\r\n]+/g, " "));
         if (onComment)
           onComment();
       }
@@ -1342,11 +1342,11 @@ ${indent}`) + "'";
         }
         const body = foldFlowLines.foldFlowLines(`${start}${foldedValue}${end}`, indent, foldFlowLines.FOLD_BLOCK, foldOptions);
         if (!literalFallback)
-          return `>${header}
+          return `>${header2}
 ${indent}${body}`;
       }
       value = value.replace(/\n+/g, `$&${indent}`);
-      return `|${header}
+      return `|${header2}
 ${indent}${start}${value}${end}`;
     }
     function plainString(item, ctx, onComment, onChompKeep) {
@@ -1369,15 +1369,15 @@ ${indent}${start}${value}${end}`;
           return quotedString(value, ctx);
         }
       }
-      const str2 = value.replace(/\n+/g, `$&
+      const str3 = value.replace(/\n+/g, `$&
 ${indent}`);
       if (actualString) {
-        const test = (tag) => tag.default && tag.tag !== "tag:yaml.org,2002:str" && tag.test?.test(str2);
+        const test = (tag) => tag.default && tag.tag !== "tag:yaml.org,2002:str" && tag.test?.test(str3);
         const { compat, tags } = ctx.doc.schema;
         if (tags.some(test) || compat?.some(test))
           return quotedString(value, ctx);
       }
-      return implicitKey ? str2 : foldFlowLines.foldFlowLines(str2, indent, foldFlowLines.FOLD_FLOW, getFoldOptions(ctx, false));
+      return implicitKey ? str3 : foldFlowLines.foldFlowLines(str3, indent, foldFlowLines.FOLD_FLOW, getFoldOptions(ctx, false));
     }
     function stringifyString(item, ctx, onComment, onChompKeep) {
       const { implicitKey, inFlow } = ctx;
@@ -1529,11 +1529,11 @@ var require_stringify = __commonJS({
       const props = stringifyProps(node, tagObj, ctx);
       if (props.length > 0)
         ctx.indentAtStart = (ctx.indentAtStart ?? 0) + props.length + 1;
-      const str2 = typeof tagObj.stringify === "function" ? tagObj.stringify(node, ctx, onComment, onChompKeep) : identity.isScalar(node) ? stringifyString.stringifyString(node, ctx, onComment, onChompKeep) : node.toString(ctx, onComment, onChompKeep);
+      const str3 = typeof tagObj.stringify === "function" ? tagObj.stringify(node, ctx, onComment, onChompKeep) : identity.isScalar(node) ? stringifyString.stringifyString(node, ctx, onComment, onChompKeep) : node.toString(ctx, onComment, onChompKeep);
       if (!props)
-        return str2;
-      return identity.isScalar(node) || str2[0] === "{" || str2[0] === "[" ? `${props} ${str2}` : `${props}
-${ctx.indent}${str2}`;
+        return str3;
+      return identity.isScalar(node) || str3[0] === "{" || str3[0] === "[" ? `${props} ${str3}` : `${props}
+${ctx.indent}${str3}`;
     }
     exports.createStringifyContext = createStringifyContext;
     exports.stringify = stringify;
@@ -1568,8 +1568,8 @@ var require_stringifyPair = __commonJS({
       });
       let keyCommentDone = false;
       let chompKeep = false;
-      let str2 = stringify.stringify(key, ctx, () => keyCommentDone = true, () => chompKeep = true);
-      if (!explicitKey && !ctx.inFlow && str2.length > 1024) {
+      let str3 = stringify.stringify(key, ctx, () => keyCommentDone = true, () => chompKeep = true);
+      if (!explicitKey && !ctx.inFlow && str3.length > 1024) {
         if (simpleKeys)
           throw new Error("With simple keys, single line scalar must not span more than 1024 characters");
         explicitKey = true;
@@ -1578,27 +1578,27 @@ var require_stringifyPair = __commonJS({
         if (allNullValues || value == null) {
           if (keyCommentDone && onComment)
             onComment();
-          return str2 === "" ? "?" : explicitKey ? `? ${str2}` : str2;
+          return str3 === "" ? "?" : explicitKey ? `? ${str3}` : str3;
         }
       } else if (allNullValues && !simpleKeys || value == null && explicitKey) {
-        str2 = `? ${str2}`;
+        str3 = `? ${str3}`;
         if (keyComment && !keyCommentDone) {
-          str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(keyComment));
+          str3 += stringifyComment.lineComment(str3, ctx.indent, commentString(keyComment));
         } else if (chompKeep && onChompKeep)
           onChompKeep();
-        return str2;
+        return str3;
       }
       if (keyCommentDone)
         keyComment = null;
       if (explicitKey) {
         if (keyComment)
-          str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(keyComment));
-        str2 = `? ${str2}
+          str3 += stringifyComment.lineComment(str3, ctx.indent, commentString(keyComment));
+        str3 = `? ${str3}
 ${indent}:`;
       } else {
-        str2 = `${str2}:`;
+        str3 = `${str3}:`;
         if (keyComment)
-          str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(keyComment));
+          str3 += stringifyComment.lineComment(str3, ctx.indent, commentString(keyComment));
       }
       let vsb, vcb, valueComment;
       if (identity.isNode(value)) {
@@ -1614,7 +1614,7 @@ ${indent}:`;
       }
       ctx.implicitKey = false;
       if (!explicitKey && !keyComment && identity.isScalar(value))
-        ctx.indentAtStart = str2.length + 1;
+        ctx.indentAtStart = str3.length + 1;
       chompKeep = false;
       if (!indentSeq && indentStep.length >= 2 && !ctx.inFlow && !explicitKey && identity.isSeq(value) && !value.flow && !value.tag && !value.anchor) {
         ctx.indent = ctx.indent.substring(2);
@@ -1658,16 +1658,16 @@ ${ctx.indent}`;
       } else if (valueStr === "" || valueStr[0] === "\n") {
         ws = "";
       }
-      str2 += ws + valueStr;
+      str3 += ws + valueStr;
       if (ctx.inFlow) {
         if (valueCommentDone && onComment)
           onComment();
       } else if (valueComment && !valueCommentDone) {
-        str2 += stringifyComment.lineComment(str2, ctx.indent, commentString(valueComment));
+        str3 += stringifyComment.lineComment(str3, ctx.indent, commentString(valueComment));
       } else if (chompKeep && onChompKeep) {
         onChompKeep();
       }
-      return str2;
+      return str3;
     }
     exports.stringifyPair = stringifyPair;
   }
@@ -1894,31 +1894,31 @@ var require_stringifyCollection = __commonJS({
           }
         }
         chompKeep = false;
-        let str3 = stringify.stringify(item, itemCtx, () => comment3 = null, () => chompKeep = true);
+        let str4 = stringify.stringify(item, itemCtx, () => comment3 = null, () => chompKeep = true);
         if (comment3)
-          str3 += stringifyComment.lineComment(str3, itemIndent, commentString(comment3));
+          str4 += stringifyComment.lineComment(str4, itemIndent, commentString(comment3));
         if (chompKeep && comment3)
           chompKeep = false;
-        lines.push(blockItemPrefix + str3);
+        lines.push(blockItemPrefix + str4);
       }
-      let str2;
+      let str3;
       if (lines.length === 0) {
-        str2 = flowChars.start + flowChars.end;
+        str3 = flowChars.start + flowChars.end;
       } else {
-        str2 = lines[0];
+        str3 = lines[0];
         for (let i = 1; i < lines.length; ++i) {
           const line = lines[i];
-          str2 += line ? `
+          str3 += line ? `
 ${indent}${line}` : "\n";
         }
       }
       if (comment2) {
-        str2 += "\n" + stringifyComment.indentComment(commentString(comment2), indent);
+        str3 += "\n" + stringifyComment.indentComment(commentString(comment2), indent);
         if (onComment)
           onComment();
       } else if (chompKeep && onChompKeep)
         onChompKeep();
-      return str2;
+      return str3;
     }
     function stringifyFlowCollection({ items }, ctx, { flowChars, itemIndent }) {
       const { indent, indentStep, flowCollectionPadding: fcPadding, options: { commentString } } = ctx;
@@ -1961,21 +1961,21 @@ ${indent}${line}` : "\n";
         }
         if (comment2)
           reqNewline = true;
-        let str2 = stringify.stringify(item, itemCtx, () => comment2 = null);
-        reqNewline || (reqNewline = lines.length > linesAtValue || str2.includes("\n"));
+        let str3 = stringify.stringify(item, itemCtx, () => comment2 = null);
+        reqNewline || (reqNewline = lines.length > linesAtValue || str3.includes("\n"));
         if (i < items.length - 1) {
-          str2 += ",";
+          str3 += ",";
         } else if (ctx.options.trailingComma) {
           if (ctx.options.lineWidth > 0) {
-            reqNewline || (reqNewline = lines.reduce((sum, line) => sum + line.length + 2, 2) + (str2.length + 2) > ctx.options.lineWidth);
+            reqNewline || (reqNewline = lines.reduce((sum, line) => sum + line.length + 2, 2) + (str3.length + 2) > ctx.options.lineWidth);
           }
           if (reqNewline) {
-            str2 += ",";
+            str3 += ",";
           }
         }
         if (comment2)
-          str2 += stringifyComment.lineComment(str2, itemIndent, commentString(comment2));
-        lines.push(str2);
+          str3 += stringifyComment.lineComment(str3, itemIndent, commentString(comment2));
+        lines.push(str3);
         linesAtValue = lines.length;
       }
       const { start, end } = flowChars;
@@ -1987,11 +1987,11 @@ ${indent}${line}` : "\n";
           reqNewline = ctx.options.lineWidth > 0 && len > ctx.options.lineWidth;
         }
         if (reqNewline) {
-          let str2 = start;
+          let str3 = start;
           for (const line of lines)
-            str2 += line ? `
+            str3 += line ? `
 ${indentStep}${indent}${line}` : "\n";
-          return `${str2}
+          return `${str3}
 ${indent}${end}`;
         } else {
           return `${start}${fcPadding}${lines.join(" ")}${fcPadding}${end}`;
@@ -2323,7 +2323,7 @@ var require_string = __commonJS({
       identify: (value) => typeof value === "string",
       default: true,
       tag: "tag:yaml.org,2002:str",
-      resolve: (str2) => str2,
+      resolve: (str3) => str3,
       stringify(item, ctx, onComment, onChompKeep) {
         ctx = Object.assign({ actualString: true }, ctx);
         return stringifyString.stringifyString(item, ctx, onComment, onChompKeep);
@@ -2361,7 +2361,7 @@ var require_bool = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:bool",
       test: /^(?:[Tt]rue|TRUE|[Ff]alse|FALSE)$/,
-      resolve: (str2) => new Scalar.Scalar(str2[0] === "t" || str2[0] === "T"),
+      resolve: (str3) => new Scalar.Scalar(str3[0] === "t" || str3[0] === "T"),
       stringify({ source, value }, ctx) {
         if (source && boolTag.test.test(source)) {
           const sv = source[0] === "t" || source[0] === "T";
@@ -2413,7 +2413,7 @@ var require_float = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:float",
       test: /^(?:[-+]?\.(?:inf|Inf|INF)|\.nan|\.NaN|\.NAN)$/,
-      resolve: (str2) => str2.slice(-3).toLowerCase() === "nan" ? NaN : str2[0] === "-" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY,
+      resolve: (str3) => str3.slice(-3).toLowerCase() === "nan" ? NaN : str3[0] === "-" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY,
       stringify: stringifyNumber.stringifyNumber
     };
     var floatExp = {
@@ -2422,7 +2422,7 @@ var require_float = __commonJS({
       tag: "tag:yaml.org,2002:float",
       format: "EXP",
       test: /^[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)[eE][-+]?[0-9]+$/,
-      resolve: (str2) => parseFloat(str2),
+      resolve: (str3) => parseFloat(str3),
       stringify(node) {
         const num2 = Number(node.value);
         return isFinite(num2) ? num2.toExponential() : stringifyNumber.stringifyNumber(node);
@@ -2433,11 +2433,11 @@ var require_float = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:float",
       test: /^[-+]?(?:\.[0-9]+|[0-9]+\.[0-9]*)$/,
-      resolve(str2) {
-        const node = new Scalar.Scalar(parseFloat(str2));
-        const dot = str2.indexOf(".");
-        if (dot !== -1 && str2[str2.length - 1] === "0")
-          node.minFractionDigits = str2.length - dot - 1;
+      resolve(str3) {
+        const node = new Scalar.Scalar(parseFloat(str3));
+        const dot = str3.indexOf(".");
+        if (dot !== -1 && str3[str3.length - 1] === "0")
+          node.minFractionDigits = str3.length - dot - 1;
         return node;
       },
       stringify: stringifyNumber.stringifyNumber
@@ -2454,7 +2454,7 @@ var require_int = __commonJS({
     "use strict";
     var stringifyNumber = require_stringifyNumber();
     var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
-    var intResolve = (str2, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str2) : parseInt(str2.substring(offset), radix);
+    var intResolve = (str3, offset, radix, { intAsBigInt }) => intAsBigInt ? BigInt(str3) : parseInt(str3.substring(offset), radix);
     function intStringify(node, radix, prefix) {
       const { value } = node;
       if (intIdentify(value) && value >= 0)
@@ -2467,15 +2467,15 @@ var require_int = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "OCT",
       test: /^0o[0-7]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 2, 8, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 2, 8, opt),
       stringify: (node) => intStringify(node, 8, "0o")
     };
-    var int = {
+    var int2 = {
       identify: intIdentify,
       default: true,
       tag: "tag:yaml.org,2002:int",
       test: /^[-+]?[0-9]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 0, 10, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 0, 10, opt),
       stringify: stringifyNumber.stringifyNumber
     };
     var intHex = {
@@ -2484,10 +2484,10 @@ var require_int = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "HEX",
       test: /^0x[0-9a-fA-F]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 2, 16, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 2, 16, opt),
       stringify: (node) => intStringify(node, 16, "0x")
     };
-    exports.int = int;
+    exports.int = int2;
     exports.intHex = intHex;
     exports.intOct = intOct;
   }
@@ -2503,16 +2503,16 @@ var require_schema = __commonJS({
     var string = require_string();
     var bool = require_bool();
     var float = require_float();
-    var int = require_int();
+    var int2 = require_int();
     var schema = [
       map.map,
       seq.seq,
       string.string,
       _null.nullTag,
       bool.boolTag,
-      int.intOct,
-      int.int,
-      int.intHex,
+      int2.intOct,
+      int2.int,
+      int2.intHex,
       float.floatNaN,
       float.floatExp,
       float.float
@@ -2537,7 +2537,7 @@ var require_schema2 = __commonJS({
         identify: (value) => typeof value === "string",
         default: true,
         tag: "tag:yaml.org,2002:str",
-        resolve: (str2) => str2,
+        resolve: (str3) => str3,
         stringify: stringifyJSON
       },
       {
@@ -2554,7 +2554,7 @@ var require_schema2 = __commonJS({
         default: true,
         tag: "tag:yaml.org,2002:bool",
         test: /^true$|^false$/,
-        resolve: (str2) => str2 === "true",
+        resolve: (str3) => str3 === "true",
         stringify: stringifyJSON
       },
       {
@@ -2562,7 +2562,7 @@ var require_schema2 = __commonJS({
         default: true,
         tag: "tag:yaml.org,2002:int",
         test: /^-?(?:0|[1-9][0-9]*)$/,
-        resolve: (str2, _onError, { intAsBigInt }) => intAsBigInt ? BigInt(str2) : parseInt(str2, 10),
+        resolve: (str3, _onError, { intAsBigInt }) => intAsBigInt ? BigInt(str3) : parseInt(str3, 10),
         stringify: ({ value }) => intIdentify(value) ? value.toString() : JSON.stringify(value)
       },
       {
@@ -2570,7 +2570,7 @@ var require_schema2 = __commonJS({
         default: true,
         tag: "tag:yaml.org,2002:float",
         test: /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]*)?(?:[eE][-+]?[0-9]+)?$/,
-        resolve: (str2) => parseFloat(str2),
+        resolve: (str3) => parseFloat(str3),
         stringify: stringifyJSON
       }
     ];
@@ -2578,9 +2578,9 @@ var require_schema2 = __commonJS({
       default: true,
       tag: "",
       test: /^/,
-      resolve(str2, onError) {
-        onError(`Unresolved plain scalar ${JSON.stringify(str2)}`);
-        return str2;
+      resolve(str3, onError) {
+        onError(`Unresolved plain scalar ${JSON.stringify(str3)}`);
+        return str3;
       }
     };
     var schema = [map.map, seq.seq].concat(jsonScalars, jsonError);
@@ -2612,10 +2612,10 @@ var require_binary = __commonJS({
         if (typeof node_buffer.Buffer === "function") {
           return node_buffer.Buffer.from(src, "base64");
         } else if (typeof atob === "function") {
-          const str2 = atob(src.replace(/[\n\r]/g, ""));
-          const buffer = new Uint8Array(str2.length);
-          for (let i = 0; i < str2.length; ++i)
-            buffer[i] = str2.charCodeAt(i);
+          const str3 = atob(src.replace(/[\n\r]/g, ""));
+          const buffer = new Uint8Array(str3.length);
+          for (let i = 0; i < str3.length; ++i)
+            buffer[i] = str3.charCodeAt(i);
           return buffer;
         } else {
           onError("This environment does not support reading binary tags; either Buffer or atob is required");
@@ -2626,28 +2626,28 @@ var require_binary = __commonJS({
         if (!value)
           return "";
         const buf = value;
-        let str2;
+        let str3;
         if (typeof node_buffer.Buffer === "function") {
-          str2 = buf instanceof node_buffer.Buffer ? buf.toString("base64") : node_buffer.Buffer.from(buf.buffer).toString("base64");
+          str3 = buf instanceof node_buffer.Buffer ? buf.toString("base64") : node_buffer.Buffer.from(buf.buffer).toString("base64");
         } else if (typeof btoa === "function") {
           let s = "";
           for (let i = 0; i < buf.length; ++i)
             s += String.fromCharCode(buf[i]);
-          str2 = btoa(s);
+          str3 = btoa(s);
         } else {
           throw new Error("This environment does not support writing binary tags; either Buffer or btoa is required");
         }
         type ?? (type = Scalar.Scalar.BLOCK_LITERAL);
         if (type !== Scalar.Scalar.QUOTE_DOUBLE) {
           const lineWidth = Math.max(ctx.options.lineWidth - ctx.indent.length, ctx.options.minContentWidth);
-          const n = Math.ceil(str2.length / lineWidth);
+          const n = Math.ceil(str3.length / lineWidth);
           const lines = new Array(n);
           for (let i = 0, o = 0; i < n; ++i, o += lineWidth) {
-            lines[i] = str2.substr(o, lineWidth);
+            lines[i] = str3.substr(o, lineWidth);
           }
-          str2 = lines.join(type === Scalar.Scalar.BLOCK_LITERAL ? "\n" : " ");
+          str3 = lines.join(type === Scalar.Scalar.BLOCK_LITERAL ? "\n" : " ");
         }
-        return stringifyString.stringifyString({ comment: comment2, type, value: str2 }, ctx, onComment, onChompKeep);
+        return stringifyString.stringifyString({ comment: comment2, type, value: str3 }, ctx, onComment, onChompKeep);
       }
     };
     exports.binary = binary;
@@ -2853,7 +2853,7 @@ var require_float2 = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:float",
       test: /^(?:[-+]?\.(?:inf|Inf|INF)|\.nan|\.NaN|\.NAN)$/,
-      resolve: (str2) => str2.slice(-3).toLowerCase() === "nan" ? NaN : str2[0] === "-" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY,
+      resolve: (str3) => str3.slice(-3).toLowerCase() === "nan" ? NaN : str3[0] === "-" ? Number.NEGATIVE_INFINITY : Number.POSITIVE_INFINITY,
       stringify: stringifyNumber.stringifyNumber
     };
     var floatExp = {
@@ -2862,7 +2862,7 @@ var require_float2 = __commonJS({
       tag: "tag:yaml.org,2002:float",
       format: "EXP",
       test: /^[-+]?(?:[0-9][0-9_]*)?(?:\.[0-9_]*)?[eE][-+]?[0-9]+$/,
-      resolve: (str2) => parseFloat(str2.replace(/_/g, "")),
+      resolve: (str3) => parseFloat(str3.replace(/_/g, "")),
       stringify(node) {
         const num2 = Number(node.value);
         return isFinite(num2) ? num2.toExponential() : stringifyNumber.stringifyNumber(node);
@@ -2873,11 +2873,11 @@ var require_float2 = __commonJS({
       default: true,
       tag: "tag:yaml.org,2002:float",
       test: /^[-+]?(?:[0-9][0-9_]*)?\.[0-9_]*$/,
-      resolve(str2) {
-        const node = new Scalar.Scalar(parseFloat(str2.replace(/_/g, "")));
-        const dot = str2.indexOf(".");
+      resolve(str3) {
+        const node = new Scalar.Scalar(parseFloat(str3.replace(/_/g, "")));
+        const dot = str3.indexOf(".");
         if (dot !== -1) {
-          const f = str2.substring(dot + 1).replace(/_/g, "");
+          const f = str3.substring(dot + 1).replace(/_/g, "");
           if (f[f.length - 1] === "0")
             node.minFractionDigits = f.length;
         }
@@ -2897,34 +2897,34 @@ var require_int2 = __commonJS({
     "use strict";
     var stringifyNumber = require_stringifyNumber();
     var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
-    function intResolve(str2, offset, radix, { intAsBigInt }) {
-      const sign = str2[0];
+    function intResolve(str3, offset, radix, { intAsBigInt }) {
+      const sign = str3[0];
       if (sign === "-" || sign === "+")
         offset += 1;
-      str2 = str2.substring(offset).replace(/_/g, "");
+      str3 = str3.substring(offset).replace(/_/g, "");
       if (intAsBigInt) {
         switch (radix) {
           case 2:
-            str2 = `0b${str2}`;
+            str3 = `0b${str3}`;
             break;
           case 8:
-            str2 = `0o${str2}`;
+            str3 = `0o${str3}`;
             break;
           case 16:
-            str2 = `0x${str2}`;
+            str3 = `0x${str3}`;
             break;
         }
-        const n2 = BigInt(str2);
+        const n2 = BigInt(str3);
         return sign === "-" ? BigInt(-1) * n2 : n2;
       }
-      const n = parseInt(str2, radix);
+      const n = parseInt(str3, radix);
       return sign === "-" ? -1 * n : n;
     }
     function intStringify(node, radix, prefix) {
       const { value } = node;
       if (intIdentify(value)) {
-        const str2 = value.toString(radix);
-        return value < 0 ? "-" + prefix + str2.substr(1) : prefix + str2;
+        const str3 = value.toString(radix);
+        return value < 0 ? "-" + prefix + str3.substr(1) : prefix + str3;
       }
       return stringifyNumber.stringifyNumber(node);
     }
@@ -2934,7 +2934,7 @@ var require_int2 = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "BIN",
       test: /^[-+]?0b[0-1_]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 2, 2, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 2, 2, opt),
       stringify: (node) => intStringify(node, 2, "0b")
     };
     var intOct = {
@@ -2943,15 +2943,15 @@ var require_int2 = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "OCT",
       test: /^[-+]?0[0-7_]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 1, 8, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 1, 8, opt),
       stringify: (node) => intStringify(node, 8, "0")
     };
-    var int = {
+    var int2 = {
       identify: intIdentify,
       default: true,
       tag: "tag:yaml.org,2002:int",
       test: /^[-+]?[0-9][0-9_]*$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 0, 10, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 0, 10, opt),
       stringify: stringifyNumber.stringifyNumber
     };
     var intHex = {
@@ -2960,10 +2960,10 @@ var require_int2 = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "HEX",
       test: /^[-+]?0x[0-9a-fA-F_]+$/,
-      resolve: (str2, _onError, opt) => intResolve(str2, 2, 16, opt),
+      resolve: (str3, _onError, opt) => intResolve(str3, 2, 16, opt),
       stringify: (node) => intStringify(node, 16, "0x")
     };
-    exports.int = int;
+    exports.int = int2;
     exports.intBin = intBin;
     exports.intHex = intHex;
     exports.intOct = intOct;
@@ -3064,9 +3064,9 @@ var require_timestamp = __commonJS({
   "node_modules/yaml/dist/schema/yaml-1.1/timestamp.js"(exports) {
     "use strict";
     var stringifyNumber = require_stringifyNumber();
-    function parseSexagesimal(str2, asBigInt) {
-      const sign = str2[0];
-      const parts = sign === "-" || sign === "+" ? str2.substring(1) : str2;
+    function parseSexagesimal(str3, asBigInt) {
+      const sign = str3[0];
+      const parts = sign === "-" || sign === "+" ? str3.substring(1) : str3;
       const num2 = (n) => asBigInt ? BigInt(n) : Number(n);
       const res = parts.replace(/_/g, "").split(":").reduce((res2, p) => res2 * num2(60) + num2(p), num2(0));
       return sign === "-" ? num2(-1) * res : res;
@@ -3103,7 +3103,7 @@ var require_timestamp = __commonJS({
       tag: "tag:yaml.org,2002:int",
       format: "TIME",
       test: /^[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+$/,
-      resolve: (str2, _onError, { intAsBigInt }) => parseSexagesimal(str2, intAsBigInt),
+      resolve: (str3, _onError, { intAsBigInt }) => parseSexagesimal(str3, intAsBigInt),
       stringify: stringifySexagesimal
     };
     var floatTime = {
@@ -3112,7 +3112,7 @@ var require_timestamp = __commonJS({
       tag: "tag:yaml.org,2002:float",
       format: "TIME",
       test: /^[-+]?[0-9][0-9_]*(?::[0-5]?[0-9])+\.[0-9_]*$/,
-      resolve: (str2) => parseSexagesimal(str2, false),
+      resolve: (str3) => parseSexagesimal(str3, false),
       stringify: stringifySexagesimal
     };
     var timestamp = {
@@ -3123,8 +3123,8 @@ var require_timestamp = __commonJS({
       // may be omitted altogether, resulting in a date format. In such a case, the time part is
       // assumed to be 00:00:00Z (start of day, UTC).
       test: RegExp("^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})(?:(?:t|T|[ \\t]+)([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2}(\\.[0-9]+)?)(?:[ \\t]*(Z|[-+][012]?[0-9](?::[0-9]{2})?))?)?$"),
-      resolve(str2) {
-        const match = str2.match(timestamp.test);
+      resolve(str3) {
+        const match = str3.match(timestamp.test);
         if (!match)
           throw new Error("!!timestamp expects a date, starting with yyyy-mm-dd");
         const [, year, month, day, hour, minute, second] = match.map(Number);
@@ -3158,7 +3158,7 @@ var require_schema3 = __commonJS({
     var binary = require_binary();
     var bool = require_bool2();
     var float = require_float2();
-    var int = require_int2();
+    var int2 = require_int2();
     var merge = require_merge();
     var omap = require_omap();
     var pairs = require_pairs();
@@ -3171,10 +3171,10 @@ var require_schema3 = __commonJS({
       _null.nullTag,
       bool.trueTag,
       bool.falseTag,
-      int.intBin,
-      int.intOct,
-      int.int,
-      int.intHex,
+      int2.intBin,
+      int2.intOct,
+      int2.int,
+      int2.intHex,
       float.floatNaN,
       float.floatExp,
       float.float,
@@ -3201,7 +3201,7 @@ var require_tags = __commonJS({
     var string = require_string();
     var bool = require_bool();
     var float = require_float();
-    var int = require_int();
+    var int2 = require_int();
     var schema = require_schema();
     var schema$1 = require_schema2();
     var binary = require_binary();
@@ -3225,9 +3225,9 @@ var require_tags = __commonJS({
       floatExp: float.floatExp,
       floatNaN: float.floatNaN,
       floatTime: timestamp.floatTime,
-      int: int.int,
-      intHex: int.intHex,
-      intOct: int.intOct,
+      int: int2.int,
+      intHex: int2.intHex,
+      intOct: int2.intOct,
       intTime: timestamp.intTime,
       map: map.map,
       merge: merge.merge,
@@ -3475,9 +3475,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path50, value) {
+      addIn(path53, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path50, value);
+          this.contents.addIn(path53, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3552,14 +3552,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path50) {
-        if (Collection.isEmptyPath(path50)) {
+      deleteIn(path53) {
+        if (Collection.isEmptyPath(path53)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path50) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path53) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3574,10 +3574,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path50, keepScalar) {
-        if (Collection.isEmptyPath(path50))
+      getIn(path53, keepScalar) {
+        if (Collection.isEmptyPath(path53))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path50, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path53, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3588,10 +3588,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path50) {
-        if (Collection.isEmptyPath(path50))
+      hasIn(path53) {
+        if (Collection.isEmptyPath(path53))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path50) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path53) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3608,13 +3608,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path50, value) {
-        if (Collection.isEmptyPath(path50)) {
+      setIn(path53, value) {
+        if (Collection.isEmptyPath(path53)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path50), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path53), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path50, value);
+          this.contents.setIn(path53, value);
         }
       }
       /**
@@ -4449,10 +4449,10 @@ var require_resolve_block_scalar = __commonJS({
     var Scalar = require_Scalar();
     function resolveBlockScalar(ctx, scalar, onError) {
       const start = scalar.offset;
-      const header = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
-      if (!header)
+      const header2 = parseBlockScalarHeader(scalar, ctx.options.strict, onError);
+      if (!header2)
         return { value: "", type: null, comment: "", range: [start, start, start] };
-      const type = header.mode === ">" ? Scalar.Scalar.BLOCK_FOLDED : Scalar.Scalar.BLOCK_LITERAL;
+      const type = header2.mode === ">" ? Scalar.Scalar.BLOCK_FOLDED : Scalar.Scalar.BLOCK_LITERAL;
       const lines = scalar.source ? splitLines(scalar.source) : [];
       let chompStart = lines.length;
       for (let i = lines.length - 1; i >= 0; --i) {
@@ -4463,26 +4463,26 @@ var require_resolve_block_scalar = __commonJS({
           break;
       }
       if (chompStart === 0) {
-        const value2 = header.chomp === "+" && lines.length > 0 ? "\n".repeat(Math.max(1, lines.length - 1)) : "";
-        let end2 = start + header.length;
+        const value2 = header2.chomp === "+" && lines.length > 0 ? "\n".repeat(Math.max(1, lines.length - 1)) : "";
+        let end2 = start + header2.length;
         if (scalar.source)
           end2 += scalar.source.length;
-        return { value: value2, type, comment: header.comment, range: [start, end2, end2] };
+        return { value: value2, type, comment: header2.comment, range: [start, end2, end2] };
       }
-      let trimIndent = scalar.indent + header.indent;
-      let offset = scalar.offset + header.length;
+      let trimIndent = scalar.indent + header2.indent;
+      let offset = scalar.offset + header2.length;
       let contentStart = 0;
       for (let i = 0; i < chompStart; ++i) {
         const [indent, content] = lines[i];
         if (content === "" || content === "\r") {
-          if (header.indent === 0 && indent.length > trimIndent)
+          if (header2.indent === 0 && indent.length > trimIndent)
             trimIndent = indent.length;
         } else {
           if (indent.length < trimIndent) {
             const message = "Block scalars with more-indented leading empty lines must use an explicit indentation indicator";
             onError(offset + indent.length, "MISSING_CHAR", message);
           }
-          if (header.indent === 0)
+          if (header2.indent === 0)
             trimIndent = indent.length;
           contentStart = i;
           if (trimIndent === 0 && !ctx.atRoot) {
@@ -4509,7 +4509,7 @@ var require_resolve_block_scalar = __commonJS({
         if (crlf)
           content = content.slice(0, -1);
         if (content && indent.length < trimIndent) {
-          const src = header.indent ? "explicit indentation indicator" : "first line";
+          const src = header2.indent ? "explicit indentation indicator" : "first line";
           const message = `Block scalar lines must not be less indented than their ${src}`;
           onError(offset - content.length - (crlf ? 2 : 1), "BAD_INDENT", message);
           indent = "";
@@ -4536,7 +4536,7 @@ var require_resolve_block_scalar = __commonJS({
           prevMoreIndented = false;
         }
       }
-      switch (header.chomp) {
+      switch (header2.chomp) {
         case "-":
           break;
         case "+":
@@ -4548,8 +4548,8 @@ var require_resolve_block_scalar = __commonJS({
         default:
           value += "\n";
       }
-      const end = start + header.length + scalar.source.length;
-      return { value, type, comment: header.comment, range: [start, end, end] };
+      const end = start + header2.length + scalar.source.length;
+      return { value, type, comment: header2.comment, range: [start, end, end] };
     }
     function parseBlockScalarHeader({ offset, props }, strict, onError) {
       if (props[0].type !== "block-scalar-header") {
@@ -5388,10 +5388,10 @@ var require_cst_scalar = __commonJS({
             type = "QUOTE_DOUBLE";
             break;
           case "block-scalar": {
-            const header = token.props[0];
-            if (header.type !== "block-scalar-header")
+            const header2 = token.props[0];
+            if (header2.type !== "block-scalar-header")
               throw new Error("Invalid block scalar header");
-            type = header.source[0] === ">" ? "BLOCK_FOLDED" : "BLOCK_LITERAL";
+            type = header2.source[0] === ">" ? "BLOCK_FOLDED" : "BLOCK_LITERAL";
             break;
           }
           default:
@@ -5423,10 +5423,10 @@ var require_cst_scalar = __commonJS({
       const head = source.substring(0, he);
       const body = source.substring(he + 1) + "\n";
       if (token.type === "block-scalar") {
-        const header = token.props[0];
-        if (header.type !== "block-scalar-header")
+        const header2 = token.props[0];
+        if (header2.type !== "block-scalar-header")
           throw new Error("Invalid block scalar header");
-        header.source = head;
+        header2.source = head;
         token.source = body;
       } else {
         const { offset } = token;
@@ -5575,9 +5575,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path50) => {
+    visit.itemAtPath = (cst, path53) => {
       let item = cst;
-      for (const [field, index] of path50) {
+      for (const [field, index] of path53) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5586,23 +5586,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path50) => {
-      const parent = visit.itemAtPath(cst, path50.slice(0, -1));
-      const field = path50[path50.length - 1][0];
+    visit.parentCollection = (cst, path53) => {
+      const parent = visit.itemAtPath(cst, path53.slice(0, -1));
+      const field = path53[path53.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path50, item, visitor) {
-      let ctrl = visitor(item, path50);
+    function _visit(path53, item, visitor) {
+      let ctrl = visitor(item, path53);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path50.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path53.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5613,10 +5613,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path50);
+            ctrl = ctrl(item, path53);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path50) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path53) : ctrl;
     }
     exports.visit = visit;
   }
@@ -6351,15 +6351,15 @@ var require_parser = __commonJS({
     var node_process = __require("process");
     var cst = require_cst();
     var lexer = require_lexer();
-    function includesToken(list, type) {
-      for (let i = 0; i < list.length; ++i)
-        if (list[i].type === type)
+    function includesToken(list2, type) {
+      for (let i = 0; i < list2.length; ++i)
+        if (list2[i].type === type)
           return true;
       return false;
     }
-    function findNonEmptyIndex(list) {
-      for (let i = 0; i < list.length; ++i) {
-        switch (list[i].type) {
+    function findNonEmptyIndex(list2) {
+      for (let i = 0; i < list2.length; ++i) {
+        switch (list2[i].type) {
           case "space":
           case "comment":
           case "newline":
@@ -6918,14 +6918,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs32 = this.flowScalar(this.type);
+              const fs36 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map.items.push({ start, key: fs32, sep: [] });
+                map.items.push({ start, key: fs36, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs32);
+                this.stack.push(fs36);
               } else {
-                Object.assign(it, { key: fs32, sep: [] });
+                Object.assign(it, { key: fs36, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -7053,13 +7053,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs32 = this.flowScalar(this.type);
+              const fs36 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs32, sep: [] });
+                fc.items.push({ start: [], key: fs36, sep: [] });
               else if (it.sep)
-                this.stack.push(fs32);
+                this.stack.push(fs36);
               else
-                Object.assign(it, { key: fs32, sep: [] });
+                Object.assign(it, { key: fs36, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -7368,10 +7368,10 @@ var require_dist = __commonJS({
 });
 
 // cli/src/main.ts
-import { execFileSync as execFileSync3 } from "node:child_process";
-import fs31 from "node:fs";
-import os3 from "node:os";
-import path49 from "node:path";
+import { execFileSync as execFileSync5 } from "node:child_process";
+import fs35 from "node:fs";
+import os4 from "node:os";
+import path52 from "node:path";
 import { parseArgs as parseArgs2 } from "node:util";
 
 // core/auto-qa/commands.ts
@@ -7692,6 +7692,9 @@ var DEFAULT_TEST_TIMEOUT_S = 300;
 var RUN_BEFORE = ["never", "full_runs", "always"];
 var DEFAULT_SETUP_TIMEOUT_S = 120;
 var BUDGET_MODES = ["diff", "quick", "regression", "full", "ticket", "ci", "auto"];
+var CI_CONDITIONS = ["critical", "important", "minor", "environment-problem", "came-back", "bank-failure", "not-ready"];
+var CI_MODES = ["diff", "quick", "regression", "full"];
+var DEFAULT_CI = { fail_on: ["critical", "environment-problem"], warn_on: ["important"], cache_memory: false, mode: "diff", comment: true, status: true, status_context: "qamind", timeout_minutes: 25 };
 function splitFrontMatter(text3) {
   const m = /^﻿?---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n([\s\S]*))?$/.exec(text3);
   return m ? { yaml: m[1] ?? "", body: m[2] ?? "" } : null;
@@ -7762,6 +7765,52 @@ function normalizeBudget(raw, problems) {
     }
   }
   return { ...top, ...typeof daily === "number" && daily >= 1 && daily <= 10080 ? { daily_max: daily } : {}, modes };
+}
+function normalizeCi(raw, problems) {
+  if (raw === void 0 || raw === null) return { ...DEFAULT_CI };
+  if (!isObj(raw)) {
+    problems.push("ci must be a mapping (fail_on, warn_on, cache_memory, mode, comment, status, status_context, timeout_minutes).");
+    return { ...DEFAULT_CI };
+  }
+  const conditions = (key) => {
+    const v = raw[key];
+    if (v === void 0 || v === null) return [...DEFAULT_CI[key]];
+    if (!Array.isArray(v)) {
+      problems.push(`ci.${key} must be a list of: ${CI_CONDITIONS.join(", ")}.`);
+      return [...DEFAULT_CI[key]];
+    }
+    const out = [];
+    for (const c of v) {
+      if (typeof c === "string" && CI_CONDITIONS.includes(c)) out.push(c);
+      else problems.push(`ci.${key}: "${String(c)}" is not a condition. Use ${CI_CONDITIONS.join(", ")}.`);
+    }
+    return [...new Set(out)];
+  };
+  const failOn = conditions("fail_on");
+  const warnOn = conditions("warn_on");
+  for (const c of warnOn) if (failOn.includes(c)) problems.push(`ci: "${c}" is in both fail_on and warn_on; it would fail the run, so take it out of warn_on.`);
+  const bool = (key) => {
+    const v = raw[key];
+    if (v === void 0) return DEFAULT_CI[key];
+    if (typeof v !== "boolean") problems.push(`ci.${key} must be true or false.`);
+    return typeof v === "boolean" ? v : DEFAULT_CI[key];
+  };
+  const mode = raw["mode"];
+  if (mode !== void 0 && !(typeof mode === "string" && CI_MODES.includes(mode))) problems.push(`ci.mode must be one of ${CI_MODES.join(", ")} (ticket mode comes with ticket mode).`);
+  const context = raw["status_context"];
+  if (context !== void 0 && !(typeof context === "string" && /^[\w .:/-]{1,60}$/.test(context))) problems.push("ci.status_context must be a short name (letters, digits, space and . : / - _).");
+  const timeout = raw["timeout_minutes"];
+  if (timeout !== void 0 && !(typeof timeout === "number" && timeout >= 1 && timeout <= 360)) problems.push("ci.timeout_minutes must be a number of minutes from 1 to 360.");
+  return {
+    fail_on: failOn,
+    warn_on: warnOn.filter((c) => !failOn.includes(c)),
+    cache_memory: bool("cache_memory"),
+    mode: typeof mode === "string" && CI_MODES.includes(mode) ? mode : DEFAULT_CI.mode,
+    comment: bool("comment"),
+    status: bool("status"),
+    status_context: typeof context === "string" && /^[\w .:/-]{1,60}$/.test(context) ? context : DEFAULT_CI.status_context,
+    timeout_minutes: typeof timeout === "number" && timeout >= 1 && timeout <= 360 ? timeout : DEFAULT_CI.timeout_minutes
+  };
 }
 var LIST_MAX = 30;
 function limitedStrings(raw, where, problems, opts2) {
@@ -7893,7 +7942,8 @@ function normalizeConfig(raw, problems) {
     health: { checks: isObj(raw["health"]) ? strList(raw["health"]["checks"]) : [] },
     setup: normalizeSetup(raw["setup"], problems),
     budget: normalizeBudget(raw["budget"], problems),
-    privacy: normalizePrivacy(raw["privacy"], problems)
+    privacy: normalizePrivacy(raw["privacy"], problems),
+    ci: normalizeCi(raw["ci"], problems)
   };
   return config;
 }
@@ -8161,35 +8211,37 @@ function corePath() {
 
 // core/lib/git.ts
 import { execFileSync as execFileSync2 } from "node:child_process";
-function git2(root, args) {
+function git2(root, args, raw = false) {
   try {
-    return execFileSync2("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 16 * 1024 * 1024 }).trim();
+    const out = execFileSync2("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 16 * 1024 * 1024 });
+    return raw ? out : out.trim();
   } catch {
     return void 0;
   }
+}
+function porcelainFiles(root, opts2 = {}) {
+  const out = git2(root, ["status", "--porcelain", ...opts2.untracked === false ? ["--untracked-files=no"] : []], true) ?? "";
+  return out.split("\n").filter(Boolean).map((line) => line.slice(3).trim().replace(/^.* -> /, ""));
 }
 function gitInfo(root) {
   if (git2(root, ["rev-parse", "--is-inside-work-tree"]) !== "true") return { is_repo: false, changed_files: [] };
   const branch = git2(root, ["rev-parse", "--abbrev-ref", "HEAD"]);
   const commit = git2(root, ["rev-parse", "--short", "HEAD"]);
-  const status2 = git2(root, ["status", "--porcelain"]) ?? "";
+  const files = porcelainFiles(root);
   const originHead = git2(root, ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"]);
-  const candidates = [originHead, "main", "master"].filter((x) => !!x);
+  const candidates = [process.env["QAMIND_BASE_REF"], originHead, "main", "master"].filter((x) => !!x);
   const base = candidates.find((c) => git2(root, ["rev-parse", "--verify", "--quiet", c]) !== void 0);
   const changed = /* @__PURE__ */ new Set();
   if (base && branch && branch !== base.replace(/^origin\//, "")) {
     for (const f of (git2(root, ["diff", "--name-only", `${base}...HEAD`]) ?? "").split("\n")) if (f) changed.add(f);
   }
-  for (const line of status2.split("\n")) {
-    const file3 = line.slice(3).trim().replace(/^.* -> /, "");
-    if (file3 && !file3.startsWith(".qa/")) changed.add(file3);
-  }
+  for (const file3 of files) if (file3 && !file3.startsWith(".qa/")) changed.add(file3);
   return {
     is_repo: true,
     ...branch ? { branch } : {},
     ...commit ? { commit } : {},
     ...base ? { base } : {},
-    dirty: status2.length > 0,
+    dirty: files.length > 0,
     changed_files: [...changed].slice(0, 300)
   };
 }
@@ -8200,7 +8252,7 @@ import path10 from "node:path";
 var QA_GITIGNORE_ENTRIES = [".env.qa", ".qa/"];
 function isCovered(lines, entry) {
   const bare = entry.replace(/\/$/, "");
-  const accepted = /* @__PURE__ */ new Set([entry, bare, `/${entry}`, `/${bare}`, `${bare}/`, `/${bare}/`]);
+  const accepted = /* @__PURE__ */ new Set([entry, bare, `/${entry}`, `/${bare}`, `${bare}/`, `/${bare}/`, `${bare}/*`, `/${bare}/*`, `${bare}/**`, `/${bare}/**`]);
   return lines.some((l) => accepted.has(l.trim()));
 }
 function ensureGitignoreEntries(root, entries = QA_GITIGNORE_ENTRIES) {
@@ -9789,7 +9841,7 @@ var notFoundValue = (p) => {
 };
 function fillPath(ep, mode, own = false) {
   const needs = [];
-  const path50 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
+  const path53 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
     const param = ep.parameters.find((p) => p.in === "path" && p.name === name) ?? { name, in: "path", required: true };
     if (mode === "not-found") return encodeURIComponent(String(notFoundValue(param)));
     const resource = lastSegment(ep.path.slice(0, offset));
@@ -9798,7 +9850,7 @@ function fillPath(ep, mode, own = false) {
     needs.push(variable);
     return `{{${variable}}}`;
   });
-  return { path: path50, needs };
+  return { path: path53, needs };
 }
 function withReferences(value, vars) {
   if (Array.isArray(value)) return value.map((v) => withReferences(v, vars));
@@ -10641,9 +10693,9 @@ function prepareRun(store, runDir) {
   }
   return { notes };
 }
-var dedupeById = (list) => {
+var dedupeById = (list2) => {
   const byKey = /* @__PURE__ */ new Map();
-  for (const f of list) {
+  for (const f of list2) {
     const key = `${f.bug ?? ""}|${f.title.trim().toLowerCase()}`;
     const have = byKey.get(key);
     if (!have || !have.id && f.id) byKey.set(key, f);
@@ -12015,7 +12067,7 @@ function startRun(opts2) {
   ensureMigrated(store);
   const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store };
   const configFile = path28.join(root, ".qa", "config.md");
-  const gitignoreAdded = ensureGitignoreEntries(root);
+  const gitignoreAdded = env["QAMIND_TRIGGER"] === "ci" || opts2.trigger === "ci" ? [] : ensureGitignoreEntries(root);
   if (!exists(configFile)) {
     const created = [];
     const core = corePath();
@@ -12079,10 +12131,10 @@ function startRun(opts2) {
   const criticalFlows = parseCriticalFlows(check.body ?? "");
   const stack = detectStack(root, now);
   saveStack(storeSubdirs(store).memory, stack);
-  const git3 = gitInfo(root);
+  const git4 = gitInfo(root);
   const policy = policyFromConfig(config);
-  const readonly = opts2.kind === "qa-only" || opts2.trigger === "ci";
-  const trigger = opts2.trigger ?? "manual";
+  const trigger = env["QAMIND_TRIGGER"] === "ci" ? "ci" : opts2.trigger ?? "manual";
+  const readonly = opts2.kind === "qa-only" || trigger === "ci";
   const userAuto = trigger === "auto" ? readAutoFile(projectAutoFile(store)).settings.time_budget_minutes ?? readAutoFile(globalAutoFile(opts2.home)).settings.time_budget_minutes : void 0;
   const budget = resolveBudget(config, opts2.mode, trigger, now, userAuto);
   const marker = {
@@ -12119,8 +12171,8 @@ function startRun(opts2) {
     ...opts2.focus ? { focus: opts2.focus } : {},
     started: now.toISOString(),
     critical_flows: criticalFlows,
-    ...git3.branch ? { branch: git3.branch } : {},
-    ...git3.commit ? { commit: git3.commit } : {},
+    ...git4.branch ? { branch: git4.branch } : {},
+    ...git4.commit ? { commit: git4.commit } : {},
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION
   };
@@ -12143,7 +12195,7 @@ function startRun(opts2) {
     ...check.missing_env.length ? { missing_env: check.missing_env } : {},
     ...check.advisories.length ? { advisories: check.advisories } : {},
     stack,
-    git: git3,
+    git: git4,
     policy,
     browser: browserStatus(opts2.home, root, credNames.filter((n) => !!values[n]))
   };
@@ -12681,9 +12733,9 @@ var CLAUDE_IO = {
   stop: { input: { session_id: "session_id", cwd: "cwd", stop_hook_active: "stop_hook_active" }, block_output: { decision: "block", reason: "{reason}" }, notice_output: { systemMessage: "{message}" } },
   prompt: { input: { session_id: "session_id", cwd: "cwd", prompt: "prompt" } }
 };
-function dig(value, path50) {
+function dig(value, path53) {
   let cur = value;
-  for (const part of path50.split(".")) {
+  for (const part of path53.split(".")) {
     if (cur === null || typeof cur !== "object") return void 0;
     cur = cur[part];
   }
@@ -12806,9 +12858,9 @@ import fs18 from "node:fs";
 import path32 from "node:path";
 var isObj4 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
 var METHODS = ["get", "post", "put", "patch", "delete", "head", "options"];
-function parseSpecText(text3, hint = "") {
+function parseSpecText(text3, hint2 = "") {
   const trimmed = text3.trim();
-  if (trimmed.startsWith("{") || hint.endsWith(".json")) return JSON.parse(trimmed);
+  if (trimmed.startsWith("{") || hint2.endsWith(".json")) return JSON.parse(trimmed);
   return (0, import_yaml2.parse)(trimmed);
 }
 function loadSpecFile(file3) {
@@ -12997,8 +13049,8 @@ function captureValue(json, expr) {
   return item && typeof item === "object" ? item[m[1]] : void 0;
 }
 function statusMatches(status2, expectation) {
-  const list = Array.isArray(expectation) ? expectation : [expectation];
-  return list.some((e) => typeof e === "number" ? e === status2 : /^[1-5]xx$/i.test(e) ? Math.floor(status2 / 100) === Number(e[0]) : Number(e) === status2);
+  const list2 = Array.isArray(expectation) ? expectation : [expectation];
+  return list2.some((e) => typeof e === "number" ? e === status2 : /^[1-5]xx$/i.test(e) ? Math.floor(status2 / 100) === Number(e[0]) : Number(e) === status2);
 }
 function substitute(value, vars, missing) {
   if (typeof value === "string") {
@@ -13288,15 +13340,793 @@ function markerSource(home, ttlMs = 1e3) {
   };
 }
 
+// core/lib/ci/host.ts
+import fs21 from "node:fs";
+import path35 from "node:path";
+var str2 = (v, what) => {
+  if (typeof v !== "string" || v.trim() === "") throw new Error(`the host's headless block needs ${what} (a non-empty string)`);
+  return v;
+};
+var list = (v, what) => {
+  if (!Array.isArray(v) || v.some((x) => typeof x !== "string")) throw new Error(`the host's headless block needs ${what} (a list of strings)`);
+  return v;
+};
+function parseHeadless(json) {
+  const h = json?.headless;
+  if (!h || typeof h !== "object") throw new Error("this host has no headless block in its host.json, so QAMind does not know how to run its CLI without a person (use --agent-command to give the command yourself)");
+  const install2 = h["ci_install"] ?? {};
+  return {
+    label: str2(h["label"], "label"),
+    command: str2(h["command"], "command"),
+    ...typeof h["command_env"] === "string" ? { command_env: h["command_env"] } : {},
+    args: list(h["args"], "args"),
+    model_args: list(h["model_args"] ?? [], "model_args"),
+    invoke: str2(h["invoke"], "invoke"),
+    auth_env_any: list(h["auth_env_any"] ?? [], "auth_env_any"),
+    auth_secret: str2(h["auth_secret"], "auth_secret"),
+    auth_hint: str2(h["auth_hint"], "auth_hint"),
+    cost_field: str2(h["cost_field"], "cost_field"),
+    child_env_remove: list(h["child_env_remove"] ?? [], "child_env_remove"),
+    ci_install: { npm_package: str2(install2["npm_package"], "ci_install.npm_package"), version: str2(install2["version"], "ci_install.version"), label: str2(install2["label"], "ci_install.label") }
+  };
+}
+function findHostSpec(hostId, explicit, env = process.env) {
+  const given = explicit ?? env["QAMIND_HOST_SPEC"];
+  if (given) return fs21.existsSync(given) ? path35.resolve(given) : void 0;
+  try {
+    let dir = path35.resolve(corePath());
+    for (let i = 0; i < 6; i++) {
+      const f = path35.join(dir, "hosts", hostId, "host.json");
+      if (fs21.existsSync(f)) return f;
+      dir = path35.dirname(dir);
+    }
+  } catch {
+  }
+  return void 0;
+}
+function loadHeadless(hostId, explicit, env = process.env) {
+  const file3 = findHostSpec(hostId, explicit, env);
+  if (!file3) throw new Error(`cannot find hosts/${hostId}/host.json (QAMind has to run from a checkout of its repository, as in a CI job that clones it; or pass --host-spec FILE, or --agent-command)`);
+  try {
+    return parseHeadless(JSON.parse(fs21.readFileSync(file3, "utf8")));
+  } catch (e) {
+    throw new Error(`${path35.basename(path35.dirname(file3))}/host.json: ${e.message}`);
+  }
+}
+var fill2 = (s, v) => s.replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m);
+var invokeFor = (spec, mode) => fill2(spec.invoke, { mode });
+function agentArgs(spec, v) {
+  const vars = { prompt: v.prompt, plugin: v.plugin, max_cost: String(v.maxCost), mode: v.mode, ...v.model ? { model: v.model } : {} };
+  return [...spec.args.map((a) => fill2(a, vars)), ...v.model ? spec.model_args.map((a) => fill2(a, vars)) : []];
+}
+var agentCommandOf = (spec, env) => spec.command_env && env[spec.command_env] || spec.command;
+var hasAuth = (spec, env) => spec.auth_env_any.some((k) => !!env[k]);
+
+// core/lib/ci/run.ts
+import { execFileSync as execFileSync3, spawn as spawn2 } from "node:child_process";
+import fs23 from "node:fs";
+import os2 from "node:os";
+import path36 from "node:path";
+
+// core/lib/ci/comment.ts
+var COMMENT_MARKER = "<!-- qamind-ci:v1 -->";
+var MAX_CHARS = 6e4;
+var HEAD = { pass: "\u2705 Passed", warn: "\u26A0\uFE0F Passed with warnings", fail: "\u26D4 Failed", error: "\u26AA Could not check this change" };
+function readAdminReport(md) {
+  const lines = md.split("\n");
+  return {
+    verdict: (lines[0] ?? "").trim(),
+    summary: lines.filter((l) => l.startsWith("> - ")).map((l) => l.slice(4).trim()),
+    problems: [...md.matchAll(/^### (🔴|🟠|🟡) (Critical|Important|Minor): (.+)$/gm)].map((m) => ({ icon: m[1], severity: m[2], title: m[3].trim() }))
+  };
+}
+function renderComment(i, privacy) {
+  const L = [COMMENT_MARKER, `## QAMind ${HEAD[i.outcome]}`, ""];
+  if (i.outcome === "error") {
+    L.push(`QAMind could not complete a check of this change: ${(i.error ?? "it did not finish").replace(/\s+/g, " ").trim()}`, "", "This says nothing about the change itself. Nothing was changed in your repository.", "");
+  } else {
+    const r = i.adminReport ? readAdminReport(i.adminReport) : void 0;
+    if (r?.verdict) L.push(r.verdict, "");
+    if (r?.summary.length) L.push("> **30-second summary**", ...r.summary.map((s) => `> - ${s}`), "");
+    if (i.gate && (i.gate.failed.length || i.gate.warned.length)) {
+      L.push(i.outcome === "fail" ? "**Why this fails:**" : "**To look at:**", ...i.gate.reasons.map((x) => `- ${x}`), "");
+    }
+    if (r?.problems.length) {
+      L.push(`**Problems found (${r.problems.length}):**`, ...r.problems.slice(0, 12).map((p) => `- ${p.icon} ${p.severity}: ${p.title}`));
+      if (r.problems.length > 12) L.push(`- ... and ${r.problems.length - 12} more in the full report`);
+      L.push("");
+    }
+    const bits = [];
+    if (i.gate?.facts.came_back) bits.push(`**${i.gate.facts.came_back}** came back after being fixed`);
+    if (i.bank && i.bank.total > 0) bits.push(`saved checks: ${i.bank.passed + i.bank.flaky} of ${i.bank.total} passed${i.bank.failed ? `, ${i.bank.failed} failed` : ""}`);
+    if (bits.length) L.push(bits.join(" \xB7 "), "");
+  }
+  const links = [i.runUrl ? `[Full reports in the CI run](${i.runUrl})` : "The full reports are in the CI run's artifacts", `mode \`${i.mode}\``, ...i.sha ? [`commit \`${i.sha.slice(0, 7)}\``] : [], ...i.minutes !== void 0 ? [`${i.minutes} min`] : []];
+  L.push(links.join(" \xB7 "), "", `<sub>QAMind's CI run is report-only: it never changes, commits or pushes your code. This comment is updated on every push. Last updated ${(i.now ?? /* @__PURE__ */ new Date()).toISOString().slice(0, 16).replace("T", " ")} UTC.</sub>`);
+  let text3 = L.join("\n");
+  if (text3.length > MAX_CHARS) text3 = `${text3.slice(0, MAX_CHARS - 200)}
+
+_(shortened: the full reports are in the CI run)_
+`;
+  return maskText(text3, privacy).text;
+}
+
+// core/lib/ci/api.ts
+var CiApiError = class extends Error {
+  status;
+  constructor(message, status2) {
+    super(message);
+    this.status = status2;
+  }
+};
+async function call(f, method, url, headers, body) {
+  let last;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await f(url, { method, headers: { accept: "application/json", "content-type": "application/json", ...headers }, ...body !== void 0 ? { body: JSON.stringify(body) } : {}, signal: AbortSignal.timeout(2e4) });
+      const text3 = await res.text();
+      let json;
+      try {
+        json = text3 ? JSON.parse(text3) : void 0;
+      } catch {
+        json = void 0;
+      }
+      if (res.status >= 500 && attempt === 0) {
+        last = new CiApiError(`HTTP ${res.status}`, res.status);
+        continue;
+      }
+      return { status: res.status, json };
+    } catch (e) {
+      last = e;
+    }
+  }
+  throw last instanceof CiApiError ? last : new CiApiError(`could not reach the API (${last?.message ?? "no answer"})`, 0);
+}
+var hint = (status2, what, need) => status2 === 401 || status2 === 403 ? `${what} was refused (HTTP ${status2}): ${need}` : `${what} failed (HTTP ${status2})`;
+function github(ctx, f, context) {
+  const base = ctx.api_url;
+  const auth = { authorization: `Bearer ${ctx.token}`, "x-github-api-version": "2022-11-28" };
+  const repo = ctx.repo;
+  return {
+    async upsertComment(body) {
+      let found;
+      for (let page = 1; page <= 30 && !found; page++) {
+        const r = await call(f, "GET", `${base}/repos/${repo}/issues/${ctx.pr}/comments?per_page=100&page=${page}`, auth);
+        if (r.status !== 200 || !Array.isArray(r.json)) throw new CiApiError(hint(r.status, "Reading the pull request's comments", "the job needs `pull-requests: write` (and `issues: write` on some setups)"), r.status);
+        found = r.json.find((c2) => (c2.body ?? "").includes(COMMENT_MARKER) && c2.user?.type === "Bot");
+        if (r.json.length < 100) break;
+      }
+      if (found) {
+        const u = await call(f, "PATCH", `${base}/repos/${repo}/issues/comments/${found.id}`, auth, { body });
+        if (u.status === 200) return { action: "updated", id: String(found.id), ...found.html_url ? { url: found.html_url } : {} };
+        if (u.status !== 403 && u.status !== 404) throw new CiApiError(hint(u.status, "Updating the comment", "the job needs `pull-requests: write`"), u.status);
+      }
+      const c = await call(f, "POST", `${base}/repos/${repo}/issues/${ctx.pr}/comments`, auth, { body });
+      if (c.status !== 201) throw new CiApiError(hint(c.status, "Posting the comment", "the job needs `pull-requests: write`; pull requests from forks get a read-only token"), c.status);
+      const made = c.json;
+      return { action: "created", id: String(made.id ?? ""), ...made.html_url ? { url: made.html_url } : {} };
+    },
+    async setStatus(state, description, targetUrl) {
+      const r = await call(f, "POST", `${base}/repos/${repo}/statuses/${ctx.sha}`, auth, { state, context, description: description.slice(0, 140), ...targetUrl ? { target_url: targetUrl } : {} });
+      if (r.status !== 201) throw new CiApiError(hint(r.status, "Setting the commit status", "the job needs `statuses: write`"), r.status);
+    }
+  };
+}
+function gitlab(ctx, f, context) {
+  const base = ctx.api_url;
+  const auth = { "private-token": ctx.token };
+  const project = encodeURIComponent(ctx.project_id ?? ctx.repo ?? "");
+  return {
+    async upsertComment(body) {
+      let found;
+      for (let page = 1; page <= 30 && !found; page++) {
+        const r = await call(f, "GET", `${base}/projects/${project}/merge_requests/${ctx.pr}/notes?per_page=100&page=${page}&sort=asc`, auth);
+        if (r.status !== 200 || !Array.isArray(r.json)) throw new CiApiError(hint(r.status, "Reading the merge request's notes", "QAMIND_GITLAB_TOKEN needs the `api` scope and a role that can comment"), r.status);
+        found = r.json.find((n) => !n.system && (n.body ?? "").includes(COMMENT_MARKER));
+        if (r.json.length < 100) break;
+      }
+      if (found) {
+        const u = await call(f, "PUT", `${base}/projects/${project}/merge_requests/${ctx.pr}/notes/${found.id}`, auth, { body });
+        if (u.status === 200) return { action: "updated", id: String(found.id) };
+        if (u.status !== 403 && u.status !== 404) throw new CiApiError(hint(u.status, "Updating the note", "QAMIND_GITLAB_TOKEN needs the `api` scope"), u.status);
+      }
+      const c = await call(f, "POST", `${base}/projects/${project}/merge_requests/${ctx.pr}/notes`, auth, { body });
+      if (c.status !== 201) throw new CiApiError(hint(c.status, "Posting the note", "QAMIND_GITLAB_TOKEN needs the `api` scope"), c.status);
+      return { action: "created", id: String(c.json?.id ?? "") };
+    },
+    async setStatus(state, description, targetUrl) {
+      const mapped = state === "failure" || state === "error" ? "failed" : state;
+      const r = await call(f, "POST", `${base}/projects/${project}/statuses/${ctx.sha}`, auth, { state: mapped, name: context, description: description.slice(0, 140), ...targetUrl ? { target_url: targetUrl } : {} });
+      if (r.status !== 201) throw new CiApiError(hint(r.status, "Setting the commit status", "QAMIND_GITLAB_TOKEN needs the `api` scope"), r.status);
+    }
+  };
+}
+function apiFor(ctx, settings, f = fetch) {
+  const why = [];
+  if (ctx.provider === "local") return { canComment: false, canStatus: false, why: ["not running in GitHub Actions or GitLab CI, so nothing is posted (the comment is written to a file)"] };
+  if (!ctx.token) why.push(`no token: set ${ctx.provider === "github" ? "GITHUB_TOKEN (env: GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }})" : "QAMIND_GITLAB_TOKEN (a masked variable holding an access token with the api scope)"} so QAMind can post`);
+  if (!ctx.repo && !ctx.project_id) why.push("the repository is not known");
+  if (ctx.pr === void 0) why.push("this run is not for a pull request, so there is no comment to keep");
+  if (!ctx.sha) why.push("the commit is not known, so no status is set");
+  const ready = !!ctx.token && !!(ctx.repo || ctx.project_id);
+  const api = ctx.provider === "github" ? github(ctx, f, settings.status_context) : gitlab(ctx, f, settings.status_context);
+  return { ...ready ? { api } : {}, canComment: ready && ctx.pr !== void 0, canStatus: ready && !!ctx.sha, why };
+}
+
+// core/lib/ci/gate.ts
+var plural3 = (n, one7, many) => `${n} ${n === 1 ? one7 : many}`;
+function factsOf(data) {
+  const open = data.findings.filter(isOpen);
+  const verdict = computeVerdict(data);
+  return {
+    critical: open.filter((f) => f.severity === "critical").length,
+    important: open.filter((f) => f.severity === "important").length,
+    minor: open.filter((f) => f.severity === "minor").length,
+    environment_problem: verdict.environment_problem || data.meta?.stop_reason === "environment problem",
+    came_back: (data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed").length,
+    bank_failures: data.bank?.failed ?? 0,
+    verdict: verdict.level
+  };
+}
+function holds(c, f) {
+  switch (c) {
+    case "critical":
+      return f.critical > 0 ? `${plural3(f.critical, "critical problem", "critical problems")}` : void 0;
+    case "important":
+      return f.important > 0 ? `${plural3(f.important, "important problem", "important problems")}` : void 0;
+    case "minor":
+      return f.minor > 0 ? `${plural3(f.minor, "minor problem", "minor problems")}` : void 0;
+    case "environment-problem":
+      return f.environment_problem ? "the test environment had a problem, so the change could not be checked" : void 0;
+    case "came-back":
+      return f.came_back > 0 ? `${plural3(f.came_back, "problem", "problems")} came back after being fixed` : void 0;
+    case "bank-failure":
+      return f.bank_failures > 0 ? `${plural3(f.bank_failures, "saved check", "saved checks")} failed` : void 0;
+    case "not-ready":
+      return f.verdict === "not-ready" ? "the release verdict is Not ready" : void 0;
+  }
+}
+function evaluateGate(data, settings) {
+  const facts = factsOf(data);
+  const failed = settings.fail_on.filter((c) => holds(c, facts));
+  const warned = settings.warn_on.filter((c) => !failed.includes(c) && holds(c, facts));
+  const reasons = [...failed, ...warned].map((c) => holds(c, facts));
+  return { outcome: failed.length ? "fail" : warned.length ? "warn" : "pass", failed, warned, reasons, facts };
+}
+
+// core/lib/ci/provider.ts
+import fs22 from "node:fs";
+var int = (v) => v && /^\d+$/.test(v) ? Number(v) : void 0;
+function detectCi(env = process.env) {
+  const forced = env["QAMIND_CI_PROVIDER"];
+  if (forced === "github" || forced === void 0 && env["GITHUB_ACTIONS"] === "true") {
+    let pr;
+    let sha2 = env["GITHUB_SHA"];
+    let base = env["GITHUB_BASE_REF"] || void 0;
+    let head = env["GITHUB_HEAD_REF"] || void 0;
+    const eventFile = env["GITHUB_EVENT_PATH"];
+    if (eventFile && fs22.existsSync(eventFile)) {
+      try {
+        const ev = JSON.parse(fs22.readFileSync(eventFile, "utf8"));
+        pr = ev.pull_request?.number ?? ev.number;
+        sha2 = ev.pull_request?.head?.sha ?? sha2;
+        base = ev.pull_request?.base?.ref ?? base;
+        head = ev.pull_request?.head?.ref ?? head;
+      } catch {
+      }
+    }
+    pr = pr ?? int(/^refs\/pull\/(\d+)\//.exec(env["GITHUB_REF"] ?? "")?.[1]);
+    const server = env["GITHUB_SERVER_URL"] ?? "https://github.com";
+    return {
+      provider: "github",
+      ...env["GITHUB_REPOSITORY"] ? { repo: env["GITHUB_REPOSITORY"] } : {},
+      ...pr !== void 0 ? { pr } : {},
+      ...sha2 ? { sha: sha2 } : {},
+      ...base ? { base_ref: base } : {},
+      ...head ? { head_ref: head } : {},
+      api_url: (env["GITHUB_API_URL"] ?? "https://api.github.com").replace(/\/+$/, ""),
+      ...env["GITHUB_REPOSITORY"] && env["GITHUB_RUN_ID"] ? { run_url: `${server}/${env["GITHUB_REPOSITORY"]}/actions/runs/${env["GITHUB_RUN_ID"]}` } : {},
+      ...env["GITHUB_TOKEN"] ? { token: env["GITHUB_TOKEN"], token_name: "GITHUB_TOKEN" } : {}
+    };
+  }
+  if (forced === "gitlab" || forced === void 0 && env["GITLAB_CI"] === "true") {
+    const token = env["QAMIND_GITLAB_TOKEN"] ?? env["GITLAB_TOKEN"];
+    const tokenName = env["QAMIND_GITLAB_TOKEN"] ? "QAMIND_GITLAB_TOKEN" : env["GITLAB_TOKEN"] ? "GITLAB_TOKEN" : void 0;
+    const pr = int(env["CI_MERGE_REQUEST_IID"]);
+    const base = env["CI_MERGE_REQUEST_TARGET_BRANCH_NAME"] || void 0;
+    const head = env["CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"] || env["CI_COMMIT_REF_NAME"] || void 0;
+    return {
+      provider: "gitlab",
+      ...env["CI_PROJECT_PATH"] ? { repo: env["CI_PROJECT_PATH"] } : {},
+      ...env["CI_PROJECT_ID"] ? { project_id: env["CI_PROJECT_ID"] } : {},
+      ...pr !== void 0 ? { pr } : {},
+      ...env["CI_MERGE_REQUEST_SOURCE_BRANCH_SHA"] || env["CI_COMMIT_SHA"] ? { sha: env["CI_MERGE_REQUEST_SOURCE_BRANCH_SHA"] || env["CI_COMMIT_SHA"] } : {},
+      ...base ? { base_ref: base } : {},
+      ...head ? { head_ref: head } : {},
+      api_url: (env["CI_API_V4_URL"] ?? "https://gitlab.com/api/v4").replace(/\/+$/, ""),
+      ...env["CI_JOB_URL"] ? { run_url: env["CI_JOB_URL"] } : {},
+      ...token && tokenName ? { token, token_name: tokenName } : {}
+    };
+  }
+  return { provider: "local" };
+}
+
+// core/lib/ci/run.ts
+var DEFAULT_CI_MAX_USD = 10;
+var git3 = (root, args, timeout = 3e4) => {
+  try {
+    return execFileSync3("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout, maxBuffer: 16 * 1024 * 1024 }).trim();
+  } catch {
+    return void 0;
+  }
+};
+function pluginRoot() {
+  const core = corePath();
+  for (const c of [path36.resolve(core, ".."), path36.resolve(core, "..", "plugins", "qamind")]) if (fs23.existsSync(path36.join(c, "dist", "qamind.mjs"))) return c;
+  throw new Error("Cannot find the built QAMind runtime (dist/qamind.mjs) to give the host CLI. Run `node scripts/build.ts` first.");
+}
+function promptFor(invoke, mode, pr, base) {
+  const where = pr !== void 0 ? ` for pull request #${pr}${base ? ` (into ${base})` : ""}` : "";
+  const focus = {
+    diff: "Test what this change touches: the files in git.changed_files from run_start and the flows that depend on them (the product map shows what depends on what).",
+    quick: "Test the critical flows and the top risks.",
+    regression: "Re-run the findings of the last run and check whether they are fixed.",
+    full: "Test everything you can reach."
+  };
+  return `${invoke} This is a CI run${where}. It is report-only and nobody is watching: never ask a question, never change, commit or push anything. ${focus[mode]} Keep to the time budget. Finish properly: write the report files, run report build and report lint, and call run_finish before you stop.`;
+}
+function agentEnv(base, extra, remove) {
+  const e = { ...base, ...extra };
+  for (const k of [...remove, "NODE_TEST_CONTEXT"]) delete e[k];
+  return e;
+}
+function runAgent(command2, args, opts2) {
+  return new Promise((resolve) => {
+    const started = Date.now();
+    const child = spawn2(command2, args, { cwd: opts2.cwd, env: opts2.env, shell: opts2.shell, stdio: ["ignore", "pipe", "pipe"], detached: process.platform !== "win32" });
+    const MAX = 4 * 1024 * 1024;
+    let out = "";
+    const take = (c) => {
+      if (out.length < MAX) out += c.toString("utf8");
+    };
+    child.stdout.on("data", take);
+    child.stderr.on("data", take);
+    let timedOut = false;
+    const killTree2 = (sig) => {
+      try {
+        if (process.platform !== "win32" && child.pid) process.kill(-child.pid, sig);
+        else child.kill(sig);
+      } catch {
+      }
+    };
+    const timer = setTimeout(() => {
+      timedOut = true;
+      killTree2("SIGTERM");
+      setTimeout(() => killTree2("SIGKILL"), 15e3).unref();
+    }, opts2.timeoutMs);
+    const done = (code) => {
+      clearTimeout(timer);
+      const clean = opts2.redact(out);
+      try {
+        fs23.writeFileSync(opts2.logFile, clean, "utf8");
+      } catch {
+      }
+      let cost;
+      for (const line of out.trim().split("\n").reverse()) {
+        if (!line.startsWith("{")) continue;
+        try {
+          const j = JSON.parse(line);
+          const c = opts2.costField ? j[opts2.costField] : void 0;
+          if (typeof c === "number") cost = c;
+          break;
+        } catch {
+        }
+      }
+      resolve({ exit_code: code, timed_out: timedOut, minutes: Math.round((Date.now() - started) / 6e4 * 10) / 10, ...cost !== void 0 ? { cost_usd: cost } : {}, tail: clean.slice(-600) });
+    };
+    child.on("error", (e) => {
+      out += `
+[qamind] could not start the agent: ${e.message}
+`;
+      done(null);
+    });
+    child.on("exit", (code) => done(code));
+  });
+}
+var tracked = (root) => ({
+  ...git3(root, ["rev-parse", "HEAD"]) ? { head: git3(root, ["rev-parse", "HEAD"]) } : {},
+  changed: porcelainFiles(root, { untracked: false }).sort()
+});
+function findRun(home, sinceIso) {
+  const projects = path36.join(home, "projects");
+  if (!fs23.existsSync(projects)) return void 0;
+  const found = [];
+  for (const p of fs23.readdirSync(projects)) {
+    const runs = path36.join(projects, p, "memory", "runs");
+    if (!fs23.existsSync(runs)) continue;
+    for (const f of fs23.readdirSync(runs)) {
+      const s = readJson(path36.join(runs, f));
+      if (s && s.trigger === "ci" && s.started >= sinceIso) found.push(s);
+    }
+  }
+  const latest = found.sort((a, b) => b.started.localeCompare(a.started))[0];
+  return latest ? { summary: latest, dir: path36.dirname(latest.report) } : void 0;
+}
+var unfinishedRun = (home) => {
+  const projects = path36.join(home, "projects");
+  if (!fs23.existsSync(projects)) return void 0;
+  for (const p of fs23.readdirSync(projects)) {
+    const m = readJson(path36.join(projects, p, "state", "run-marker.json"));
+    if (m?.run_id) return m.run_id;
+  }
+  return void 0;
+};
+var stateOf = { pass: "success", warn: "success", fail: "failure", error: "error" };
+async function runCi(opts2) {
+  const env = opts2.env ?? process.env;
+  const now = opts2.now ?? (() => /* @__PURE__ */ new Date());
+  const log = opts2.log ?? (() => void 0);
+  const root = fs23.realpathSync(path36.resolve(opts2.projectDir));
+  const started = now();
+  const ctx = detectCi(env);
+  const outDir = path36.resolve(opts2.outDir ?? path36.join(root, "qamind-reports"));
+  ensureDir(outDir);
+  const warnings = [];
+  const check = checkConfigFile(root, env);
+  const cfg = check.status === "ok" ? check.config : void 0;
+  const settings = cfg?.ci ?? checkConfigFile(root, env).config?.ci ?? { fail_on: ["critical", "environment-problem"], warn_on: ["important"], cache_memory: false, mode: "diff", comment: true, status: true, status_context: "qamind", timeout_minutes: 25 };
+  const mode = opts2.mode ?? settings.mode;
+  const home = opts2.home ?? (opts2.userStore ? qamindHome(env) : settings.cache_memory ? path36.join(root, ".qamind-ci", "home") : fs23.mkdtempSync(path36.join(os2.tmpdir(), "qamind-ci-")));
+  ensureDir(home);
+  const poster = opts2.dryRun ? { canComment: false, canStatus: false, why: ["a dry run posts nothing"] } : apiFor(ctx, settings, opts2.fetchImpl);
+  const post = async (state, description) => {
+    if (!settings.status || !poster.canStatus || !poster.api) return { state, posted: false };
+    try {
+      await poster.api.setStatus(state, description, ctx.run_url);
+      return { state, posted: true };
+    } catch (e) {
+      warnings.push(`The commit status could not be set: ${e.message}`);
+      return { state, posted: false };
+    }
+  };
+  const conclude = async (outcome, p) => {
+    const privacy = p.runDir ? contextForRun(p.runDir, env) : contextFrom(cfg, []);
+    const adminFile = p.runDir ? path36.join(p.runDir, "ADMIN-REPORT.md") : void 0;
+    const adminReport = adminFile && fs23.existsSync(adminFile) ? fs23.readFileSync(adminFile, "utf8") : void 0;
+    const minutes = Math.round((now().getTime() - started.getTime()) / 6e4 * 10) / 10;
+    const body = renderComment({ outcome, ...p.gate ? { gate: p.gate } : {}, ...adminReport ? { adminReport } : {}, ...p.bank ? { bank: p.bank } : {}, mode, ...ctx.sha ? { sha: ctx.sha } : {}, ...ctx.run_url ? { runUrl: ctx.run_url } : {}, ...p.error ? { error: p.error } : {}, minutes, now: now() }, privacy);
+    fs23.writeFileSync(path36.join(outDir, "PR-COMMENT.md"), body, "utf8");
+    if (p.runDir && p.runId) {
+      try {
+        fs23.cpSync(p.runDir, path36.join(outDir, p.runId), { recursive: true });
+      } catch (e) {
+        warnings.push(`The reports could not be copied to ${path36.basename(outDir)}: ${e.message}`);
+      }
+    }
+    let comment2;
+    if (!settings.comment) comment2 = { action: "skipped", why: "ci.comment is false" };
+    else if (!poster.canComment || !poster.api) comment2 = { action: "skipped", why: poster.why.join("; ") || "nothing to post to" };
+    else {
+      try {
+        comment2 = await poster.api.upsertComment(body);
+      } catch (e) {
+        warnings.push(`The pull request comment could not be posted: ${e.message}`);
+        comment2 = { action: "skipped", why: e.message };
+      }
+    }
+    const reasons = p.gate?.reasons ?? (p.error ? [p.error] : []);
+    const description = outcome === "pass" ? `No problem that fails this check${p.gate ? ` (${p.gate.facts.critical} critical, ${p.gate.facts.important} important)` : ""}` : outcome === "warn" ? `Passed with warnings: ${reasons.join("; ")}` : outcome === "fail" ? `Failed: ${reasons.join("; ")}` : `Could not check: ${p.error ?? "unknown"}`;
+    const status2 = await post(stateOf[outcome], description);
+    const result = {
+      outcome,
+      exit_code: outcome === "fail" ? 1 : outcome === "error" ? 2 : 0,
+      mode,
+      ...p.runId ? { run_id: p.runId } : {},
+      reasons,
+      ...p.gate ? { gate: p.gate } : {},
+      ...p.error ? { error: p.error } : {},
+      comment: comment2,
+      status: status2,
+      warnings,
+      out_dir: outDir,
+      ...p.agent ? { agent: { exit_code: p.agent.exit_code, timed_out: p.agent.timed_out, ...p.agent.cost_usd !== void 0 ? { cost_usd: p.agent.cost_usd } : {}, minutes: p.agent.minutes } } : {},
+      store: home
+    };
+    writeJson(path36.join(outDir, "ci-result.json"), result);
+    if (env["GITHUB_STEP_SUMMARY"]) {
+      try {
+        fs23.appendFileSync(env["GITHUB_STEP_SUMMARY"], `${body.replace(/^<!--.*-->\n/, "")}
+`);
+      } catch {
+      }
+    }
+    if (env["GITHUB_OUTPUT"]) {
+      try {
+        fs23.appendFileSync(env["GITHUB_OUTPUT"], `outcome=${outcome}
+exit_code=${result.exit_code}
+${p.runId ? `run_id=${p.runId}
+` : ""}`);
+      } catch {
+      }
+    }
+    return result;
+  };
+  if (!cfg) {
+    const why = check.status === "ok" ? "the config could not be read" : `the QAMind config is not usable (${check.status}): ${[...check.problems, ...check.blocked.map((b) => `${b.url}: ${b.reason}`), ...check.ambiguous.map((a) => `${a.url}: ${a.reason}`)].join(" ") || "run /qa-only once to create it"}. In CI the config has to be in the repository (see docs/CI.md)`;
+    return conclude("error", { error: why });
+  }
+  if (opts2.fromRun) {
+    const dir = path36.join(root, ".qa", "reports", opts2.fromRun);
+    if (!fs23.existsSync(path36.join(dir, "data", "meta.json"))) return conclude("error", { error: `there is no run ${opts2.fromRun} in ${path36.join(root, ".qa", "reports")}` });
+    const data2 = readRunData(dir);
+    const gate2 = evaluateGate(data2, settings);
+    return conclude(gate2.outcome, { runDir: dir, runId: opts2.fromRun, gate: gate2, ...data2.bank ? { bank: data2.bank } : {} });
+  }
+  const builtIn = !opts2.agentCommand;
+  const names = cfg.roles.flatMap((r) => [r.username_env, r.password_env]);
+  const { values: logins } = loadQaEnv(root, env, names);
+  if (!cfg.roles.some((r) => logins[r.username_env] && logins[r.password_env])) return conclude("error", { error: `no test account has both its username and password set (${names.join(", ")}). Give them to the job as secrets; values are never printed` });
+  let spec;
+  if (builtIn) {
+    if (!opts2.host && !opts2.hostSpec) return conclude("error", { error: "no host is named, so QAMind does not know which CLI to run (give the host, or --agent-command)" });
+    try {
+      spec = loadHeadless(opts2.host ?? "", opts2.hostSpec, env);
+    } catch (e) {
+      return conclude("error", { error: e.message });
+    }
+    if (!hasAuth(spec, env) && ctx.provider !== "local" && env["QAMIND_CI_SKIP_AUTH_CHECK"] !== "1") return conclude("error", { error: `no ${spec.label} credentials in the environment (${spec.auth_hint}). Add one as a secret of the job` });
+  }
+  if (ctx.base_ref && ctx.provider !== "local") {
+    const ref = `origin/${ctx.base_ref}`;
+    if (git3(root, ["rev-parse", "--verify", "--quiet", ref]) === void 0) git3(root, ["fetch", "--no-tags", "--depth=100", "origin", `${ctx.base_ref}:refs/remotes/origin/${ctx.base_ref}`], 9e4);
+    if (git3(root, ["rev-parse", "--verify", "--quiet", ref]) === void 0) warnings.push(`The base branch ${ref} is not available (use fetch-depth: 0 in the checkout), so diff mode cannot tell what changed.`);
+  }
+  const before = tracked(root);
+  await post("pending", "QAMind is checking this change");
+  const secrets = [...Object.values(logins), ...[...spec?.auth_env_any ?? [], "GITHUB_TOKEN", "QAMIND_GITLAB_TOKEN", "GITLAB_TOKEN"].map((k) => env[k] ?? "")].filter((v) => v.length >= 4);
+  const redact = makeRedactor(secrets).text;
+  const prompt = promptFor(spec ? invokeFor(spec, mode) : `Run the QAMind QA procedure in ${mode} mode.`, mode, ctx.pr, ctx.base_ref);
+  const childEnv = agentEnv(env, {
+    QAMIND_HOME: home,
+    QAMIND_TRIGGER: "ci",
+    QAMIND_PROJECT_DIR: root,
+    QAMIND_AUTO: "0",
+    QAMIND_CI_PROMPT: prompt,
+    QAMIND_CI_MODE: mode,
+    ...ctx.base_ref && git3(root, ["rev-parse", "--verify", "--quiet", `origin/${ctx.base_ref}`]) ? { QAMIND_BASE_REF: `origin/${ctx.base_ref}` } : {}
+  }, spec?.child_env_remove ?? []);
+  const maxCost = cfg.budget.modes.ci?.max_cost ?? cfg.budget.max_cost ?? DEFAULT_CI_MAX_USD;
+  const timeoutMinutes = Math.min(settings.timeout_minutes, 360);
+  log(`QAMind CI: ${mode} mode${ctx.pr !== void 0 ? `, pull request #${ctx.pr}` : ""}; the agent is stopped after ${timeoutMinutes} minutes.`);
+  const sinceIso = new Date(started.getTime() - 1e3).toISOString();
+  const agent = await runAgent(
+    spec ? agentCommandOf(spec, env) : opts2.agentCommand,
+    spec ? agentArgs(spec, { prompt, plugin: pluginRoot(), maxCost, mode, ...opts2.model ? { model: opts2.model } : {} }) : [],
+    { shell: !spec, cwd: root, env: childEnv, timeoutMs: opts2.timeoutMs ?? timeoutMinutes * 6e4, logFile: path36.join(outDir, "agent.log"), redact, ...spec ? { costField: spec.cost_field } : {} }
+  );
+  log(`QAMind CI: the agent finished after ${agent.minutes} minutes (exit code ${agent.exit_code ?? "none"}${agent.timed_out ? ", stopped at the time limit" : ""}).`);
+  const after = tracked(root);
+  if (before.head !== after.head || after.changed.join("\n") !== before.changed.join("\n")) {
+    const files = after.changed.filter((f) => !before.changed.includes(f));
+    return conclude("error", { agent, error: `the run changed the checkout, which a report-only run must never do (${before.head !== after.head ? "the commit changed" : `changed: ${files.slice(0, 5).join(", ")}`}). Nothing was reverted: look at agent.log in the artifacts` });
+  }
+  const run = findRun(home, sinceIso);
+  if (!run) {
+    const open = unfinishedRun(home);
+    return conclude("error", {
+      agent,
+      error: `${agent.timed_out ? `the agent was stopped at the time limit${opts2.timeoutMs ? "" : ` of ${timeoutMinutes} minutes`}` : `the agent ended (exit code ${agent.exit_code ?? "none"})`} before it finished a run${open ? ` (${open} was started and left open)` : ""}. The last of its output is in agent.log in the artifacts`
+    });
+  }
+  const data = readRunData(run.dir);
+  const gate = evaluateGate(data, settings);
+  return conclude(gate.outcome, { runDir: run.dir, runId: run.summary.run_id, gate, agent, ...data.bank ? { bank: data.bank } : {} });
+}
+
+// core/lib/ci/templates.ts
+import { execFileSync as execFileSync4 } from "node:child_process";
+import fs24 from "node:fs";
+import path37 from "node:path";
+var PLACEHOLDER_REPO = "https://github.com/<owner>/qamind.git";
+function qamindOrigin() {
+  try {
+    let dir = path37.resolve(corePath());
+    for (let i = 0; i < 6 && !fs24.existsSync(path37.join(dir, ".git")); i++) dir = path37.dirname(dir);
+    if (!fs24.existsSync(path37.join(dir, ".git"))) return {};
+    const run = (a) => {
+      try {
+        return execFileSync4("git", ["-C", dir, ...a], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15e3 }).trim() || void 0;
+      } catch {
+        return void 0;
+      }
+    };
+    const url = run(["remote", "get-url", "origin"])?.replace(/\/\/[^/@]+@/, "//");
+    const tag = run(["describe", "--tags", "--abbrev=0"]);
+    return { ...url ? { repoUrl: url } : {}, ...tag ? { tag } : {} };
+  } catch {
+    return {};
+  }
+}
+var loginVarsOf = (config) => [...new Set(config.roles.flatMap((r) => [r.username_env, r.password_env]))];
+var secretLines = (vars, indent) => vars.map((v) => `${indent}${v}: \${{ secrets.${v} }}`).join("\n");
+var header = (what) => `# Generated by \`qamind ci init\` / \`qamind schedule\` (QAMind ${QAMIND_VERSION}). Review it, then commit it.
+# ${what}
+# QAMind's CI run is report-only: it never changes, commits or pushes your code. Secrets stay in the repository's secret store; none is written here.
+`;
+var install = (i, dirVar) => `      - name: Get QAMind (from Git at a pinned ref; never a registry package)
+        run: |
+          git clone --depth 1 --branch "$QAMIND_REF" "$QAMIND_REPO" "${dirVar}/qamind"
+          npm ci --ignore-scripts --prefix "${dirVar}/qamind/plugins/qamind"
+      - name: Install ${i.headless.ci_install.label} (the version QAMind ${QAMIND_VERSION} was tested with)
+        run: npm install -g "${i.headless.ci_install.npm_package}@$HOST_CLI_VERSION"`;
+var cacheStep = (i) => i.cacheMemory ? `      # ci.cache_memory is true: QAMind's CI-only memory lives in .qamind-ci/home, restored from the CI cache by repository and target branch.
+      # It is never committed and never mixed with anyone's personal memory.
+      - uses: actions/cache@v4
+        with:
+          path: .qamind-ci/home
+          key: qamind-\${{ github.repository }}-\${{ github.base_ref || github.ref_name }}-\${{ github.run_id }}
+          restore-keys: |
+            qamind-\${{ github.repository }}-\${{ github.base_ref || github.ref_name }}-` : `      # To keep a CI-only memory between runs, set ci.cache_memory: true in .qa/config.md and re-run \`qamind ci init\`: it adds a cache step keyed by repository and branch.`;
+var appStep = `      # - name: Start the app under test
+      #   QAMind tests the environment named in .qa/config.md. In CI that is a preview deployment or an app you start here
+      #   (and seed with setup.reset_command / setup.seed_command). It must never be production.
+      #   run: docker compose up -d --wait`;
+function githubPrWorkflow(i) {
+  return `${header("On every pull request from this repository, QAMind tests the change, keeps ONE comment on the pull request up to date, sets a commit status and uploads the reports.")}name: QAMind
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+# The least the job needs: read the code, write the one comment, set the status.
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+concurrency:
+  group: qamind-\${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+env:
+  QAMIND_REPO: ${i.repoUrl}
+  QAMIND_REF: ${i.ref}
+  HOST_CLI_VERSION: "${i.headless.ci_install.version}"
+jobs:
+  qamind:
+    # GitHub withholds secrets from pull requests that come from forks, so QAMind could only fail there; drafts wait until they are ready.
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4 # for a stricter supply chain, pin the action to a commit SHA
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+${install(i, "$RUNNER_TEMP")}
+${cacheStep(i)}
+${appStep}
+      - name: Test the change with QAMind
+        env:
+          ${i.headless.auth_secret}: \${{ secrets.${i.headless.auth_secret} }}
+          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+${secretLines(i.loginVars, "          ")}
+        run: node "$RUNNER_TEMP/qamind/plugins/qamind/dist/qamind.mjs" ci --mode ${i.mode}
+      - name: Upload the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qamind-reports
+          path: qamind-reports/
+          if-no-files-found: ignore
+`;
+}
+function githubNightlyWorkflow(i) {
+  const cron = i.cron ?? "0 2 * * *";
+  return `${header("Every night QAMind runs a full report-only check of the default branch's environment: the saved test bank first, then exploration. A failure fails the job (GitHub emails the people watching the repository).")}name: QAMind nightly
+on:
+  schedule:
+    # ${describeCron(cron)} (GitHub reads this in UTC and only runs schedules from the default branch)
+    - cron: "${cron}"
+  workflow_dispatch: {}
+permissions:
+  contents: read
+concurrency:
+  group: qamind-nightly
+  cancel-in-progress: false
+env:
+  QAMIND_REPO: ${i.repoUrl}
+  QAMIND_REF: ${i.ref}
+  HOST_CLI_VERSION: "${i.headless.ci_install.version}"
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4 # for a stricter supply chain, pin the action to a commit SHA
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+${install(i, "$RUNNER_TEMP")}
+${cacheStep(i)}
+${appStep}
+      - name: Check the environment with QAMind
+        env:
+          ${i.headless.auth_secret}: \${{ secrets.${i.headless.auth_secret} }}
+${secretLines(i.loginVars, "          ")}
+        run: node "$RUNNER_TEMP/qamind/plugins/qamind/dist/qamind.mjs" ci --mode ${i.mode}
+      - name: Upload the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qamind-reports
+          path: qamind-reports/
+          if-no-files-found: ignore
+`;
+}
+function gitlabCi(i) {
+  const scheduleMode = i.mode === "diff" ? "full" : i.mode;
+  return `${header(`In merge requests QAMind tests the change and keeps ONE note up to date; in a pipeline schedule it runs the whole check (create the schedule under CI/CD > Schedules and set the variable QAMIND_MODE=${scheduleMode}).`)}# Variables to add under Settings > CI/CD > Variables (masked): ${i.headless.auth_secret}, QAMIND_GITLAB_TOKEN (an access token with the api scope, so QAMind can write the note and the status),
+# and the test logins: ${i.loginVars.join(", ")}.
+qamind:
+  stage: test
+  image: node:22
+  timeout: 45 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  variables:
+    GIT_DEPTH: "0"
+    QAMIND_REPO: ${i.repoUrl}
+    QAMIND_REF: ${i.ref}
+    HOST_CLI_VERSION: "${i.headless.ci_install.version}"
+  resource_group: qamind
+${i.cacheMemory ? `  cache:
+    key: qamind-$CI_PROJECT_ID-$CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+    paths:
+      - .qamind-ci/home
+` : ""}  script:
+    - git clone --depth 1 --branch "$QAMIND_REF" "$QAMIND_REPO" /tmp/qamind
+    - npm ci --ignore-scripts --prefix /tmp/qamind/plugins/qamind
+    - npm install -g "${i.headless.ci_install.npm_package}@$HOST_CLI_VERSION"
+    # Start the app under test here, if QAMind tests a local app (it must never be production).
+    - node /tmp/qamind/plugins/qamind/dist/qamind.mjs ci --mode "\${QAMIND_MODE:-${i.mode}}"
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths:
+      - qamind-reports/
+`;
+}
+var CRON_FIELD = /^(\*|\*\/\d+|\d+(-\d+)?(\/\d+)?)(,(\*|\*\/\d+|\d+(-\d+)?(\/\d+)?))*$/;
+function validCron(expr) {
+  const f = expr.trim().split(/\s+/);
+  return f.length === 5 && f.every((x) => CRON_FIELD.test(x));
+}
+function describeCron(expr) {
+  const [m, h, dom, mon, dow] = expr.trim().split(/\s+/);
+  if (dom === "*" && mon === "*" && dow === "*" && /^\d+$/.test(m ?? "") && /^\d+$/.test(h ?? "")) return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")} every day`;
+  return `cron "${expr}"`;
+}
+var q = (s) => `'${s.replace(/'/g, `'\\''`)}'`;
+function cronLine(i) {
+  return `${i.cron} cd ${q(i.projectDir)} && qamind ci --mode ${i.mode} --user-store >> "$HOME/.qamind/ci.log" 2>&1`;
+}
+function windowsTask(i) {
+  return `schtasks /Create /SC DAILY /ST ${i.time} /TN "QAMind nightly" /TR "cmd /c cd /d \\"${i.projectDir}\\" && qamind ci --mode ${i.mode} --user-store"`;
+}
+
 // core/lib/bank/service.ts
-import fs26 from "node:fs";
-import path43 from "node:path";
+import fs30 from "node:fs";
+import path46 from "node:path";
 
 // core/lib/memory/service.ts
-import path38 from "node:path";
+import path41 from "node:path";
 
 // core/lib/runctx.ts
-import path35 from "node:path";
+import path38 from "node:path";
 function loadRunContext(home, runId, env = process.env) {
   if (!runId) throw new Error("--run <run-id> is required (use the id printed by `run start`).");
   const marker = findMarkerByRunId(home, runId);
@@ -13314,7 +14144,7 @@ function loadRunContext(home, runId, env = process.env) {
   return {
     marker,
     projectRoot: marker.project_root,
-    runDir: path35.resolve(marker.run_dir),
+    runDir: path38.resolve(marker.run_dir),
     config: check.config,
     policy: marker.policy,
     roles,
@@ -13323,8 +14153,8 @@ function loadRunContext(home, runId, env = process.env) {
 }
 
 // core/lib/memory/context.ts
-import fs22 from "node:fs";
-import path37 from "node:path";
+import fs26 from "node:fs";
+import path40 from "node:path";
 
 // core/lib/memory/fixlog.ts
 function loadFixLog(store) {
@@ -13339,8 +14169,8 @@ function recentFixes(store, limit = 8) {
 
 // core/lib/memory/lessons.ts
 import crypto4 from "node:crypto";
-import fs21 from "node:fs";
-import path36 from "node:path";
+import fs25 from "node:fs";
+import path39 from "node:path";
 var PENDING_FILE = "pending-lessons.md";
 var APPROVED_FILE = "global-lessons.md";
 var REJECTED_FILE = "rejected-lessons.jsonl";
@@ -13372,7 +14202,7 @@ function knownProjectNames(home, extra = []) {
   const names = new Set(extra);
   for (const p of listKnownProjects(home)) {
     names.add(p.name);
-    for (const seen of p.paths_seen) names.add(path36.basename(seen));
+    for (const seen of p.paths_seen) names.add(path39.basename(seen));
   }
   return [...names].filter((n) => n.trim().length > 0);
 }
@@ -13430,13 +14260,13 @@ function parseLessons(text3) {
   for (const b of blocks) if (!b.id) b.id = hashId(b.text);
   return { preamble, blocks };
 }
-var readFile = (file3) => parseLessons(fs21.existsSync(file3) ? fs21.readFileSync(file3, "utf8") : "");
+var readFile = (file3) => parseLessons(fs25.existsSync(file3) ? fs25.readFileSync(file3, "utf8") : "");
 var entryOf = ({ lines: _l, ...e }) => e;
 function writeText(file3, text3) {
-  ensureDir(path36.dirname(file3));
+  ensureDir(path39.dirname(file3));
   const tmp = `${file3}.${process.pid}.tmp`;
-  fs21.writeFileSync(tmp, text3, "utf8");
-  fs21.renameSync(tmp, file3);
+  fs25.writeFileSync(tmp, text3, "utf8");
+  fs25.renameSync(tmp, file3);
 }
 var render = (p, extra = []) => {
   const body = [...p.preamble.join("\n").replace(/\s*$/, "").split("\n"), "", ...p.blocks.flatMap((b) => [...b.lines, ""]), ...extra].join("\n");
@@ -13451,23 +14281,23 @@ var approvedHeader = `# Global lessons
 
 Lessons you approved. **Every QAMind project reads this file** (the newest ${MAX_LOADED} at most, best-used first), so each entry must help on any project: no project names, web addresses, files, tickets or code.
 An entry that breaks that rule is not loaded, and the review says why. You can add, edit or delete entries by hand.`;
-var rejectedRecords = (home) => readJsonl(path36.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
+var rejectedRecords = (home) => readJsonl(path39.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
 function appendRejected(home, rec) {
-  const file3 = path36.join(home, REJECTED_FILE);
+  const file3 = path39.join(home, REJECTED_FILE);
   const prior = readJsonl(file3);
   writeJsonl(file3, "rejected-lessons", [...prior.records, rec], prior.unparsed);
 }
 var allIds = (home) => {
-  const approved = readFile(path36.join(home, APPROVED_FILE)).blocks;
+  const approved = readFile(path39.join(home, APPROVED_FILE)).blocks;
   const origins = approved.flatMap((b) => b.lines.flatMap((l) => [...l.matchAll(/\(was ([A-Z]-\d+)\)/g)].map((m) => m[1])));
-  return [...readFile(path36.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
+  return [...readFile(path39.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
 };
 function listPendingLessons(home) {
-  return readFile(path36.join(home, PENDING_FILE)).blocks.map(entryOf);
+  return readFile(path39.join(home, PENDING_FILE)).blocks.map(entryOf);
 }
 function approveLesson(home, id, opts2 = {}) {
-  const pendingFile = path36.join(home, PENDING_FILE);
-  const approvedFile = path36.join(home, APPROVED_FILE);
+  const pendingFile = path39.join(home, PENDING_FILE);
+  const approvedFile = path39.join(home, APPROVED_FILE);
   return withStoreLock(home, () => {
     const pending = readFile(pendingFile);
     const at = pending.blocks.findIndex((b) => b.id === id);
@@ -13492,8 +14322,8 @@ function approveLesson(home, id, opts2 = {}) {
   });
 }
 function rejectLesson(home, id, reason, now = /* @__PURE__ */ new Date()) {
-  const pendingFile = path36.join(home, PENDING_FILE);
-  const approvedFile = path36.join(home, APPROVED_FILE);
+  const pendingFile = path39.join(home, PENDING_FILE);
+  const approvedFile = path39.join(home, APPROVED_FILE);
   return withStoreLock(home, () => {
     for (const [file3, was] of [[pendingFile, "pending"], [approvedFile, "approved"]]) {
       const parsed = readFile(file3);
@@ -13511,14 +14341,14 @@ function rejectLesson(home, id, reason, now = /* @__PURE__ */ new Date()) {
 }
 var readLessonUse = (home) => {
   try {
-    const v = readJson(path36.join(home, USE_FILE));
+    const v = readJson(path39.join(home, USE_FILE));
     return v && typeof v === "object" && !Array.isArray(v) ? v : {};
   } catch {
     return {};
   }
 };
 function loadApprovedLessons(home, ctx = {}) {
-  const entries = readFile(path36.join(home, APPROVED_FILE)).blocks;
+  const entries = readFile(path39.join(home, APPROVED_FILE)).blocks;
   const use = readLessonUse(home);
   const ok = [];
   const skipped = [];
@@ -13538,7 +14368,7 @@ function loadApprovedLessons(home, ctx = {}) {
   };
 }
 function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
-  const approved = new Set(readFile(path36.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
+  const approved = new Set(readFile(path39.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
   const unique = [...new Set(ids)];
   const recorded = unique.filter((i) => approved.has(i));
   const unknown = unique.filter((i) => !approved.has(i));
@@ -13547,7 +14377,7 @@ function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
     withStoreLock(home, () => {
       const use = readLessonUse(home);
       for (const id of recorded) use[id] = { hits: (use[id]?.hits ?? 0) + 1, last_applied: now.toISOString() };
-      writeJson(path36.join(home, USE_FILE), use);
+      writeJson(path39.join(home, USE_FILE), use);
     });
   }
   return { recorded, unknown };
@@ -13558,7 +14388,7 @@ function lessonOverview(home, ctx = {}) {
   const skipped = new Map(loaded.skipped.map((s) => [s.id, s.problems]));
   return {
     pending: listPendingLessons(home),
-    approved: readFile(path36.join(home, APPROVED_FILE)).blocks.map((b) => ({ ...entryOf(b), hits: use[b.id]?.hits ?? 0, ...use[b.id]?.last_applied ? { last_applied: use[b.id]?.last_applied } : {}, loaded: !skipped.has(b.id) && loaded.lessons.some((l) => l.id === b.id), ...skipped.has(b.id) ? { not_loaded_because: skipped.get(b.id) } : {} })),
+    approved: readFile(path39.join(home, APPROVED_FILE)).blocks.map((b) => ({ ...entryOf(b), hits: use[b.id]?.hits ?? 0, ...use[b.id]?.last_applied ? { last_applied: use[b.id]?.last_applied } : {}, loaded: !skipped.has(b.id) && loaded.lessons.some((l) => l.id === b.id), ...skipped.has(b.id) ? { not_loaded_because: skipped.get(b.id) } : {} })),
     rejected: rejectedRecords(home).map((r) => ({ id: r.id, text: r.text, ...r.reason ? { reason: r.reason } : {}, was: r.was, rejected_at: r.rejected_at })),
     limits: { max_pending: MAX_PENDING, max_loaded: MAX_LOADED }
   };
@@ -13569,8 +14399,8 @@ var PER_TYPE = 6;
 var MAX_PAGES_SHOWN = 40;
 function recentRunSummaries(store, limit = 3) {
   const dir = memoryPaths(store).runs;
-  if (!fs22.existsSync(dir)) return [];
-  return fs22.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path37.join(dir, f))).filter((r) => !!r);
+  if (!fs26.existsSync(dir)) return [];
+  return fs26.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path40.join(dir, f))).filter((r) => !!r);
 }
 function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), opts2 = {}) {
   const paths = memoryPaths(store);
@@ -13632,7 +14462,7 @@ function defaultProjectDir(env = process.env, cwd = process.cwd()) {
 }
 function projectScope(home, opts2 = {}) {
   const env = opts2.env ?? process.env;
-  const root = path38.resolve(opts2.project ?? defaultProjectDir(env, opts2.cwd ?? process.cwd()));
+  const root = path41.resolve(opts2.project ?? defaultProjectDir(env, opts2.cwd ?? process.cwd()));
   let info;
   try {
     info = resolveProject(root);
@@ -13645,7 +14475,7 @@ function projectScope(home, opts2 = {}) {
 }
 var secretsOf = (s) => s.ctx.passwords;
 function projectNamesOf(scope) {
-  return scope.kind === "run" ? [path38.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path38.basename(scope.project.root)];
+  return scope.kind === "run" ? [path41.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path41.basename(scope.project.root)];
 }
 function getContext(scope, limit = 3) {
   const ctx = loadMemoryContext(scope.store, limit, /* @__PURE__ */ new Date(), { home: scope.home, projectNames: projectNamesOf(scope) });
@@ -13734,17 +14564,17 @@ async function finishRunAndRestore(home, runId, opts2 = {}) {
 }
 
 // core/lib/bank/export.ts
-import fs23 from "node:fs";
-import path39 from "node:path";
-var q = (v) => JSON.stringify(v);
+import fs27 from "node:fs";
+import path42 from "node:path";
+var q2 = (v) => JSON.stringify(v);
 var slug2 = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "test";
 var comment = (s) => s.replace(/\*\//g, "* /").replace(/\r?\n/g, " ");
 function exportDir(projectRoot, given) {
   if (given) return given.replace(/^\.?\/+/, "").replace(/\/+$/, "");
   for (const f of ["playwright.config.ts", "playwright.config.js", "playwright.config.mjs", "playwright.config.cjs"]) {
-    const file3 = path39.join(projectRoot, f);
-    if (!fs23.existsSync(file3)) continue;
-    const m = /testDir\s*:\s*['"`]([^'"`]+)['"`]/.exec(fs23.readFileSync(file3, "utf8"));
+    const file3 = path42.join(projectRoot, f);
+    if (!fs27.existsSync(file3)) continue;
+    const m = /testDir\s*:\s*['"`]([^'"`]+)['"`]/.exec(fs27.readFileSync(file3, "utf8"));
     if (m?.[1]) return `${m[1].replace(/^\.\//, "").replace(/\/+$/, "")}/qamind`;
   }
   return "tests/qamind";
@@ -13788,31 +14618,31 @@ function fill(text: string, vars: Record<string, string>): string {
 }
 `;
 function loginEnv(config, roles) {
-  const rows = roles.filter((r) => r !== "anonymous").map((r) => config.roles.find((x) => x.name === r)).filter((x) => !!x).map((r) => `  ${q(r.name)}: { user: ${q(r.username_env)}, pass: ${q(r.password_env)} },`);
+  const rows = roles.filter((r) => r !== "anonymous").map((r) => config.roles.find((x) => x.name === r)).filter((x) => !!x).map((r) => `  ${q2(r.name)}: { user: ${q2(r.username_env)}, pass: ${q2(r.password_env)} },`);
   return rows.join("\n");
 }
 function probeCode(p) {
   const L = [];
-  const body = p.raw_body !== void 0 ? `, data: fill(${q(p.raw_body)}, vars)` : p.body !== void 0 ? `, data: JSON.parse(fill(${q(JSON.stringify(p.body))}, vars))` : "";
-  const headers = p.headers && Object.keys(p.headers).length ? `...${q(p.headers)}, ` : "";
-  const params = p.query && Object.keys(p.query).length ? `, params: ${q(p.query)}` : "";
+  const body = p.raw_body !== void 0 ? `, data: fill(${q2(p.raw_body)}, vars)` : p.body !== void 0 ? `, data: JSON.parse(fill(${q2(JSON.stringify(p.body))}, vars))` : "";
+  const headers = p.headers && Object.keys(p.headers).length ? `...${q2(p.headers)}, ` : "";
+  const params = p.query && Object.keys(p.query).length ? `, params: ${q2(p.query)}` : "";
   L.push(`    // ${comment(p.id)}: ${comment(p.title)}`);
   L.push(`    {`);
-  L.push(`      const api = await as(${q(p.role)});`);
-  L.push(`      const res = await api.ctx.fetch(API_BASE + fill(${q(p.path)}, vars), { method: ${q(p.method.toUpperCase())}${params}${body}, headers: { ${headers}...api.headers }, failOnStatusCode: false, maxRedirects: 0 });`);
+  L.push(`      const api = await as(${q2(p.role)});`);
+  L.push(`      const res = await api.ctx.fetch(API_BASE + fill(${q2(p.path)}, vars), { method: ${q2(p.method.toUpperCase())}${params}${body}, headers: { ${headers}...api.headers }, failOnStatusCode: false, maxRedirects: 0 });`);
   L.push(`      const text = await res.text();`);
   L.push(`      let json: unknown; try { json = JSON.parse(text); } catch { json = undefined; }`);
-  if (p.expect?.status !== void 0) L.push(`      expect(statusOk(res.status(), ${q(p.expect.status)}), \`${comment(p.id)}: expected HTTP ${comment(JSON.stringify(p.expect.status))}, got \${res.status()}\`).toBeTruthy();`);
-  for (const s of [p.expect?.body_contains ?? []].flat()) L.push(`      expect(text).toContain(${q(s)});`);
-  for (const s of [p.expect?.body_not_contains ?? []].flat()) L.push(`      expect(text).not.toContain(${q(s)});`);
+  if (p.expect?.status !== void 0) L.push(`      expect(statusOk(res.status(), ${q2(p.expect.status)}), \`${comment(p.id)}: expected HTTP ${comment(JSON.stringify(p.expect.status))}, got \${res.status()}\`).toBeTruthy();`);
+  for (const s of [p.expect?.body_contains ?? []].flat()) L.push(`      expect(text).toContain(${q2(s)});`);
+  for (const s of [p.expect?.body_not_contains ?? []].flat()) L.push(`      expect(text).not.toContain(${q2(s)});`);
   for (const c of p.expect?.json ?? []) {
-    if (c.exists !== void 0) L.push(`      expect(pick(json, ${q(c.path)}) !== undefined, ${q(`${c.path} exists`)}).toBe(${c.exists});`);
-    if ("equals" in c) L.push(`      expect(pick(json, ${q(c.path)})).toEqual(${q(c.equals)});`);
-    if (c.lte !== void 0) L.push(`      expect(Number(pick(json, ${q(c.path)}))).toBeLessThanOrEqual(${c.lte});`);
-    if (c.gte !== void 0) L.push(`      expect(Number(pick(json, ${q(c.path)}))).toBeGreaterThanOrEqual(${c.gte});`);
-    if (c.matches !== void 0) L.push(`      expect(String(pick(json, ${q(c.path)}))).toMatch(new RegExp(${q(c.matches)}));`);
+    if (c.exists !== void 0) L.push(`      expect(pick(json, ${q2(c.path)}) !== undefined, ${q2(`${c.path} exists`)}).toBe(${c.exists});`);
+    if ("equals" in c) L.push(`      expect(pick(json, ${q2(c.path)})).toEqual(${q2(c.equals)});`);
+    if (c.lte !== void 0) L.push(`      expect(Number(pick(json, ${q2(c.path)}))).toBeLessThanOrEqual(${c.lte});`);
+    if (c.gte !== void 0) L.push(`      expect(Number(pick(json, ${q2(c.path)}))).toBeGreaterThanOrEqual(${c.gte});`);
+    if (c.matches !== void 0) L.push(`      expect(String(pick(json, ${q2(c.path)}))).toMatch(new RegExp(${q2(c.matches)}));`);
   }
-  for (const [name, expr] of Object.entries(p.capture ?? {})) L.push(`      vars[${q(name)}] = String(capture(json, ${q(expr)}) ?? "");`);
+  for (const [name, expr] of Object.entries(p.capture ?? {})) L.push(`      vars[${q2(name)}] = String(capture(json, ${q2(expr)}) ?? "");`);
   L.push(`    }`);
   return L.join("\n");
 }
@@ -13824,7 +14654,7 @@ function apiFile(tests, config) {
   L.push(`// It reads the API address from QAMIND_API_BASE (default ${comment(config.api.base_url ?? "http://localhost:3000/api")}) and the test logins from the environment variables below; no value is stored here.`);
   L.push(`import { expect, request, test } from "@playwright/test";`);
   L.push(`import type { APIRequestContext } from "@playwright/test";`, "");
-  L.push(`const API_BASE = (process.env["QAMIND_API_BASE"] ?? ${q(config.api.base_url ?? "http://localhost:3000/api")}).replace(/\\/+$/, "");`);
+  L.push(`const API_BASE = (process.env["QAMIND_API_BASE"] ?? ${q2(config.api.base_url ?? "http://localhost:3000/api")}).replace(/\\/+$/, "");`);
   L.push(`const LOGINS: Record<string, { user: string; pass: string }> = {`, loginEnv(config, roles), `};`);
   L.push(HELPERS.trimEnd());
   L.push("", `async function as(role: string): Promise<{ ctx: APIRequestContext; headers: Record<string, string> }> {`);
@@ -13836,21 +14666,21 @@ function apiFile(tests, config) {
     L.push(`  const username = env ? process.env[env.user] : undefined;`);
     L.push(`  const password = env ? process.env[env.pass] : undefined;`);
     L.push(`  if (!username || !password) throw new Error(\`Set the test login variables for "\${role}" (\${env ? env.user + ", " + env.pass : "unknown role"}) to run this test.\`);`);
-    L.push(`  const res = await ctx.fetch(API_BASE + ${q(login.path)}, { method: ${q(login.method)}, data: { ${q(login.username_field)}: username, ${q(login.password_field)}: password }, failOnStatusCode: false });`);
+    L.push(`  const res = await ctx.fetch(API_BASE + ${q2(login.path)}, { method: ${q2(login.method)}, data: { ${q2(login.username_field)}: username, ${q2(login.password_field)}: password }, failOnStatusCode: false });`);
     L.push(`  expect(res.ok(), \`signing in as \${role}\`).toBeTruthy();`);
     if (login.token_path === "cookie") L.push(`  return { ctx, headers: {} };`);
     else {
       const sep = login.auth_header.indexOf(":");
-      L.push(`  const token = String(pick(await res.json(), ${q(login.token_path)}) ?? "");`);
+      L.push(`  const token = String(pick(await res.json(), ${q2(login.token_path)}) ?? "");`);
       L.push(`  expect(token, "the sign-in answered with a token").not.toBe("");`);
-      L.push(`  return { ctx, headers: { ${q(login.auth_header.slice(0, sep).trim())}: ${q(login.auth_header.slice(sep + 1).trim())}.replace("{token}", token) } };`);
+      L.push(`  return { ctx, headers: { ${q2(login.auth_header.slice(0, sep).trim())}: ${q2(login.auth_header.slice(sep + 1).trim())}.replace("{token}", token) } };`);
     }
   }
   L.push(`}`, "");
   for (const t of tests) {
     L.push(`/** ${comment(t.id)}. Protects: ${comment(t.card.protects)} Fails when: ${comment(t.card.fails_when)}${t.protects_bug ? ` (QAMind bug ${comment(t.protects_bug)})` : ""} */`);
-    L.push(`test(${q(`${t.id}: ${t.title}`)}, async () => {`);
-    L.push(`  const vars: Record<string, string> = ${q(t.plan?.vars ?? {})};`);
+    L.push(`test(${q2(`${t.id}: ${t.title}`)}, async () => {`);
+    L.push(`  const vars: Record<string, string> = ${q2(t.plan?.vars ?? {})};`);
     for (const p of t.plan?.probes ?? []) {
       const times = p.repeat?.count ?? 1;
       L.push(times > 1 ? `  for (let i = 0; i < ${times}; i++) {
@@ -13862,32 +14692,32 @@ ${probeCode(p)}
   return L.join("\n");
 }
 function locatorCode(t) {
-  if (t.role) return `page.getByRole(${q(t.role)}${t.name ? `, { name: ${q(t.name)} }` : ""})`;
-  if (t.text) return `page.getByText(${q(t.text)})`;
-  if (t.label) return `page.getByLabel(${q(t.label)})`;
-  if (t.testid) return `page.getByTestId(${q(t.testid)})`;
-  return `page.locator(${q(t.selector)})`;
+  if (t.role) return `page.getByRole(${q2(t.role)}${t.name ? `, { name: ${q2(t.name)} }` : ""})`;
+  if (t.text) return `page.getByText(${q2(t.text)})`;
+  if (t.label) return `page.getByLabel(${q2(t.label)})`;
+  if (t.testid) return `page.getByTestId(${q2(t.testid)})`;
+  return `page.locator(${q2(t.selector)})`;
 }
 function stepCode(s) {
   switch (s.do) {
     case "goto":
-      return `await page.goto(UI_BASE + ${q(s.path)});`;
+      return `await page.goto(UI_BASE + ${q2(s.path)});`;
     case "click":
       return `await ${locatorCode(s.target)}.first().click();`;
     case "fill":
-      return s.secret ? `await ${locatorCode(s.target)}.first().fill(secret(${q(s.secret)}));` : `await ${locatorCode(s.target)}.first().fill(${q(s.value)});`;
+      return s.secret ? `await ${locatorCode(s.target)}.first().fill(secret(${q2(s.secret)}));` : `await ${locatorCode(s.target)}.first().fill(${q2(s.value)});`;
     case "select":
-      return `await ${locatorCode(s.target)}.first().selectOption({ label: ${q(s.option)} });`;
+      return `await ${locatorCode(s.target)}.first().selectOption({ label: ${q2(s.option)} });`;
     case "press":
-      return `await page.keyboard.press(${q(s.key)});`;
+      return `await page.keyboard.press(${q2(s.key)});`;
     case "expect_text":
-      return s.target ? `await expect(${locatorCode(s.target)}.first()).toContainText(${q(s.text)});` : `await expect(page.locator("body")).toContainText(${q(s.text)});`;
+      return s.target ? `await expect(${locatorCode(s.target)}.first()).toContainText(${q2(s.text)});` : `await expect(page.locator("body")).toContainText(${q2(s.text)});`;
     case "expect_no_text":
-      return `await expect(page.locator("body")).not.toContainText(${q(s.text)});`;
+      return `await expect(page.locator("body")).not.toContainText(${q2(s.text)});`;
     case "expect_visible":
       return `await expect(${locatorCode(s.target)}.first()).toBeVisible();`;
     case "expect_url":
-      return `await expect(page).toHaveURL(new RegExp(${q(s.contains.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))}));`;
+      return `await expect(page).toHaveURL(new RegExp(${q2(s.contains.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))}));`;
     case "expect_count":
       return `await expect(${locatorCode(s.target)}).toHaveCount(${s.count});`;
     case "wait":
@@ -13903,8 +14733,8 @@ function uiFile(tests, config) {
   for (const t of tests) {
     const base = config.web_uis.find((u) => u.name === t.ui)?.url ?? "http://localhost:3000";
     L.push(`/** ${comment(t.id)}. Protects: ${comment(t.card.protects)} Fails when: ${comment(t.card.fails_when)}${t.protects_bug ? ` (QAMind bug ${comment(t.protects_bug)})` : ""} */`);
-    L.push(`test(${q(`${t.id}: ${t.title}`)}, async ({ page }) => {`);
-    L.push(`  const UI_BASE = (process.env["QAMIND_UI_BASE"] ?? ${q(base)}).replace(/\\/+$/, "");`);
+    L.push(`test(${q2(`${t.id}: ${t.title}`)}, async ({ page }) => {`);
+    L.push(`  const UI_BASE = (process.env["QAMIND_UI_BASE"] ?? ${q2(base)}).replace(/\\/+$/, "");`);
     for (const s of t.steps ?? []) L.push(`  ${stepCode(s)}`);
     L.push(`});`, "");
   }
@@ -13920,26 +14750,26 @@ function generateExports(tests, config, dir) {
 }
 
 // core/lib/bank/runner.ts
-import path42 from "node:path";
+import path45 from "node:path";
 
 // core/lib/bank/uirunner.ts
-import fs25 from "node:fs";
-import path41 from "node:path";
+import fs29 from "node:fs";
+import path44 from "node:path";
 import { createRequire } from "node:module";
 
 // core/lib/browserdetect.ts
-import fs24 from "node:fs";
-import path40 from "node:path";
+import fs28 from "node:fs";
+import path43 from "node:path";
 function detectChromeChannel() {
-  const exists2 = (p) => fs24.existsSync(p);
-  const onPath = (name) => (process.env["PATH"] ?? "").split(path40.delimiter).some((d) => d && exists2(path40.join(d, name)));
+  const exists2 = (p) => fs28.existsSync(p);
+  const onPath = (name) => (process.env["PATH"] ?? "").split(path43.delimiter).some((d) => d && exists2(path43.join(d, name)));
   if (process.platform === "darwin") {
     if (exists2("/Applications/Google Chrome.app")) return "chrome";
     if (exists2("/Applications/Microsoft Edge.app")) return "msedge";
   } else if (process.platform === "win32") {
     const roots = [process.env["PROGRAMFILES"], process.env["PROGRAMFILES(X86)"], process.env["LOCALAPPDATA"]].filter((x) => !!x);
-    if (roots.some((r) => exists2(path40.join(r, "Google", "Chrome", "Application", "chrome.exe")))) return "chrome";
-    if (roots.some((r) => exists2(path40.join(r, "Microsoft", "Edge", "Application", "msedge.exe")))) return "msedge";
+    if (roots.some((r) => exists2(path43.join(r, "Google", "Chrome", "Application", "chrome.exe")))) return "chrome";
+    if (roots.some((r) => exists2(path43.join(r, "Microsoft", "Edge", "Application", "msedge.exe")))) return "msedge";
   } else {
     if (["google-chrome", "google-chrome-stable"].some(onPath)) return "chrome";
     if (onPath("microsoft-edge")) return "msedge";
@@ -14016,10 +14846,10 @@ async function createUiRunner(opts2) {
   const testMs = opts2.testTimeoutMs ?? 6e4;
   const maskScript = (() => {
     try {
-      const f = path41.join(corePath(), "shared", "page-mask.js");
-      if (!fs25.existsSync(f)) return void 0;
+      const f = path44.join(corePath(), "shared", "page-mask.js");
+      if (!fs29.existsSync(f)) return void 0;
       return `globalThis.__QAMIND_MASK_CONFIG = ${JSON.stringify(opts2.mask ?? { selectors: [], patterns: [], prefix: "QA-", allow: [] })};
-${fs25.readFileSync(f, "utf8")}`;
+${fs29.readFileSync(f, "utf8")}`;
     } catch {
       return void 0;
     }
@@ -14142,9 +14972,9 @@ ${fs25.readFileSync(f, "utf8")}`;
         let shot;
         try {
           ensureDir(opts2.evidenceDir);
-          const file3 = path41.join(opts2.evidenceDir, `${test.id}.png`);
+          const file3 = path44.join(opts2.evidenceDir, `${test.id}.png`);
           await page.screenshot({ path: file3, timeout: 4e3 });
-          shot = path41.join("evidence", "bank", `${test.id}.png`);
+          shot = path44.join("evidence", "bank", `${test.id}.png`);
         } catch {
         }
         const raw = opts2.redact(e.message).split("\n")[0] ?? "";
@@ -14196,7 +15026,7 @@ async function runBank(ctx, opts2 = {}) {
   let ui;
   let budgetReached = false;
   let apiDown;
-  const evidenceDir = path42.join(ctx.outDir, "evidence", "bank");
+  const evidenceDir = path45.join(ctx.outDir, "evidence", "bank");
   const row = (t, r) => {
     results.push({ test: t.id, title: t.title, area: t.area, kind: t.kind, ...t.protects_bug ? { bug: t.protects_bug } : {}, ms: 0, attempts: 0, ...r });
   };
@@ -14292,7 +15122,7 @@ async function runBank(ctx, opts2 = {}) {
     covered_areas: [...new Set(results.filter((r) => (r.status === "passed" || r.status === "flaky-passed") && !failedAreas.has(r.area)).map((r) => r.area))].sort(),
     ...budgetReached ? { budget_reached: true } : {}
   };
-  ensureDir(path42.join(ctx.outDir, "data"));
+  ensureDir(path45.join(ctx.outDir, "data"));
   writeJson(bankResultsFile(ctx.outDir), JSON.parse(maskText(JSON.stringify(out), ctx.privacy).text));
   return out;
 }
@@ -14302,7 +15132,7 @@ var secretNamesOf = (config) => config.roles.flatMap((r) => [r.username_env, r.p
 function saveBankTest(scope, input, now = /* @__PURE__ */ new Date()) {
   const ctx = scope.ctx;
   if (input.from_issue) {
-    const findings = readJson(path43.join(scope.runDir, "data", "findings.json")) ?? [];
+    const findings = readJson(path46.join(scope.runDir, "data", "findings.json")) ?? [];
     if (!findings.some((f) => f.id === input.from_issue)) throw new Error(`from_issue ${input.from_issue} is not a finding of this run (findings.json has ${findings.map((f) => f.id).filter(Boolean).join(", ") || "none yet"}). Write the findings first, then save the tests that protect them.`);
   }
   return withStoreLock(
@@ -14315,15 +15145,15 @@ function saveBankTest(scope, input, now = /* @__PURE__ */ new Date()) {
   );
 }
 function saveBankTestFromFile(scope, file3, opts2 = {}) {
-  const base = path43.join(scope.runDir, "data", "bank");
-  const abs = path43.isAbsolute(file3) ? path43.resolve(file3) : path43.resolve(fs26.existsSync(path43.resolve(file3)) && opts2.anywhere ? path43.resolve(file3) : path43.join(base, file3));
-  const inside2 = abs === scope.runDir || abs.startsWith(scope.runDir + path43.sep);
-  if (!opts2.anywhere && !inside2) throw new Error(`The test file has to be inside the run folder (write it to ${path43.join(scope.runDir, "data", "bank", "<name>.json")}).`);
-  if (!fs26.existsSync(abs)) throw new Error(`No test file at ${abs}. Write the test as JSON there first.`);
-  if (fs26.statSync(abs).size > 12e4) throw new Error("The test file is larger than 120 KB: a test checks one thing, split it.");
+  const base = path46.join(scope.runDir, "data", "bank");
+  const abs = path46.isAbsolute(file3) ? path46.resolve(file3) : path46.resolve(fs30.existsSync(path46.resolve(file3)) && opts2.anywhere ? path46.resolve(file3) : path46.join(base, file3));
+  const inside2 = abs === scope.runDir || abs.startsWith(scope.runDir + path46.sep);
+  if (!opts2.anywhere && !inside2) throw new Error(`The test file has to be inside the run folder (write it to ${path46.join(scope.runDir, "data", "bank", "<name>.json")}).`);
+  if (!fs30.existsSync(abs)) throw new Error(`No test file at ${abs}. Write the test as JSON there first.`);
+  if (fs30.statSync(abs).size > 12e4) throw new Error("The test file is larger than 120 KB: a test checks one thing, split it.");
   let input;
   try {
-    input = JSON.parse(fs26.readFileSync(abs, "utf8"));
+    input = JSON.parse(fs30.readFileSync(abs, "utf8"));
   } catch (e) {
     throw new Error(`The test file is not valid JSON: ${e.message}`);
   }
@@ -14349,7 +15179,7 @@ function bankContextForRun(scope) {
   };
 }
 function bankContextStandalone(home, projectDir, now, env = process.env) {
-  const root = path43.resolve(projectDir);
+  const root = path46.resolve(projectDir);
   const info = resolveProject(root);
   const store = storeDir(home, info.id);
   ensureMigrated(store);
@@ -14365,8 +15195,8 @@ function bankContextStandalone(home, projectDir, now, env = process.env) {
   }
   if (roles.length === 0) throw new Error("No test account has both its username and password set in .env.qa. Nothing was tested.");
   const id = `bank-${utcStamp(now)}`;
-  const outDir = path43.join(root, ".qa", "bank-runs", id);
-  ensureDir(path43.join(outDir, "data"));
+  const outDir = path46.join(root, ".qa", "bank-runs", id);
+  ensureDir(path46.join(outDir, "data"));
   return {
     store,
     outDir,
@@ -14415,27 +15245,27 @@ function exportTests(home, projectDir, input) {
   if (missing.length) throw new Error(`No such test: ${missing.join(", ")}.`);
   if (pick2.length === 0) throw new Error("There are no tests to export.");
   const dir = exportDir(scope.project.root, input.dir);
-  if (path43.isAbsolute(dir) || dir.split("/").includes("..")) throw new Error("--dir must be a folder inside the project.");
+  if (path46.isAbsolute(dir) || dir.split("/").includes("..")) throw new Error("--dir must be a folder inside the project.");
   const generated = generateExports(pick2, config, dir);
-  const files = generated.map((f) => ({ path: f.path, tests: f.tests, exists: fs26.existsSync(path43.join(scope.project.root, f.path)) }));
+  const files = generated.map((f) => ({ path: f.path, tests: f.tests, exists: fs30.existsSync(path46.join(scope.project.root, f.path)) }));
   const skipped = [];
   if (input.confirmed) {
     for (const f of generated) {
-      const abs = path43.join(scope.project.root, f.path);
-      if (fs26.existsSync(abs)) {
+      const abs = path46.join(scope.project.root, f.path);
+      if (fs30.existsSync(abs)) {
         skipped.push(f.path);
         continue;
       }
-      ensureDir(path43.dirname(abs));
-      fs26.writeFileSync(abs, f.content, "utf8");
+      ensureDir(path46.dirname(abs));
+      fs30.writeFileSync(abs, f.content, "utf8");
     }
   }
   return { dir, files, written: input.confirmed, skipped_existing: skipped, generated };
 }
 
 // core/lib/memory/feedback.ts
-import fs27 from "node:fs";
-import path44 from "node:path";
+import fs31 from "node:fs";
+import path47 from "node:path";
 var VERDICTS = ["not-a-bug", "wrong-severity", "duplicate-of", "confirmed", "fixed", "wont-fix", "good-catch"];
 var one6 = (s) => s.replace(/\s+/g, " ").trim();
 function loadFeedback(store) {
@@ -14473,8 +15303,8 @@ function parseVerdict(text3) {
 }
 function summaries(store) {
   const dir = memoryPaths(store).runs;
-  if (!fs27.existsSync(dir)) return [];
-  return fs27.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().map((f) => readJson(path44.join(dir, f))).filter((s) => !!s);
+  if (!fs31.existsSync(dir)) return [];
+  return fs31.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().map((f) => readJson(path47.join(dir, f))).filter((s) => !!s);
 }
 function resolveBug(store, target, run) {
   const t = target.trim().toUpperCase();
@@ -14610,11 +15440,11 @@ function addFeedback(store, input, now = /* @__PURE__ */ new Date()) {
   return { record, effects, warnings };
 }
 function importAdminFeedback(store, runDir, by, now = /* @__PURE__ */ new Date()) {
-  const file3 = path44.join(runDir, "ADMIN-REPORT.md");
-  if (!fs27.existsSync(file3)) throw new Error(`No ADMIN-REPORT.md in ${runDir}.`);
-  const run = path44.basename(runDir);
+  const file3 = path47.join(runDir, "ADMIN-REPORT.md");
+  if (!fs31.existsSync(file3)) throw new Error(`No ADMIN-REPORT.md in ${runDir}.`);
+  const run = path47.basename(runDir);
   const out = [];
-  const blocks = fs27.readFileSync(file3, "utf8").split(/^### /m).slice(1);
+  const blocks = fs31.readFileSync(file3, "utf8").split(/^### /m).slice(1);
   for (const block of blocks) {
     const issue = /\[(ISSUE-\d+)\]\(/.exec(block)?.[1];
     const line = /\*\*Your feedback \(optional\):\*\*\s*(.*)$/m.exec(block)?.[1] ?? "";
@@ -14745,7 +15575,7 @@ async function healthWithPrep(args) {
 }
 
 // core/lib/hooks.ts
-import path45 from "node:path";
+import path48 from "node:path";
 var GIT_MUTATION = /\bgit\s+(?:-[A-Za-z]\s+\S+\s+)*(add|commit|push|pull|fetch\s+--prune|merge|rebase|reset|checkout|switch|restore|stash|cherry-pick|revert|rm|mv|clean|tag|apply|am|worktree|branch\s+-[dDmM])\b/;
 var INSTALLS = /\b(npm|pnpm|yarn|bun)\s+(install|i|add|remove|uninstall|update|upgrade|ci)\b|\bpip3?\s+install\b|\bcomposer\s+(install|require|update|remove)\b|\bbundle\s+(install|update)\b|\bdotnet\s+add\b/;
 var IN_PLACE_EDIT = /\bsed\s+(?:-[A-Za-z]*i|--in-place)\b|\bperl\s+-[A-Za-z]*i\b/;
@@ -14754,22 +15584,22 @@ var AMP_REDIRECT = /&>{1,2}\s*([^\s&|;)]+)/g;
 var stripQuoted = (cmd) => cmd.replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, '""');
 var CREDENTIAL_FILE = /(^|[\\/\s"'=])\.env\.qa(?![.\w-])/;
 function inside(child, parent) {
-  const rel = path45.relative(parent, child);
-  return rel === "" || !rel.startsWith("..") && !path45.isAbsolute(rel);
+  const rel = path48.relative(parent, child);
+  return rel === "" || !rel.startsWith("..") && !path48.isAbsolute(rel);
 }
 function allowedWriteRoots(marker, home, tmpDirs) {
-  return [path45.join(marker.project_root, ".qa"), home, ...tmpDirs];
+  return [path48.join(marker.project_root, ".qa"), home, ...tmpDirs];
 }
 var OWNER_FILES = /* @__PURE__ */ new Set(["global-lessons.md", "pending-lessons.md", "rejected-lessons.jsonl", "lesson-use.json", "auto.json", "feedback.jsonl", "bugs.jsonl", "bank.jsonl"]);
 var OWNER_FILE_IN_COMMAND = /(?:global-lessons\.md|pending-lessons\.md|rejected-lessons\.jsonl|lesson-use\.json|auto\.json|feedback\.jsonl|bugs\.jsonl|bank\.jsonl)/;
 var WRITES_FILES = /(?:>|\btee\b|\bsed\s+-[A-Za-z]*i|\b(?:mv|cp|rm|truncate|dd|install|ln)\b|\b(?:node|python3?|perl|ruby)\b)/;
 var EXPORT_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+tests\s+export\b/;
-var OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|feedback\s+(?:add|import)|tests\s+(?:retire|quarantine|unquarantine)|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
+var OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|feedback\s+(?:add|import)|tests\s+(?:retire|quarantine|unquarantine)|ci|schedule|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
 function ownerOnly(tool, ti, abs, home) {
-  const why = "Approving lessons, archiving memory, giving feedback on findings, retiring or quarantining a saved test and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-feedback, /qa-tests, /qa-auto).";
+  const why = "Approving lessons, archiving memory, giving feedback on findings, retiring or quarantining a saved test, starting a CI run or writing CI files, and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-feedback, /qa-tests, /qa-auto).";
   if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
     const target = String(ti["file_path"] ?? ti["notebook_path"] ?? "");
-    if (target && OWNER_FILES.has(path45.basename(target)) && inside(abs(target), home)) return `${why} (${path45.basename(target)} is the user's file.)`;
+    if (target && OWNER_FILES.has(path48.basename(target)) && inside(abs(target), home)) return `${why} (${path48.basename(target)} is the user's file.)`;
   }
   if (tool === "Bash") {
     const cmd = String(ti["command"] ?? "");
@@ -14785,10 +15615,10 @@ function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new D
   const tool = input.tool_name ?? "";
   const ti = input.tool_input ?? {};
   const cwd = input.cwd ?? marker.project_root;
-  const abs = (p) => path45.resolve(cwd, p);
+  const abs = (p) => path48.resolve(cwd, p);
   if (tool === "Read" || tool === "Grep" || tool === "Glob") {
     const target = String(ti["file_path"] ?? ti["path"] ?? ti["pattern"] ?? "");
-    if (CREDENTIAL_FILE.test(`/${target}`) || path45.basename(target) === ".env.qa") {
+    if (CREDENTIAL_FILE.test(`/${target}`) || path48.basename(target) === ".env.qa") {
       return { decision: "deny", reason: "QAMind never reads .env.qa: credentials must not enter the conversation. Use the secret names in the roles table (the browser tool and the qamind CLI substitute the values)." };
     }
   }
@@ -14805,8 +15635,8 @@ function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new D
   const roots = allowedWriteRoots(marker, home, tmpDirs);
   if (tool.startsWith("mcp__plugin_qamind_browser__")) {
     const name = ti["filename"];
-    if (typeof name === "string" && name.trim() !== "" && !roots.some((r) => inside(path45.resolve(marker.project_root, name), r))) {
-      return { decision: "deny", reason: `The browser tool would save "${name}" in the project folder. Save evidence inside the run folder with an absolute path, for example ${path45.join(marker.run_dir, "screenshots", "<slug>.png")}, so the project stays untouched.` };
+    if (typeof name === "string" && name.trim() !== "" && !roots.some((r) => inside(path48.resolve(marker.project_root, name), r))) {
+      return { decision: "deny", reason: `The browser tool would save "${name}" in the project folder. Save evidence inside the run folder with an absolute path, for example ${path48.join(marker.run_dir, "screenshots", "<slug>.png")}, so the project stays untouched.` };
     }
   }
   const owner = ownerOnly(tool, ti, abs, home);
@@ -14871,7 +15701,7 @@ function decideFixRun(marker, tool, ti, abs, home, tmpDirs) {
       if (problem) return { decision: "deny", reason: `This command writes to ${raw}: ${problem}` };
     }
     for (const words of commandWords(cmd)) {
-      if (!FILE_COMMANDS.has(path45.basename(words[0] ?? ""))) continue;
+      if (!FILE_COMMANDS.has(path48.basename(words[0] ?? ""))) continue;
       for (const w of words.slice(1)) {
         if (!w || w.startsWith("-") || /^[\d.]+$/.test(w) || /^[ugoa]*[+=-][rwxX]+$/.test(w)) continue;
         const problem = why(w);
@@ -14886,8 +15716,8 @@ function toHookOutput(d) {
 }
 
 // core/lib/memory/review.ts
-import fs28 from "node:fs";
-import path46 from "node:path";
+import fs32 from "node:fs";
+import path49 from "node:path";
 var LOW_CONFIDENCE = 4;
 var STALE_DAYS = 180;
 var UNUSED_DAYS = 90;
@@ -14895,10 +15725,10 @@ var UNUSED_ALARM_DAYS = 120;
 var OLD_RISK_DAYS = 365;
 var archivedCounts = (store) => {
   const dir = memoryPaths(store).archiveDir;
-  if (!fs28.existsSync(dir)) return {};
-  return Object.fromEntries(fs28.readdirSync(dir).filter((f) => f.endsWith(".jsonl")).map((f) => [f.replace(/\.jsonl$/, ""), readJsonl(path46.join(dir, f)).records.length]));
+  if (!fs32.existsSync(dir)) return {};
+  return Object.fromEntries(fs32.readdirSync(dir).filter((f) => f.endsWith(".jsonl")).map((f) => [f.replace(/\.jsonl$/, ""), readJsonl(path49.join(dir, f)).records.length]));
 };
-var projectOf = (scope) => scope.kind === "project" ? { id: scope.project.id, name: scope.project.name } : { id: path46.basename(scope.store), name: path46.basename(scope.ctx.projectRoot) };
+var projectOf = (scope) => scope.kind === "project" ? { id: scope.project.id, name: scope.project.name } : { id: path49.basename(scope.store), name: path49.basename(scope.ctx.projectRoot) };
 function reviewOverview(scope, now = /* @__PURE__ */ new Date()) {
   const learned = loadLearnings(scope.store, now);
   const alarms = loadFalseAlarms(scope.store, now);
@@ -14980,10 +15810,10 @@ function memoryStats(scope, now = /* @__PURE__ */ new Date()) {
 }
 
 // core/scripts/browser-launcher.ts
-import { spawn as spawn2 } from "node:child_process";
-import fs29 from "node:fs";
-import os2 from "node:os";
-import path47 from "node:path";
+import { spawn as spawn3 } from "node:child_process";
+import fs33 from "node:fs";
+import os3 from "node:os";
+import path50 from "node:path";
 import { createRequire as createRequire2 } from "node:module";
 
 // core/scripts/guard-proxy.ts
@@ -15085,53 +15915,53 @@ function resolvePlaywrightMcp() {
   try {
     const req = createRequire2(import.meta.url);
     const pkg = req.resolve("@playwright/mcp/package.json");
-    return { command: process.execPath, args: [path47.join(path47.dirname(pkg), "cli.js")] };
+    return { command: process.execPath, args: [path50.join(path50.dirname(pkg), "cli.js")] };
   } catch {
     return { command: process.platform === "win32" ? "npx.cmd" : "npx", args: ["--yes", `@playwright/mcp@${PLAYWRIGHT_MCP_VERSION}`] };
   }
 }
 async function runBrowserLauncher() {
   const home = qamindHome();
-  const projectRoot = fs29.realpathSync(path47.resolve(defaultProjectDir()));
+  const projectRoot = fs33.realpathSync(path50.resolve(defaultProjectDir()));
   const guard = await startGuardProxy(home);
   const secrets = {};
-  const envFile = path47.join(projectRoot, ".env.qa");
-  if (fs29.existsSync(envFile)) Object.assign(secrets, parseDotenv(fs29.readFileSync(envFile, "utf8")));
+  const envFile = path50.join(projectRoot, ".env.qa");
+  if (fs33.existsSync(envFile)) Object.assign(secrets, parseDotenv(fs33.readFileSync(envFile, "utf8")));
   try {
-    if (fs29.existsSync(path47.join(projectRoot, ".qa", "config.md"))) {
+    if (fs33.existsSync(path50.join(projectRoot, ".qa", "config.md"))) {
       const cfg = checkConfigFile(projectRoot).config;
       for (const r of cfg?.roles ?? []) for (const n of [r.username_env, r.password_env]) if (process.env[n]) secrets[n] = process.env[n];
     }
   } catch {
   }
-  const tmp = fs29.mkdtempSync(path47.join(os2.tmpdir(), "qamind-browser-"));
-  fs29.chmodSync(tmp, 448);
-  const secretsFile = path47.join(tmp, "secrets.env");
-  fs29.writeFileSync(secretsFile, Object.entries(secrets).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("\n") + "\n", { mode: 384 });
-  const outDir = path47.join(tmp, "output");
+  const tmp = fs33.mkdtempSync(path50.join(os3.tmpdir(), "qamind-browser-"));
+  fs33.chmodSync(tmp, 448);
+  const secretsFile = path50.join(tmp, "secrets.env");
+  fs33.writeFileSync(secretsFile, Object.entries(secrets).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("\n") + "\n", { mode: 384 });
+  const outDir = path50.join(tmp, "output");
   ensureDir(outDir);
-  const stateFile2 = path47.join(home, "state", "browser-state.json");
+  const stateFile2 = path50.join(home, "state", "browser-state.json");
   const state = readJson(stateFile2) ?? {};
   state[projectRoot] = { secret_names: Object.keys(secrets).sort(), proxy_port: guard.port, pid: process.pid, started: (/* @__PURE__ */ new Date()).toISOString() };
   writeJson(stateFile2, state);
   const auditScript = (() => {
     try {
-      const f = path47.join(corePath(), "shared", "page-audit.js");
-      return fs29.existsSync(f) ? f : void 0;
+      const f = path50.join(corePath(), "shared", "page-audit.js");
+      return fs33.existsSync(f) ? f : void 0;
     } catch {
       return void 0;
     }
   })();
   const maskScript = (() => {
     try {
-      const f = path47.join(corePath(), "shared", "page-mask.js");
-      if (!fs29.existsSync(f)) return void 0;
-      const config = fs29.existsSync(path47.join(projectRoot, ".qa", "config.md")) ? checkConfigFile(projectRoot).config : void 0;
+      const f = path50.join(corePath(), "shared", "page-mask.js");
+      if (!fs33.existsSync(f)) return void 0;
+      const config = fs33.existsSync(path50.join(projectRoot, ".qa", "config.md")) ? checkConfigFile(projectRoot).config : void 0;
       const names = config?.roles.map((r) => secrets[r.username_env]).filter((v) => !!v) ?? [];
       const cfg = { selectors: config?.privacy.mask_selectors ?? [], patterns: config?.privacy.mask_patterns ?? [], prefix: config?.test_data_prefix ?? "QA-", allow: names };
-      const out = path47.join(tmp, "page-mask.js");
-      fs29.writeFileSync(out, `globalThis.__QAMIND_MASK_CONFIG = ${JSON.stringify(cfg)};
-${fs29.readFileSync(f, "utf8")}`, { mode: 384 });
+      const out = path50.join(tmp, "page-mask.js");
+      fs33.writeFileSync(out, `globalThis.__QAMIND_MASK_CONFIG = ${JSON.stringify(cfg)};
+${fs33.readFileSync(f, "utf8")}`, { mode: 384 });
       return out;
     } catch {
       return void 0;
@@ -15158,10 +15988,10 @@ ${fs29.readFileSync(f, "utf8")}`, { mode: 384 });
     ...process.env["QAMIND_BROWSER_IGNORE_HTTPS_ERRORS"] === "1" ? ["--ignore-https-errors"] : []
   ];
   if (!channel) process.stderr.write("[qamind] No system Chrome/Edge found; using Playwright's bundled Chromium. If the browser fails to start, run: npx playwright-core install chromium\n");
-  const child = spawn2(mcp.command, args, { stdio: "inherit", cwd: projectRoot });
+  const child = spawn3(mcp.command, args, { stdio: "inherit", cwd: projectRoot });
   const cleanup = async () => {
     await guard.close().catch(() => void 0);
-    fs29.rmSync(tmp, { recursive: true, force: true });
+    fs33.rmSync(tmp, { recursive: true, force: true });
   };
   for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => child.kill(sig));
   return new Promise((resolve) => {
@@ -15179,8 +16009,8 @@ ${fs29.readFileSync(f, "utf8")}`, { mode: 384 });
 }
 
 // core/scripts/export-html.ts
-import fs30 from "node:fs";
-import path48 from "node:path";
+import fs34 from "node:fs";
+import path51 from "node:path";
 var esc2 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 var SEV_CLASS = { critical: "sev-critical", important: "sev-important", minor: "sev-minor" };
 var SEV_LABEL = { critical: "\u{1F534} Critical", important: "\u{1F7E0} Important", minor: "\u{1F7E1} Minor" };
@@ -15252,18 +16082,18 @@ function exportAdminHtml(runDir, store, opts2 = {}) {
   let total = 0;
   const embed = (rel) => {
     if (opts2.embedImages === false) return void 0;
-    const abs = path48.resolve(runDir, rel);
-    if (!abs.startsWith(path48.resolve(runDir) + path48.sep) || !fs30.existsSync(abs)) return void skipped.push(rel);
-    const mime = MIME[path48.extname(abs).toLowerCase()];
-    const size = fs30.statSync(abs).size;
+    const abs = path51.resolve(runDir, rel);
+    if (!abs.startsWith(path51.resolve(runDir) + path51.sep) || !fs34.existsSync(abs)) return void skipped.push(rel);
+    const mime = MIME[path51.extname(abs).toLowerCase()];
+    const size = fs34.statSync(abs).size;
     if (!mime || size > MAX_IMAGE_BYTES || total + size > MAX_TOTAL_IMAGE_BYTES) return void skipped.push(rel);
     total += size;
     embedded.push(rel);
-    return `data:${mime};base64,${fs30.readFileSync(abs).toString("base64")}`;
+    return `data:${mime};base64,${fs34.readFileSync(abs).toString("base64")}`;
   };
   const html = renderAdminHtml(model, `QAMind report: ${data.meta?.environment ?? "test"} check on ${plainDate(data.meta?.started)}`, { embed });
-  const file3 = opts2.out ? path48.resolve(opts2.out) : path48.join(runDir, "ADMIN-REPORT.html");
-  fs30.writeFileSync(file3, html, "utf8");
+  const file3 = opts2.out ? path51.resolve(opts2.out) : path51.join(runDir, "ADMIN-REPORT.html");
+  fs34.writeFileSync(file3, html, "utf8");
   return {
     file: file3,
     bytes: Buffer.byteLength(html),
@@ -15277,11 +16107,11 @@ function exportAdminHtml(runDir, store, opts2 = {}) {
 function whoAmI(given, root) {
   if (typeof given === "string" && given.trim()) return given.trim();
   try {
-    const n = execFileSync3("git", ["-C", root, "config", "user.name"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    const n = execFileSync5("git", ["-C", root, "config", "user.name"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
     if (n) return n;
   } catch {
   }
-  return os3.userInfo().username;
+  return os4.userInfo().username;
 }
 function cmdFeedback(sub, rest, home) {
   const { values, positionals } = opts(rest, { project: { type: "string" }, note: { type: "string" }, by: { type: "string" }, run: { type: "string" } });
@@ -15298,7 +16128,7 @@ function cmdFeedback(sub, rest, home) {
   }
   if (sub === "import") {
     if (!values.run) throw new UsageError("feedback import needs --run ID (the run whose ADMIN-REPORT.md people wrote in)");
-    const runDir = path49.join(scope.project.root, ".qa", "reports", values.run);
+    const runDir = path52.join(scope.project.root, ".qa", "reports", values.run);
     emit({ run: values.run, lines: importAdminFeedback(scope.store, runDir, whoAmI(values.by, scope.project.root)).map((l) => ({ issue: l.issue, text: l.text, ...l.applied ? { applied: l.applied.verdict, effects: l.effects } : {}, ...l.problem ? { not_applied: l.problem } : {} })) });
     return 0;
   }
@@ -15355,7 +16185,7 @@ async function cmdTests(sub, rest, home) {
     } else {
       const ctx = bankContextStandalone(home, values.project ?? defaultProjectDir(), /* @__PURE__ */ new Date());
       results = await runBank(ctx, runOpts);
-      where = path49.join(path49.relative(process.cwd(), ctx.outDir), "data", "bank-results.json");
+      where = path52.join(path52.relative(process.cwd(), ctx.outDir), "data", "bank-results.json");
     }
     const bad = results.results.filter((r) => r.status === "failed" || r.status === "skipped" || r.status === "flaky-passed" || r.status === "quarantined");
     emit({
@@ -15384,11 +16214,127 @@ async function cmdTests(sub, rest, home) {
     if (!id) throw new UsageError(`tests ${sub} needs a test id (see \`tests status\`)`);
     const scope = projectScope(home, projectOpt);
     const now = /* @__PURE__ */ new Date();
-    const t = withStoreLock(scope.store, () => sub === "retire" ? retireTest(scope.store, id, values.reason ?? "", values.by ?? os3.userInfo().username, now) : setQuarantine(scope.store, id, sub === "quarantine", values.reason, now));
+    const t = withStoreLock(scope.store, () => sub === "retire" ? retireTest(scope.store, id, values.reason ?? "", values.by ?? os4.userInfo().username, now) : setQuarantine(scope.store, id, sub === "quarantine", values.reason, now));
     emit({ id: t.id, status: t.status, title: t.title });
     return 0;
   }
   throw new UsageError("tests needs a subcommand: status | run | save | export | prune | retire | quarantine | unquarantine");
+}
+async function cmdCi(sub, rest) {
+  const init = sub === "init";
+  const args = init ? rest : sub ? [sub, ...rest] : rest;
+  const { values } = opts(args, {
+    project: { type: "string" },
+    mode: { type: "string" },
+    out: { type: "string" },
+    "agent-command": { type: "string" },
+    model: { type: "string" },
+    home: { type: "string" },
+    "user-store": { type: "boolean", default: false },
+    "dry-run": { type: "boolean", default: false },
+    "from-run": { type: "string" },
+    provider: { type: "string" },
+    ref: { type: "string" },
+    "repo-url": { type: "string" },
+    host: { type: "string", default: "claude" },
+    "host-spec": { type: "string" },
+    write: { type: "boolean", default: false }
+  });
+  const root = path52.resolve(values.project ?? process.cwd());
+  const mode = values.mode;
+  if (mode === "ticket") throw new UsageError("ticket mode comes with ticket mode itself (a later phase); use diff, quick, regression or full.");
+  if (mode !== void 0 && !CI_MODES.includes(mode)) throw new UsageError(`--mode must be one of ${CI_MODES.join(", ")}`);
+  if (!init) {
+    const result = await runCi({
+      projectDir: root,
+      env: process.env,
+      ...mode ? { mode } : {},
+      ...values.out ? { outDir: values.out } : {},
+      ...values["agent-command"] ? { agentCommand: values["agent-command"] } : {},
+      host: values.host,
+      ...values["host-spec"] ? { hostSpec: path52.resolve(values["host-spec"]) } : {},
+      ...values.model ? { model: values.model } : {},
+      ...values.home ? { home: path52.resolve(values.home) } : {},
+      userStore: values["user-store"],
+      dryRun: values["dry-run"],
+      ...values["from-run"] ? { fromRun: values["from-run"] } : {},
+      log: (line) => process.stderr.write(`${line}
+`)
+    });
+    emit({ outcome: result.outcome, exit_code: result.exit_code, mode: result.mode, ...result.run_id ? { run_id: result.run_id } : {}, reasons: result.reasons, ...result.error ? { error: result.error } : {}, comment: result.comment, status: result.status, ...result.agent ? { agent: result.agent } : {}, warnings: result.warnings, out_dir: result.out_dir, store: result.store });
+    return result.exit_code;
+  }
+  const provider = values.provider;
+  if (provider !== "github" && provider !== "gitlab") throw new UsageError("ci init needs --provider github|gitlab");
+  const check = checkConfigFile(root, process.env);
+  if (!check.config) throw new UsageError(`The QAMind config is not usable (${check.status}); fix .qa/config.md first (run /qa-only once to create it), because the workflow names the config's test logins.`);
+  const origin = qamindOrigin();
+  let headless;
+  try {
+    headless = loadHeadless(values.host, values["host-spec"]);
+  } catch (e) {
+    throw new UsageError(e.message);
+  }
+  const input = { ref: values.ref ?? origin.tag ?? "main", repoUrl: values["repo-url"] ?? origin.repoUrl ?? PLACEHOLDER_REPO, mode: mode ?? check.config.ci.mode, loginVars: loginVarsOf(check.config), cacheMemory: check.config.ci.cache_memory, headless };
+  const rel = provider === "github" ? ".github/workflows/qamind.yml" : fs35.existsSync(path52.join(root, ".gitlab-ci.yml")) ? ".gitlab/qamind.gitlab-ci.yml" : ".gitlab-ci.yml";
+  return writeTemplate(root, rel, provider === "github" ? githubPrWorkflow(input) : gitlabCi(input), values.write, input, provider === "gitlab" && rel !== ".gitlab-ci.yml" ? ["There is already a .gitlab-ci.yml: add `include: .gitlab/qamind.gitlab-ci.yml` to it."] : []);
+}
+function templateNotes(root, input) {
+  const notes = [];
+  if (!(input.ref.startsWith("v") && /\d/.test(input.ref))) notes.push(`QAMIND_REF is "${input.ref}": there is no release tag of QAMind to pin to yet. Pin it to a release tag as soon as one exists (--ref vX.Y.Z), so CI only runs tested releases.`);
+  if (input.repoUrl === PLACEHOLDER_REPO) notes.push("QAMIND_REPO is a placeholder: set it to the repository QAMind is cloned from (--repo-url).");
+  try {
+    execFileSync5("git", ["-C", root, "check-ignore", "-q", ".qa/config.md"], { stdio: "ignore" });
+    notes.push("`.qa/config.md` is git-ignored, so CI will not find it. Commit it (it holds URLs, flows and rules, never passwords): replace the `.qa/` line of .gitignore with `.qa/*` and `!.qa/config.md`.");
+  } catch {
+  }
+  notes.push(`Add these as secrets of the repository (values never go in the file): ${input.headless.auth_secret}, ${input.loginVars.join(", ")}.`);
+  return notes;
+}
+function writeTemplate(root, rel, content, write, input, extra) {
+  const file3 = path52.join(root, rel);
+  const exists2 = fs35.existsSync(file3);
+  if (write && !exists2) {
+    ensureDir(path52.dirname(file3));
+    fs35.writeFileSync(file3, content, "utf8");
+  }
+  emit({ path: rel, written: write && !exists2, ...exists2 ? { exists: true, note: "The file exists and is never overwritten: move it aside, or copy from the preview." } : {}, notes: [...templateNotes(root, input), ...extra], ...write && !exists2 ? {} : { content } });
+  return write && exists2 ? 1 : 0;
+}
+function cmdSchedule(sub, rest) {
+  const { values } = opts(sub ? [sub, ...rest] : rest, { project: { type: "string" }, provider: { type: "string" }, cron: { type: "string" }, time: { type: "string" }, mode: { type: "string" }, ref: { type: "string" }, "repo-url": { type: "string" }, host: { type: "string", default: "claude" }, "host-spec": { type: "string" }, write: { type: "boolean", default: false } });
+  const provider = values.provider;
+  if (!["github", "gitlab", "cron", "windows"].includes(provider ?? "")) throw new UsageError("schedule needs --provider github|gitlab|cron|windows");
+  const root = path52.resolve(values.project ?? process.cwd());
+  const mode = values.mode ?? "full";
+  if (!CI_MODES.includes(mode)) throw new UsageError(`--mode must be one of ${CI_MODES.join(", ")}`);
+  const cron = values.cron ?? "0 2 * * *";
+  if (!validCron(cron)) throw new UsageError(`--cron "${cron}" is not a five-field cron expression (minute hour day month weekday), for example "0 2 * * *".`);
+  const time = values.time ?? (/^\d+ \d+ \* \* \*$/.test(cron) ? `${String(cron.split(" ")[1]).padStart(2, "0")}:${String(cron.split(" ")[0]).padStart(2, "0")}` : "02:00");
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new UsageError("--time must be HH:MM (24 hours).");
+  if (provider === "cron") {
+    emit({ provider, schedule: describeCron(cron), crontab_line: cronLine({ cron, mode, projectDir: root }), how: "Add the line with `crontab -e`. It runs from the project folder with your own QAMind store (your memory and test bank), report-only; the output goes to ~/.qamind/ci.log and the reports to qamind-reports/ in the project. QAMind never edits your crontab." });
+    return 0;
+  }
+  if (provider === "windows") {
+    emit({ provider, schedule: `daily at ${time}`, command: windowsTask({ time, mode, projectDir: root }), how: 'Run the command once in a Command Prompt. It creates a task that runs `qamind ci` from the project folder with your own QAMind store, report-only. Remove it with `schtasks /Delete /TN "QAMind nightly"`. Not tested on Windows.' });
+    return 0;
+  }
+  const check = checkConfigFile(root, process.env);
+  if (!check.config) throw new UsageError(`The QAMind config is not usable (${check.status}); fix .qa/config.md first.`);
+  const origin = qamindOrigin();
+  let headless;
+  try {
+    headless = loadHeadless(values.host, values["host-spec"]);
+  } catch (e) {
+    throw new UsageError(e.message);
+  }
+  const input = { ref: values.ref ?? origin.tag ?? "main", repoUrl: values["repo-url"] ?? origin.repoUrl ?? PLACEHOLDER_REPO, mode, loginVars: loginVarsOf(check.config), cacheMemory: check.config.ci.cache_memory, headless, cron };
+  if (provider === "gitlab") {
+    emit({ provider, schedule: describeCron(cron), steps: ["Run `qamind ci init --provider gitlab --write` (the generated job already runs in schedules).", `In GitLab open CI/CD > Schedules > New schedule, enter the interval pattern \`${cron}\`, pick the default branch, and add the variable QAMIND_MODE=${mode}.`, "GitLab keeps pipeline schedules in its settings, not in a file, so there is nothing for QAMind to write."], notes: templateNotes(root, input) });
+    return 0;
+  }
+  return writeTemplate(root, ".github/workflows/qamind-nightly.yml", githubNightlyWorkflow(input), values.write, input, [`GitHub runs this schedule from the default branch only, in UTC (${describeCron(cron)}); a workflow in a repository with no activity for 60 days may be paused by GitHub.`]);
 }
 function emit(value) {
   process.stdout.write(JSON.stringify(value, null, 2) + "\n");
@@ -15429,6 +16375,10 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
   lessons reject ID [--reason TEXT]         turn a pending lesson down, or retire an approved one (owner action)
   guard log    --run ID        origins the browser guard blocked during the run
   budget status --run ID       time left in the run's budget; check it before each new area, and stop exploring when it says over
+  ci [--mode diff|quick|regression|full] [--host claude] [--agent-command CMD] [--out DIR] [--dry-run] [--user-store] [--from-run ID]
+                               test a pull request headlessly, report-only: one comment kept up to date, a status, an exit code (0 pass or warn, 1 fail, 2 could not run)
+  ci init --provider github|gitlab [--ref vX.Y.Z] [--repo-url URL] [--write]   the workflow file (preview without --write; never overwrites)
+  schedule --provider github|gitlab|cron|windows [--cron "0 2 * * *"] [--mode full] [--write]   nightly runs
   tests status | prune         the test bank: what it holds and how each test did; stale tests it suggests retiring
   tests run [--run ID] [--only T-001,T-002] [--area A] [--include-quarantined]
                                run the bank (in a QA run: first, before exploring; otherwise on its own). Exit 1 if a test failed twice
@@ -15517,11 +16467,11 @@ async function loadInventory(ctx, specArg) {
     doc = loadSpecFile(resolveSpecPath(source, ctx.projectRoot));
   }
   const inv = buildInventory(doc, source);
-  writeJson(path49.join(ctx.runDir, "data", "api-inventory.json"), inv);
+  writeJson(path52.join(ctx.runDir, "data", "api-inventory.json"), inv);
   return inv;
 }
 function readInventory(ctx) {
-  return readJson(path49.join(ctx.runDir, "data", "api-inventory.json"));
+  return readJson(path52.join(ctx.runDir, "data", "api-inventory.json"));
 }
 async function cmdApi(sub, rest, home) {
   if (sub === "inventory") {
@@ -15569,10 +16519,10 @@ async function cmdApi(sub, rest, home) {
     });
     plan.name = values.name ?? (values.role ? `baseline-${role}` : "baseline");
     const rel = `data/plans/${plan.name}.json`;
-    writeJson(path49.join(ctx.runDir, rel), plan);
+    writeJson(path52.join(ctx.runDir, rel), plan);
     const byTag = {};
     for (const p of plan.probes) for (const t of p.tags ?? []) byTag[t] = (byTag[t] ?? 0) + 1;
-    emit({ plan_file: path49.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
+    emit({ plan_file: path52.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
     return 0;
   }
   if (sub === "run") {
@@ -15582,9 +16532,9 @@ async function cmdApi(sub, rest, home) {
     const base = ctx.config.api.base_url;
     if (!base) throw new UsageError("api.base_url is not set in .qa/config.md");
     const given = values.plan;
-    const byName = path49.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
-    const planFile = exists(path49.resolve(given)) ? path49.resolve(given) : exists(byName) ? byName : void 0;
-    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path49.join(ctx.runDir, "data", "plans")}.`);
+    const byName = path52.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
+    const planFile = exists(path52.resolve(given)) ? path52.resolve(given) : exists(byName) ? byName : void 0;
+    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path52.join(ctx.runDir, "data", "plans")}.`);
     const plan = readJson(planFile);
     const result = await runPlan(plan, {
       baseUrl: base,
@@ -15625,8 +16575,8 @@ async function cmdReport(sub, rest, home) {
       refreshChanges: true
     });
     emit({
-      technical_report: path49.join(ctx.runDir, "TECHNICAL-REPORT.md"),
-      admin_report: path49.join(ctx.runDir, "ADMIN-REPORT.md"),
+      technical_report: path52.join(ctx.runDir, "TECHNICAL-REPORT.md"),
+      admin_report: path52.join(ctx.runDir, "ADMIN-REPORT.md"),
       verdict: r.model.verdict.line,
       findings: r.data.findings.map((f) => `${f.id} ${f.severity}: ${f.title}`),
       unconfirmed: r.data.unconfirmed.length,
@@ -15656,7 +16606,7 @@ async function cmdReport(sub, rest, home) {
 async function cmdMemory(sub, rest, home) {
   if (sub === "where") {
     const { values: values2 } = opts(rest, { project: { type: "string" } });
-    const info = resolveProject(path49.resolve(values2.project ?? process.cwd()));
+    const info = resolveProject(path52.resolve(values2.project ?? process.cwd()));
     const { store } = ensureProjectStore(home, info);
     emit({ project_id: info.id, id_source: info.idSource, store });
     return 0;
@@ -15747,7 +16697,7 @@ function cmdLessons(sub, rest, home) {
 }
 function readStdin() {
   try {
-    return fs31.readFileSync(0, "utf8");
+    return fs35.readFileSync(0, "utf8");
   } catch {
     return "";
   }
@@ -15797,7 +16747,7 @@ async function cmdHook(sub, rest, home) {
     if (reason) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "allow", permissionDecisionReason: reason } }) + "\n");
     return 0;
   }
-  const tmp = [os3.tmpdir(), input.scratchpad_dir].filter((p) => !!p);
+  const tmp = [os4.tmpdir(), input.scratchpad_dir].filter((p) => !!p);
   const decision = decidePreToolUse(input, home, tmp);
   if (decision) process.stdout.write(JSON.stringify(toHookOutput(decision)) + "\n");
   return 0;
@@ -15811,8 +16761,8 @@ async function main(argv) {
         return await cmdRun(sub, rest, home);
       case "config": {
         const { values } = opts(rest, { project: { type: "string" } });
-        const root = path49.resolve(values.project ?? process.cwd());
-        if (!exists(path49.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
+        const root = path52.resolve(values.project ?? process.cwd());
+        if (!exists(path52.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
         const check = checkConfigFile(root);
         const { config: _c, body: _b, ...printable } = check;
         emit(printable);
@@ -15821,9 +16771,9 @@ async function main(argv) {
       case "health": {
         const { values } = opts(sub ? [sub, ...rest] : rest, { run: { type: "string" } });
         const ctx = loadRunContext(home, values.run);
-        ensureDir(path49.join(ctx.runDir, "data"));
+        ensureDir(path52.join(ctx.runDir, "data"));
         const { health: result } = await healthWithPrep({ config: ctx.config, policy: ctx.policy, roles: ctx.roles, projectRoot: ctx.projectRoot, runDir: ctx.runDir, mode: ctx.marker.mode, redact: makeRedactor(ctx.passwords).text });
-        writeJson(path49.join(ctx.runDir, "data", "health.json"), result);
+        writeJson(path52.join(ctx.runDir, "data", "health.json"), result);
         emit(result);
         return result.environment_ok ? 0 : 7;
       }
@@ -15833,6 +16783,10 @@ async function main(argv) {
         return await cmdReport(sub, rest, home);
       case "memory":
         return await cmdMemory(sub, rest, home);
+      case "ci":
+        return await cmdCi(sub, rest);
+      case "schedule":
+        return cmdSchedule(sub, rest);
       case "tests":
         return await cmdTests(sub, rest, home);
       case "feedback":

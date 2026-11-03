@@ -226,6 +226,20 @@ qamind tests status | run [--run ID] | export [--ids T-001,T-004] [--dir D] [--y
 
 Limits, and what was not verified: [decision 0008](docs/decisions/0008-test-bank-bugs-feedback.md).
 
+## CI and pull requests (`qamind ci`)
+
+`qamind ci` tests a pull request headlessly and says the result where your team looks: **one comment** that is rewritten on every push, a **commit status** (`qamind`), an **exit code** (0 pass or warn, 1 fail, 2 could not check) and the reports as **artifacts**. It is always report-only: it never fixes, commits or pushes, and it cannot be started by a QA run.
+
+```
+qamind ci init --provider github --write     # .github/workflows/qamind.yml (also: --provider gitlab); never overwrites a file
+qamind ci --mode diff                        # what the workflow runs: also quick, regression, full
+qamind schedule --provider github --write    # a nightly full run (also: gitlab, cron, windows)
+```
+
+- **What fails a pull request** is yours to set in `.qa/config.md` (`ci.fail_on`, default a critical problem or an environment problem; `ci.warn_on`, default an important problem). The result is read from the run's data, never from what the agent said, and a run that could not happen (no credentials, a crashed agent, a time-out) is reported as "could not check", not as a failed change.
+- **CI starts without memory.** `ci.cache_memory: true` keeps a CI-only store in the CI's own cache (never committed, never mixed with your personal memory); without it, "came back" and the test bank do not exist in CI.
+- **Set-up, secrets, limits and what was not verified** (no run on a real GitHub Actions or GitLab CI yet): [docs/CI.md](docs/CI.md), [decision 0009](docs/decisions/0009-ci-and-schedules.md).
+
 ## Safety (and how it is enforced)
 
 QAMind never tests production, never reads or prints credentials, creates data only with your `QA-` prefix, never
@@ -238,7 +252,7 @@ triggers real payments or emails, and treats everything it sees in your app as d
 | Credentials stay out of the conversation | browser `--secrets`, API runner logs in itself, hook blocks reading `.env.qa` | secrets and runner work everywhere; the read-block is a hook |
 | Side-effect endpoints (email, SMS, payments) | left out of generated API plans by default and listed as Not tested | same |
 | `/qa` never pushes, merges or opens a pull request, and never touches credentials, CI, lock files, generated code or your do-not-touch list | no such operation exists in the fix tools; the hook blocks git writes and the git host's CLI from the agent's shell and refuses edits to protected files | the tools are the same everywhere; the hook is Claude Code's |
-| A QA run cannot approve lessons, give feedback on findings, retire or quarantine saved tests, archive memory or change auto-QA settings | the hook refuses those commands and writes to those files in every run mode; the review's deciding commands are not pre-approved, so the host asks you | the hook is Claude Code's |
+| A QA run cannot approve lessons, give feedback on findings, retire or quarantine saved tests, start CI runs or write workflow files, archive memory or change auto-QA settings | the hook refuses those commands and writes to those files in every run mode; the review's deciding commands are not pre-approved, so the host asks you | the hook is Claude Code's |
 | Auto-QA never fixes on its own, and is off until you turn it on | a project that never opted in is not written to; `fix` mode only when you set it or use `#qa-fix`, with all the fix rules | same code, host hooks differ |
 | Every fix has a regression test that fails without it | `fix_commit` takes the fix out, runs the test (it must fail), puts the fix back and runs it again (it must pass) | same, via MCP |
 
@@ -259,8 +273,9 @@ Private-data masking and its limits (names and addresses in free text, images) a
 | 7 ✅ | Global lessons you approve, `/qa-memory-review` (lessons, prune, stats) |
 | 7.5 ✅ (without Codex) | `qamind setup \| status \| update \| uninstall`; Cursor (experimental) and generic (instruction-only) hosts; conformance suite; `docs/ADDING-A-HOST.md`. Codex deferred by the owner |
 | 7.6 ✅ | Reliability: environment problems are not bugs, test data setup, time budgets, private-data masking and scan, memory migration with backup |
-| 7.7 ✅ (this) | Test bank (run first, flaky tests quarantined, export to Playwright), bugs across runs (new, still open, fixed, came back), your feedback changes the next run |
-| 7.8 – 7.10 | CI, coverage depth, release verdict and metrics (Codex whenever the owner asks) |
+| 7.7 ✅ | Test bank (run first, flaky tests quarantined, export to Playwright), bugs across runs (new, still open, fixed, came back), your feedback changes the next run |
+| 7.8 ✅ (this) | `qamind ci` (one pull request comment kept up to date, a status, exit codes, artifacts), `ci.fail_on` / `ci.warn_on`, GitHub and GitLab templates, `qamind schedule` |
+| 7.9 – 7.10 | coverage depth, release verdict and metrics (Codex whenever the owner asks) |
 | 8 | Linear and Sentry, polish |
 
 ## Development

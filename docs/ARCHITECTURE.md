@@ -179,6 +179,18 @@ run_start ─► memory_get_context ─► health ─► tests run (the bank, fi
   `report lint` refuses a bank failure nobody accounted for, a finding that resembles a known bug without saying which, a bug named that does not exist, and a re-check that contradicts a finding.
 - **Feedback** (`core/lib/memory/feedback.ts`): a verdict changes memory (a false alarm with who and when, a severity the reports show, an accepted bug listed as known, a fixed bug watched for coming back). Only a person gives one: the hook refuses it in every run, and the same goes for retiring or quarantining a test and for writing the bug, feedback and bank files.
 
+## CI and pull-request mode
+
+([decision 0009](decisions/0009-ci-and-schedules.md), [CI.md](CI.md))
+
+```
+qamind ci ─► detect CI (provider.ts) ─► config check ─► pending status ─► host CLI headless (host.ts reads hosts/<id>/host.json `headless`) ─► QA run in a fresh store
+          ─► tracked files unchanged? ─► read the run's data files ─► gate (gate.ts: ci.fail_on / ci.warn_on) ─► comment.ts ─► api.ts (one comment updated, a status) + qamind-reports/ + exit code
+```
+
+`core/lib/ci/` holds the pieces (`provider.ts` where we are, `gate.ts` what the run means, `comment.ts` the text, `api.ts` the GitHub and GitLab clients with an injectable `fetch`, `host.ts` the host's headless launcher, `templates.ts` the generated files, `run.ts` the orchestrator). The orchestrator never trusts the agent: it times it out, checks the checkout, and judges only data files.
+`ci init` and `schedule` write workflow files (never over an existing one); a QA run cannot start either (hook).
+
 ## Formats and versioning
 
 Every file QAMind writes carries `schema_version`. Memory is at schema 2; a store written by an older QAMind is **migrated on first use** after a byte-for-byte copy to `backups/<time>-schema-N-to-M/` and a line per file in `backups/migrations.log.jsonl` (`core/lib/memory/migrate.ts`); a store written by a newer QAMind is refused untouched.

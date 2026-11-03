@@ -41,14 +41,14 @@ const OWNER_FILE_IN_COMMAND = /(?:global-lessons\.md|pending-lessons\.md|rejecte
 const WRITES_FILES = /(?:>|\btee\b|\bsed\s+-[A-Za-z]*i|\b(?:mv|cp|rm|truncate|dd|install|ln)\b|\b(?:node|python3?|perl|ruby)\b)/;
 /** `qamind lessons approve|reject`, `memory prune` and the auto-QA settings commands, however qamind is started. (`auto skipped` and `auto status` are not decisions.) */
 const EXPORT_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+tests\s+export\b/;
-const OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|feedback\s+(?:add|import)|tests\s+(?:retire|quarantine|unquarantine)|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
+const OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|feedback\s+(?:add|import)|tests\s+(?:retire|quarantine|unquarantine)|ci|schedule|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
 
 /**
  * Approving a global lesson (every project reads it), archiving memory, and turning auto-QA on or off are the user's decisions. A QA run reads untrusted pages and
  * its Bash is pre-approved for `qamind *`, so without this a page that talked the agent round could approve its own lessons. Applies in every run mode.
  */
 function ownerOnly(tool: string, ti: Record<string, unknown>, abs: (p: string) => string, home: string): string | undefined {
-  const why = "Approving lessons, archiving memory, giving feedback on findings, retiring or quarantining a saved test and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-feedback, /qa-tests, /qa-auto).";
+  const why = "Approving lessons, archiving memory, giving feedback on findings, retiring or quarantining a saved test, starting a CI run or writing CI files, and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-feedback, /qa-tests, /qa-auto).";
   if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
     const target = String(ti["file_path"] ?? ti["notebook_path"] ?? "");
     if (target && OWNER_FILES.has(path.basename(target)) && inside(abs(target), home)) return `${why} (${path.basename(target)} is the user's file.)`;

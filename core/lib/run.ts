@@ -259,7 +259,8 @@ export function startRun(opts: StartOptions): StartResult {
 
   // First run: scaffold the config and stop. Never overwrites anything that exists.
   const configFile = path.join(root, ".qa", "config.md");
-  const gitignoreAdded = ensureGitignoreEntries(root);
+  // A CI run is report-only and never edits the checkout, `.gitignore` included (the team's own file decides what is committed).
+  const gitignoreAdded = env["QAMIND_TRIGGER"] === "ci" || opts.trigger === "ci" ? [] : ensureGitignoreEntries(root);
   if (!exists(configFile)) {
     const created: string[] = [];
     const core = corePath();
@@ -332,8 +333,9 @@ export function startRun(opts: StartOptions): StartResult {
   saveStack(storeSubdirs(store).memory, stack);
   const git = gitInfo(root);
   const policy = policyFromConfig(config);
-  const readonly = opts.kind === "qa-only" || opts.trigger === "ci";
-  const trigger = opts.trigger ?? "manual";
+  // `qamind ci` sets QAMIND_TRIGGER=ci for the agent it starts: the agent does not get to choose another trigger (a CI run is always report-only, spec 13.2).
+  const trigger = env["QAMIND_TRIGGER"] === "ci" ? "ci" : (opts.trigger ?? "manual");
+  const readonly = opts.kind === "qa-only" || trigger === "ci";
   // Auto-QA's own setting (the user's, in auto.json) is the one budget that beats the project's config.
   const userAuto = trigger === "auto" ? readAutoFile(projectAutoFile(store)).settings.time_budget_minutes ?? readAutoFile(globalAutoFile(opts.home)).settings.time_budget_minutes : undefined;
   const budget = resolveBudget(config, opts.mode, trigger, now, userAuto);

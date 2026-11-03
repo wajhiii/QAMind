@@ -44553,6 +44553,9 @@ var DEFAULT_TEST_TIMEOUT_S = 300;
 var RUN_BEFORE = ["never", "full_runs", "always"];
 var DEFAULT_SETUP_TIMEOUT_S = 120;
 var BUDGET_MODES = ["diff", "quick", "regression", "full", "ticket", "ci", "auto"];
+var CI_CONDITIONS = ["critical", "important", "minor", "environment-problem", "came-back", "bank-failure", "not-ready"];
+var CI_MODES = ["diff", "quick", "regression", "full"];
+var DEFAULT_CI = { fail_on: ["critical", "environment-problem"], warn_on: ["important"], cache_memory: false, mode: "diff", comment: true, status: true, status_context: "qamind", timeout_minutes: 25 };
 function splitFrontMatter(text2) {
   const m = /^﻿?---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n([\s\S]*))?$/.exec(text2);
   return m ? { yaml: m[1] ?? "", body: m[2] ?? "" } : null;
@@ -44623,6 +44626,52 @@ function normalizeBudget(raw, problems) {
     }
   }
   return { ...top, ...typeof daily === "number" && daily >= 1 && daily <= 10080 ? { daily_max: daily } : {}, modes };
+}
+function normalizeCi(raw, problems) {
+  if (raw === void 0 || raw === null) return { ...DEFAULT_CI };
+  if (!isObj(raw)) {
+    problems.push("ci must be a mapping (fail_on, warn_on, cache_memory, mode, comment, status, status_context, timeout_minutes).");
+    return { ...DEFAULT_CI };
+  }
+  const conditions = (key) => {
+    const v = raw[key];
+    if (v === void 0 || v === null) return [...DEFAULT_CI[key]];
+    if (!Array.isArray(v)) {
+      problems.push(`ci.${key} must be a list of: ${CI_CONDITIONS.join(", ")}.`);
+      return [...DEFAULT_CI[key]];
+    }
+    const out = [];
+    for (const c of v) {
+      if (typeof c === "string" && CI_CONDITIONS.includes(c)) out.push(c);
+      else problems.push(`ci.${key}: "${String(c)}" is not a condition. Use ${CI_CONDITIONS.join(", ")}.`);
+    }
+    return [...new Set(out)];
+  };
+  const failOn = conditions("fail_on");
+  const warnOn = conditions("warn_on");
+  for (const c of warnOn) if (failOn.includes(c)) problems.push(`ci: "${c}" is in both fail_on and warn_on; it would fail the run, so take it out of warn_on.`);
+  const bool = (key) => {
+    const v = raw[key];
+    if (v === void 0) return DEFAULT_CI[key];
+    if (typeof v !== "boolean") problems.push(`ci.${key} must be true or false.`);
+    return typeof v === "boolean" ? v : DEFAULT_CI[key];
+  };
+  const mode = raw["mode"];
+  if (mode !== void 0 && !(typeof mode === "string" && CI_MODES.includes(mode))) problems.push(`ci.mode must be one of ${CI_MODES.join(", ")} (ticket mode comes with ticket mode).`);
+  const context = raw["status_context"];
+  if (context !== void 0 && !(typeof context === "string" && /^[\w .:/-]{1,60}$/.test(context))) problems.push("ci.status_context must be a short name (letters, digits, space and . : / - _).");
+  const timeout = raw["timeout_minutes"];
+  if (timeout !== void 0 && !(typeof timeout === "number" && timeout >= 1 && timeout <= 360)) problems.push("ci.timeout_minutes must be a number of minutes from 1 to 360.");
+  return {
+    fail_on: failOn,
+    warn_on: warnOn.filter((c) => !failOn.includes(c)),
+    cache_memory: bool("cache_memory"),
+    mode: typeof mode === "string" && CI_MODES.includes(mode) ? mode : DEFAULT_CI.mode,
+    comment: bool("comment"),
+    status: bool("status"),
+    status_context: typeof context === "string" && /^[\w .:/-]{1,60}$/.test(context) ? context : DEFAULT_CI.status_context,
+    timeout_minutes: typeof timeout === "number" && timeout >= 1 && timeout <= 360 ? timeout : DEFAULT_CI.timeout_minutes
+  };
 }
 var LIST_MAX = 30;
 function limitedStrings(raw, where, problems, opts) {
@@ -44754,7 +44803,8 @@ function normalizeConfig(raw, problems) {
     health: { checks: isObj(raw["health"]) ? strList(raw["health"]["checks"]) : [] },
     setup: normalizeSetup(raw["setup"], problems),
     budget: normalizeBudget(raw["budget"], problems),
-    privacy: normalizePrivacy(raw["privacy"], problems)
+    privacy: normalizePrivacy(raw["privacy"], problems),
+    ci: normalizeCi(raw["ci"], problems)
   };
   return config2;
 }
@@ -48269,35 +48319,37 @@ function corePath() {
 
 // core/lib/git.ts
 import { execFileSync as execFileSync2 } from "node:child_process";
-function git2(root, args) {
+function git2(root, args, raw = false) {
   try {
-    return execFileSync2("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 16 * 1024 * 1024 }).trim();
+    const out = execFileSync2("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 16 * 1024 * 1024 });
+    return raw ? out : out.trim();
   } catch {
     return void 0;
   }
+}
+function porcelainFiles(root, opts = {}) {
+  const out = git2(root, ["status", "--porcelain", ...opts.untracked === false ? ["--untracked-files=no"] : []], true) ?? "";
+  return out.split("\n").filter(Boolean).map((line2) => line2.slice(3).trim().replace(/^.* -> /, ""));
 }
 function gitInfo(root) {
   if (git2(root, ["rev-parse", "--is-inside-work-tree"]) !== "true") return { is_repo: false, changed_files: [] };
   const branch = git2(root, ["rev-parse", "--abbrev-ref", "HEAD"]);
   const commit2 = git2(root, ["rev-parse", "--short", "HEAD"]);
-  const status = git2(root, ["status", "--porcelain"]) ?? "";
+  const files = porcelainFiles(root);
   const originHead = git2(root, ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"]);
-  const candidates = [originHead, "main", "master"].filter((x) => !!x);
+  const candidates = [process.env["QAMIND_BASE_REF"], originHead, "main", "master"].filter((x) => !!x);
   const base = candidates.find((c) => git2(root, ["rev-parse", "--verify", "--quiet", c]) !== void 0);
   const changed = /* @__PURE__ */ new Set();
   if (base && branch && branch !== base.replace(/^origin\//, "")) {
     for (const f of (git2(root, ["diff", "--name-only", `${base}...HEAD`]) ?? "").split("\n")) if (f) changed.add(f);
   }
-  for (const line2 of status.split("\n")) {
-    const file4 = line2.slice(3).trim().replace(/^.* -> /, "");
-    if (file4 && !file4.startsWith(".qa/")) changed.add(file4);
-  }
+  for (const file4 of files) if (file4 && !file4.startsWith(".qa/")) changed.add(file4);
   return {
     is_repo: true,
     ...branch ? { branch } : {},
     ...commit2 ? { commit: commit2 } : {},
     ...base ? { base } : {},
-    dirty: status.length > 0,
+    dirty: files.length > 0,
     changed_files: [...changed].slice(0, 300)
   };
 }
@@ -48308,7 +48360,7 @@ import path23 from "node:path";
 var QA_GITIGNORE_ENTRIES = [".env.qa", ".qa/"];
 function isCovered(lines, entry) {
   const bare = entry.replace(/\/$/, "");
-  const accepted = /* @__PURE__ */ new Set([entry, bare, `/${entry}`, `/${bare}`, `${bare}/`, `/${bare}/`]);
+  const accepted = /* @__PURE__ */ new Set([entry, bare, `/${entry}`, `/${bare}`, `${bare}/`, `/${bare}/`, `${bare}/*`, `/${bare}/*`, `${bare}/**`, `/${bare}/**`]);
   return lines.some((l) => accepted.has(l.trim()));
 }
 function ensureGitignoreEntries(root, entries = QA_GITIGNORE_ENTRIES) {
@@ -48654,7 +48706,7 @@ function startRun(opts) {
   ensureMigrated(store);
   const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store };
   const configFile = path29.join(root, ".qa", "config.md");
-  const gitignoreAdded = ensureGitignoreEntries(root);
+  const gitignoreAdded = env["QAMIND_TRIGGER"] === "ci" || opts.trigger === "ci" ? [] : ensureGitignoreEntries(root);
   if (!exists(configFile)) {
     const created = [];
     const core = corePath();
@@ -48720,8 +48772,8 @@ function startRun(opts) {
   saveStack(storeSubdirs(store).memory, stack);
   const git3 = gitInfo(root);
   const policy = policyFromConfig(config2);
-  const readonly2 = opts.kind === "qa-only" || opts.trigger === "ci";
-  const trigger = opts.trigger ?? "manual";
+  const trigger = env["QAMIND_TRIGGER"] === "ci" ? "ci" : opts.trigger ?? "manual";
+  const readonly2 = opts.kind === "qa-only" || trigger === "ci";
   const userAuto = trigger === "auto" ? readAutoFile(projectAutoFile(store)).settings.time_budget_minutes ?? readAutoFile(globalAutoFile(opts.home)).settings.time_budget_minutes : void 0;
   const budget = resolveBudget(config2, opts.mode, trigger, now, userAuto);
   const marker = {

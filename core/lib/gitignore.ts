@@ -6,7 +6,8 @@ export const QA_GITIGNORE_ENTRIES = [".env.qa", ".qa/"];
 
 function isCovered(lines: string[], entry: string): boolean {
   const bare = entry.replace(/\/$/, "");
-  const accepted = new Set([entry, bare, `/${entry}`, `/${bare}`, `${bare}/`, `/${bare}/`]);
+  // `.qa/*` (with `!.qa/config.md` to commit the config for CI) ignores the reports and the rest just as `.qa/` does.
+  const accepted = new Set([entry, bare, `/${entry}`, `/${bare}`, `${bare}/`, `/${bare}/`, `${bare}/*`, `/${bare}/*`, `${bare}/**`, `/${bare}/**`]);
   return lines.some((l) => accepted.has(l.trim()));
 }
 

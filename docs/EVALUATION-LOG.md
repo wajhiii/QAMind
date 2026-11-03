@@ -535,3 +535,43 @@ Everything is checked from files, the store and the tool-call stream. Final reco
 - **The agent's behaviour varies run to run** (what it finds, how it groups findings, whether it saves tests): five attempts is a small sample, and one attempt in four before the gate saved nothing.
 - **Feedback names are not verified.** Windows and Linux were not run; the new tests are in the Windows CI job's list. Linear and Sentry as sources of feedback are Phase 8.
 - The Mac used for these runs went to sleep repeatedly and was heavily loaded by other applications at times; runs were repeated when that interrupted them, and every attempt is recorded.
+
+## Phase 7.8: CI and pull-request mode, and schedules
+
+`scripts/eval-ci.ts` runs the real `qamind ci` (the built bundle) with **real headless Claude Code 2.1.314** and the QAMind plugin against a copy of the demo app on a feature branch (a pull request #7 into `main` that touches the API code), with the test logins **only in the environment** (no `.env.qa`, as in real CI) and a stand-in GitHub API on a local port.
+It checks files and what the stand-in received, not the agent's words; it then runs `qamind ci --from-run` on the same run, as the next push would. Records: `docs/baselines/phase-7.8-ci.{json,md}` (final) and `phase-7.8-ci-attempt-1`.
+
+### The final run (attempt 2), from the files and from what GitHub's stand-in received
+| Check | Result |
+|---|---|
+| The run | recorded with trigger `ci` and kind `qa-only`: **the agent did not choose either** (`QAMIND_TRIGGER=ci` is set by `qamind ci`); 5 findings (1 critical, 2 important, 2 minor); the agent finished a run in 2.4 minutes for $0.91 |
+| The gate | outcome **fail**, exit code 1, reasons "1 critical problem" and "2 important problems": the same outcome the findings mean under the default rules, recomputed independently by the harness |
+| The comment | **exactly one** comment on the pull request, starting with QAMind's marker, carrying the admin report's verdict line, identical to `PR-COMMENT.md` |
+| The statuses | `pending: QAMind is checking this change`, then `failure: Failed: 1 critical problem; 2 important problems`, both on the pull request's head commit under the name `qamind` |
+| Judged again | `qamind ci --from-run` on the same run: still exactly one comment (**updated in place**, a PATCH), a third status, the same exit code |
+| The checkout | no tracked file changed, the commit is the same |
+| Secrets | no login value and no token in any file QAMind wrote (the artifacts folder and the CI store) nor in anything sent to the stand-in; the token went only in the `Authorization` header |
+| Memory | the CI store was a fresh temporary folder, not the person's `~/.qamind` |
+| Outputs | `ci-result.json`, `PR-COMMENT.md`, the run's folder with both reports (for the artifact upload), a scrubbed `agent.log`, the job summary page and the step outputs were written |
+
+### Two attempts, and what the first found
+- **Attempt 1 failed, rightly: "the run changed the checkout (changed: .gitignore)".** QAMind's own `run_start` appends `.qa/` and `.env.qa` to the project's `.gitignore` (a tracked file) the first time it runs, and it did not recognise `.qa/*` with `!.qa/config.md` (the setup CI needs, so the config can be committed) as already ignoring the reports, so it would also have added a line that defeats the committed config.
+  Fixed: a CI run never edits `.gitignore`, and `.qa/*` counts as covering the reports. A unit test reproduces the exact failure (it fails without the fix). The check that caught it is the one that makes "report-only" a measured fact instead of a promise.
+- The harness also read a `store` field the command did not print; it prints it now.
+
+### Found while building, before any agent run, and fixed
+- **`git status --porcelain` was trimmed before parsing**, so the first unstaged file lost its first letter (`README.md` became `EADME.md`): in `qamind ci`'s own check at first, and then found in `gitInfo`, where it had been since Phase 1: **diff mode's list of uncommitted files was wrong whenever the first changed file was unstaged**. One helper serves both now, with a regression test.
+- My first launcher had Claude Code's command line, credential variables and slash command inside `core/`. It moved into `hosts/claude/host.json` (a `headless` block) before anything was committed, and a test now keeps `core/lib/ci/` free of any host's name.
+- A pull request checkout is detached with no local `main`: `qamind ci` fetches the target branch and names it in `QAMIND_BASE_REF`, which `gitInfo` honours first.
+
+### Tests
+See the full-suite line in the phase summary: new `tests/core/ci.test.ts` (provider detection, config validation, the gate matrix, the comment, the GitHub client against a stand-in with pagination and a refused write, the whole `qamind ci` flow with a stand-in agent that drives the real CLI: one comment updated across two pushes with the right statuses, warn, fail_on/warn_on from the config, a broken environment, an edited checkout, a crashed agent, a hang that is killed, a run left open, missing credentials, a comment that cannot be posted, no token, local runs, outputs, memory with and without `ci.cache_memory`, the host's headless command line and a damaged block, a CI run that leaves `.gitignore` alone)
+and `tests/core/ci-templates.test.ts` (the generated GitHub, GitLab and nightly files parsed and checked: permissions, fork guard, concurrency, pins, secrets and no secret value, cache, the schedule outputs, refusals, never overwriting, and the hook refusing `ci` and `schedule` in a run). Mutations (a wider permission, no fork guard, the old `.gitignore` behaviour, an accepted bot-less marker) are caught.
+
+### What this does not show
+- **No run on real GitHub Actions or GitLab CI.** The templates were parsed and checked, never executed by a CI service; nothing from a CI service is visible from where QAMind is built. The first real run is the real test of them (the GitHub-hosted runner's Chrome for the browser tool, the pinned `actions/*` versions, `npm ci --ignore-scripts` of the plugin, the secrets wiring).
+- **A real pull request comment and status**: only a stand-in with the same routes. Fork pull requests, `ci.cache_memory` with the real cache actions, and the GitLab notes and status APIs against a real server are untested (the GitLab client is covered less than GitHub's).
+- **In the real-agent run the base branch was local** (the demo workspace has no `origin`), so the fetch of `origin/<target>` that a real pull request needs was not exercised (the run said so in its warnings). Whether diff mode really focused on the changed file is the agent's compliance and was not measured: the run found a critical problem unrelated to the one-line change.
+- **One agent run, one app, one host**: only Claude Code has a headless block. The 7.8 schedule outputs for cron and Windows are printed lines, not run (Windows is untested).
+- Cost: the CLI's own cap (`--max-budget-usd`, default 10) and the time limit bound a run; QAMind cannot see the spending. The agent run cost $0.91 here.
+- The machine for these runs was shared with other work; runs were at low priority, one process at a time.

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.8 (Phase 7.8, unreleased)
+
+CI and pull-request mode, and schedules ([decision 0009](docs/decisions/0009-ci-and-schedules.md), [docs/CI.md](docs/CI.md)).
+
+- **`qamind ci [--mode diff|quick|regression|full]`**: tests a pull request headlessly, report-only, by starting the host's own CLI (Claude Code: `claude -p`) with QAMind under a hard time limit and a spending cap, then judging **the run's data files, never the agent's words**. One **comment** on the pull request that is created once and **updated on every push** (only a bot's comment with QAMind's marker is touched), a **commit status** (pending, then the result), the reports as **artifacts** (`qamind-reports/`), the job summary, and exit codes 0 (pass or warn), 1 (fail), 2 (could not check: bad config, no credentials, a crashed or timed-out agent, a run left open, a changed checkout).
+- **Gate in the config**: `ci.fail_on` (default critical, environment-problem) and `ci.warn_on` (default important) over `critical`, `important`, `minor`, `environment-problem`, `came-back`, `bank-failure`, `not-ready`; plus `ci.mode`, `ci.cache_memory`, `ci.comment`, `ci.status`, `ci.status_context`, `ci.timeout_minutes`. A comment or status that cannot be posted is a warning and never changes the exit code.
+- **Report-only, enforced four ways**: a CI run is a report-only run, `QAMIND_TRIGGER=ci` is set for the agent (it cannot pick another kind of run), the CLI runs with `--permission-mode dontAsk` and `--max-budget-usd`, and the tracked files and commit are compared before and after. `qamind ci`, `ci init` and `schedule` cannot be run by a QA run (hook).
+- **No memory in CI** unless `ci.cache_memory`: then a CI-only store in `.qamind-ci/home`, restored by the CI's own cache keyed by repository and branch; never committed, never mixed with a person's memory.
+- **Templates** (`qamind ci init --provider github|gitlab`, `qamind schedule --provider github|gitlab|cron|windows`): generated from the project's config (its login secrets, no value), least permissions, no run for fork pull requests, concurrency, QAMind cloned from Git at a pinned ref and the host CLI pinned to the tested version, never overwriting a file. A nightly `full` workflow, GitLab schedule steps, a crontab line, a `schtasks` command.
+- **A host's headless launcher is its own data**: the new `headless` block of `hosts/claude/host.json` (command, arguments, how a skill is invoked, credential variables, cost field, how CI installs it, and the documentation facts with their date); core reads it and names no host (a test enforces it); `--agent-command` runs any command.
+- **Found by testing and fixed**: `git status --porcelain` was trimmed before parsing, so the first unstaged file lost its first letter, in `gitInfo` too: **diff mode's list of uncommitted files has been wrong since Phase 1**; a pull request checkout has no local `main`, so `qamind ci` fetches the target and names it in `QAMIND_BASE_REF`.
+- New: `docs/CI.md`, `scripts/eval-ci.ts` (the real-agent test), a stand-in GitHub and a stand-in agent for tests. Not in this phase: a run on real GitHub Actions or GitLab CI (templates parsed, not executed by a CI service), ticket mode in CI (7.9), Checks API annotations, Linux and Windows runs (the new tests are in the Windows job's list).
+
 ## 0.7.7 (Phase 7.7, unreleased)
 
 The test bank, bugs across runs, and what people say about findings ([decision 0008](docs/decisions/0008-test-bank-bugs-feedback.md)).

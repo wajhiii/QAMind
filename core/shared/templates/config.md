@@ -100,6 +100,16 @@ health:
 #   mask_patterns: ["ORD-\\d{6}"]      # more things that must never be saved (regular expressions)
 #   mask_selectors: [".customer-address", "[data-private]"]   # screen elements blurred before screenshots
 #   mask_fields: [name, address]    # fields whose values are masked in saved API evidence
+
+# CI / pull-request mode (optional): `qamind ci` tests a pull request, report-only, and posts one comment that it updates on every push.
+# ci:
+#   fail_on: [critical, environment-problem]   # any of these fails the run (exit code 1, failing status). Also: important, minor, came-back, bank-failure, not-ready
+#   warn_on: [important]                       # any of these is a warning: passing status, noted in the comment
+#   mode: diff                                 # diff (default), quick, regression or full
+#   cache_memory: false                        # true: keep a CI-only memory store in the CI's cache, keyed by repository and branch
+#   comment: true                              # post and update one pull request comment
+#   status: true                               # set a commit status
+#   timeout_minutes: 25                        # the agent is stopped after this long, whatever the time budget says
 ---
 
 # Critical flows
