@@ -60,8 +60,7 @@ them, so the problems and severities are identical by construction:
   problem block complete with exactly one "For developers" link, and no jargon outside those lines. `report lint` runs it and does not rebuild first,
   so a hand edit or a stale report is caught.
 
-Not yet tracked (arrive with later phases): regressed bugs and new/still-open/came-back lifecycle (7.7), per-project verdict rules (7.10),
-fix-mode status and branch line (6), tickets (8). The admin report says so in plain words where it matters.
+Not yet tracked (arrive with later phases): per-project verdict rules (7.10) and tickets (8). The admin report says so in plain words where it matters.
 
 ## Project memory
 
@@ -164,6 +163,21 @@ Code, not instructions, decides these ([decision 0007](decisions/0007-reliabilit
 - **Environment** (`core/lib/envprep.ts`, `health.ts`): `run_before` decides whether the configured snapshot, reset and seed commands run (each refuses to run if it names a blocked production address); the health check retries a failed check once and marks flaky and slow ones; a failed health check makes `report lint` refuse any finding and `run finish` default the stop reason to `environment problem`. A snapshot is restored by `run finish` (`finishRunAndRestore`), so an early stop still restores.
 - **Budget** (`core/lib/budget.ts`): `run start` resolves the limit (mode, `ci`, `auto`, config default) into the run marker as a deadline; `qamind budget status`, the API runner and `fix_begin` read it. Usage (duration, and cost when the host reported one) is written to the run summary; a daily total in the store lets the auto-QA gate pause itself once per day. Cost is advisory by design.
 - **Privacy** (`core/lib/privacy.ts`, `core/shared/page-mask.js`): one set of detectors masks API evidence, setup output and rendered reports on the way out, scans the run folder's text files before a run may finish (never printing a value), and, as a second `--init-script` of the browser tool, blurs the same kinds of text and the configured selectors in the page before a screenshot is taken.
+
+## The test bank, bugs across runs, feedback
+
+([decision 0008](decisions/0008-test-bank-bugs-feedback.md))
+
+```
+run_start ─► memory_get_context ─► health ─► tests run (the bank, first) ─► explore what the bank does not cover ─► findings ─► report build/lint ─► bank_save_test ─► run_finish
+                    │ bugs, bank                 │ data/bank-results.json            │ rechecks.json             │ lifecycle.json            │ bugs.jsonl, bank stats
+```
+
+- **Bank** (`core/lib/bank/`): `bank.ts` (format, validation, duplicates, flakiness, quarantine), `runner.ts` (API tests through `runPlan`, UI tests through `uirunner.ts`, a retry, results, statistics under the store lock), `uirunner.ts` (Playwright found at run time next to the plugin; every request and every redirect checked against the run's policy),
+  `export.ts` (Playwright Test files written by code), `service.ts` (what the CLI and the `bank_save_test` tool call).
+- **Bugs** (`core/lib/memory/bugs.ts`, `runlife.ts`): `report build` applies feedback to the run's findings and works out what each is (`data/lifecycle.json`); `run finish` does it once more from the final files, writes `bugs.jsonl`, links saved tests to their bugs and freezes the result, so every later render says what the run said.
+  `report lint` refuses a bank failure nobody accounted for, a finding that resembles a known bug without saying which, a bug named that does not exist, and a re-check that contradicts a finding.
+- **Feedback** (`core/lib/memory/feedback.ts`): a verdict changes memory (a false alarm with who and when, a severity the reports show, an accepted bug listed as known, a fixed bug watched for coming back). Only a person gives one: the hook refuses it in every run, and the same goes for retiring or quarantining a test and for writing the bug, feedback and bank files.
 
 ## Formats and versioning
 

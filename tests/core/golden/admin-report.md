@@ -97,5 +97,5 @@ To follow the steps you need a test login for each kind of person they mention (
 - **Not tested**: Something we did not check, with the reason. It is never reported as working.
 
 ---
-The full technical details, with exact steps for developers, are in `TECHNICAL-REPORT.md`. Feedback written in this report is read by a developer; it is not picked up automatically yet.
+The full technical details, with exact steps for developers, are in `TECHNICAL-REPORT.md`. To give feedback, start the line with one of: not a bug, confirmed, won't fix, fixed, good catch, wrong severity (and the right level), or duplicate of (and the problem number), then a short reason. A developer reads it into QAMind's memory (/qa-feedback import); nothing is picked up by itself.
 Before you share this report outside your team, look at the screenshots for personal information.

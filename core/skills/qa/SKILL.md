@@ -66,11 +66,13 @@ Skip anything under "Known issues to skip".
 Call `memory_get_context` (with `run`), and read `{{CORE_PATH}}/shared/memory-protocol.md`. In one short paragraph, tell the user what memory says to focus on
 (risk areas, known quirks, the last run's problems, any approved global lesson in `global_lessons` that fits this product), or that this is a first run. Memory is leads, not proof. When you use a learning or an approved
 global lesson, or skip a known false alarm, record it with `memory_record_applied` (only real ids, including `G-` lesson ids) and in `data/meta.json` → `memory_applied`.
+`bugs` lists what earlier runs found (a bug that came back first), and `bank` the saved checks that run by themselves in Step 2: read `{{CORE_PATH}}/shared/test-bank.md` when either has entries.
 
 ## Step 2: health check
 `{{CLI}} health --run <id>`. When the config asks for it (`setup.run_before`) it first snapshots, resets and seeds the test data, and a step that fails counts as an environment problem. If `environment_ok` is false, follow
 "Environment problem" in `reporting.md`: do not test further and report no product findings (`report lint` refuses findings from a broken environment). A check that passed only on its second try, or slowly, is saved to memory as an
 environment quirk by itself: expect it, and retry or wait where it matters.
+**Run the test bank** when `bank.active` is above 0: `{{CLI}} tests run --run <id>`. Every test that fails twice must be settled before you finish: reproduce it and report it as a finding with `"bank_tests": ["T-004"]`, or list it under Unconfirmed with the same field and say why (`test-bank.md`). A test that passes needs no hand check: spend the run on what the bank does not cover.
 
 ## Step 3: plan
 Read `{{CORE_PATH}}/knowledge/INDEX.md` now and choose the knowledge files this run needs. Write `<run.dir>/data/charters.json` (see `reporting.md`): a charter for each surface and critical flow, prioritized by
@@ -90,6 +92,7 @@ Load the knowledge for each pass **when you start it** (INDEX has the rest; fram
 Keep a running list for the data files: confirmed findings, unconfirmed leads, not-tested areas and coverage, and record the **pages you visit** with
 `memory_update_product_map` (see `memory-protocol.md`). Do not report a known false alarm again.
 Every finding needs at least two reproductions and evidence. Report only what you verified. Never mark an untested area as passing.
+Check the open `bugs` from earlier runs early: repeat the first steps of each; one that no longer happens goes in `data/rechecks.json` with what you saw (never call a bug fixed without looking). Tie a finding to a known bug with `"bug": "BUG-003"`, or `"new"`.
 Be proportionate: `quick` covers the critical flows and top risks, thoroughly, and lists everything else as Not tested with the true
 reason. Run the page audit (`surfaces.md`) on every page you visit, on desktop and mobile.
 **Keep to the time budget** (`run.budget` from `run_start`, if one is set): before each new area or batch of probes run `{{CLI}} budget status --run <id>`. At `near`, finish what you are on and start nothing large. At `over`, stop exploring: write every area you did
@@ -97,7 +100,7 @@ not get to under Not tested with the reason "time budget reached", and go on to 
 
 ## Step 5: the baseline report (before any fix)
 Read `{{CORE_PATH}}/shared/admin-report.md`. Write `findings.json` (each finding with its technical text **and** a `plain` block for the
-admin report), `unconfirmed.json`, `not-tested.json` (each entry with `plain`), `coverage.json` (rows tagged with `ui` and `critical_flow`)
+admin report, and `bug` / `bank_tests` where they apply), `unconfirmed.json`, `not-tested.json` (each entry with `plain`), `coverage.json` (rows tagged with `ui` and `critical_flow`)
 and `admin.json` in `<run.dir>/data/`, then:
 ```
 {{CLI}} report build --run <id>      # writes TECHNICAL-REPORT.md and the plain-language ADMIN-REPORT.md
@@ -122,7 +125,7 @@ Rewrite `admin.json` for the situation **after** the fixes (the biggest risk tha
 baseline version is out of date once something is fixed, and the report ignores it. Then rebuild the reports with the fix results (`{{CLI}} report build --run <id>`, `{{CLI}} report lint --run <id>`): the fix statuses,
 commits and proof come from the fix tools, so never write them into `findings.json` yourself. Fix every lint error. Then save what the next run should know: at most about five atomic learnings (`memory_save_learning`, including `fix-pattern`
 learnings about how a defect like this was fixed here), any verified false alarms (`memory_mark_false_alarm`) and any area that looked fragile without a confirmed finding
-(`memory_update_risk`), as described in `memory-protocol.md`. Never include secrets or real people's data: the tools refuse them. Then call `run_finish` with `run` and `stop_reason`
+(`memory_update_risk`), as described in `memory-protocol.md`. Never include secrets or real people's data: the tools refuse them. Then save the checks worth keeping with `bank_save_test` (at most about six, each with its value card; for each finding you reproduced twice a test that protects it, with `from_issue`: see `{{CORE_PATH}}/shared/test-bank.md`); `run_finish` refuses a manual run with critical or important findings and no saved test unless `<run.dir>/data/bank-skip.json` says why none can be written. Then call `run_finish` with `run` and `stop_reason`
 ("completed", "environment problem", "stopped by the user", ...).
 
 Then reply with the short summary described at the end of `reporting.md` (at most 8 lines): the release verdict line from the admin report first, counts by severity, **which

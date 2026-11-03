@@ -190,7 +190,7 @@ test("trend compares with the previous finished run and says plainly what it can
   const text = model.trend.join("\n");
   assert.match(text, /Last check \(30 October 2026, full check\): 1 critical, 1 important, 1 minor\./);
   assert.match(text, /This check: 1 critical \(same\), 1 important \(same\), 1 minor \(same\)\./);
-  assert.match(text, /do not yet track which problems are new/);
+  assert.match(text, /Of the problems found now: 3 new, 0 already open before, 0 came back after being fixed\./, "the lifecycle is counted now (every finding of the first run is new)");
   assert.match(text, /Key journeys fully checked: \d of 5 this time, \d of 5 last time\./, "compared by key journeys, which the config fixes");
   assert.ok(!/checked in full/.test(text), "the number of coverage rows is the agent's choice of granularity, not a trend");
   assert.equal(previousRuns(fx.store, fx.runId).length, 0, "the run being reported is never its own predecessor");

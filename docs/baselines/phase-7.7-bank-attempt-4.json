@@ -1,0 +1,269 @@
+{
+  "label": "phase-7.7",
+  "date": "2026-11-03T05:00:58.844Z",
+  "model": "claude-sonnet-5-5",
+  "claude": "2.1.314 (Claude Code)",
+  "total_cost_usd": 2.17,
+  "steps": [
+    {
+      "name": "run 1: find, and save checks",
+      "minutes": 2.8,
+      "cost_usd": 0.6094518,
+      "tool_calls": [
+        "Read",
+        "ToolSearch",
+        "qa:run_start",
+        "qa:memory_get_context",
+        "Read",
+        "Read",
+        "Bash qamind health --run run-20261103T045129Z",
+        "Read",
+        "Bash qamind api inventory --run run-20261103T045129Z",
+        "Read",
+        "Read",
+        "Bash qamind api plan --run run-20261103T045129Z --role acme-1 --name client-baseline",
+        "Write",
+        "Bash qamind api run --run run-20261103T045129Z --plan client-baseline",
+        "Bash cd <tmp>/bank",
+        "Bash cd <tmp>/bank",
+        "Read",
+        "Write",
+        "Bash qamind api run --run run-20261103T045129Z --plan focus",
+        "Bash for f in focus-Q2 focus-Q6 focus-X3 focus-L0 focus-L1 focus-L3 focus-L5 focus-L7 focus-L6 ",
+        "Bash grep -H -m3 -E '\"(status|body)\":' focus-Q2.json focus-X3.json focus-L0.json focus-L1.json ",
+        "Write",
+        "Bash qamind api run --run run-20261103T045129Z --plan cust",
+        "Read",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Bash qamind report build --run run-20261103T045129Z",
+        "Bash qamind report lint --run run-20261103T045129Z",
+        "Write",
+        "Bash qamind report build --run run-20261103T045129Z",
+        "qa:memory_save_learning",
+        "qa:memory_save_learning",
+        "qa:memory_save_learning",
+        "qa:run_finish"
+      ],
+      "tool_errors": [
+        "Bash: Contains brace with quote character (expansion obfuscation)",
+        "Bash: A variable in this command can't be checked before it runs"
+      ],
+      "notes": {
+        "password_values_seen_in_product_source_the_agent_chose_to_read": [],
+        "findings": [
+          "ISSUE-001 critical BUG-001 Any signed-in customer can read another company's order by its id",
+          "ISSUE-002 critical BUG-002 Order quantities are not range-checked: negative, zero and huge quantities are accepted",
+          "ISSUE-003 important BUG-003 An order with no items is accepted",
+          "ISSUE-004 important BUG-004 Searching orders with some punctuation crashes the list",
+          "ISSUE-005 important BUG-005 Order list page size 0 crashes; page size -1 is accepted and returns an empty list",
+          "ISSUE-006 critical BUG-006 Customers can read the admin customer list",
+          "ISSUE-007 minor BUG-007 Malformed request bodies return internal technical details"
+        ],
+        "lifecycle": {
+          "new": 7,
+          "still_open": 0,
+          "regressed": 0,
+          "accepted": 0,
+          "fixed": 0,
+          "not_rechecked": 0
+        },
+        "bank": [],
+        "page_size_bug": "",
+        "bank_save_calls": [],
+        "bank_ran_in_run_1": false,
+        "final_message": "⛔ **Not ready to release:** 3 critical problems found and 3 important problems, for example: Customers can open other companies' orders.\n\n- **Critical (3):**\n  - Any signed-in customer can read another company's order by its id. The bright-1 and zain-1 accounts both got 200 on an Acme Traders order, while acme-2 (same company) and admin were correctly allowed.\n  - Order quantities are not range-checked. -1, 0, 1001, 1.5 and 99999999999 were all accepted with HTTP 201, and -1 gave a total of -715"
+      },
+      "problems": [
+        "no test was saved to the bank",
+        "no saved test protects the page_size bug (it is the bug this test fixes and reintroduces)"
+      ]
+    },
+    {
+      "name": "feedback on run 1 and the fix",
+      "notes": {},
+      "problems": [
+        "run 1 did not give what is needed (no summary or no protected bug)"
+      ]
+    },
+    {
+      "name": "run 2: the bank first, the bug fixed, the feedback honoured",
+      "minutes": 2.98,
+      "cost_usd": 0.6398898000000001,
+      "tool_calls": [
+        "Read",
+        "ToolSearch",
+        "qa:run_start",
+        "qa:memory_get_context",
+        "Read",
+        "Read",
+        "Bash qamind health --run run-20261103T045417Z",
+        "Read",
+        "Read",
+        "Bash qamind api inventory --run run-20261103T045417Z",
+        "Read",
+        "Write",
+        "Bash qamind report build --run run-20261103T045417Z",
+        "Bash qamind api plan --run run-20261103T045417Z --role acme-1 --no-matrix --name client",
+        "Bash cd <tmp>/bank",
+        "Write",
+        "Bash qamind api run --run run-20261103T045417Z --plan focus",
+        "Bash cd <tmp>/bank",
+        "Bash cd <tmp>/bank",
+        "Write",
+        "Bash qamind api run --run run-20261103T045417Z --plan money",
+        "Read",
+        "Bash cd <tmp>/bank",
+        "Bash ls <tmp>/bank",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "qa:memory_update_product_map",
+        "Bash qamind report build --run run-20261103T045417Z",
+        "Bash qamind report lint --run run-20261103T045417Z",
+        "qa:memory_save_learning",
+        "qa:memory_save_learning",
+        "qa:memory_adjust_learning",
+        "qa:memory_adjust_learning",
+        "qa:memory_record_applied",
+        "qa:run_finish"
+      ],
+      "tool_errors": [
+        "Bash: A variable in this command can't be checked before it runs",
+        "Bash: Parser aborted (timeout, resource limit, or over-length)"
+      ],
+      "notes": {
+        "password_values_seen_in_product_source_the_agent_chose_to_read": [],
+        "order": {
+          "health": 6,
+          "bank": -1,
+          "explore": 9
+        },
+        "bank_results": "none",
+        "final_message": "⛔ **Not ready to release:** 5 critical problems found and 3 important problems, for example: One customer can see another customer's orders.\n\n- **Counts:** 5 critical, 3 important, 2 minor, 0 unconfirmed. Each finding reproduced 2 of 2 times.\n- **Critical:**\n  - Customers can read another company's order by its id.\n  - Customers can read the admin customer list.\n  - Order quantities aren't range-checked (-1, 0, 1001 and 1.5 are accepted).\n  - Signing out doesn't end the session. This is new.\n  -"
+      },
+      "problems": [
+        "the agent never ran the test bank",
+        "no bank results in the run folder"
+      ]
+    },
+    {
+      "name": "the bug is reintroduced",
+      "notes": {},
+      "problems": [
+        "The demo app's src/api.mjs no longer has the line this test changes (pageSize < 1 || pageSize > 100)."
+      ]
+    },
+    {
+      "name": "run 3: the bug is back",
+      "minutes": 3.8,
+      "cost_usd": 0.9200898000000001,
+      "tool_calls": [
+        "Read",
+        "ToolSearch",
+        "qa:run_start",
+        "qa:memory_get_context",
+        "Read",
+        "Read",
+        "Bash qamind health --run run-20261103T045716Z",
+        "Read",
+        "Read",
+        "Read",
+        "Read",
+        "Bash qamind api inventory --run run-20261103T045716Z",
+        "Read",
+        "Bash qamind api plan --run run-20261103T045716Z --role acme-1 --name client --no-matrix",
+        "Bash qamind api plan --run run-20261103T045716Z --role admin --name admin",
+        "Bash head -c 1800 <tmp>",
+        "Write",
+        "Edit",
+        "Bash qamind api run --run run-20261103T045716Z --plan rules",
+        "Bash cd <tmp>/bank",
+        "Bash qamind api run --run run-20261103T045716Z --plan client",
+        "Bash for f in R01 R02 R03; do grep -o '\\\\\"line_total[^}]*}' rules-$f.json | head -1; grep -o '\\",
+        "Bash grep -ho 'subtotal_cents[^}]*' <tmp>",
+        "ToolSearch",
+        "browser:browser_navigate",
+        "browser:browser_snapshot",
+        "browser:browser_type",
+        "browser:browser_type",
+        "browser:browser_navigate",
+        "browser:browser_snapshot",
+        "browser:browser_type",
+        "browser:browser_fill_form",
+        "browser:browser_click",
+        "browser:browser_evaluate",
+        "browser:browser_take_screenshot",
+        "browser:browser_resize",
+        "browser:browser_evaluate",
+        "browser:browser_navigate",
+        "browser:browser_evaluate",
+        "browser:browser_take_screenshot",
+        "browser:browser_close",
+        "Write",
+        "Read",
+        "Bash cd <tmp>/bank",
+        "qa:memory_update_product_map",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "Write",
+        "qa:memory_record_applied",
+        "Bash qamind report build --run run-20261103T045716Z",
+        "Bash qamind report lint --run run-20261103T045716Z",
+        "qa:memory_save_learning",
+        "qa:memory_save_learning",
+        "qa:memory_adjust_learning",
+        "qa:memory_adjust_learning",
+        "qa:run_finish"
+      ],
+      "tool_errors": [
+        "Bash: A variable in this command can't be checked before it runs",
+        "Bash: Contains backslash-escaped whitespace"
+      ],
+      "notes": {
+        "password_values_seen_in_product_source_the_agent_chose_to_read": [],
+        "order": {
+          "health": 6,
+          "bank": -1,
+          "explore": 11
+        },
+        "protecting_test": "none",
+        "lifecycle": [
+          "ISSUE-001 BUG-001 still-open",
+          "ISSUE-002 BUG-006 still-open",
+          "ISSUE-003 BUG-002 still-open",
+          "ISSUE-004 BUG-003 still-open",
+          "ISSUE-005 BUG-008 still-open",
+          "ISSUE-006 BUG-009 still-open",
+          "ISSUE-007 BUG-004 still-open",
+          "ISSUE-008 BUG-005 still-open",
+          "ISSUE-009 BUG-007 still-open",
+          "ISSUE-010 BUG-010 still-open",
+          "ISSUE-011 BUG-011 new"
+        ],
+        "finding_names_the_test": false,
+        "first_problem_in_admin_report": "A customer can open another company's orders",
+        "bug_history": [],
+        "final_message": "⛔ **Not ready to release:** 5 critical problems found and 4 important problems, for example: A customer can open another company's orders.\n\n- **Critical (5):**\n  - A customer can read another company's orders.\n  - Customers can read the admin customer list.\n  - Order quantities aren't range-checked.\n  - Signing out doesn't end the session.\n  - Tax is charged before the discount: 80 × $12.50 shows $1,050.00, not $1,045.00.\n- **Important (4):** empty orders are accepted; order search with punctuat"
+      },
+      "problems": [
+        "the agent never ran the test bank",
+        "the test that protects the page_size bug is \"undefined\", expected failed",
+        "the page_size bug is \"not reported\", expected regressed (came back)",
+        "the 30-second summary does not say a problem came back",
+        "the admin report does not mark the problem as having come back",
+        "the technical report does not mark the problem as having come back",
+        "memory says the bug is \"undefined\""
+      ]
+    }
+  ],
+  "passed": false
+}

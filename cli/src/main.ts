@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -14,6 +15,12 @@ import { checkConfigFile } from "../../core/lib/config.ts";
 import { ensureDir, exists, readJson, writeJson } from "../../core/lib/fsutil.ts";
 import { readBlocked } from "../../core/lib/guardpolicy.ts";
 import { budgetStatus } from "../../core/lib/budget.ts";
+import { bankContextStandalone, bankStatus, exportTests, runBankForRun, saveBankTestFromFile } from "../../core/lib/bank/service.ts";
+import { retireTest, setQuarantine } from "../../core/lib/bank/bank.ts";
+import { runBank } from "../../core/lib/bank/runner.ts";
+import { loadBugs, summariseBugs } from "../../core/lib/memory/bugs.ts";
+import { VERDICTS, addFeedback, feedbackStats, importAdminFeedback, loadFeedback, parseVerdict } from "../../core/lib/memory/feedback.ts";
+import type { Verdict } from "../../core/lib/memory/feedback.ts";
 import { contextFrom, contextForRun, maskRun, scanRun } from "../../core/lib/privacy.ts";
 import { healthWithPrep } from "../../core/lib/health.ts";
 import { makeRedactor } from "../../core/lib/redact.ts";
@@ -25,7 +32,8 @@ import type { LearningType } from "../../core/lib/memory/learnings.ts";
 import { loadMap } from "../../core/lib/memory/productmap.ts";
 import { approveLesson, lessonOverview, rejectLesson } from "../../core/lib/memory/lessons.ts";
 import { memoryStats, pruneMemory, reviewOverview } from "../../core/lib/memory/review.ts";
-import { changeLearningConfidence, finishRunAndRestore, getContext, listMemory, markFalseAlarm, projectNamesOf, projectScope, recordApplied, runScope, saveLearning } from "../../core/lib/memory/service.ts";
+import { withStoreLock } from "../../core/lib/memory/lock.ts";
+import { changeLearningConfidence, defaultProjectDir, finishRunAndRestore, getContext, listMemory, markFalseAlarm, projectNamesOf, projectScope, recordApplied, runScope, saveLearning } from "../../core/lib/memory/service.ts";
 import { buildInventory, loadSpecFile, parseSpecText, resolveSpecPath } from "../../core/lib/openapi.ts";
 import type { Inventory } from "../../core/lib/openapi.ts";
 import { qamindHome } from "../../core/lib/paths.ts";
@@ -42,6 +50,130 @@ import { checkConsistency } from "../../core/scripts/consistency-check.ts";
 import { exportAdminHtml } from "../../core/scripts/export-html.ts";
 
 /** All commands print one JSON document on stdout so skills can read it; human text goes to stderr. */
+/** Who is speaking: the name the person gave, else the project's git user, else the account name. Feedback always says who. */
+function whoAmI(given: unknown, root: string): string {
+  if (typeof given === "string" && given.trim()) return given.trim();
+  try {
+    const n = execFileSync("git", ["-C", root, "config", "user.name"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    if (n) return n;
+  } catch {
+    /* no git, or no user.name */
+  }
+  return os.userInfo().username;
+}
+
+function cmdFeedback(sub: string | undefined, rest: string[], home: string): number {
+  const { values, positionals } = opts(rest, { project: { type: "string" }, note: { type: "string" }, by: { type: "string" }, run: { type: "string" } });
+  const scope = projectScope(home, { ...(values.project ? { project: values.project as string } : {}) });
+  if (sub === "add") {
+    const [target, rawVerdict, ...more] = positionals;
+    if (!target || !rawVerdict) throw new UsageError(`feedback add needs a finding or bug and a verdict: feedback add ISSUE-003 not-a-bug --note "why". Verdicts: ${VERDICTS.join(", ")} (wrong-severity <level>, duplicate-of <ISSUE-nnn|BUG-nnn>)`);
+    const parsed = parseVerdict([rawVerdict, ...more].join(" "));
+    if (!parsed || !(VERDICTS as readonly string[]).includes(parsed.verdict)) throw new UsageError(`"${rawVerdict}" is not a verdict. Use one of: ${VERDICTS.join(", ")}.`);
+    const note = (values.note as string | undefined) ?? parsed.note;
+    const r = addFeedback(scope.store, { target, verdict: parsed.verdict as Verdict, ...(parsed.value ? { value: parsed.value } : {}), ...(note ? { note } : {}), by: whoAmI(values.by, scope.project.root), ...(values.run ? { run: values.run as string } : {}) });
+    emit({ feedback: r.record.id, bug: r.record.bug, verdict: r.record.verdict, by: r.record.by, effects: r.effects, ...(r.warnings.length ? { warnings: r.warnings } : {}) });
+    return 0;
+  }
+  if (sub === "import") {
+    if (!values.run) throw new UsageError("feedback import needs --run ID (the run whose ADMIN-REPORT.md people wrote in)");
+    const runDir = path.join(scope.project.root, ".qa", "reports", values.run as string);
+    emit({ run: values.run, lines: importAdminFeedback(scope.store, runDir, whoAmI(values.by, scope.project.root)).map((l) => ({ issue: l.issue, text: l.text, ...(l.applied ? { applied: l.applied.verdict, effects: l.effects } : {}), ...(l.problem ? { not_applied: l.problem } : {}) })) });
+    return 0;
+  }
+  if (sub === "list") {
+    const all = loadFeedback(scope.store);
+    emit({ feedback: all.records.slice(-50).map((r) => ({ id: r.id, bug: r.bug, issue: r.issue, run: r.run, verdict: r.verdict, ...(r.level ? { level: r.level } : {}), ...(r.duplicate_of ? { duplicate_of: r.duplicate_of } : {}), by: r.by, at: r.at.slice(0, 10), ...(r.note ? { note: r.note } : {}) })), stats: feedbackStats(scope.store), warnings: all.warnings });
+    return 0;
+  }
+  if (sub === "stats") {
+    emit(feedbackStats(scope.store));
+    return 0;
+  }
+  throw new UsageError("feedback needs a subcommand: add | import | list | stats");
+}
+
+function cmdBugs(sub: string | undefined, rest: string[], home: string): number {
+  const { values } = opts(rest, { project: { type: "string" }, status: { type: "string" } });
+  if (sub !== "list") throw new UsageError("bugs needs a subcommand: list [--status open|fixed|accepted|all]");
+  const scope = projectScope(home, { ...(values.project ? { project: values.project as string } : {}) });
+  const loaded = loadBugs(scope.store);
+  const want = (values.status as string | undefined) ?? "open";
+  const pick = want === "all" ? loaded.bugs : want === "open" ? loaded.bugs.filter((b) => ["new", "still-open", "regressed"].includes(b.status)) : loaded.bugs.filter((b) => b.status === want || (want === "fixed" && b.status === "fixed"));
+  emit({ summary: summariseBugs(loaded.bugs), bugs: pick.slice(0, 100).map((b) => ({ id: b.id, status: b.status, severity: b.severity_override?.level ?? b.severity, area: b.area, title: b.title, times_seen: b.times_seen, first_seen: b.first_seen.at.slice(0, 10), last_seen: b.last_seen.at.slice(0, 10), ...(b.duplicate_of ? { duplicate_of: b.duplicate_of } : {}) })), warnings: loaded.warnings });
+  return 0;
+}
+
+async function cmdTests(sub: string | undefined, rest: string[], home: string): Promise<number> {
+  const { values, positionals } = opts(rest, {
+    project: { type: "string" },
+    run: { type: "string" },
+    only: { type: "string" },
+    area: { type: "string" },
+    "include-quarantined": { type: "boolean", default: false },
+    file: { type: "string" },
+    ids: { type: "string" },
+    dir: { type: "string" },
+    yes: { type: "boolean", default: false },
+    reason: { type: "string" },
+    by: { type: "string" },
+  });
+  const projectOpt = values.project ? { project: values.project as string } : {};
+  if (sub === "status" || sub === "prune") {
+    const scope = projectScope(home, projectOpt);
+    const st = bankStatus(scope.store);
+    emit(sub === "prune" ? { prune_candidates: st.prune_candidates, note: "These look stale. Nothing is retired by looking: the owner decides, then `tests retire ID --reason ...`.", summary: st.summary } : st);
+    return 0;
+  }
+  if (sub === "run") {
+    const only = values.only ? (values.only as string).split(",").map((s) => s.trim()).filter(Boolean) : undefined;
+    const runOpts = { ...(only ? { only } : {}), ...(values.area ? { area: values.area as string } : {}), includeQuarantined: values["include-quarantined"] as boolean };
+    let results;
+    let where: string;
+    if (values.run) {
+      results = await runBankForRun(runScope(home, values.run as string), runOpts);
+      where = "data/bank-results.json in the run folder";
+    } else {
+      const ctx = bankContextStandalone(home, (values.project as string | undefined) ?? defaultProjectDir(), new Date());
+      results = await runBank(ctx, runOpts);
+      where = path.join(path.relative(process.cwd(), ctx.outDir), "data", "bank-results.json");
+    }
+    const bad = results.results.filter((r) => r.status === "failed" || r.status === "skipped" || r.status === "flaky-passed" || r.status === "quarantined");
+    emit({
+      summary: { total: results.total, passed: results.passed, flaky_passed: results.flaky, failed: results.failed, quarantined: results.quarantined, skipped: results.skipped, ...(results.budget_reached ? { budget_reached: true } : {}) },
+      covered_areas: results.covered_areas,
+      needs_attention: bad.map((r) => ({ test: r.test, title: r.title, area: r.area, bug: r.bug, status: r.status, detail: r.detail })),
+      saved_to: where,
+      note: results.failed
+        ? "Each failed test failed twice. Reproduce it, then report it as a finding with \"bank_tests\": [\"T-001\"], or, if the test itself is out of date, retire it. A passing test is a check you do not need to repeat by hand: spend your time on areas the bank does not cover."
+        : "Nothing failed. Spend your time on areas the bank does not cover (covered_areas) and on what is new or changed.",
+    });
+    return results.failed ? 1 : 0;
+  }
+  if (sub === "save") {
+    if (!values.run || !values.file) throw new UsageError("tests save needs --run ID and --file test.json (the test as JSON: kind, title, area, card, plan or ui+steps)");
+    const r = saveBankTestFromFile(runScope(home, values.run as string), values.file as string, { anywhere: true });
+    emit({ action: r.action, ...(r.test ? { id: r.test.id } : {}), ...(r.existing ? { existing: r.existing } : {}), message: r.message, ...(r.warnings.length ? { warnings: r.warnings } : {}) });
+    return r.action === "duplicate" ? 1 : 0;
+  }
+  if (sub === "export") {
+    const ids = values.ids ? (values.ids as string).split(",").map((s) => s.trim()).filter(Boolean) : undefined;
+    const r = exportTests(home, values.project as string | undefined, { ...(ids ? { ids } : {}), ...(values.dir ? { dir: values.dir as string } : {}), confirmed: values.yes as boolean });
+    emit({ dir: r.dir, written: r.written, files: r.files, skipped_existing: r.skipped_existing, note: r.written ? "Written. Review the files like any other test; run them with Playwright Test with the login variables set." : "Preview only: nothing was written. Writing into the project needs the user's go-ahead: run again with --yes." });
+    return 0;
+  }
+  if (sub === "retire" || sub === "quarantine" || sub === "unquarantine") {
+    const id = positionals[0];
+    if (!id) throw new UsageError(`tests ${sub} needs a test id (see \`tests status\`)`);
+    const scope = projectScope(home, projectOpt);
+    const now = new Date();
+    const t = withStoreLock(scope.store, () => (sub === "retire" ? retireTest(scope.store, id, (values.reason as string | undefined) ?? "", (values.by as string | undefined) ?? os.userInfo().username, now) : setQuarantine(scope.store, id, sub === "quarantine", values.reason as string | undefined, now)));
+    emit({ id: t.id, status: t.status, title: t.title });
+    return 0;
+  }
+  throw new UsageError("tests needs a subcommand: status | run | save | export | prune | retire | quarantine | unquarantine");
+}
+
 function emit(value: unknown): void {
   process.stdout.write(JSON.stringify(value, null, 2) + "\n");
 }
@@ -82,6 +214,17 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
   lessons reject ID [--reason TEXT]         turn a pending lesson down, or retire an approved one (owner action)
   guard log    --run ID        origins the browser guard blocked during the run
   budget status --run ID       time left in the run's budget; check it before each new area, and stop exploring when it says over
+  tests status | prune         the test bank: what it holds and how each test did; stale tests it suggests retiring
+  tests run [--run ID] [--only T-001,T-002] [--area A] [--include-quarantined]
+                               run the bank (in a QA run: first, before exploring; otherwise on its own). Exit 1 if a test failed twice
+  tests save --run ID --file test.json     save a check worth keeping (a value card is required)
+  tests export [--ids T-001,T-002] [--dir D] [--yes]   write Playwright versions into the project's test folder (preview without --yes)
+  tests retire ID --reason TEXT | quarantine ID --reason TEXT | unquarantine ID   the owner's decisions about a test
+  feedback add ISSUE-003|BUG-002 not-a-bug|confirmed|wont-fix|fixed|good-catch|wrong-severity LEVEL|duplicate-of ID [--note TEXT] [--by NAME] [--run ID]
+                               a person's verdict on a finding; a QA run cannot give one
+  feedback import --run ID [--by NAME]   read the "Your feedback" lines people filled in ADMIN-REPORT.md
+  feedback list | stats        what people said, and the share of findings they judged real
+  bugs list [--status open|fixed|accepted|all]   the project's bugs across runs
   privacy scan --run ID        look for unmasked private data (emails, phones, ID and card numbers, your patterns) in the run's output; exit 1 if found
   privacy mask --run ID        mask it in place (test accounts' own data stays), then rebuild the reports
 Auto-QA (default off; see \`qamind auto help\`)
@@ -487,6 +630,12 @@ export async function main(argv: string[]): Promise<number> {
         return await cmdReport(sub, rest, home);
       case "memory":
         return await cmdMemory(sub, rest, home);
+      case "tests":
+        return await cmdTests(sub, rest, home);
+      case "feedback":
+        return cmdFeedback(sub, rest, home);
+      case "bugs":
+        return cmdBugs(sub, rest, home);
       case "privacy": {
         if (sub !== "scan" && sub !== "mask") throw new UsageError("privacy needs a subcommand: scan | mask");
         const { values } = opts(rest, { run: { type: "string" } });

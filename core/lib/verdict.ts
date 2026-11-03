@@ -37,8 +37,8 @@ const sentence = (s: string) => s.trim().replace(/[.\s]+$/, "");
 
 /**
  * Default release rules (spec §13.13): Ready only with 0 critical problems, at most 2 important ones, a passing health
- * check and every critical journey tested. Never "Ready" if a journey was not tested. (Regressed bugs and per-project
- * rule overrides arrive with later phases; until then regressions are not tracked.)
+ * check, no bug that came back after being fixed, and every critical journey tested. Never "Ready" if a journey was not tested. (Per-project
+ * rule overrides arrive with a later phase.)
  */
 export function computeVerdict(data: RunData): Verdict {
   const v = verdictFromOpenFindings(data);
@@ -86,6 +86,8 @@ function verdictFromOpenFindings(data: RunData): Verdict {
   }
 
   const risks: string[] = [];
+  const back = (data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed").length;
+  if (back > 0) risks.push(`${plural(back, "problem", "problems")} came back after being fixed`);
   if (important.length > 2) risks.push(`${important.length} important problems are open`);
   const flows = flowStatus(data);
   if (flows.total === 0) risks.push("the key journeys were not listed, so they could not be confirmed as checked");

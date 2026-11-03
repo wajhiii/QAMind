@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { LEARNING_TYPES } from "../../lib/memory/learnings.ts";
+import { saveBankTestFromFile } from "../../lib/bank/service.ts";
 import {
   changeLearningConfidence,
   defaultProjectDir,
@@ -175,6 +176,17 @@ export const TOOLS: ToolDef[] = [
     annotations: SET,
     input: { run, pages: z.array(page).max(100).optional(), endpoints: z.array(endpoint).max(500).optional() },
     run: (a, c) => updateProductMap(runScope(c.home, a.run, c.env), { ...(a.pages ? { pages: a.pages } : {}), ...(a.endpoints ? { endpoints: a.endpoints } : {}) }, c.now()),
+  }),
+
+  define({
+    name: "bank_save_test",
+    title: "Save a check to the test bank",
+    description:
+      "Save one check worth keeping as a test that later runs execute first (spec 13.3). Write the test as a JSON file in <run.dir>/data/bank/ (see `shared/test-bank.md`: kind api with a plan, or ui with steps; a value card of protects, fails_when and not_duplicate is required), then call this with the file name. " +
+      "Returns `created` with the id, `extended` (when it replaces a test named in `extends`), or `duplicate` with the id of the test that already covers it: extend that one instead. Refused with the reasons when the test cannot run, cannot fail, or holds a secret or personal data.",
+    annotations: ADD,
+    input: { run, file: line(1, 400, "file").describe("The test file: a name inside <run.dir>/data/bank/, or its full path inside the run folder.") },
+    run: (a, c) => saveBankTestFromFile(runScope(c.home, a.run, c.env), a.file, { now: c.now() }),
   }),
 
   define({

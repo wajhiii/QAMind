@@ -1,4 +1,4 @@
-# Memory and state (Phases 1, 4, 5, 6, 7 and 7.6)
+# Memory and state (Phases 1, 4, 5, 6, 7, 7.6 and 7.7)
 
 All of this is **private to the user and the machine**: it lives in `$QAMIND_HOME` (default `~/.qamind`), never in the
 project's git, and is never uploaded. One store serves every host on the machine.
@@ -20,6 +20,8 @@ $QAMIND_HOME/
     │   ├── learnings.jsonl           short, confirmed lessons about this product (Phase 4)
     │   ├── false-alarms.jsonl        things reported once that were not bugs, so they are not reported again (Phase 4)
     │   ├── fix-log.jsonl             every fix `/qa` attempted: outcome, files, test, root cause (Phase 6)
+    │   ├── bugs.jsonl                every problem found across runs: fingerprint, status, history (Phase 7.7)
+    │   ├── feedback.jsonl            what people said about findings, with who and when (Phase 7.7)
     │   ├── archive/                  learnings that lost confidence or fell out of the cap, kept for review
     │   └── runs/<run-id>.json        one summary per finished run
     ├── state/
@@ -27,7 +29,8 @@ $QAMIND_HOME/
     │   ├── memory.lock               held for milliseconds while memory is being changed (Phase 5)
     │   └── guard-blocked.jsonl       origins the browser guard refused
     ├── backups/                      copies of memory files taken before a format migration, and migrations.log.jsonl (Phase 5)
-    ├── test-bank/  baselines/        created now, used by later phases
+    ├── test-bank/bank.jsonl          the saved checks: value card, plan or steps, and how each test has done (Phase 7.7)
+    ├── baselines/                    created now, used by a later phase
 ```
 
 ## Project id
@@ -77,6 +80,21 @@ reproduction can be wrong.
 each fix attempted in a `/qa` run, including the ones that were reverted or deferred, so a later run knows what was fixed and where, and what did not work. Titles and root causes are screened like every saved text; one that would not pass is replaced by
 "[withheld: it contained sensitive data]", never saved. At most 300 entries stay; older ones go to `archive/`. `memory_get_context` shows the latest eight (`fix_log`), and `memory_list` with `what: "fix-log"` shows all of them.
 
+### `bugs.jsonl` (Phase 7.7)
+
+`id` (BUG-001), `fingerprint` (area, type and the symptom's significant words), `area, type, surface, title, plain_title, summary, severity, status`, `first_seen`, `last_seen`, `times_seen`, `history` (new, seen, fixed, regressed, accepted ... with who and why),
+and from feedback `severity_override`, `accepted`, `not_a_bug`, `duplicate_of`, `confirmed_by`. Status: `new`, `still-open`, `fixed`, `regressed` (shown as "came back"), `accepted`, `not-a-bug`, `duplicate`. **Fixed is only written with proof**: a passing bank test that protects the bug, a validated re-check the agent wrote, or a person's verdict.
+Written when a run finishes (and by feedback); a run cannot write it by hand.
+
+### `feedback.jsonl` (Phase 7.7)
+
+`id` (F-001), `bug`, `issue` and `run` (what the person pointed at), `verdict`, `level`, `duplicate_of`, `note`, `by`, `at`, `via` (command or admin-report) and `effects` (what it changed, in words). Notes are screened for secrets and personal data.
+
+### `test-bank/bank.jsonl` (Phase 7.7)
+
+One test per line: `id` (T-001), `kind` (api or ui), `title`, `area`, `status` (active, quarantined, retired), `card` {protects, fails_when, not_duplicate}, `protects_bug`, `from_run`, `from_issue`, `plan` (API: requests and what each must answer) or `ui` and `steps`, `revisions`,
+and `stats` {runs, passes, failures, flaky, flips, last, history (p, f or x = passed only on a retry), avg_ms}. Retired tests move to `memory/archive/test-bank.jsonl` with the reason.
+
 ### `risk-areas.json`
 Per area, the most recent events (`run, date, severity`). The score is `Σ weight × recency`, with weights 10 / 4 / 1 for
 critical / important / minor and a recency half-life of 90 days, so an old problem fades and a repeated one stays on top.
@@ -98,9 +116,9 @@ new pages, endpoints added or removed, and pages not seen. Two guards avoid fals
 ## Run summary (`memory/runs/<run-id>.json`)
 
 `run_id, mode, trigger, kind, host, started, finished, duration_s, counts {critical, important, minor, unconfirmed},
-finding_ids, findings (compact: id, severity, area, title), coverage {tested, partial, not_tested}, journeys {total, tested} (key journeys from the config; the number to
+finding_ids, findings (compact: id, severity, area, title, bug), coverage {tested, partial, not_tested}, journeys {total, tested} (key journeys from the config; the number to
 compare runs by), not_tested_count,
-blocked_areas, cost, usage {duration_s, cost_usd?, tokens?, note} (schema 2: what the host said, or "not available on this host"), budget {time_minutes?, max_cost?, used_minutes, reached, source} (when the run had one), stop_reason, agent_version, knowledge_version, branch, commit, report, memory_updated` plus
+blocked_areas, lifecycle {new, still_open, regressed, accepted, fixed, not_rechecked}, cost, usage {duration_s, cost_usd?, tokens?, note} (schema 2: what the host said, or "not available on this host"), budget {time_minutes?, max_cost?, used_minutes, reached, source} (when the run had one), stop_reason, agent_version, knowledge_version, branch, commit, report, memory_updated` plus
 `schema_version`. Summaries are computed from the run's data files by `run finish`, not typed by the agent.
 
 ## Rules
@@ -113,7 +131,7 @@ blocked_areas, cost, usage {duration_s, cost_usd?, tokens?, note} (schema 2: wha
 - `schema_version` is checked **before anything is written**: if any memory file was written by a newer QAMind, the run
   does not start (or finishes without touching memory) and says why, so memory is never half-updated.
 - Memory is private per user: not in git, not uploaded, shared across hosts on the same machine.
-- **Not yet:** bug lifecycle and feedback (7.7), performance and metrics (7.9, 7.10). The folders for them exist.
+- **Not yet:** performance and metrics (7.9, 7.10), visual baselines (7.9). The folders for them exist.
 
 ## The qa-memory tools (Phase 5)
 
@@ -165,7 +183,7 @@ qamind memory where
 
 `config.md`, `reports/run-<timestamp>/{TECHNICAL-REPORT.md, ADMIN-REPORT.md, data/, evidence/, screenshots/}`, `suggested-improvements.md`.
 `data/` holds `meta.json`, `charters.json`, `findings.json`, `unconfirmed.json`, `not-tested.json`, `coverage.json`,
-`health.json`, `env-prep.json` (setup commands, when configured), `api-inventory.json`, `endpoints.json`, `pages.json`, `changes.json`, `memory-log.json`, `admin.json`,
+`health.json`, `env-prep.json` (setup commands, when configured), `lifecycle.json` (what each finding is across runs), `bank-results.json` (the test bank's turn at the start), `rechecks.json` (written by the agent), `bank-skip.json` (why a run saved no test), `known-accepted.json`, `bank/` (tests the agent wrote before saving them), `api-inventory.json`, `endpoints.json`, `pages.json`, `changes.json`, `memory-log.json`, `admin.json`,
 `plans/`, `api-results/`.
 
 ## Global lessons and the owner's review (Phase 7)

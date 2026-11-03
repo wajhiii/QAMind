@@ -2,6 +2,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { withStoreLock } from "./lock.ts";
 import { loadFalseAlarms, archiveFalseAlarm } from "./falsealarms.ts";
+import { loadBank, summariseBank } from "../bank/bank.ts";
+import { loadBugs } from "./bugs.ts";
+import { feedbackStats } from "./feedback.ts";
 import { loadFixLog } from "./fixlog.ts";
 import { archiveLearning, loadLearnings, LEARNING_TYPES } from "./learnings.ts";
 import { lessonOverview, readLessonUse } from "./lessons.ts";
@@ -121,6 +124,11 @@ export interface MemoryStats {
     fixes: Record<string, number>;
   };
   global_lessons: { pending: number; approved: number; loaded_here: number; rejected: number; times_applied: number };
+  /** What people said about findings (spec 13.5), and how it adds up. */
+  feedback: ReturnType<typeof feedbackStats>;
+  /** The project's bugs across runs (spec 13.12) and the test bank (spec 13.3). */
+  bugs: { total: number; open: number; came_back: number; fixed: number; accepted: number; not_a_bug: number };
+  bank: ReturnType<typeof summariseBank>;
   not_available_yet: string[];
 }
 
@@ -153,6 +161,8 @@ export function memoryStats(scope: Scope, now = new Date()): MemoryStats {
   const fixes = loadFixLog(scope.store).entries.reduce<Record<string, number>>((m, f) => ({ ...m, [f.outcome]: (m[f.outcome] ?? 0) + 1 }), {});
   const lessons = lessonOverview(scope.home, { projectNames: projectNamesOf(scope) });
   const use = readLessonUse(scope.home);
+  const fb = feedbackStats(scope.store);
+  const allBugs = loadBugs(scope.store).bugs;
   return {
     project: projectOf(scope),
     runs: { total: pts.length, ...(pts[0] ? { first: pts[0].finished.slice(0, 10) } : {}), ...(pts.length ? { last: (pts[pts.length - 1] as RunPoint).finished.slice(0, 10) } : {}), by_mode: count((r) => r.mode), by_trigger: count((r) => r.trigger), recent: pts.slice(-10) },
@@ -164,6 +174,9 @@ export function memoryStats(scope: Scope, now = new Date()): MemoryStats {
       fixes,
     },
     global_lessons: { pending: lessons.pending.length, approved: lessons.approved.length, loaded_here: lessons.approved.filter((a) => a.loaded).length, rejected: lessons.rejected.length, times_applied: Object.values(use).reduce((n, u) => n + (u?.hits ?? 0), 0) },
-    not_available_yet: ["Precision (true findings out of all findings): it needs your verdicts on findings, which arrive with /qa-feedback in a later phase.", "Escaped bugs (production errors in areas marked as passing): they need Sentry or labelled tickets, which arrive in a later phase."],
+    feedback: fb,
+    bugs: { total: allBugs.length, open: allBugs.filter((b) => ["new", "still-open", "regressed"].includes(b.status)).length, came_back: allBugs.filter((b) => b.status === "regressed").length, fixed: allBugs.filter((b) => b.status === "fixed").length, accepted: allBugs.filter((b) => b.status === "accepted").length, not_a_bug: allBugs.filter((b) => b.status === "not-a-bug").length },
+    bank: summariseBank(loadBank(scope.store).tests),
+    not_available_yet: [...(fb.precision ? [] : [`Precision (true findings out of all findings): it needs at least 5 findings that you judged with /qa-feedback; so far ${fb.judged}.`]), "Escaped bugs (production errors in areas marked as passing): they need Sentry or labelled tickets, which arrive in a later phase."],
   };
 }

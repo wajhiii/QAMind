@@ -16,6 +16,9 @@ import { compactFinding } from "./report.ts";
 import type { CompactFinding, RunBudgetOutcome, RunMeta } from "./report.ts";
 import { ensureMigrated } from "./memory/migrate.ts";
 import { applyRunToMemory } from "./memory/update.ts";
+import { bankGate } from "./bank/gate.ts";
+import { applyRunLifecycle, lifecycleCounts } from "./memory/runlife.ts";
+import type { LifecycleCounts } from "./memory/runlife.ts";
 import { writeReports } from "./reports.ts";
 import { globalAutoFile, projectAutoFile, readAutoFile } from "../auto-qa/settings.ts";
 import { writeLastRun } from "../auto-qa/state.ts";
@@ -92,6 +95,10 @@ export interface RunSummary {
   commit?: string;
   report: string;
   /** What this run saved to project memory. */
+  /** Findings by what they are across runs, and bugs fixed since the last run (spec 13.12). */
+  lifecycle?: LifecycleCounts;
+  /** Tests this run saved to the bank, and, when it saved none, why (spec 13.3). */
+  bank?: { saved: number; skipped_reason?: string };
   memory_updated?: string[];
 }
 
@@ -415,8 +422,23 @@ export function finishRun(opts: FinishOptions): RunSummary {
     const where = scan.leaks.slice(0, 8).map((l) => `${l.file} (${Object.entries(l.kinds).map(([k, n]) => `${n} ${k}`).join(", ")})`).join("; ");
     throw new Error(`Privacy scan failed: the run's output still holds private data in ${scan.leaks.length} file(s): ${where}${scan.leaks.length > 8 ? "; ..." : ""}. Run \`qamind privacy mask --run ${marker.run_id}\` (it masks them in place; test accounts' own data stays), rebuild the reports with \`report build\` and \`report lint\`, then finish the run again. Nothing was finished.`);
   }
+  const prior = readRunData(marker.run_dir);
+  assignIds(marker.run_dir, prior);
+  // A run that found serious problems leaves a test behind, or says why it cannot (spec 13.3). Nothing is changed by the refusal.
+  const gate = bankGate({
+    store: marker.store,
+    runDir: marker.run_dir,
+    started: marker.started,
+    trigger: marker.trigger,
+    budgetOver: budgetStatus(marker.budget, marker.started, now).state === "over",
+    environmentBroken: (readJson<{ environment_ok?: boolean }>(path.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) === false,
+    findings: prior.findings,
+  });
+  if (gate.problem) throw new Error(gate.problem);
+  // Bugs and feedback (spec 13.12, 13.5): what each finding is across runs, written to memory before the summary is composed, so the summary can name the bug of each finding.
+  const lifeResult = applyRunLifecycle(marker.store, marker.run_dir, marker.run_id, now);
   const data = readRunData(marker.run_dir);
-  assignIds(marker.run_dir, data);
+  const bugOf = new Map((lifeResult.lifecycle.findings ?? []).map((l) => [l.issue, l.bug]));
   const counts = countBySeverity(data.findings);
   const notTested = mergedNotTested(data);
   const journeys = flowStatus(data);
@@ -443,7 +465,8 @@ export function finishRun(opts: FinishOptions): RunSummary {
     duration_s,
     counts: { ...counts, unconfirmed: data.unconfirmed.length },
     finding_ids: data.findings.map((f) => f.id ?? "").filter(Boolean),
-    findings: data.findings.map(compactFinding),
+    findings: data.findings.map((f) => compactFinding(f, bugOf.get(f.id ?? ""))),
+    lifecycle: lifecycleCounts(lifeResult.lifecycle),
     coverage: {
       tested: data.coverage.filter((c) => c.status === "tested").length,
       partial: data.coverage.filter((c) => c.status === "partial").length,
@@ -456,6 +479,7 @@ export function finishRun(opts: FinishOptions): RunSummary {
     usage,
     ...(budgetOutcome ? { budget: budgetOutcome } : {}),
     ...(environment ? { environment } : {}),
+    bank: { saved: gate.saved, ...(gate.skipped_reason ? { skipped_reason: gate.skipped_reason } : {}) },
     stop_reason,
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION,
@@ -474,8 +498,8 @@ export function finishRun(opts: FinishOptions): RunSummary {
     roles: (config?.roles ?? []).map((r) => r.name),
     uiUrls: Object.fromEntries((config?.web_uis ?? []).map((u) => [u.name, u.url])),
   });
-  if (meta) writeJson(path.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...(budgetOutcome ? { budget: budgetOutcome } : {}), ...(prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...(prep.restore ? { restored: prep.restore.ok } : {}) } } : {}), memory_updated: memory.updated });
-  summary.memory_updated = memory.updated;
+  if (meta) writeJson(path.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...(budgetOutcome ? { budget: budgetOutcome } : {}), ...(prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...(prep.restore ? { restored: prep.restore.ok } : {}) } } : {}), bank_saved: gate.saved, ...(gate.skipped_reason ? { bank_skipped: gate.skipped_reason } : {}), memory_updated: memory.updated });
+  summary.memory_updated = [...lifeResult.lines, ...memory.updated];
   const fixState = loadFixState(marker.run_dir);
   if (fixState) {
     const by = (o: string): number => fixState.attempts.filter((a) => a.status === o).length;

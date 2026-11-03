@@ -103,6 +103,8 @@ export interface FixtureOptions {
   mode?: "full" | "quick" | "regression" | "diff";
   pages?: Array<{ ui?: string; path?: string; url?: string; title?: string; roles?: string[] }>;
   endpoints?: string[];
+  /** Leave out data/bank-skip.json, so the run needs a saved test or a reason to finish. */
+  bankSkip?: false;
 }
 
 export const ALL_FLOWS_TESTED: CoverageRow[] = [1, 2, 3, 4, 5].map((n) => ({ surface: "ui", ui: "Client Portal", area: `Journey ${n}`, status: "tested" as const, critical_flow: n }));
@@ -163,6 +165,8 @@ export function writeFixtureData(runDir: string, opts: FixtureOptions = {}): voi
   ]);
   writeJson(path.join(runDir, "data", "unconfirmed.json"), Array.from({ length: opts.unconfirmed ?? 0 }, (_, i) => ({ title: `u${i}`, surface: "ui", observation: "o", why_unconfirmed: "w", attempts: 2 })));
   writeJson(path.join(runDir, "data", "health.json"), { ...(opts.health ?? { environment_ok: true, checks: [] }), ran_at: "2026-10-30T10:01:00Z" });
+  // `run finish` asks a run with serious findings for a saved test or a reason (spec 13.3). Fixture runs are about something else: they say so, and the bank gate has its own tests.
+  if (opts.bankSkip !== false) writeJson(path.join(runDir, "data", "bank-skip.json"), { reason: "A fixture run: no test is saved from it." });
   if (opts.admin) writeJson(path.join(runDir, "data", "admin.json"), opts.admin);
   if (opts.pages) writeJson(path.join(runDir, "data", "pages.json"), opts.pages);
   if (opts.endpoints) writeJson(path.join(runDir, "data", "endpoints.json"), opts.endpoints);
@@ -194,7 +198,15 @@ export async function cli(home: string, ...args: string[]): Promise<{ code: numb
   const writes: string[] = [];
   const realOut = process.stdout.write.bind(process.stdout);
   const realErr = process.stderr.write.bind(process.stderr);
-  process.stdout.write = ((c: string | Uint8Array) => (writes.push(String(c)), true)) as typeof process.stdout.write;
+  // Only what the command itself prints is captured (JSON text). Everything else passes through: the test runner reports each finished test on this same stream, asynchronously,
+  // and swallowing it made tests that finished while a command was running vanish from the count.
+  process.stdout.write = ((c: string | Uint8Array, ...rest: unknown[]) => {
+    if (typeof c === "string" && /^\s*[[{]/.test(c)) {
+      writes.push(c);
+      return true;
+    }
+    return (realOut as (...a: unknown[]) => boolean)(c, ...rest);
+  }) as typeof process.stdout.write;
   process.stderr.write = (() => true) as typeof process.stderr.write;
   try {
     const code = await main(args);

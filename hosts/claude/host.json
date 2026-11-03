@@ -32,7 +32,8 @@
         "a bare server-level entry in allowed-tools / --allowedTools (mcp__plugin_<plugin>_qa-memory) pre-approves every tool of the server",
         "the server process starts in the project folder and has CLAUDE_PROJECT_DIR set",
         "MCP tools are deferred: the agent loads them with one ToolSearch call before the first use",
-        "a skill's allowed-tools can list tools one by one, so a tool left out (fix_create_branch, fix_continue) makes the host ask the user"
+        "a skill's allowed-tools can list tools one by one, so a tool left out (fix_create_branch, fix_continue) makes the host ask the user",
+        "a path rule such as Edit(.qa/**) is relative to the CURRENT directory, and the agent's Bash `cd` moves it: after `cd <run folder>` the next Write is refused (headless: denied). A leading slash anchors the rule to the project root: Edit(/.qa/**). Checked with the real CLI (2.1.314) on 2026-11-02; file permission checks are matched through Edit rules, which cover Write"
       ]
     }
   },
@@ -72,7 +73,7 @@
   "skill_frontmatter": {
     "qa-only": {
       "disable-model-invocation": true,
-      "allowed-tools": "Read Glob Grep Write(.qa/**) Edit(.qa/**) Bash(qamind *) Bash(curl *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(ls *) mcp__plugin_qamind_browser mcp__plugin_qamind_qa-memory"
+      "allowed-tools": "Read Glob Grep Write(/.qa/**) Edit(/.qa/**) Bash(qamind *) Bash(curl *) Bash(git status *) Bash(git diff *) Bash(git log *) Bash(ls *) mcp__plugin_qamind_browser mcp__plugin_qamind_qa-memory"
     },
     "qa": {
       "disable-model-invocation": true,
@@ -89,6 +90,14 @@
     "qa-memory-review": {
       "disable-model-invocation": true,
       "allowed-tools": "Bash(qamind lessons list) Bash(qamind lessons list *) Bash(qamind memory review) Bash(qamind memory review *) Bash(qamind memory stats) Bash(qamind memory stats *)"
+    },
+    "qa-feedback": {
+      "disable-model-invocation": true,
+      "allowed-tools": "Bash(qamind bugs list) Bash(qamind bugs list *) Bash(qamind feedback list) Bash(qamind feedback list *) Bash(qamind feedback stats)"
+    },
+    "qa-tests": {
+      "disable-model-invocation": true,
+      "allowed-tools": "Bash(qamind tests status) Bash(qamind tests status *) Bash(qamind tests prune) Bash(qamind tests prune *) Bash(qamind tests run) Bash(qamind tests run *) Bash(qamind tests export)"
     }
   },
   "auto_qa": {

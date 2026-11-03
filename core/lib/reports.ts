@@ -7,6 +7,7 @@ import { readJson } from "./fsutil.ts";
 import { storeSubdirs } from "./paths.ts";
 import { loadFalseAlarms, matchFalseAlarms } from "./memory/falsealarms.ts";
 import { loadLearnings } from "./memory/learnings.ts";
+import { lintLifecycle, refreshLifecycle } from "./memory/runlife.ts";
 import { detectChanges } from "./memory/update.ts";
 import { assignIds, lintRun, readRunData, renderTechnicalReport } from "./report.ts";
 import type { Finding, LintResult, RunData } from "./report.ts";
@@ -48,6 +49,7 @@ export interface ReportContext {
 export function renderReports(runDir: string, store?: string, ctx?: ReportContext): RenderedReports {
   const first = readRunData(runDir);
   assignIds(runDir, first);
+  if (store && ctx?.refreshChanges) refreshLifecycle(store, runDir, ctx.runId);
   if (store && ctx?.refreshChanges) detectChanges({ store, runDir, runId: ctx.runId, mode: ctx.mode, now: new Date(), roles: ctx.roles, uiUrls: ctx.uiUrls });
   const data = readRunData(runDir);
   const previous = previousRuns(store, data.meta?.run_id);
@@ -112,6 +114,11 @@ export function lintReports(runDir: string, knownSecrets: string[] = [], store?:
         if (!learningIds.has(id) && !alarmIds.has(id)) errors.push(`memory_applied cites ${id}, which does not exist in this project's memory.`);
       }
     }
+  }
+  if (store) {
+    const life = lintLifecycle(store, runDir, data.findings, data.unconfirmed);
+    errors.push(...life.errors);
+    warnings.push(...life.warnings);
   }
   lintFixRun(data, errors, warnings);
   // Private data (spec 13.8): the same scan `run finish` gates on, so it is found while there is still time to mask it.

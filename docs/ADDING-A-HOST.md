@@ -80,7 +80,7 @@ afterwards is left alone on uninstall, a config that is not valid JSON is never 
 | `{{MEMORY_TOOLS_LOAD}}` | What to do before the first call (Claude Code loads MCP tools on demand; most hosts need nothing). |
 | `{{FIX_TOOLS_LOAD}}` | The same, for the fix tools, with the note that `fix_create_branch` and `fix_continue` are the user's decisions. |
 | `{{BROWSER_TOOLS}}` | How the browser tools are named in prose. |
-| `{{CMD_QA}}`, `{{CMD_QA_ONLY}}`, `{{CMD_QA_AUTO}}`, `{{CMD_QA_MEMORY_REVIEW}}` | The command names, from `host.json` `commands` (also `CMD_QA_FEEDBACK` and `CMD_QA_TESTS` for later phases). |
+| `{{CMD_QA}}`, `{{CMD_QA_ONLY}}`, `{{CMD_QA_AUTO}}`, `{{CMD_QA_MEMORY_REVIEW}}`, `{{CMD_QA_FEEDBACK}}`, `{{CMD_QA_TESTS}}` | The command names, from `host.json` `commands`. |
 
 An unknown placeholder fails the build, so a host that forgets one finds out at once. Core never names a host, a host's command, tool or folder (a test checks the instructions and the runtime's messages).
 

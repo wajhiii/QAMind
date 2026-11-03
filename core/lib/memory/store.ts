@@ -17,6 +17,12 @@ export interface MemoryPaths {
   learnings: string;
   falseAlarms: string;
   fixLog: string;
+  /** Bug fingerprints and their status history (spec 13.12). */
+  bugs: string;
+  /** Human verdicts on findings (spec 13.5). */
+  feedback: string;
+  /** The test bank: saved checks with their value cards and run statistics (spec 13.3). Lives in the project's `test-bank/` folder, beside `memory/`. */
+  bank: string;
   archiveDir: string;
   runs: string;
   stack: string;
@@ -31,6 +37,9 @@ export function memoryPaths(store: string): MemoryPaths {
     learnings: path.join(dir, "learnings.jsonl"),
     falseAlarms: path.join(dir, "false-alarms.jsonl"),
     fixLog: path.join(dir, "fix-log.jsonl"),
+    bugs: path.join(dir, "bugs.jsonl"),
+    feedback: path.join(dir, "feedback.jsonl"),
+    bank: path.join(storeSubdirs(store).testBank, "bank.jsonl"),
     archiveDir: path.join(dir, "archive"),
     runs: storeSubdirs(store).runs,
     stack: path.join(dir, "stack.json"),

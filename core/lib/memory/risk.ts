@@ -8,7 +8,7 @@ export interface RiskEvent {
   date: string;
   severity: Severity;
   /** Where the event came from: a confirmed finding (the default, written at run finish) or an area the agent flagged mid-run. */
-  source?: "finding" | "agent";
+  source?: "finding" | "agent" | "feedback";
   /** Why the agent flagged the area (agent events only). Screened: no secrets or personal data. */
   note?: string;
 }
@@ -68,7 +68,7 @@ function tidy(file: RiskFile, date: Date): void {
  */
 export function recordRisk(store: string, runId: string, date: Date, findings: RiskFinding[]): RiskFile {
   const file = loadRisk(store);
-  for (const a of file.areas) a.events = a.events.filter((e) => e.run !== runId || isAgentEvent(e));
+  for (const a of file.areas) a.events = a.events.filter((e) => e.run !== runId || isAgentEvent(e) || e.source === "feedback");
   for (const f of findings) {
     const key = areaKey(f.area);
     if (!key) continue;
@@ -121,6 +121,18 @@ export function scoreAreas(file: RiskFile, now = new Date()): ScoredArea[] {
       last_seen: a.events[0]?.date ?? "",
     }))
     .sort((a, b) => b.score - a.score || a.area.localeCompare(b.area));
+}
+
+/** A person confirmed a finding (spec 13.5 `confirmed` / `good-catch`): the area counts one more time, as an event of its own that a later run's record never replaces. */
+export function recordFeedbackRisk(store: string, runId: string, date: Date, area: string, severity: Severity, note: string): void {
+  const file = loadRisk(store);
+  const key = areaKey(area);
+  if (!key) return;
+  let entry = file.areas.find((a) => areaKey(a.area) === key);
+  if (!entry) file.areas.push((entry = { area: area.trim(), events: [] }));
+  entry.events.unshift({ run: runId, date: date.toISOString(), severity, source: "feedback", note });
+  tidy(file, date);
+  writeMemoryJson(memoryPaths(store).riskAreas, file as unknown as Record<string, unknown>);
 }
 
 /** The owner clears a risk area in a memory review (a fixed product, a renamed area): it moves to the archive with its history. */

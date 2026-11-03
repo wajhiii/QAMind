@@ -82,7 +82,8 @@ claude plugin install qamind@qamind
 | Test and fix | `/qamind:qa [full\|quick\|regression\|diff] [focus]` | Fixes on a git branch, one commit per fix with its regression test; never pushes, merges or opens a pull request. Needs a clean working tree and a project test command; see [Fix mode](#fix-mode-qamindqa) |
 | Auto-QA on, off, mode, pause | `/qamind:qa-auto on\|off\|status\|mode diff\|quick\|full\|fix\|ask\|pause 1h\|global on\|off` | QA after every task that changed code. **Off by default.** See [Auto-QA](#auto-qa-qamindqa-auto) |
 | Review what QAMind remembers | `/qamind:qa-memory-review [lessons\|prune\|stats]` | Approve or reject the generic lessons it proposed for all projects, archive stale memory, see run statistics. Only you decide. See [Memory review](#memory-review-qamindqa-memory-review) |
-| Feedback, test bank | `/qamind:qa-feedback`, `/qamind:qa-tests` | _Later phases_ |
+| Tell QAMind what you think of a finding | `/qamind:qa-feedback [ISSUE-003 not-a-bug why \| list \| import <run>]` | Not a bug, wrong severity, duplicate, confirmed, fixed, won't fix, good catch: the next run changes accordingly. Only you can: a QA run cannot. See [Findings across runs](#findings-across-runs-the-test-bank-and-your-feedback) |
+| The test bank | `/qamind:qa-tests [status\|run\|export\|prune]` | The checks earlier runs saved. See what it holds, run it, copy tests into your project as real Playwright tests (only with your yes), retire stale ones |
 
 Modes: `full` (everything), `quick` (critical flows and top risks), `regression` (re-run last findings), `diff` (changed
 code and what depends on it). Free text after the mode narrows the focus.
@@ -110,7 +111,7 @@ anything not tested is listed with the reason. Nothing untested is ever reported
 |-------|------|
 | `<project>/.qa/` (git-ignored) | `config.md`, `reports/`, `suggested-improvements.md` |
 | `<project>/.env.qa` (git-ignored) | test credentials only |
-| `~/.qamind/projects/<id>/` (private, per user) | project identity, detected stack, run history, product map, risk areas, learnings, known false alarms, run marker, migration backups. Never committed, never uploaded. Override with `QAMIND_HOME`. |
+| `~/.qamind/projects/<id>/` (private, per user) | project identity, detected stack, run history, product map, risk areas, learnings, known false alarms, bugs across runs, feedback, the test bank, run marker, migration backups. Never committed, never uploaded. Override with `QAMIND_HOME`. |
 | `~/.qamind/pending-lessons.md` (private) | generic lessons the agent proposed for any project; nothing uses them until you approve one |
 
 The project id comes from the git `origin` URL, so two clones of one repo share memory; without a remote it is a hash of
@@ -203,6 +204,28 @@ privacy:
 
 Design, limits and what was not verified: [decision 0007](docs/decisions/0007-reliability.md).
 
+## Findings across runs: the test bank and your feedback
+
+Each run builds on the ones before it.
+
+- **Every problem has an identity** (`BUG-003`). The reports say whether a problem is **new**, **still open** (seen N times, since a date), or **came back** after being fixed. Problems that came back are listed first, called out in the 30-second summary, and keep the verdict from being "Ready to release".
+  A problem counts as **fixed** only when QAMind looked: its saved check passes now, or the agent repeated the steps and wrote what it saw. A problem that was not looked at again is listed as such, never assumed fixed.
+- **The test bank.** At the end of a run QAMind saves the checks worth keeping (at most about six: one for each problem it reproduced twice, and a smoke check of a key journey; a manual run with serious findings cannot finish without saving one or saying why none can be written) as tests it can run itself, each with a short "value card" (what it protects, when it fails, why it is not a duplicate).
+  The next run **runs the bank first**, fast and cheap, and spends its time on what is new, changed or risky. A test that fails twice must be dealt with before the run can finish; one that only passes on a retry is flaky, and after a few of those it is set aside (quarantined) until you release it.
+  API tests are requests with what each must answer; UI tests are a short list of steps (open, fill, click, check) run in a browser behind the same production guard. `/qamind:qa-tests export` writes them into your project as Playwright tests, with no passwords in them, after you say yes; it never overwrites a file.
+- **Your feedback changes the next run.** `/qamind:qa-feedback ISSUE-003 not-a-bug "this is how we want it"` makes it a known false alarm (later runs do not report it, and say who said so); `wrong-severity important` makes the reports show that level; `wont-fix` lists it under "Known, accepted" instead of counting it;
+  `fixed` makes a later find show as having come back; `confirmed` and `good-catch` raise the learnings behind it and the risk of its area. Managers can write a verdict in the "Your feedback" line of the admin report; you read it in with `/qamind:qa-feedback import <run>`.
+  The name is whatever you give (or your git user): nothing checks it.
+
+```
+qamind bugs list [--status open|fixed|accepted|all]
+qamind feedback add ISSUE-003|BUG-002 not-a-bug|confirmed|wont-fix|fixed|good-catch|wrong-severity LEVEL|duplicate-of ID [--note TEXT] [--by NAME] [--run ID]
+qamind feedback import --run ID --by NAME  |  feedback list  |  feedback stats
+qamind tests status | run [--run ID] | export [--ids T-001,T-004] [--dir D] [--yes] | prune | retire ID --reason TEXT | quarantine ID | unquarantine ID
+```
+
+Limits, and what was not verified: [decision 0008](docs/decisions/0008-test-bank-bugs-feedback.md).
+
 ## Safety (and how it is enforced)
 
 QAMind never tests production, never reads or prints credentials, creates data only with your `QA-` prefix, never
@@ -215,7 +238,7 @@ triggers real payments or emails, and treats everything it sees in your app as d
 | Credentials stay out of the conversation | browser `--secrets`, API runner logs in itself, hook blocks reading `.env.qa` | secrets and runner work everywhere; the read-block is a hook |
 | Side-effect endpoints (email, SMS, payments) | left out of generated API plans by default and listed as Not tested | same |
 | `/qa` never pushes, merges or opens a pull request, and never touches credentials, CI, lock files, generated code or your do-not-touch list | no such operation exists in the fix tools; the hook blocks git writes and the git host's CLI from the agent's shell and refuses edits to protected files | the tools are the same everywhere; the hook is Claude Code's |
-| A QA run cannot approve lessons, archive memory or change auto-QA settings | the hook refuses those commands and writes to those files in every run mode; the review's deciding commands are not pre-approved, so the host asks you | the hook is Claude Code's |
+| A QA run cannot approve lessons, give feedback on findings, retire or quarantine saved tests, archive memory or change auto-QA settings | the hook refuses those commands and writes to those files in every run mode; the review's deciding commands are not pre-approved, so the host asks you | the hook is Claude Code's |
 | Auto-QA never fixes on its own, and is off until you turn it on | a project that never opted in is not written to; `fix` mode only when you set it or use `#qa-fix`, with all the fix rules | same code, host hooks differ |
 | Every fix has a regression test that fails without it | `fix_commit` takes the fix out, runs the test (it must fail), puts the fix back and runs it again (it must pass) | same, via MCP |
 
@@ -235,8 +258,9 @@ Private-data masking and its limits (names and addresses in free text, images) a
 | 6.5 ✅ | Auto-QA: a gate after every agent task that changed code, `/qa-auto`, tags |
 | 7 ✅ | Global lessons you approve, `/qa-memory-review` (lessons, prune, stats) |
 | 7.5 ✅ (without Codex) | `qamind setup \| status \| update \| uninstall`; Cursor (experimental) and generic (instruction-only) hosts; conformance suite; `docs/ADDING-A-HOST.md`. Codex deferred by the owner |
-| 7.6 ✅ (this) | Reliability: environment problems are not bugs, test data setup, time budgets, private-data masking and scan, memory migration with backup |
-| 7.7 – 7.10 | test bank and bug lifecycle, CI, coverage depth, release verdict and metrics (Codex whenever the owner asks) |
+| 7.6 ✅ | Reliability: environment problems are not bugs, test data setup, time budgets, private-data masking and scan, memory migration with backup |
+| 7.7 ✅ (this) | Test bank (run first, flaky tests quarantined, export to Playwright), bugs across runs (new, still open, fixed, came back), your feedback changes the next run |
+| 7.8 – 7.10 | CI, coverage depth, release verdict and metrics (Codex whenever the owner asks) |
 | 8 | Linear and Sentry, polish |
 
 ## Development

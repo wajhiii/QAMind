@@ -45,6 +45,8 @@ export interface FalseAlarmInput {
   reason: string;
   source?: FalseAlarmSource;
   run?: string;
+  /** Who said so and when (human feedback, spec 13.5): the agent cites it ("Per feedback from <name> on <date>, not reported"). */
+  feedback?: { id: string; by: string; at: string };
 }
 
 export function addFalseAlarm(store: string, input: FalseAlarmInput, opts: { now?: Date; knownSecrets?: string[] } = {}): { action: "created" | "existing"; alarm: FalseAlarm; warnings: string[] } {
@@ -64,6 +66,7 @@ export function addFalseAlarm(store: string, input: FalseAlarmInput, opts: { now
     reason,
     source: input.source ?? "reproduction",
     ...(input.run ? { evidence_run: input.run } : {}),
+    ...(input.feedback ? { feedback: input.feedback } : {}),
     created: now.toISOString(),
     hits: 0,
   };

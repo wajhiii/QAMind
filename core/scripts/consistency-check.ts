@@ -114,6 +114,12 @@ export function checkConsistency(runDir: string): ConsistencyResult {
     for (const k of Object.keys(actual)) if (stated[k] !== actual[k]) errors.push(`The admin summary says ${stated[k]} ${k} but the technical report lists ${actual[k]}.`);
   } else errors.push("The admin summary has no problem-count line.");
 
+  // Bugs that came back (spec 13.12) are said the same way in both reports, and the admin summary calls them out.
+  const techBack = (findingsSection.match(/^- \*\*Bug:\*\* BUG-\d+ · \*\*Came back\*\*/gm) ?? []).length;
+  const adminBack = (admin.match(/^- \*\*History:\*\* Came back:/gm) ?? []).length;
+  if (techBack !== adminBack) errors.push(`The technical report has ${techBack} problem(s) that came back but the admin report shows ${adminBack}.`);
+  if (techBack > 0 && !summaryLines.some((l) => /came back after being fixed/.test(l))) errors.push("Problems came back after being fixed, but the admin summary does not say so.");
+
   // The verdict must not contradict the counts (default rules, spec §13.13). Problems fixed and verified on the fix branch are not open.
   const open = { critical: 0, important: 0, minor: 0 } as Record<string, number>;
   for (const x of result.technical) if (outcomes.get(x.id) !== "verified") open[x.severity] = (open[x.severity] ?? 0) + 1;

@@ -40,6 +40,12 @@ export interface AdminProblem {
   status: string;
   ticket?: string;
   missingPlain: boolean;
+  /** What this problem is across checks, in plain words (new, still open, came back). */
+  history?: string;
+  /** True for a problem that was fixed before and was found again. */
+  cameBack?: boolean;
+  /** Set when a person's feedback changed the severity. */
+  severityNote?: string;
 }
 
 export interface AdminModel {
@@ -55,6 +61,10 @@ export interface AdminModel {
   nextSteps: string[];
   /** Present in a `/qa` run that fixed (or tried to fix) things. */
   fixes?: AdminFixes;
+  /** Problems from earlier checks that are fixed now, with how that was seen. */
+  fixedSince: string[];
+  /** Problems a person decided to live with: listed, not counted. */
+  knownAccepted: string[];
 }
 
 export const CANNOT_SEE_ON_SCREEN = "This cannot be seen on screen. A developer can confirm it using the technical details linked at the end of this problem.";
@@ -205,7 +215,18 @@ function fixesOf(data: RunData): AdminFixes | undefined {
 
 const IMAGE = /\.(png|jpe?g|webp|gif)$/i;
 
-function toProblem(f: Finding): AdminProblem {
+const dayText = (iso: string): string => plainDate(iso);
+
+function historyOf(data: RunData, f: Finding): { history?: string; cameBack?: boolean } {
+  const l = data.lifecycle?.findings.find((x) => x.issue === f.id);
+  if (!l) return {};
+  if (l.status === "regressed") return { cameBack: true, history: `Came back: this problem was fixed${l.fixed_on ? ` on ${dayText(l.fixed_on)}` : ""} and has now been found again.` };
+  if (l.status === "still-open") return { history: `Still open: found in ${plural(l.times_seen, "check", "checks")} so far, first on ${dayText(l.first_seen)}.` };
+  if (l.status === "new") return { history: "New: not seen in earlier checks." };
+  return {};
+}
+
+function toProblem(f: Finding, data: RunData): AdminProblem {
   const p = f.plain;
   const complete = !!p && !!one(p.title) && !!one(p.where) && !!one(p.what_happens) && !!one(p.who_is_affected) && !!one(p.expected) && Array.isArray(p.how_to_see_it);
   const shot = p?.screenshot ?? f.evidence.find((e) => IMAGE.test(e));
@@ -221,6 +242,8 @@ function toProblem(f: Finding): AdminProblem {
     ...(shot ? { screenshot: shot } : {}),
     status: statusText(f),
     ...(p?.ticket ? { ticket: p.ticket } : {}),
+    ...historyOf(data, f),
+    ...(f.severity_note && f.severity_assessed ? { severityNote: `A person set this to ${f.severity} (the check judged it ${f.severity_assessed}).` } : {}),
     missingPlain: !complete,
   };
 }
@@ -238,7 +261,14 @@ function trendLines(data: RunData, previous: RunSummary[]): string[] {
   const journeysNow = flowStatus(data);
   if (last.journeys && journeysNow.total > 0) lines.push(`Key journeys fully checked: ${journeysNow.tested.length} of ${journeysNow.total} this time, ${last.journeys.tested} of ${last.journeys.total} last time.`);
   if (last.mode !== data.meta?.mode) lines.push("The two checks were not the same kind, so the numbers are not directly comparable.");
-  lines.push("We do not yet track which problems are new and which are repeats of earlier ones.");
+  const life = data.lifecycle;
+  if (life) {
+    const n = (st: string): number => life.findings.filter((x) => x.status === st).length;
+    lines.push(`Of the problems found now: ${n("new")} new, ${n("still-open")} already open before, ${n("regressed")} came back after being fixed.`);
+    if (life.fixed.length) lines.push(`${plural(life.fixed.length, "problem from before is", "problems from before are")} fixed now.`);
+    if (life.not_rechecked.length) lines.push(`${plural(life.not_rechecked.length, "problem from before was", "problems from before were")} not looked at again this time, so we cannot say whether ${life.not_rechecked.length === 1 ? "it is" : "they are"} fixed.`);
+    if (life.accepted_seen.length) lines.push(`${plural(life.accepted_seen.length, "known problem was", "known problems were")} seen again; ${life.accepted_seen.length === 1 ? "it was" : "they were"} accepted earlier and ${life.accepted_seen.length === 1 ? "is" : "are"} not counted.`);
+  } else lines.push("We could not tell which problems are new and which are repeats of earlier ones, because no earlier results were available.");
   return lines;
 }
 
@@ -262,9 +292,11 @@ export function buildAdminModel(data: RunData, previous: RunSummary[] = []): Adm
   const fixedVerified = data.findings.length - open.length;
   const fixes = fixesOf(data);
   const areas = buildAreas(data);
+  const cameBackIds = new Set((data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed").map((l) => l.issue));
+  // Problems that came back are listed first, then by severity.
   const problems = [...data.findings]
-    .sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""))
-    .map(toProblem);
+    .sort((a, b) => Number(cameBackIds.has(b.id ?? "")) - Number(cameBackIds.has(a.id ?? "")) || SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""))
+    .map((f) => toProblem(f, data));
   const notTested = mergedNotTested(data).map((n) => {
     if (n.plain?.area?.trim() && n.plain?.reason?.trim()) return { area: one(n.plain.area), reason: one(n.plain.reason) };
     const row = n.fromCoverage;
@@ -284,12 +316,13 @@ export function buildAdminModel(data: RunData, previous: RunSummary[] = []): Adm
   const authored = data.adminStale ? undefined : data.admin;
   const biggest =
     one(authored?.biggest_risk) ||
-    (open[0] && open.some((f) => f.severity !== "minor") ? `${one(toProblem(topOpen(open)).title)}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
+    (open[0] && open.some((f) => f.severity !== "minor") ? `${one(toProblem(topOpen(open), data).title)}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
   const names = notTested.slice(0, 3).map((n) => (n.area.length > 60 ? `${n.area.slice(0, 57)}...` : n.area));
   const summary = [
     `Checked on ${plainDate(meta?.started)} · Environment: ${meta?.environment ?? "unknown"} · Type of check: ${MODE_TEXT[meta?.mode ?? ""] ?? meta?.mode ?? "unknown"}`,
     `We looked at ${plural(areas.length, "area", "areas")}: ${areaParts.join(", ")}.`,
     `Problems: 🔴 ${found.critical} critical · 🟠 ${found.important} important · 🟡 ${found.minor} minor${fixedVerified > 0 ? ` · ${fixedVerified} of them fixed and checked` : ""}`,
+    ...(cameBackIds.size > 0 ? [`⚠️ ${plural(cameBackIds.size, "problem came", "problems came")} back after being fixed: ${problems.filter((p) => p.cameBack).slice(0, 3).map((p) => one(p.title).replace(/[.\s]+$/, "")).join("; ")}${cameBackIds.size > 3 ? ` and ${cameBackIds.size - 3} more` : ""}.`] : []),
     `Biggest risk: ${biggest}`,
     notTested.length ? `Not tested: ${names.join("; ")}${notTested.length > 3 ? ` and ${notTested.length - 3} more` : ""}.` : "Not tested: nothing; everything planned was checked.",
   ];
@@ -309,7 +342,13 @@ export function buildAdminModel(data: RunData, previous: RunSummary[] = []): Adm
   const authoredSteps = (authored?.next_steps ?? []).map(one).filter(Boolean);
   const nextSteps = (authoredSteps.length ? authoredSteps : fallbackSteps).slice(0, MAX_NEXT_STEPS);
 
-  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps, ...(fixes ? { fixes } : {}) };
+  // A bug fixed since the last check is no finding of this run, so it has no `plain` block here: its plain title was kept in memory when it was found.
+  const fixedSince = (data.lifecycle?.fixed ?? []).map((x) => `${one(x.plain_title ?? `A problem in "${x.area}" found earlier`).replace(/[.\s]+$/, "")}: ${x.source === "bank-test" ? "the saved automatic check for it passes now" : one(x.how).replace(/[.\s]+$/, "")}.`);
+  const knownAccepted = (data.accepted ?? []).map((f) => {
+    const l = data.lifecycle?.accepted_seen.find((a) => a.bug === f.bug);
+    return `${one(f.plain?.title) || f.title}${l ? ` (accepted by ${l.by} on ${dayText(l.at)}${l.note ? `: ${one(l.note)}` : ""})` : ""}.`.replace(/\.\.$/, ".");
+  });
+  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps, fixedSince, knownAccepted, ...(fixes ? { fixes } : {}) };
 }
 
 export function renderAdminMarkdown(m: AdminModel): string {
@@ -339,10 +378,14 @@ export function renderAdminMarkdown(m: AdminModel): string {
     } else L.push(`- **How to see it yourself:** ${CANNOT_SEE_ON_SCREEN}`);
     L.push(`- **What should happen:** ${p.expected}`);
     L.push(p.screenshot ? `- **Screenshot:** [view the screenshot](${p.screenshot})` : "- **Screenshot:** none (this is not visible on screen)");
+    if (p.history) L.push(`- **History:** ${p.history}`);
+    if (p.severityNote) L.push(`- **Importance:** ${p.severityNote}`);
     L.push(`- **Status:** ${p.status}`, `- **Ticket:** ${p.ticket ? `[open the ticket](${p.ticket})` : "none yet"}`, "- **Your feedback (optional):** ______");
     L.push(`- **For developers:** [${p.id}](${TECHNICAL_FILE}#${p.id})`, "");
   }
 
+  if (m.fixedSince.length) L.push("## Fixed since the last check", "", ...m.fixedSince.map((l) => `- ${l}`), "");
+  if (m.knownAccepted.length) L.push("## Known problems that were accepted", "", "These were seen again. Someone decided to live with them, so they are not counted above.", "", ...m.knownAccepted.map((l) => `- ${l}`), "");
   if (m.fixes) {
     L.push("## What was fixed", "", ...m.fixes.lines.map((l) => `- ${l}`), "", m.fixes.branchLine, "");
     if (m.fixes.warning) L.push(m.fixes.warning, "");
@@ -357,7 +400,7 @@ export function renderAdminMarkdown(m: AdminModel): string {
   L.push("## Words used in this report", "", ...GLOSSARY.map(([w, d]) => `- **${w}**: ${d}`), "");
   L.push(
     "---",
-    `The full technical details, with exact steps for developers, are in \`${TECHNICAL_FILE}\`. Feedback written in this report is read by a developer; it is not picked up automatically yet.`,
+    `The full technical details, with exact steps for developers, are in \`${TECHNICAL_FILE}\`. To give feedback, start the line with one of: not a bug, confirmed, won't fix, fixed, good catch, wrong severity (and the right level), or duplicate of (and the problem number), then a short reason. A developer reads it into QAMind's memory (/qa-feedback import); nothing is picked up by itself.`,
     "Before you share this report outside your team, look at the screenshots for personal information.",
     "",
   );

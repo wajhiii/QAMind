@@ -36,18 +36,19 @@ function allowedWriteRoots(marker: RunMarker, home: string, tmpDirs: string[]): 
 // ---- decisions that belong to the user, never to a QA run ----
 
 /** The user's own lists and settings in the QAMind store. A run reaches memory only through the qa-memory tools, which cannot touch these. */
-const OWNER_FILES = new Set(["global-lessons.md", "pending-lessons.md", "rejected-lessons.jsonl", "lesson-use.json", "auto.json"]);
-const OWNER_FILE_IN_COMMAND = /(?:global-lessons\.md|pending-lessons\.md|rejected-lessons\.jsonl|lesson-use\.json|auto\.json)/;
+const OWNER_FILES = new Set(["global-lessons.md", "pending-lessons.md", "rejected-lessons.jsonl", "lesson-use.json", "auto.json", "feedback.jsonl", "bugs.jsonl", "bank.jsonl"]);
+const OWNER_FILE_IN_COMMAND = /(?:global-lessons\.md|pending-lessons\.md|rejected-lessons\.jsonl|lesson-use\.json|auto\.json|feedback\.jsonl|bugs\.jsonl|bank\.jsonl)/;
 const WRITES_FILES = /(?:>|\btee\b|\bsed\s+-[A-Za-z]*i|\b(?:mv|cp|rm|truncate|dd|install|ln)\b|\b(?:node|python3?|perl|ruby)\b)/;
 /** `qamind lessons approve|reject`, `memory prune` and the auto-QA settings commands, however qamind is started. (`auto skipped` and `auto status` are not decisions.) */
-const OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
+const EXPORT_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+tests\s+export\b/;
+const OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|feedback\s+(?:add|import)|tests\s+(?:retire|quarantine|unquarantine)|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
 
 /**
  * Approving a global lesson (every project reads it), archiving memory, and turning auto-QA on or off are the user's decisions. A QA run reads untrusted pages and
  * its Bash is pre-approved for `qamind *`, so without this a page that talked the agent round could approve its own lessons. Applies in every run mode.
  */
 function ownerOnly(tool: string, ti: Record<string, unknown>, abs: (p: string) => string, home: string): string | undefined {
-  const why = "Approving lessons, archiving memory and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-auto).";
+  const why = "Approving lessons, archiving memory, giving feedback on findings, retiring or quarantining a saved test and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-feedback, /qa-tests, /qa-auto).";
   if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
     const target = String(ti["file_path"] ?? ti["notebook_path"] ?? "");
     if (target && OWNER_FILES.has(path.basename(target)) && inside(abs(target), home)) return `${why} (${path.basename(target)} is the user's file.)`;
@@ -108,6 +109,8 @@ export function decidePreToolUse(input: PreToolUseInput, home: string, tmpDirs: 
   if (owner) return { decision: "deny", reason: owner };
 
   if (!marker.readonly) return marker.kind === "qa" ? decideFixRun(marker, tool, ti, abs, home, tmpDirs) : null;
+  // `tests export` writes test files into the project: a report-only run never does (a fix run may, when the user asked).
+  if (tool === "Bash" && EXPORT_COMMAND.test(String(ti["command"] ?? ""))) return { decision: "deny", reason: `This is a report-only QA run (${marker.kind}): it never writes into the project, so it cannot export tests. Tell the user to run /qa-tests export.` };
 
   const writable = (p: string) => roots.some((r) => inside(abs(p), r));
   if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {

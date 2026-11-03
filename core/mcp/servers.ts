@@ -31,6 +31,7 @@ export const QA_MEMORY_TOOLS = [
   "memory_mark_false_alarm",
   "memory_update_risk",
   "memory_update_product_map",
+  "bank_save_test",
   "lessons_propose",
 ] as const;
 

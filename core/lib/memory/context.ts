@@ -4,6 +4,8 @@ import { readJson } from "../fsutil.ts";
 import type { CompactFinding } from "../report.ts";
 import type { RunSummary } from "../run.ts";
 import type { StackInfo } from "../stack.ts";
+import { loadBank, summariseBank } from "../bank/bank.ts";
+import { loadBugs, summariseBugs } from "./bugs.ts";
 import { loadFalseAlarms } from "./falsealarms.ts";
 import { loadFixLog, recentFixes } from "./fixlog.ts";
 import { loadApprovedLessons } from "./lessons.ts";
@@ -27,7 +29,17 @@ export interface MemoryContext {
   /** Active learnings by type, best first. `env-quirk` and `test-tip` change how you run tests; the others tell you what to look for. */
   learnings: Partial<Record<LearningType, Array<Pick<Learning, "id" | "area" | "text" | "confidence" | "last_confirmed">>>>;
   /** Things already known not to be bugs. Do not report them again (cite the id in memory_applied). */
-  false_alarms: Array<Pick<FalseAlarm, "id" | "area" | "symptom" | "reason" | "source">>;
+  false_alarms: Array<Pick<FalseAlarm, "id" | "area" | "symptom" | "reason" | "source"> & { /** Who said it was not a bug and when (feedback): cite it, "Per feedback from <name> on <date>". */ feedback?: { by: string; at: string } }>;
+  /**
+   * The project's bugs across runs (spec 13.12): open ones (came back first), what was fixed lately, what the owner accepted (do not report; it is listed as known) and what they said is not a bug.
+   * Tie a finding to one with `bug: "BUG-003"` (or `"new"` when it is none of them). An open bug you re-check and find fixed goes in `data/rechecks.json`.
+   */
+  bugs: ReturnType<typeof summariseBugs>;
+  /**
+   * The test bank (spec 13.3): saved checks that `qamind tests run` runs at the start of a run. `areas` are where it already has passing tests: explore elsewhere.
+   * Save the checks worth keeping at the end of the run with `bank_save_test`.
+   */
+  bank: ReturnType<typeof summariseBank>;
   /** The findings of the last finished run, for `regression` mode and for re-verifying. */
   previous_findings: { from_run?: string; findings: CompactFinding[] };
   product_map: { pages: number; endpoints: number; last_run?: string; uis: Record<string, string[]> };
@@ -84,6 +96,9 @@ export function loadMemoryContext(store: string, limit = 3, now = new Date(), op
     .map((r) => `${r.area}: ${r.occurrences} earlier run${r.occurrences === 1 ? "" : "s"} with problems (worst: ${r.worst_severity}, last ${r.last_seen.slice(0, 10)}). Test it early.`);
   const last = runs[0];
   if (last && last.counts.critical + last.counts.important > 0) focus.push(`The last run (${last.run_id}) found ${last.counts.critical} critical and ${last.counts.important} important problems: re-verify them first.`);
+  const bugsNow = summariseBugs(loadBugs(store).bugs);
+  const open = bugsNow.open.filter((b) => b.status !== "regressed");
+  if (open.length > 0) focus.push(`${open.length} bug(s) from earlier runs are still open (see \`bugs.open\`): check them again early, and record any that now pass in data/rechecks.json.`);
   if ((learnings["env-quirk"]?.length ?? 0) > 0) focus.push("Known environment quirks exist: read them before running anything slow or order-dependent.");
 
   const lessons = opts.home ? loadApprovedLessons(opts.home, { projectNames: opts.projectNames ?? [] }) : undefined;
@@ -102,11 +117,16 @@ export function loadMemoryContext(store: string, limit = 3, now = new Date(), op
     focus,
     risk_areas: risk,
     learnings,
-    false_alarms: alarms.alarms.slice(0, 30).map((a) => ({ id: a.id, area: a.area, symptom: a.symptom, reason: a.reason, source: a.source })),
+    false_alarms: alarms.alarms.slice(0, 30).map((a) => {
+      const fb = a["feedback"] as { by?: string; at?: string } | undefined;
+      return { id: a.id, area: a.area, symptom: a.symptom, reason: a.reason, source: a.source, ...(fb?.by && fb.at ? { feedback: { by: fb.by, at: fb.at.slice(0, 10) } } : {}) };
+    }),
+    bugs: summariseBugs(loadBugs(store).bugs),
+    bank: summariseBank(loadBank(store).tests),
     previous_findings: { ...(last ? { from_run: last.run_id } : {}), findings: (last?.findings ?? []).slice(0, 25) },
     product_map: { pages: pageCount(map), endpoints: map ? Object.keys(map.api.endpoints).length : 0, ...(map ? { last_run: map.last_run } : {}), uis },
     fix_log: recentFixes(store),
     global_lessons: lessons?.lessons ?? [],
-    warnings: [...learned.warnings, ...alarms.warnings, ...loadFixLog(store).warnings, ...lessonWarnings],
+    warnings: [...learned.warnings, ...alarms.warnings, ...loadFixLog(store).warnings, ...loadBugs(store).warnings, ...loadBank(store).warnings, ...lessonWarnings],
   };
 }

@@ -15,7 +15,7 @@ import { MEMORY_SCHEMA, MemoryTooNewError, memoryPaths } from "./store.ts";
  * Format 2 (QAMind 0.7.6) is the first real migration: run summaries gain a structured `usage` block. Every other file is unchanged by it and only takes the new version
  * number, so a store is always at one version. A test migrates a real format-1 store written by QAMind 0.7.5 (`tests/core/fixtures/memory-v1`); the framework is also tested with synthetic ones.
  */
-export type MemoryFileKind = "product-map" | "risk-areas" | "stack" | "run-summary" | "learnings" | "false-alarms" | "fix-log";
+export type MemoryFileKind = "product-map" | "risk-areas" | "stack" | "run-summary" | "learnings" | "false-alarms" | "fix-log" | "bugs" | "feedback" | "test-bank";
 
 export interface Migration {
   /** Stable id, recorded in the log. */
@@ -70,6 +70,10 @@ function memoryFiles(store: string): FileRef[] {
     { kind: "learnings", file: p.learnings, jsonl: true },
     { kind: "false-alarms", file: p.falseAlarms, jsonl: true },
     { kind: "fix-log", file: p.fixLog, jsonl: true },
+    // Phase 7.7 files were never written in format 1, so nothing migrates them yet; they are listed so a store from a newer QAMind is refused as a whole.
+    { kind: "bugs", file: p.bugs, jsonl: true },
+    { kind: "feedback", file: p.feedback, jsonl: true },
+    { kind: "test-bank", file: p.bank, jsonl: true },
   ];
   if (fs.existsSync(p.runs)) for (const f of fs.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path.join(p.runs, f), jsonl: false });
   return refs.filter((r) => fs.existsSync(r.file));

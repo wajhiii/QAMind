@@ -127,5 +127,9 @@ test("the rendered /qa skill pre-approves each tool by name, except the two that
   assert.ok(!/\{\{[A-Z_]+\}\}/.test(rendered), "no placeholder is left unrendered");
   // the report-only skill is unchanged: still path-scoped writes and the bare server entry
   const only = read(path.join(repoRoot, "plugins", "qamind", "skills", "qa-only", "SKILL.md"));
-  assert.match(only, /allowed-tools:.*Write\(\.qa\/\*\*\).*mcp__plugin_qamind_qa-memory"?$/m);
+  assert.match(only, /allowed-tools:.*Write\(\/\.qa\/\*\*\).*mcp__plugin_qamind_qa-memory"?$/m);
+  // A path rule without a leading slash is relative to the agent's CURRENT directory, which its Bash `cd` moves: after `cd <run folder>` a relative `.qa/**` no longer
+  // matched and Claude Code refused the next write (seen twice in real runs, reproduced with the CLI). A leading slash anchors it to the project root.
+  assert.match(only, /Edit\(\/\.qa\/\*\*\)/);
+  assert.ok(!/(?<![/\w])(?:Write|Edit)\(\.qa\//.test(only), "no relative .qa path rule in a skill's allowed-tools");
 });

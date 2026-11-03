@@ -1,5 +1,8 @@
 import type { Usage } from "./budget.ts";
 import fs from "node:fs";
+import { readBankResults } from "./bank/results.ts";
+import type { BankResults } from "./bank/results.ts";
+import type { Lifecycle } from "./memory/bugs.ts";
 import path from "node:path";
 import { SEVERITIES } from "./config.ts";
 import { describeChanges } from "./memory/productmap.ts";
@@ -53,12 +56,14 @@ export interface CompactFinding {
   area: string;
   type: string;
   ui?: string;
+  /** The project's id for this problem across runs (BUG-003), so a person's feedback on ISSUE-002 can be tied to it (spec 13.5). */
+  bug?: string;
   /** The first reproduction step, so a regression run knows where to start. */
   first_step?: string;
 }
 
-export function compactFinding(f: Finding): CompactFinding {
-  return { id: f.id ?? "", title: f.title, severity: f.severity, surface: f.surface, area: f.area, type: f.type, ...(f.ui ? { ui: f.ui } : {}), ...(f.steps?.[0] ? { first_step: f.steps[0].slice(0, 200) } : {}) };
+export function compactFinding(f: Finding, bug?: string): CompactFinding {
+  return { id: f.id ?? "", title: f.title, severity: f.severity, surface: f.surface, area: f.area, type: f.type, ...(f.ui ? { ui: f.ui } : {}), ...(bug ? { bug } : {}), ...(f.steps?.[0] ? { first_step: f.steps[0].slice(0, 200) } : {}) };
 }
 
 export type FixStatus = "not-fixed" | "fixed-verified" | "fixed-needs-confirmation";
@@ -103,6 +108,16 @@ export interface Finding {
   plain?: PlainFinding;
   /** Set only when this finding resembles a known false alarm in memory but is genuinely different: say why. */
   not_a_known_false_alarm?: string;
+  /**
+   * Which known bug this is (spec 13.12): a `BUG-003` from the memory context, or "new" when it is none of them. Left out, QAMind matches by fingerprint and
+   * asks for this only when a finding resembles a known bug without clearly being it.
+   */
+  bug?: string;
+  /** The test bank's tests (T-001) whose failure this finding explains. */
+  bank_tests?: string[];
+  /** Set by QAMind when a person's feedback changed the severity (spec 13.5): what the run assessed, and who set the one shown. */
+  severity_assessed?: Severity;
+  severity_note?: string;
   /** Fix mode sets this; report-only runs leave it unset (not fixed). */
   fix_status?: FixStatus;
   /** Set by the fix tools in a `/qa` run: how the fix attempt went. */
@@ -111,6 +126,8 @@ export interface Finding {
 
 export interface Unconfirmed {
   id?: string;
+  /** The test bank's tests whose failure this lead explains but could not confirm. */
+  bank_tests?: string[];
   title: string;
   surface: string;
   observation: string;
@@ -176,6 +193,9 @@ export interface RunMeta {
   environment_prep?: { prepared: boolean; why: string; steps: string[]; snapshot_taken: boolean; restored?: boolean };
   memory_applied?: string[];
   notes?: string[];
+  /** Written by `run finish`: how many tests the run saved to the bank, and why it saved none (spec 13.3). */
+  bank_saved?: number;
+  bank_skipped?: string;
   /** The critical journeys from the config, in order (copied at run start). */
   critical_flows?: string[];
   /** Written by `run finish`: what was saved to memory. */
@@ -217,6 +237,12 @@ export interface RunData {
   coverage: CoverageRow[];
   health?: HealthResult;
   apiSummaries: ApiRunSummary[];
+  /** What each finding is across runs: new, still open, came back (data/lifecycle.json, spec 13.12). Absent when no memory was available. */
+  lifecycle?: Lifecycle;
+  /** Findings that match a bug the owner accepted (data/known-accepted.json): shown as known, not counted (spec 13.5). */
+  accepted?: Finding[];
+  /** What the test bank did at the start of this run (data/bank-results.json, spec 13.3). */
+  bank?: BankResults;
 }
 
 export interface ApiRunSummary {
@@ -252,6 +278,8 @@ export function readRunData(runDir: string): RunData {
   const admin = readJson<AdminNotes>(dataFile(runDir, "admin.json"));
   const changes = readJson<Changes>(dataFile(runDir, "changes.json"));
   const memLog = readJson<unknown>(dataFile(runDir, "memory-log.json"));
+  const lifecycle = readJson<Lifecycle>(dataFile(runDir, "lifecycle.json"));
+  const bank = readBankResults(runDir);
   const fix = loadFixState(runDir);
   const adminStale = ((): boolean => {
     if (!fix || !admin) return false;
@@ -277,6 +305,12 @@ export function readRunData(runDir: string): RunData {
     coverage: readList<CoverageRow>(runDir, "coverage.json"),
     ...(health ? { health } : {}),
     apiSummaries,
+    ...(lifecycle ? { lifecycle } : {}),
+    ...((): { accepted?: Finding[] } => {
+      const v = readJson<unknown>(dataFile(runDir, "known-accepted.json"));
+      return Array.isArray(v) && v.length ? { accepted: v as Finding[] } : {};
+    })(),
+    ...(bank ? { bank } : {}),
   };
 }
 
@@ -462,10 +496,25 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
   L.push(`- 🔴 Critical: **${counts.critical}**   🟠 Important: **${counts.important}**   🟡 Minor: **${counts.minor}**`);
   L.push(`- Unconfirmed (not reproduced twice): **${data.unconfirmed.length}**`);
   L.push(`- Areas not tested: **${notTested.length}**`);
+  if (data.lifecycle) {
+    const n = (st: string): number => data.lifecycle?.findings.filter((x) => x.status === st).length ?? 0;
+    L.push(`- Bugs: **${n("new")}** new · **${n("still-open")}** still open · **${n("regressed")}** came back · ${data.lifecycle.fixed.length} fixed since the last run · ${data.lifecycle.accepted_seen.length} known, accepted`);
+  }
+  if (m?.bank_skipped) L.push(`- Test bank: no test was saved from this run. Why: ${m.bank_skipped}`);
+  if (data.bank) L.push(`- Test bank: **${data.bank.passed + data.bank.flaky}** of ${data.bank.total} passed${data.bank.failed ? `, **${data.bank.failed} failed**` : ""}${data.bank.flaky ? `, ${data.bank.flaky} only on a retry` : ""}${data.bank.quarantined ? `, ${data.bank.quarantined} quarantined (flaky, not run)` : ""}`);
   const api = data.apiSummaries.reduce((a, s) => ({ total: a.total + s.total, failed: a.failed + s.failed, signals: a.signals + s.signals }), { total: 0, failed: 0, signals: 0 });
   if (data.apiSummaries.length) L.push(`- API probes executed: **${api.total}** (${api.signals} produced a signal worth a look)`);
   L.push("");
 
+  const cameBack = (data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed");
+  if (cameBack.length) {
+    L.push("## ⚠️ Came back (fixed before, found again)", "", "_These bugs were recorded as fixed and have been found again. They are listed first below._", "");
+    for (const l of cameBack) {
+      const f = data.findings.find((x) => x.id === l.issue);
+      L.push(`- **${l.bug}** ([${l.issue}](#${l.issue})) ${f?.title ?? ""}: fixed${l.fixed_on ? ` on ${l.fixed_on.slice(0, 10)}` : ""}, found again now.`);
+    }
+    L.push("");
+  }
   if (data.fix) L.push(...fixRunSection(data));
 
   L.push("## What changed since the last run", "");
@@ -493,11 +542,18 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
   }
 
   L.push("## Findings", "");
-  const sorted = [...data.findings].sort((a, b) => sevRank(a.severity) - sevRank(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""));
+  const backIds = new Set((data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed").map((l) => l.issue));
+  const sorted = [...data.findings].sort((a, b) => Number(backIds.has(b.id ?? "")) - Number(backIds.has(a.id ?? "")) || sevRank(a.severity) - sevRank(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""));
   if (sorted.length === 0) L.push("_No confirmed findings._", "");
   for (const f of sorted) {
     L.push(`<a id="${f.id ?? "ISSUE-"}"></a>`, "", `### ${f.id ?? "ISSUE-???"} ${ICON[f.severity]} ${LABEL[f.severity]}: ${f.title}`, "");
     L.push(`- **Surface:** ${f.surface}${f.ui ? ` · **UI:** ${f.ui}` : ""} · **Area:** ${f.area} · **Type:** ${f.type}`);
+    const life = data.lifecycle?.findings.find((x) => x.issue === f.id);
+    if (life) {
+      const what = life.status === "regressed" ? `**Came back**${life.fixed_on ? ` (fixed on ${life.fixed_on.slice(0, 10)})` : ""}` : life.status === "still-open" ? `Still open (seen ${life.times_seen} times, first on ${life.first_seen.slice(0, 10)})` : life.status === "new" ? "**New**" : life.status;
+      L.push(`- **Bug:** ${life.bug} · ${what}${f.bank_tests?.length ? ` · bank test ${f.bank_tests.join(", ")}` : ""}`);
+    }
+    if (f.severity_note) L.push(`- **Severity:** ${f.severity_note}`);
     if (f.roles?.length) L.push(`- **Roles:** ${f.roles.join(", ")}`);
     if (f.browser || f.viewport) L.push(`- **Browser / viewport:** ${[f.browser, f.viewport].filter(Boolean).join(" / ")}`);
     L.push(`- **Reproduced:** ${f.reproduced.times} of ${f.reproduced.of} attempts`);
@@ -511,6 +567,25 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
     if (f.regression_test) L.push(`**Proposed regression test:** ${f.regression_test.description}${f.regression_test.location ? ` (suggested location: \`${f.regression_test.location}\`)` : ""}`, "");
     if (f.memory_applied?.length) L.push(`**Memory applied:** ${f.memory_applied.join("; ")}`, "");
     if (data.fix) L.push(...fixDetails(f, data.fix));
+  }
+
+  if (data.lifecycle?.fixed.length) {
+    L.push("## Fixed since the last run", "", "_Open bugs that were not found this time and were checked again: by a bank test that passes, or by a re-check of the steps._", "");
+    for (const x of data.lifecycle.fixed) L.push(`- **${x.bug}** ${x.title} (${x.area}): ${x.how}`);
+    L.push("");
+  }
+  if (data.accepted?.length) {
+    L.push("## Known, accepted", "", "_Seen again, but a person decided to live with them. Not counted as findings._", "");
+    for (const f of data.accepted) {
+      const a = data.lifecycle?.accepted_seen.find((x) => x.bug === f.bug);
+      L.push(`- **${f.bug ?? ""}** ${f.id ?? ""} ${f.title}${a ? ` — accepted by ${a.by} on ${a.at.slice(0, 10)}${a.note ? `: ${a.note}` : ""}` : ""}`);
+    }
+    L.push("");
+  }
+  if (data.lifecycle?.not_rechecked.length) {
+    L.push("## Open bugs not looked at again", "", "_Reported in earlier runs, neither found nor re-checked in this one: nothing is said about whether they are fixed._", "");
+    for (const x of data.lifecycle.not_rechecked) L.push(`- **${x.bug}** ${x.title} (${x.status})`);
+    L.push("");
   }
 
   L.push("## Unconfirmed (could not be reproduced twice)", "", "_These are leads, not findings. They are not counted above._", "");
@@ -539,6 +614,18 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
     L.push("## API test runs", "", "| Plan | Probes | Passed | Failed | Signals | Details |", "|---|---|---|---|---|---|");
     for (const s of data.apiSummaries) L.push(`| ${esc(s.plan)} | ${s.total} | ${s.passed} | ${s.failed} | ${s.signals} | [${s.file}](${s.file}) |`);
     L.push("");
+  }
+
+  if (data.bank) {
+    const b = data.bank;
+    L.push("## Test bank", "", `The saved checks ran first (${b.ran_at.slice(0, 19).replace("T", " ")}): **${b.passed + b.flaky}** passed${b.flaky ? ` (${b.flaky} only on a retry: flaky)` : ""}, **${b.failed}** failed, ${b.quarantined} quarantined, ${b.skipped} skipped, of ${b.total}.${b.budget_reached ? " The time budget ran out before every test ran." : ""}`, "");
+    if (b.results.length) {
+      L.push("| Test | Area | Kind | Result | Detail |", "|---|---|---|---|---|");
+      const mark: Record<string, string> = { passed: "✅ passed", "flaky-passed": "◐ passed on retry (flaky)", failed: "❌ failed", quarantined: "➖ quarantined", skipped: "➖ skipped" };
+      for (const r of b.results) L.push(`| ${r.test}${r.bug ? ` (${r.bug})` : ""} ${esc(r.title)} | ${esc(r.area)} | ${r.kind} | ${mark[r.status] ?? r.status} | ${esc(r.detail ?? "")} |`);
+      L.push("");
+    }
+    if (b.covered_areas.length) L.push(`Areas the bank already covers and passed: ${b.covered_areas.join(", ")}.`, "");
   }
 
   L.push("## Memory", "");

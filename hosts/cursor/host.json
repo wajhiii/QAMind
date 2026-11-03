@@ -43,6 +43,12 @@
       "qa-memory-review": {
         "disable-model-invocation": true
       },
+      "qa-feedback": {
+        "disable-model-invocation": true
+      },
+      "qa-tests": {
+        "disable-model-invocation": true
+      },
       "qa-auto-run": {
         "user-invocable": false
       }
