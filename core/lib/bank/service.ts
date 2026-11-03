@@ -32,10 +32,19 @@ export function saveBankTest(scope: RunScope, input: SaveInput, now = new Date()
     const findings = readJson<Finding[]>(path.join(scope.runDir, "data", "findings.json")) ?? [];
     if (!findings.some((f) => f.id === input.from_issue)) throw new Error(`from_issue ${input.from_issue} is not a finding of this run (findings.json has ${findings.map((f) => f.id).filter(Boolean).join(", ") || "none yet"}). Write the findings first, then save the tests that protect them.`);
   }
+  // Traceability (spec 13.4): a check saved in a ticket run is tagged with the ticket, and may name the criteria it checks.
+  const ticket = readJson<{ ref?: string; criteria?: Array<{ id?: string }> }>(path.join(scope.runDir, "data", "ticket.json"));
+  if (input.criteria?.length) {
+    const ids = new Set((ticket?.criteria ?? []).map((c) => c.id));
+    if (!ticket?.ref) throw new Error("criteria can only be named in a ticket run (data/ticket.json).");
+    const bad = input.criteria.filter((c) => !ids.has(c));
+    if (bad.length) throw new Error(`criteria ${bad.join(", ")} are not in this run's ticket (it has ${[...ids].join(", ")}).`);
+  }
+  const tagged: SaveInput = ticket?.ref && scope.ctx.marker.ticket ? { ...input, ticket: scope.ctx.marker.ticket } : input;
   return withStoreLock(scope.store, () =>
     saveTest(
       scope.store,
-      { ...input, ...(input.from_issue ? { from_run: scope.runId } : {}) },
+      { ...tagged, ...(input.from_issue ? { from_run: scope.runId } : {}) },
       { roles: ctx.config.roles.map((r) => r.name), uis: ctx.config.web_uis.map((u) => u.name), secretNames: secretNamesOf(ctx.config), knownSecrets: ctx.passwords, now },
     ),
   );

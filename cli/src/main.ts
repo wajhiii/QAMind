@@ -3,7 +3,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
-import type { ParseArgsOptionsConfig } from "node:util";
+import { cmdBaseline, cmdBrowsers, cmdMail, cmdPerf, cmdSweep, cmdTicket } from "./coverage.ts";
+import { emit, num, opts, UsageError } from "./util.ts";
 import { AutoUsageError, autoCommand } from "../../core/auto-qa/commands.ts";
 import { approveAutoSkill, onPrompt, onStop, safely } from "../../core/auto-qa/gate.ts";
 import type { HookEnv } from "../../core/auto-qa/gate.ts";
@@ -187,6 +188,7 @@ async function cmdCi(sub: string | undefined, rest: string[]): Promise<number> {
   const { values } = opts(args, {
     project: { type: "string" },
     mode: { type: "string" },
+    ticket: { type: "string" },
     out: { type: "string" },
     "agent-command": { type: "string" },
     model: { type: "string" },
@@ -203,13 +205,15 @@ async function cmdCi(sub: string | undefined, rest: string[]): Promise<number> {
   });
   const root = path.resolve((values.project as string | undefined) ?? process.cwd());
   const mode = values.mode as string | undefined;
-  if (mode === "ticket") throw new UsageError("ticket mode comes with ticket mode itself (a later phase); use diff, quick, regression or full.");
-  if (mode !== undefined && !(CI_MODES as readonly string[]).includes(mode)) throw new UsageError(`--mode must be one of ${CI_MODES.join(", ")}`);
+  if (mode === "ticket" && !values.ticket) throw new UsageError("ticket mode needs the ticket: --ticket FILE (a file in the project that says what to test).");
+  if (values.ticket && mode !== undefined && mode !== "ticket") throw new UsageError("--ticket means ticket mode: leave --mode out, or use --mode ticket.");
+  if (mode !== undefined && mode !== "ticket" && !(CI_MODES as readonly string[]).includes(mode)) throw new UsageError(`--mode must be one of ${CI_MODES.join(", ")}`);
   if (!init) {
     const result = await runCi({
       projectDir: root,
       env: process.env,
-      ...(mode ? { mode: mode as CiMode } : {}),
+      ...(mode && mode !== "ticket" ? { mode: mode as CiMode } : {}),
+      ...(values.ticket ? { ticket: values.ticket as string } : {}),
       ...(values.out ? { outDir: values.out as string } : {}),
       ...(values["agent-command"] ? { agentCommand: values["agent-command"] as string } : {}),
       host: values.host as string,
@@ -302,16 +306,10 @@ function cmdSchedule(sub: string | undefined, rest: string[]): number {
   return writeTemplate(root, ".github/workflows/qamind-nightly.yml", githubNightlyWorkflow(input), values.write as boolean, input, [`GitHub runs this schedule from the default branch only, in UTC (${describeCron(cron)}); a workflow in a repository with no activity for 60 days may be paused by GitHub.`]);
 }
 
-function emit(value: unknown): void {
-  process.stdout.write(JSON.stringify(value, null, 2) + "\n");
-}
-
-class UsageError extends Error {}
-
 const HELP = `qamind ${QAMIND_VERSION}: Senior QA Engineer agent runtime
 
 Run lifecycle
-  run start   [--mode full|quick|regression|diff] [--focus TEXT] [--session ID] [--project DIR]
+  run start   [--mode full|quick|regression|diff|ticket] [--ticket ID|URL|FILE|"pasted text"] [--focus TEXT] [--session ID] [--project DIR]
               [--kind qa-only|qa] [--trigger manual|auto|ci] [--host NAME] [--force]
   run finish  --run ID [--stop-reason TEXT] [--cost TEXT]
 Checks and testing
@@ -342,7 +340,7 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
   lessons reject ID [--reason TEXT]         turn a pending lesson down, or retire an approved one (owner action)
   guard log    --run ID        origins the browser guard blocked during the run
   budget status --run ID       time left in the run's budget; check it before each new area, and stop exploring when it says over
-  ci [--mode diff|quick|regression|full] [--host claude] [--agent-command CMD] [--out DIR] [--dry-run] [--user-store] [--from-run ID]
+  ci [--mode diff|quick|regression|full | --ticket FILE] [--host claude] [--agent-command CMD] [--out DIR] [--dry-run] [--user-store] [--from-run ID]
                                test a pull request headlessly, report-only: one comment kept up to date, a status, an exit code (0 pass or warn, 1 fail, 2 could not run)
   ci init --provider github|gitlab [--ref vX.Y.Z] [--repo-url URL] [--write]   the workflow file (preview without --write; never overwrites)
   schedule --provider github|gitlab|cron|windows [--cron "0 2 * * *"] [--mode full] [--write]   nightly runs
@@ -357,6 +355,17 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
   feedback import --run ID [--by NAME]   read the "Your feedback" lines people filled in ADMIN-REPORT.md
   feedback list | stats        what people said, and the share of findings they judged real
   bugs list [--status open|fixed|accepted|all]   the project's bugs across runs
+  sweep check --run ID         check data/sweep-pages.json (the key pages, per role) against the config and show the browsers and screen sizes this mode covers
+  sweep run --run ID [--browsers chromium,webkit] [--viewports mobile] [--pages id,id]
+                               visit the key pages in each browser and screen size: audit leads, load time, a screenshot compared with its baseline (data/sweep.json)
+  perf check --run ID | perf api --run ID   time a few read-only calls to the endpoints in data/perf-endpoints.json against the budget and the recent runs (data/perf-api.json)
+  ticket check --run ID | ticket status --run ID   ticket mode: check the criteria written to data/ticket.json (derived ones need the person's confirmation), then see which criteria have a result
+  mail status | mail wait --run ID --to ADDRESS [--flow TEXT] [--kind transactional|notification|marketing|invitation] [--language ur] [--subject-contains T] [--timeout-s N]
+                               read the email the product sent from the sandbox (mail.catcher) and check recipient, placeholders, links, unsubscribe, language; nothing is sent
+  sms status | sms wait --run ID --to NUMBER [--flow TEXT]   the same for a text message (sms.catcher)
+  baseline accept --run ID [--pages a,b]   the owner's decision: this run's pictures become the baseline for later runs
+  baseline status              the pictures that are baselines now
+  browsers status | install chromium|firefox|webkit   which browsers QAMind's own checks can start; install one (owner action, about 80 MB)
   privacy scan --run ID        look for unmasked private data (emails, phones, ID and card numbers, your patterns) in the run's output; exit 1 if found
   privacy mask --run ID        mask it in place (test accounts' own data stays), then rebuild the reports
 Auto-QA (default off; see \`qamind auto help\`)
@@ -367,21 +376,6 @@ Plumbing (started by the host, not by hand)
   hook stop | user-prompt-submit   auto-QA gate (reads the host's hook JSON on stdin)
   version
 `;
-
-function opts<const T extends ParseArgsOptionsConfig>(args: string[], options: T) {
-  try {
-    return parseArgs({ args, options, allowPositionals: true, strict: true });
-  } catch (err) {
-    throw new UsageError((err as Error).message);
-  }
-}
-
-function num(v: unknown, name: string, fallback: number): number {
-  if (v === undefined) return fallback;
-  const n = Number(v);
-  if (!Number.isFinite(n) || n <= 0) throw new UsageError(`--${name} must be a positive number`);
-  return n;
-}
 
 async function cmdRun(sub: string | undefined, rest: string[], home: string): Promise<number> {
   if (sub === "start") {
@@ -394,8 +388,9 @@ async function cmdRun(sub: string | undefined, rest: string[], home: string): Pr
       trigger: { type: "string", default: "manual" },
       host: { type: "string", default: "claude-code" },
       force: { type: "boolean", default: false },
+      ticket: { type: "string" },
     });
-    const mode = values.mode as Mode;
+    const mode = (values.ticket && values.mode === "full" ? "ticket" : values.mode) as Mode;
     if (!MODES.includes(mode)) throw new UsageError(`--mode must be one of ${MODES.join(", ")}`);
     if (values.kind !== "qa-only" && values.kind !== "qa") throw new UsageError("--kind must be qa-only or qa");
     if (!["manual", "auto", "ci"].includes(values.trigger as string)) throw new UsageError("--trigger must be manual, auto or ci");
@@ -409,6 +404,7 @@ async function cmdRun(sub: string | undefined, rest: string[], home: string): Pr
       force: values.force as boolean,
       ...(values.project ? { project: values.project as string } : {}),
       ...(values.focus ? { focus: values.focus as string } : {}),
+      ...(values.ticket ? { ticket: values.ticket as string } : {}),
       ...(values.session ? { sessionId: values.session as string } : {}),
     });
     emit(result);
@@ -768,6 +764,20 @@ export async function main(argv: string[]): Promise<number> {
         return cmdSchedule(sub, rest);
       case "tests":
         return await cmdTests(sub, rest, home);
+      case "sweep":
+        return await cmdSweep(sub, rest, home);
+      case "baseline":
+        return cmdBaseline(sub, rest, home);
+      case "perf":
+        return await cmdPerf(sub, rest, home);
+      case "ticket":
+        return cmdTicket(sub, rest, home);
+      case "mail":
+        return await cmdMail("email", sub, rest, home);
+      case "sms":
+        return await cmdMail("sms", sub, rest, home);
+      case "browsers":
+        return cmdBrowsers(sub, rest);
       case "feedback":
         return cmdFeedback(sub, rest, home);
       case "bugs":

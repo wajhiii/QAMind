@@ -14,6 +14,10 @@ import { loadFixState } from "./fix/state.ts";
 import type { FixState } from "./fix/state.ts";
 import { findSecretLeaks } from "./redact.ts";
 import { flowStatus } from "./verdict.ts";
+import { lintCoverage, readCoverageData, renderTechnicalCoverage } from "./coverage-report.ts";
+import type { CoverageData } from "./coverage-report.ts";
+import { lintTicketResults, readTicketData, renderTechnicalChecklist } from "./ticket.ts";
+import type { TicketData } from "./ticket.ts";
 
 /** Structured run data lives in <run>/data/*.json; TECHNICAL-REPORT.md is rendered from it (spec §11.2/§11.3). */
 
@@ -198,6 +202,8 @@ export interface RunMeta {
   bank_skipped?: string;
   /** The critical journeys from the config, in order (copied at run start). */
   critical_flows?: string[];
+  /** Ticket mode (spec 13.4): the ticket this run tests, as it was given (an id, an address without its query, a file, or "pasted text"). */
+  ticket_ref?: string;
   /** Written by `run finish`: what was saved to memory. */
   memory_updated?: string[];
 }
@@ -243,6 +249,10 @@ export interface RunData {
   accepted?: Finding[];
   /** What the test bank did at the start of this run (data/bank-results.json, spec 13.3). */
   bank?: BankResults;
+  /** Ticket mode: the criteria and the result of each (data/ticket.json and ticket-results.json, spec 13.4). */
+  ticket?: TicketData;
+  /** The page sweep, the message checks and the timings (spec 13.7, 13.9 to 13.11). */
+  checks?: CoverageData;
 }
 
 export interface ApiRunSummary {
@@ -311,6 +321,14 @@ export function readRunData(runDir: string): RunData {
       return Array.isArray(v) && v.length ? { accepted: v as Finding[] } : {};
     })(),
     ...(bank ? { bank } : {}),
+    ...((): { ticket?: TicketData } => {
+      const t = meta?.ticket_ref ? readTicketData(runDir, meta.trigger) : undefined;
+      return t ? { ticket: t } : {};
+    })(),
+    ...((): { checks?: CoverageData } => {
+      const c = readCoverageData(runDir);
+      return c ? { checks: c } : {};
+    })(),
   };
 }
 
@@ -506,6 +524,7 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
   if (data.apiSummaries.length) L.push(`- API probes executed: **${api.total}** (${api.signals} produced a signal worth a look)`);
   L.push("");
 
+  if (data.ticket?.ticket) L.push(...renderTechnicalChecklist(data.ticket));
   const cameBack = (data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed");
   if (cameBack.length) {
     L.push("## ⚠️ Came back (fixed before, found again)", "", "_These bugs were recorded as fixed and have been found again. They are listed first below._", "");
@@ -605,6 +624,7 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
     L.push("");
   }
 
+  if (data.checks) L.push(...renderTechnicalCoverage(data.checks));
   L.push("## Not tested", "", "_Nothing here is reported as passing._", "");
   if (notTested.length === 0) L.push("_Everything planned was tested._", "");
   for (const n of notTested) L.push(`- **${n.area}**: ${n.reason}`);
@@ -733,6 +753,16 @@ export function lintRun(runDir: string, data: RunData, knownSecrets: string[] = 
     if (row.surface === "ui" && !row.ui) warnings.push(`coverage "${row.area}": a UI row without "ui" is grouped under "Web screens" in the admin report.`);
   }
   for (let i = 1; i <= flowCount; i++) if (!data.coverage.some((r) => r.critical_flow === i)) warnings.push(`Critical journey ${i} ("${data.meta?.critical_flows?.[i - 1]}") has no coverage row, so the verdict cannot be Ready.`);
+
+  // Ticket mode (spec 13.4): every criterion has an answer that is backed. Coverage checks (spec 13.7, 13.9 to 13.11): what could not run is listed, what they found is reported.
+  if (data.meta?.ticket_ref) {
+    const t = lintTicketResults(runDir, data.ticket, { findings: data.findings.map((f) => f.id ?? "").filter(Boolean), unconfirmed: data.unconfirmed.map((u) => u.id ?? "").filter(Boolean) }, data.meta);
+    errors.push(...t.errors);
+    warnings.push(...t.warnings);
+  }
+  const cov = lintCoverage(data.checks, data);
+  errors.push(...cov.errors);
+  warnings.push(...cov.warnings);
 
   // Reports older than the data they were built from would disagree with it.
   const dataDir = path.join(runDir, "data");

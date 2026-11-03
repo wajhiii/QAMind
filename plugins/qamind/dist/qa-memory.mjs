@@ -3270,8 +3270,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path36) {
-      let input2 = path36;
+    function removeDotSegments(path41) {
+      let input2 = path41;
       const output2 = [];
       let nextSlash = -1;
       let len = 0;
@@ -3345,11 +3345,11 @@ var require_utils = __commonJS({
       }
       return output2.join("");
     }
-    function removeDotSegmentsRelative(path36) {
-      if (path36 === "" || path36[0] === "/") {
-        return removeDotSegments(path36);
+    function removeDotSegmentsRelative(path41) {
+      if (path41 === "" || path41[0] === "/") {
+        return removeDotSegments(path41);
       }
-      const segments = path36.split("/");
+      const segments = path41.split("/");
       const last = segments.length - 1;
       const output2 = [];
       let trailingDirectory = false;
@@ -3712,8 +3712,8 @@ var require_schemes = __commonJS({
       }
       if (wsComponent.resourceName) {
         const queryIndex = wsComponent.resourceName.indexOf("?");
-        const path36 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
-        wsComponent.path = path36 && path36 !== "/" ? path36 : void 0;
+        const path41 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
+        wsComponent.path = path41 && path41 !== "/" ? path41 : void 0;
         wsComponent.query = queryIndex === -1 ? void 0 : wsComponent.resourceName.slice(queryIndex + 1);
         wsComponent.resourceName = void 0;
       }
@@ -7340,17 +7340,17 @@ var require_visit = __commonJS({
     visit2.BREAK = BREAK;
     visit2.SKIP = SKIP;
     visit2.REMOVE = REMOVE;
-    function visit_(key, node2, visitor, path36) {
-      const ctrl = callVisitor(key, node2, visitor, path36);
+    function visit_(key, node2, visitor, path41) {
+      const ctrl = callVisitor(key, node2, visitor, path41);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path36, ctrl);
-        return visit_(key, ctrl, visitor, path36);
+        replaceNode(key, path41, ctrl);
+        return visit_(key, ctrl, visitor, path41);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node2)) {
-          path36 = Object.freeze(path36.concat(node2));
+          path41 = Object.freeze(path41.concat(node2));
           for (let i = 0; i < node2.items.length; ++i) {
-            const ci = visit_(i, node2.items[i], visitor, path36);
+            const ci = visit_(i, node2.items[i], visitor, path41);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -7361,13 +7361,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node2)) {
-          path36 = Object.freeze(path36.concat(node2));
-          const ck = visit_("key", node2.key, visitor, path36);
+          path41 = Object.freeze(path41.concat(node2));
+          const ck = visit_("key", node2.key, visitor, path41);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node2.key = null;
-          const cv = visit_("value", node2.value, visitor, path36);
+          const cv = visit_("value", node2.value, visitor, path41);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -7388,17 +7388,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node2, visitor, path36) {
-      const ctrl = await callVisitor(key, node2, visitor, path36);
+    async function visitAsync_(key, node2, visitor, path41) {
+      const ctrl = await callVisitor(key, node2, visitor, path41);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path36, ctrl);
-        return visitAsync_(key, ctrl, visitor, path36);
+        replaceNode(key, path41, ctrl);
+        return visitAsync_(key, ctrl, visitor, path41);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node2)) {
-          path36 = Object.freeze(path36.concat(node2));
+          path41 = Object.freeze(path41.concat(node2));
           for (let i = 0; i < node2.items.length; ++i) {
-            const ci = await visitAsync_(i, node2.items[i], visitor, path36);
+            const ci = await visitAsync_(i, node2.items[i], visitor, path41);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -7409,13 +7409,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node2)) {
-          path36 = Object.freeze(path36.concat(node2));
-          const ck = await visitAsync_("key", node2.key, visitor, path36);
+          path41 = Object.freeze(path41.concat(node2));
+          const ck = await visitAsync_("key", node2.key, visitor, path41);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node2.key = null;
-          const cv = await visitAsync_("value", node2.value, visitor, path36);
+          const cv = await visitAsync_("value", node2.value, visitor, path41);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -7442,23 +7442,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node2, visitor, path36) {
+    function callVisitor(key, node2, visitor, path41) {
       if (typeof visitor === "function")
-        return visitor(key, node2, path36);
+        return visitor(key, node2, path41);
       if (identity.isMap(node2))
-        return visitor.Map?.(key, node2, path36);
+        return visitor.Map?.(key, node2, path41);
       if (identity.isSeq(node2))
-        return visitor.Seq?.(key, node2, path36);
+        return visitor.Seq?.(key, node2, path41);
       if (identity.isPair(node2))
-        return visitor.Pair?.(key, node2, path36);
+        return visitor.Pair?.(key, node2, path41);
       if (identity.isScalar(node2))
-        return visitor.Scalar?.(key, node2, path36);
+        return visitor.Scalar?.(key, node2, path41);
       if (identity.isAlias(node2))
-        return visitor.Alias?.(key, node2, path36);
+        return visitor.Alias?.(key, node2, path41);
       return void 0;
     }
-    function replaceNode(key, path36, node2) {
-      const parent = path36[path36.length - 1];
+    function replaceNode(key, path41, node2) {
+      const parent = path41[path41.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node2;
       } else if (identity.isPair(parent)) {
@@ -8070,10 +8070,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path36, value) {
+    function collectionFromPath(schema, path41, value) {
       let v = value;
-      for (let i = path36.length - 1; i >= 0; --i) {
-        const k = path36[i];
+      for (let i = path41.length - 1; i >= 0; --i) {
+        const k = path41[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -8092,7 +8092,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path36) => path36 == null || typeof path36 === "object" && !!path36[Symbol.iterator]().next().done;
+    var isEmptyPath = (path41) => path41 == null || typeof path41 === "object" && !!path41[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -8122,11 +8122,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path36, value) {
-        if (isEmptyPath(path36))
+      addIn(path41, value) {
+        if (isEmptyPath(path41))
           this.add(value);
         else {
-          const [key, ...rest] = path36;
+          const [key, ...rest] = path41;
           const node2 = this.get(key, true);
           if (identity.isCollection(node2))
             node2.addIn(rest, value);
@@ -8140,8 +8140,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path36) {
-        const [key, ...rest] = path36;
+      deleteIn(path41) {
+        const [key, ...rest] = path41;
         if (rest.length === 0)
           return this.delete(key);
         const node2 = this.get(key, true);
@@ -8155,8 +8155,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path36, keepScalar) {
-        const [key, ...rest] = path36;
+      getIn(path41, keepScalar) {
+        const [key, ...rest] = path41;
         const node2 = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node2) ? node2.value : node2;
@@ -8174,8 +8174,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path36) {
-        const [key, ...rest] = path36;
+      hasIn(path41) {
+        const [key, ...rest] = path41;
         if (rest.length === 0)
           return this.has(key);
         const node2 = this.get(key, true);
@@ -8185,8 +8185,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path36, value) {
-        const [key, ...rest] = path36;
+      setIn(path41, value) {
+        const [key, ...rest] = path41;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -10701,9 +10701,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path36, value) {
+      addIn(path41, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path36, value);
+          this.contents.addIn(path41, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -10778,14 +10778,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path36) {
-        if (Collection.isEmptyPath(path36)) {
+      deleteIn(path41) {
+        if (Collection.isEmptyPath(path41)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path36) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path41) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -10800,10 +10800,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path36, keepScalar) {
-        if (Collection.isEmptyPath(path36))
+      getIn(path41, keepScalar) {
+        if (Collection.isEmptyPath(path41))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path36, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path41, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -10814,10 +10814,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path36) {
-        if (Collection.isEmptyPath(path36))
+      hasIn(path41) {
+        if (Collection.isEmptyPath(path41))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path36) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path41) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -10834,13 +10834,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path36, value) {
-        if (Collection.isEmptyPath(path36)) {
+      setIn(path41, value) {
+        if (Collection.isEmptyPath(path41)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path36), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path41), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path36, value);
+          this.contents.setIn(path41, value);
         }
       }
       /**
@@ -12801,9 +12801,9 @@ var require_cst_visit = __commonJS({
     visit2.BREAK = BREAK;
     visit2.SKIP = SKIP;
     visit2.REMOVE = REMOVE;
-    visit2.itemAtPath = (cst, path36) => {
+    visit2.itemAtPath = (cst, path41) => {
       let item = cst;
-      for (const [field, index] of path36) {
+      for (const [field, index] of path41) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -12812,23 +12812,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit2.parentCollection = (cst, path36) => {
-      const parent = visit2.itemAtPath(cst, path36.slice(0, -1));
-      const field = path36[path36.length - 1][0];
+    visit2.parentCollection = (cst, path41) => {
+      const parent = visit2.itemAtPath(cst, path41.slice(0, -1));
+      const field = path41[path41.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path36, item, visitor) {
-      let ctrl = visitor(item, path36);
+    function _visit(path41, item, visitor) {
+      let ctrl = visitor(item, path41);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path36.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path41.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -12839,10 +12839,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path36);
+            ctrl = ctrl(item, path41);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path36) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path41) : ctrl;
     }
     exports.visit = visit2;
   }
@@ -14967,8 +14967,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path36, errorMaps, issueData } = params;
-  const fullPath = [...path36, ...issueData.path || []];
+  const { data, path: path41, errorMaps, issueData } = params;
+  const fullPath = [...path41, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -15083,11 +15083,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path36, key) {
+  constructor(parent, value, path41, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path36;
+    this._path = path41;
     this._key = key;
   }
   get path() {
@@ -19042,10 +19042,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path36) {
-  if (!path36)
+function getElementAtPath(obj, path41) {
+  if (!path41)
     return obj;
-  return path36.reduce((acc, key) => acc?.[key], obj);
+  return path41.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -19385,11 +19385,11 @@ function explicitlyAborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path36, issues) {
+function prefixIssues(path41, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path36);
+    iss.path.unshift(path41);
     return iss;
   });
 }
@@ -19851,16 +19851,16 @@ function flattenError(error62, mapper = (issue3) => issue3.message) {
 }
 function formatError(error62, mapper = (issue3) => issue3.message) {
   const fieldErrors = { _errors: [] };
-  const processError = (error63, path36 = []) => {
+  const processError = (error63, path41 = []) => {
     for (const issue3 of error63.issues) {
       if (issue3.code === "invalid_union" && issue3.errors.length) {
-        issue3.errors.map((issues) => processError({ issues }, [...path36, ...issue3.path]));
+        issue3.errors.map((issues) => processError({ issues }, [...path41, ...issue3.path]));
       } else if (issue3.code === "invalid_key") {
-        processError({ issues: issue3.issues }, [...path36, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path41, ...issue3.path]);
       } else if (issue3.code === "invalid_element") {
-        processError({ issues: issue3.issues }, [...path36, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path41, ...issue3.path]);
       } else {
-        const fullpath = [...path36, ...issue3.path];
+        const fullpath = [...path41, ...issue3.path];
         if (fullpath.length === 0) {
           fieldErrors._errors.push(mapper(issue3));
         } else {
@@ -19899,17 +19899,17 @@ function formatError(error62, mapper = (issue3) => issue3.message) {
 }
 function treeifyError(error62, mapper = (issue3) => issue3.message) {
   const result = { errors: [] };
-  const processError = (error63, path36 = []) => {
+  const processError = (error63, path41 = []) => {
     var _a3;
     for (const issue3 of error63.issues) {
       if (issue3.code === "invalid_union" && issue3.errors.length) {
-        issue3.errors.map((issues) => processError({ issues }, [...path36, ...issue3.path]));
+        issue3.errors.map((issues) => processError({ issues }, [...path41, ...issue3.path]));
       } else if (issue3.code === "invalid_key") {
-        processError({ issues: issue3.issues }, [...path36, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path41, ...issue3.path]);
       } else if (issue3.code === "invalid_element") {
-        processError({ issues: issue3.issues }, [...path36, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path41, ...issue3.path]);
       } else {
-        const fullpath = [...path36, ...issue3.path];
+        const fullpath = [...path41, ...issue3.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue3));
           continue;
@@ -19948,8 +19948,8 @@ function treeifyError(error62, mapper = (issue3) => issue3.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path36 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path36) {
+  const path41 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path41) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -23842,7 +23842,7 @@ function az_default() {
 }
 
 // node_modules/zod/v4/locales/be.js
-function getBelarusianPlural(count, one6, few, many) {
+function getBelarusianPlural(count, one7, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
   const lastTwoDigits = absCount % 100;
@@ -23850,7 +23850,7 @@ function getBelarusianPlural(count, one6, few, many) {
     return many;
   }
   if (lastDigit === 1) {
-    return one6;
+    return one7;
   }
   if (lastDigit >= 2 && lastDigit <= 4) {
     return few;
@@ -26490,8 +26490,8 @@ function hu_default() {
 }
 
 // node_modules/zod/v4/locales/hy.js
-function getArmenianPlural(count, one6, many) {
-  return Math.abs(count) === 1 ? one6 : many;
+function getArmenianPlural(count, one7, many) {
+  return Math.abs(count) === 1 ? one7 : many;
 }
 function withDefiniteArticle(word) {
   if (!word)
@@ -29229,7 +29229,7 @@ function ro_default() {
 }
 
 // node_modules/zod/v4/locales/ru.js
-function getRussianPlural(count, one6, few, many) {
+function getRussianPlural(count, one7, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
   const lastTwoDigits = absCount % 100;
@@ -29237,7 +29237,7 @@ function getRussianPlural(count, one6, few, many) {
     return many;
   }
   if (lastDigit === 1) {
-    return one6;
+    return one7;
   }
   if (lastDigit >= 2 && lastDigit <= 4) {
     return few;
@@ -35500,11 +35500,11 @@ function normalizeObjectSchema(schema) {
   }
   return void 0;
 }
-function getDotPath(path36) {
-  if (path36.length === 0) {
+function getDotPath(path41) {
+  if (path41.length === 0) {
     return "object root";
   }
-  return path36.reduce((acc, seg, index) => {
+  return path41.reduce((acc, seg, index) => {
     if (index === 0) {
       return String(seg);
     }
@@ -37731,13 +37731,13 @@ function resolveRef(ref, ctx) {
   if (!ref.startsWith("#")) {
     throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
   }
-  const path36 = ref.slice(1).split("/").filter(Boolean);
-  if (path36.length === 0) {
+  const path41 = ref.slice(1).split("/").filter(Boolean);
+  if (path41.length === 0) {
     return ctx.rootSchema;
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-  if (path36[0] === defsKey) {
-    const key = path36[1] === void 0 ? void 0 : decodeJSONPointerSegment(path36[1]);
+  if (path41[0] === defsKey) {
+    const key = path41[1] === void 0 ? void 0 : decodeJSONPointerSegment(path41[1]);
     if (!key || !ctx.defs[key]) {
       throw new Error(`Reference not found: ${ref}`);
     }
@@ -44097,6 +44097,7 @@ function memoryPaths(store) {
     bugs: path3.join(dir, "bugs.jsonl"),
     feedback: path3.join(dir, "feedback.jsonl"),
     bank: path3.join(storeSubdirs(store).testBank, "bank.jsonl"),
+    perf: path3.join(dir, "perf.json"),
     archiveDir: path3.join(dir, "archive"),
     runs: storeSubdirs(store).runs,
     stack: path3.join(dir, "stack.json")
@@ -44225,7 +44226,7 @@ var daysBetween = (from, to) => Math.max(0, (to.getTime() - new Date(from).getTi
 
 // core/lib/version.ts
 var QAMIND_VERSION = true ? "0.1.0" : "dev";
-var KNOWLEDGE_VERSION = true ? "0.1.1" : "dev";
+var KNOWLEDGE_VERSION = true ? "0.1.2" : "dev";
 
 // core/mcp/servers.ts
 var QA_MEMORY_TOOLS = [
@@ -44248,7 +44249,7 @@ var ALL_QA_TOOLS = [...QA_MEMORY_TOOLS, ...QA_FIX_TOOLS];
 
 // core/lib/fix/loop.ts
 import fs12 from "node:fs";
-import path20 from "node:path";
+import path24 from "node:path";
 
 // core/lib/budget.ts
 import path5 from "node:path";
@@ -44438,7 +44439,7 @@ function recentFixes(store, limit = 8) {
 }
 
 // core/lib/report.ts
-import fs6 from "node:fs";
+import fs7 from "node:fs";
 
 // core/lib/bank/results.ts
 import path6 from "node:path";
@@ -44449,7 +44450,7 @@ function bankForLifecycle(r) {
 }
 
 // core/lib/report.ts
-import path11 from "node:path";
+import path16 from "node:path";
 
 // core/lib/config.ts
 var import_yaml = __toESM(require_dist2(), 1);
@@ -44556,6 +44557,15 @@ var BUDGET_MODES = ["diff", "quick", "regression", "full", "ticket", "ci", "auto
 var CI_CONDITIONS = ["critical", "important", "minor", "environment-problem", "came-back", "bank-failure", "not-ready"];
 var CI_MODES = ["diff", "quick", "regression", "full"];
 var DEFAULT_CI = { fail_on: ["critical", "environment-problem"], warn_on: ["important"], cache_memory: false, mode: "diff", comment: true, status: true, status_context: "qamind", timeout_minutes: 25 };
+var CATCHER_TYPES = ["mailpit", "mailhog", "mailtrap", "custom"];
+var DEFAULT_CATCHER_TIMEOUT_S = 30;
+var BROWSER_ENGINES = ["chromium", "firefox", "webkit"];
+var DEFAULT_VIEWPORTS = [
+  { name: "desktop", width: 1366, height: 768 },
+  { name: "mobile", width: 390, height: 844 }
+];
+var DEFAULT_VISUAL_THRESHOLD = 0.2;
+var DEFAULT_PERFORMANCE = { page_load_ms: 3e3, api_p95_ms: 800, regression_pct: 30, pages: {}, endpoints: {} };
 function splitFrontMatter(text2) {
   const m = /^﻿?---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n([\s\S]*))?$/.exec(text2);
   return m ? { yaml: m[1] ?? "", body: m[2] ?? "" } : null;
@@ -44657,7 +44667,7 @@ function normalizeCi(raw, problems) {
     return typeof v === "boolean" ? v : DEFAULT_CI[key];
   };
   const mode = raw["mode"];
-  if (mode !== void 0 && !(typeof mode === "string" && CI_MODES.includes(mode))) problems.push(`ci.mode must be one of ${CI_MODES.join(", ")} (ticket mode comes with ticket mode).`);
+  if (mode !== void 0 && !(typeof mode === "string" && CI_MODES.includes(mode))) problems.push(`ci.mode must be one of ${CI_MODES.join(", ")} (a ticket is given on the command line with --ticket, not in the config).`);
   const context = raw["status_context"];
   if (context !== void 0 && !(typeof context === "string" && /^[\w .:/-]{1,60}$/.test(context))) problems.push("ci.status_context must be a short name (letters, digits, space and . : / - _).");
   const timeout = raw["timeout_minutes"];
@@ -44714,6 +44724,135 @@ function normalizePrivacy(raw, problems) {
     // A selector goes into a style sheet: braces and angle brackets could end the rule and add another, so they are refused.
     mask_selectors: limitedStrings(o["mask_selectors"], "privacy.mask_selectors", problems, { max: 200, test: (s) => /[{}<>;\\]/.test(s) ? "contains a character that is not allowed in a CSS selector here ({ } < > ; \\)" : void 0 }),
     mask_fields: limitedStrings(o["mask_fields"], "privacy.mask_fields", problems, { max: 60, test: (s) => /^[A-Za-z_][\w.-]*$/.test(s) ? void 0 : "is not a field name (letters, digits, _ . -)" })
+  };
+}
+var ID_TEXT = /^[A-Za-z0-9_.-]{1,40}$/;
+function normalizeCatcher(raw, where, problems) {
+  if (raw === void 0 || raw === null) return void 0;
+  if (!isObj(raw)) {
+    problems.push(`${where} must be a mapping (catcher, url, token_env, timeout_s).`);
+    return void 0;
+  }
+  const kind = str(raw["catcher"]);
+  if (!kind) {
+    problems.push(`${where}.catcher is required: ${CATCHER_TYPES.join(", ")}, or the http(s) address of a custom JSON API.`);
+    return void 0;
+  }
+  const lower = kind.toLowerCase();
+  const asUrl = parseUrl(kind) ? kind : void 0;
+  const type = asUrl ? "custom" : CATCHER_TYPES.includes(lower) ? lower : void 0;
+  if (!type) {
+    problems.push(`${where}.catcher "${kind}" is not one of ${CATCHER_TYPES.join(", ")} or an http(s) address.`);
+    return void 0;
+  }
+  if (where === "sms" && type !== "custom") problems.push("sms.catcher must be the http(s) address of a test endpoint (a custom JSON API that lists the messages it received).");
+  const url2 = asUrl ?? str(raw["url"]);
+  if (type === "mailtrap") {
+    if (!str(raw["token_env"])) problems.push("mail.token_env is required for mailtrap: the NAME of the variable that holds the API token.");
+    const given = (k) => typeof raw[k] === "number" || !!str(raw[k]);
+    if (!given("inbox_id") || !given("account_id")) problems.push("mail.account_id and mail.inbox_id are required for mailtrap.");
+  } else if (!url2) problems.push(`${where}.url is required: the address of the catcher's API (for example http://127.0.0.1:8025 for Mailpit).`);
+  else if (!parseUrl(url2)) problems.push(`${where}.url "${url2}" is not a valid http(s) address.`);
+  const tokenEnv = str(raw["token_env"]);
+  if (tokenEnv && !ENV_NAME.test(tokenEnv)) problems.push(`${where}.token_env "${tokenEnv}" is not a valid variable name (give the name, never the token itself).`);
+  for (const k of ["account_id", "inbox_id"]) {
+    const v = raw[k];
+    if (v !== void 0 && !(typeof v === "number" || typeof v === "string" && ID_TEXT.test(v))) problems.push(`${where}.${k} must be a short id (letters, digits, - _ .).`);
+  }
+  const timeout = raw["timeout_s"];
+  if (timeout !== void 0 && !(typeof timeout === "number" && timeout >= 1 && timeout <= 600)) problems.push(`${where}.timeout_s must be a number of seconds from 1 to 600.`);
+  const finalUrl = type === "mailtrap" ? url2 ?? "https://mailtrap.io/api" : url2;
+  if (!finalUrl || !parseUrl(finalUrl)) return void 0;
+  const id = (k) => typeof raw[k] === "number" ? String(raw[k]) : str(raw[k]);
+  return {
+    type,
+    url: finalUrl.replace(/\/+$/, ""),
+    ...tokenEnv && ENV_NAME.test(tokenEnv) ? { token_env: tokenEnv } : {},
+    ...id("account_id") ? { account_id: id("account_id") } : {},
+    ...id("inbox_id") ? { inbox_id: id("inbox_id") } : {},
+    timeout_s: typeof timeout === "number" && timeout >= 1 && timeout <= 600 ? timeout : DEFAULT_CATCHER_TIMEOUT_S
+  };
+}
+function normalizeBrowsers(raw, problems) {
+  if (raw === void 0 || raw === null) return ["chromium"];
+  if (!Array.isArray(raw) || raw.length === 0) {
+    problems.push(`browsers must be a list of: ${BROWSER_ENGINES.join(", ")}.`);
+    return ["chromium"];
+  }
+  const out = [];
+  for (const b of raw) {
+    if (typeof b === "string" && BROWSER_ENGINES.includes(b.toLowerCase())) out.push(b.toLowerCase());
+    else problems.push(`browsers: "${String(b)}" is not a browser. Use ${BROWSER_ENGINES.join(", ")}.`);
+  }
+  return out.length ? [...new Set(out)] : ["chromium"];
+}
+function normalizeViewports(raw, problems) {
+  if (raw === void 0 || raw === null) return DEFAULT_VIEWPORTS.map((v) => ({ ...v }));
+  if (!Array.isArray(raw) || raw.length === 0) {
+    problems.push("viewports must be a list of { name, width, height } (for example desktop 1366x768, mobile 390x844, tablet 768x1024).");
+    return DEFAULT_VIEWPORTS.map((v) => ({ ...v }));
+  }
+  const out = [];
+  for (const [i, v] of raw.entries()) {
+    const o = isObj(v) ? v : {};
+    const name = str(o["name"]);
+    const w = o["width"];
+    const h = o["height"];
+    if (!name || !/^[\w .-]{1,30}$/.test(name) || !(typeof w === "number" && Number.isInteger(w) && w >= 240 && w <= 4e3) || !(typeof h === "number" && Number.isInteger(h) && h >= 240 && h <= 4e3)) {
+      problems.push(`viewports[${i}] needs a short name and a whole width and height from 240 to 4000.`);
+      continue;
+    }
+    if (out.some((x) => x.name === name)) problems.push(`viewports: the name "${name}" is used twice.`);
+    else out.push({ name, width: w, height: h });
+  }
+  return out.length ? out : DEFAULT_VIEWPORTS.map((v) => ({ ...v }));
+}
+function normalizeVisual(raw, problems) {
+  if (raw !== void 0 && raw !== null && !isObj(raw)) {
+    problems.push("visual must be a mapping (threshold, ignore_selectors).");
+    return { threshold: DEFAULT_VISUAL_THRESHOLD, ignore_selectors: [] };
+  }
+  const o = isObj(raw) ? raw : {};
+  const t = o["threshold"];
+  if (t !== void 0 && !(typeof t === "number" && t >= 0 && t <= 100)) problems.push("visual.threshold must be a percentage from 0 to 100: the share of a page's pixels that may differ.");
+  return {
+    threshold: typeof t === "number" && t >= 0 && t <= 100 ? t : DEFAULT_VISUAL_THRESHOLD,
+    // Like privacy.mask_selectors, a selector goes into a style sheet.
+    ignore_selectors: limitedStrings(o["ignore_selectors"], "visual.ignore_selectors", problems, { max: 200, test: (s) => /[{}<>;\\]/.test(s) ? "contains a character that is not allowed in a CSS selector here ({ } < > ; \\)" : void 0 })
+  };
+}
+function budgetMap(raw, where, problems) {
+  if (raw === void 0 || raw === null) return {};
+  if (!isObj(raw)) {
+    problems.push(`${where} must be a mapping from a ${where.endsWith("pages") ? "page path" : "method and path"} to milliseconds.`);
+    return {};
+  }
+  const out = {};
+  for (const [k, v] of Object.entries(raw).slice(0, LIST_MAX)) {
+    if (typeof v === "number" && v >= 50 && v <= 6e5 && k.length <= 200) out[k] = v;
+    else problems.push(`${where}.${k}: a number of milliseconds from 50 to 600000.`);
+  }
+  return out;
+}
+function normalizePerformance(raw, problems) {
+  if (raw !== void 0 && raw !== null && !isObj(raw)) {
+    problems.push("performance must be a mapping (page_load_ms, api_p95_ms, regression_pct, pages, endpoints).");
+    return { ...DEFAULT_PERFORMANCE, pages: {}, endpoints: {} };
+  }
+  const o = isObj(raw) ? raw : {};
+  const ms = (key) => {
+    const v = o[key];
+    if (v !== void 0 && !(typeof v === "number" && v >= 50 && v <= 6e5)) problems.push(`performance.${key} must be a number of milliseconds from 50 to 600000.`);
+    return typeof v === "number" && v >= 50 && v <= 6e5 ? v : DEFAULT_PERFORMANCE[key];
+  };
+  const pct = o["regression_pct"];
+  if (pct !== void 0 && !(typeof pct === "number" && pct >= 5 && pct <= 1e3)) problems.push("performance.regression_pct must be a percentage from 5 to 1000.");
+  return {
+    page_load_ms: ms("page_load_ms"),
+    api_p95_ms: ms("api_p95_ms"),
+    regression_pct: typeof pct === "number" && pct >= 5 && pct <= 1e3 ? pct : DEFAULT_PERFORMANCE.regression_pct,
+    pages: budgetMap(o["pages"], "performance.pages", problems),
+    endpoints: budgetMap(o["endpoints"], "performance.endpoints", problems)
   };
 }
 function normalizeConfig(raw, problems) {
@@ -44804,7 +44943,19 @@ function normalizeConfig(raw, problems) {
     setup: normalizeSetup(raw["setup"], problems),
     budget: normalizeBudget(raw["budget"], problems),
     privacy: normalizePrivacy(raw["privacy"], problems),
-    ci: normalizeCi(raw["ci"], problems)
+    ci: normalizeCi(raw["ci"], problems),
+    ...(() => {
+      const c = normalizeCatcher(raw["mail"], "mail", problems);
+      return c ? { mail: c } : {};
+    })(),
+    ...(() => {
+      const c = normalizeCatcher(raw["sms"], "sms", problems);
+      return c ? { sms: c } : {};
+    })(),
+    browsers: normalizeBrowsers(raw["browsers"], problems),
+    viewports: normalizeViewports(raw["viewports"], problems),
+    visual: normalizeVisual(raw["visual"], problems),
+    performance: normalizePerformance(raw["performance"], problems)
   };
   return config2;
 }
@@ -44856,6 +45007,9 @@ function checkConfigText(text2, opts) {
   }
   if (config2.api.openapi && !parseUrl(config2.api.openapi) && !fs5.existsSync(path8.resolve(opts.projectRoot, config2.api.openapi))) {
     result.problems.push(`api.openapi points to "${config2.api.openapi}", which does not exist in the project.`);
+  }
+  for (const [label, c] of [["mail.url", config2.mail], ["sms.url", config2.sms]]) {
+    if (c && c.type !== "mailtrap" && classifyUrl(c.url, config2.security).verdict === "blocked") result.blocked.push({ url: c.url, reason: `${label} ${classifyUrl(c.url, config2.security).reason}` });
   }
   for (const { label, url: url2 } of configUrls(config2)) {
     if (!parseUrl(url2)) {
@@ -45094,7 +45248,7 @@ function flowStatus(data) {
   return { total, tested, untested };
 }
 var isOpen = (f) => f.fix_status !== "fixed-verified";
-var plural2 = (n, one6, many) => `${n} ${n === 1 ? one6 : many}`;
+var plural2 = (n, one7, many) => `${n} ${n === 1 ? one7 : many}`;
 var sentence = (s) => s.trim().replace(/[.\s]+$/, "");
 function computeVerdict(data) {
   const v = verdictFromOpenFindings(data);
@@ -45156,12 +45310,440 @@ function verdictFromOpenFindings(data) {
   return { level: "ready-with-risks", environment_problem: false, reasons: risks, line: `\u26A0\uFE0F **Ready with risks:** ${risks.join("; ")}.` };
 }
 
+// core/lib/coverage-report.ts
+import path14 from "node:path";
+
+// core/lib/perf/api.ts
+import path12 from "node:path";
+
+// core/lib/privacy.ts
+import fs6 from "node:fs";
+import path11 from "node:path";
+var MASK = { "email address": "[masked email]", "phone number": "[masked phone]", "national ID number": "[masked ID]", "card number": "[masked card]", "custom pattern": "[masked data]" };
+var MASKED_FIELD = "[masked]";
+var EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
+var RESERVED_HOST = /(?:^|\.)(?:example\.(?:com|org|net)|[\w-]+\.(?:test|invalid|localhost|example)|test|invalid|localhost|example)$/i;
+var CNIC = /(?<!\d)\d{5}-\d{7}-\d(?!\d)/g;
+var PHONE = /(?<![\w.])(?:\+\d{1,3}[\s-]?\(?\d{2,4}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}|\(?\d{3}\)?[ -]\d{3}[ -]\d{4}|0\d{3}[ -]?\d{7})(?![\w])/g;
+var CARD = /(?<!\d)(?<!\d\.)(?:[3-6]\d{3}[ -]?\d{4}[ -]?\d{4}[ -]?\d{1,7}|[3-6]\d{12,18})(?!\d)(?!\.\d)/g;
+var FICTION_PHONE = /555[ -]?01\d\d/;
+function luhn2(digits) {
+  let sum = 0;
+  let alt = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let n = Number(digits[i]);
+    if (alt) {
+      n *= 2;
+      if (n > 9) n -= 9;
+    }
+    sum += n;
+    alt = !alt;
+  }
+  return sum % 10 === 0;
+}
+var emailAllowed = (m, ctx) => {
+  const lower = m.toLowerCase();
+  const host = lower.slice(lower.lastIndexOf("@") + 1);
+  return RESERVED_HOST.test(host) || ctx.allow.includes(lower) || ctx.prefix !== "" && lower.startsWith(ctx.prefix.toLowerCase());
+};
+function findPii(text2, ctx) {
+  const hits = [];
+  for (const m of text2.matchAll(EMAIL)) if (!emailAllowed(m[0], ctx)) hits.push({ kind: "email address", start: m.index, end: m.index + m[0].length });
+  for (const m of text2.matchAll(CNIC)) hits.push({ kind: "national ID number", start: m.index, end: m.index + m[0].length });
+  for (const m of text2.matchAll(CARD)) {
+    const digits = m[0].replace(/\D/g, "");
+    if (digits.length >= 13 && digits.length <= 19 && luhn2(digits)) hits.push({ kind: "card number", start: m.index, end: m.index + m[0].length });
+  }
+  for (const m of text2.matchAll(PHONE)) if (!FICTION_PHONE.test(m[0]) && m[0].replace(/\D/g, "").length >= 9 && !(ctx.prefix && text2.slice(Math.max(0, m.index - ctx.prefix.length), m.index).toLowerCase() === ctx.prefix.toLowerCase())) hits.push({ kind: "phone number", start: m.index, end: m.index + m[0].length });
+  for (const re of ctx.patterns) {
+    const g = new RegExp(re.source, re.flags.includes("g") ? re.flags : `${re.flags}g`);
+    for (const m of text2.matchAll(g)) if (m[0] !== "") hits.push({ kind: "custom pattern", start: m.index, end: m.index + m[0].length });
+  }
+  hits.sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start));
+  const out = [];
+  for (const h of hits) if (out.length === 0 || h.start >= out[out.length - 1].end) out.push(h);
+  return out;
+}
+function maskText(text2, ctx) {
+  const hits = findPii(text2, ctx);
+  if (hits.length === 0) return { text: text2, count: 0, kinds: {} };
+  let out = "";
+  let at = 0;
+  const kinds = {};
+  for (const h of hits) {
+    out += text2.slice(at, h.start) + MASK[h.kind];
+    at = h.end;
+    kinds[h.kind] = (kinds[h.kind] ?? 0) + 1;
+  }
+  return { text: out + text2.slice(at), count: hits.length, kinds };
+}
+function maskJson(value, ctx, tally = { count: 0, kinds: {} }, depth = 0) {
+  const walk = (v, d) => {
+    if (d > 20) return v;
+    if (typeof v === "string") {
+      const r = maskText(v, ctx);
+      tally.count += r.count;
+      for (const [k, n] of Object.entries(r.kinds)) tally.kinds[k] = (tally.kinds[k] ?? 0) + n;
+      return r.text;
+    }
+    if (Array.isArray(v)) return v.map((x) => walk(x, d + 1));
+    if (v && typeof v === "object") {
+      const out = {};
+      for (const [k, x] of Object.entries(v)) {
+        if (ctx.fields.includes(k.toLowerCase()) && (typeof x === "string" || typeof x === "number")) {
+          const keep = typeof x === "string" && ctx.prefix !== "" && x.toLowerCase().startsWith(ctx.prefix.toLowerCase());
+          if (!keep && String(x) !== "" && x !== MASKED_FIELD) {
+            tally.count += 1;
+            tally.kinds["custom pattern"] = (tally.kinds["custom pattern"] ?? 0) + 1;
+            out[k] = MASKED_FIELD;
+            continue;
+          }
+        }
+        out[k] = walk(x, d + 1);
+      }
+      return out;
+    }
+    return v;
+  };
+  const masked = walk(value, depth);
+  return { value: masked, count: tally.count, kinds: tally.kinds };
+}
+var DEFAULT_CONTEXT = { prefix: "QA-", allow: [], patterns: [], fields: [] };
+function contextFrom(config2, allow = []) {
+  if (!config2) return { ...DEFAULT_CONTEXT, allow: allow.map((a) => a.toLowerCase()) };
+  const patterns = [];
+  for (const p of config2.privacy.mask_patterns) {
+    try {
+      patterns.push(new RegExp(p, "gu"));
+    } catch {
+    }
+  }
+  return { prefix: config2.test_data_prefix, allow: allow.map((a) => a.toLowerCase()), patterns, fields: config2.privacy.mask_fields.map((f) => f.toLowerCase()) };
+}
+var projectRootOfRun = (runDir) => path11.resolve(runDir, "..", "..", "..");
+function contextForRun(runDir, env = process.env) {
+  const root = projectRootOfRun(runDir);
+  try {
+    if (!fs6.existsSync(path11.join(root, ".qa", "config.md"))) return DEFAULT_CONTEXT;
+    const config2 = checkConfigFile(root, env).config;
+    if (!config2) return DEFAULT_CONTEXT;
+    const names = config2.roles.flatMap((r) => [r.username_env, r.password_env]);
+    const { values } = loadQaEnv(root, env, names);
+    return contextFrom(config2, config2.roles.map((r) => values[r.username_env] ?? "").filter(Boolean));
+  } catch {
+    return DEFAULT_CONTEXT;
+  }
+}
+var TEXT_FILE = /\.(json|jsonl|md|txt|log|csv|har|html?|ya?ml|xml)$/i;
+var MAX_BYTES = 5 * 1024 * 1024;
+function textFiles(dir) {
+  const out = [];
+  const walk = (d) => {
+    for (const e of fs6.readdirSync(d, { withFileTypes: true })) {
+      if (e.name === "node_modules" || e.name === ".git") continue;
+      const p = path11.join(d, e.name);
+      if (e.isDirectory()) walk(p);
+      else if (TEXT_FILE.test(e.name) && fs6.statSync(p).size <= MAX_BYTES) out.push(p);
+    }
+  };
+  if (fs6.existsSync(dir)) walk(dir);
+  return out.sort();
+}
+function scanRun(runDir, ctx) {
+  const leaks = [];
+  const files = textFiles(runDir);
+  for (const f of files) {
+    const r = maskText(fs6.readFileSync(f, "utf8"), ctx);
+    const j = f.endsWith(".json") ? jsonLeaks(f, ctx) : void 0;
+    const kinds = { ...r.kinds };
+    let count = r.count;
+    if (j && j.count > 0 && r.count === 0) {
+      Object.assign(kinds, j.kinds);
+      count = j.count;
+    }
+    if (count > 0) leaks.push({ file: path11.relative(runDir, f).split(path11.sep).join("/"), kinds, count });
+  }
+  return { ok: leaks.length === 0, files_scanned: files.length, leaks, note: "Screenshots and other images are not scanned: they are blurred in the browser before capture (privacy.mask_selectors, and emails, phone numbers and ID numbers on the page)." };
+}
+function jsonLeaks(file4, ctx) {
+  if (ctx.fields.length === 0) return void 0;
+  try {
+    const r = maskJson(JSON.parse(fs6.readFileSync(file4, "utf8")), ctx);
+    return { count: r.count, kinds: r.kinds };
+  } catch {
+    return void 0;
+  }
+}
+
+// core/lib/perf/store.ts
+var KEEP_POINTS = 8;
+var MAX_SERIES = 600;
+var apiKey = (method, apiPath, role) => `api|${method.toUpperCase()} ${apiPath}|${role ?? "-"}`;
+function loadPerf(store) {
+  const f = readMemoryJson(memoryPaths(store).perf);
+  return f && f.series && typeof f.series === "object" ? f : { series: {} };
+}
+function recordPerf(store, points, run, now) {
+  if (points.length === 0) return 0;
+  const f = loadPerf(store);
+  for (const p of points) {
+    const list = f.series[p.key] ?? [];
+    list.push({ ms: Math.round(p.ms), run, at: now.toISOString() });
+    f.series[p.key] = list.slice(-KEEP_POINTS);
+  }
+  const keys = Object.keys(f.series);
+  if (keys.length > MAX_SERIES) {
+    const oldest = keys.sort((a, b) => (f.series[a]?.at(-1)?.at ?? "").localeCompare(f.series[b]?.at(-1)?.at ?? "")).slice(0, keys.length - MAX_SERIES);
+    for (const k of oldest) delete f.series[k];
+  }
+  writeMemoryJson(memoryPaths(store).perf, { series: f.series });
+  return points.length;
+}
+
+// core/lib/perf/api.ts
+var apiPerfResultsFile = (runDir) => path12.join(runDir, "data", "perf-api.json");
+function apiPerfPoints(runDir) {
+  const r = readJson(apiPerfResultsFile(runDir));
+  return (r?.timings ?? []).filter((t) => t.answered >= 1).map((t) => ({ key: apiKey(t.method, t.path, t.role), ms: t.p95_ms }));
+}
+
+// core/lib/sweep/results.ts
+import path13 from "node:path";
+var sweepResultsFile = (runDir) => path13.join(runDir, "data", "sweep.json");
+function readSweepResults(runDir) {
+  return readJson(sweepResultsFile(runDir));
+}
+function groupPerf(perf) {
+  const by = /* @__PURE__ */ new Map();
+  for (const p of perf) by.set(`${p.page}|${p.role ?? "-"}|${p.kind}`, [...by.get(`${p.page}|${p.role ?? "-"}|${p.kind}`) ?? [], p]);
+  return [...by.values()].map((list) => {
+    const worst = [...list].sort((a, b) => b.ms - a.ms)[0];
+    return { ...worst, seen_on: list.map((p) => `${p.browser} ${p.viewport}`) };
+  });
+}
+
+// core/lib/coverage-report.ts
+function readCoverageData(runDir) {
+  const sweep = readSweepResults(runDir);
+  const mail = readJson(path14.join(runDir, "data", "mail-checks.json"));
+  const apiPerf = readJson(apiPerfResultsFile(runDir));
+  if (!sweep && !(Array.isArray(mail) && mail.length) && !apiPerf) return void 0;
+  return { ...sweep ? { sweep } : {}, mail: Array.isArray(mail) ? mail : [], ...apiPerf ? { apiPerf } : {} };
+}
+var cell = (s) => s.replace(/\s+/g, " ").replace(/\|/g, "\\|").trim();
+var BROWSER_NAME = { chromium: "Chrome", webkit: "Safari's engine (WebKit)", firefox: "Firefox" };
+var browserName = (b) => BROWSER_NAME[b] ?? b;
+var sizeOf = (s, name) => {
+  const v = s.matrix.viewports.find((x) => x.name === name);
+  return v ? `${name} (${v.width} wide)` : name;
+};
+function renderTechnicalCoverage(c) {
+  const L = [];
+  const s = c.sweep;
+  if (s) {
+    const ok = s.visits.filter((v) => !v.error);
+    L.push("## Browsers, screen sizes and speed (page sweep)", "", `Checked ${s.matrix.why}: ${s.matrix.browsers.map(browserName).join(", ")} at ${s.matrix.viewports.map((v) => `${v.name} ${v.width}\xD7${v.height}`).join(", ")}. **${ok.length}** page visits${s.visits.length - ok.length ? `, ${s.visits.length - ok.length} could not be visited` : ""}.`, "");
+    for (const u of s.unavailable) L.push(`- \u26D4 **${browserName(u.browser)} was not checked:** ${cell(u.reason)}`);
+    for (const k of s.skipped.slice(0, 12)) L.push(`- \u26D4 Not visited${k.page ? ` ${k.page}` : ""}${k.browser ? ` in ${k.browser}` : ""}${k.viewport ? ` at ${k.viewport}` : ""}: ${cell(k.reason)}`);
+    if (s.unavailable.length || s.skipped.length) L.push("");
+    if (s.groups.length) {
+      L.push("| Page | Lead | Where it happens | What the page audit saw |", "|---|---|---|---|");
+      for (const g of s.groups.slice(0, 60)) L.push(`| ${cell(g.title)} | ${g.kind} | ${cell(g.scope)} | ${cell(g.detail)} |`);
+      L.push("", "_Leads are things to verify, not verdicts; the confirmed ones are findings below._", "");
+    } else L.push("_The page audit found nothing on the pages that were visited._", "");
+    const slow = groupPerf(s.perf);
+    if (slow.length) {
+      L.push("**Slow pages**", "");
+      for (const p of slow) L.push(`- ${cell(p.message)} (seen in ${p.seen_on.join(", ")})`);
+      L.push("");
+    }
+    const vs = s.visual_summary;
+    if (vs.compared + vs.no_baseline > 0) {
+      L.push(`**Visual comparison:** ${vs.compared} compared with a baseline, **${vs.different}** different, ${vs.no_baseline} without a baseline yet.`, "");
+      for (const v of s.visits.filter((x) => x.visual?.state === "different")) L.push(`- ${cell(v.title)} (${v.browser}, ${v.viewport}): ${v.visual?.percent}% of the picture changed (${v.visual?.impact}) since the baseline of ${v.visual?.baseline_at?.slice(0, 10)}: [before](${v.visual?.before}) \xB7 [after](${v.visual?.after}) \xB7 [difference](${v.visual?.diff})`);
+      if (vs.different) L.push("");
+    }
+    for (const n of s.notes) L.push(`- _${cell(n)}_`);
+    if (s.notes.length) L.push("");
+  }
+  if (c.mail.length) {
+    L.push("## Email and SMS checks", "", "| Flow | Channel | Arrived | Checks | Evidence |", "|---|---|---|---|---|");
+    for (const m of c.mail) {
+      const failed = m.checks.filter((x) => !x.ok);
+      L.push(`| ${cell(m.flow ?? "-")} | ${m.channel} | ${m.arrived ? `yes (${m.waited_s} s)` : `**no** (${m.timeout_s} s)${m.note ? `: ${cell(m.note)}` : ""}`} | ${m.arrived ? failed.length ? `\u274C ${failed.map((f) => cell(`${f.name}: ${f.detail}`)).join("; ")}` : "\u2705 all passed" : "-"} | ${m.evidence ? `[${path14.basename(m.evidence)}](${m.evidence})` : "-"} |`);
+    }
+    L.push("");
+  }
+  if (c.apiPerf && (c.apiPerf.timings.length || c.apiPerf.skipped.length)) {
+    L.push("## API response times", "", "| Endpoint | Role | Median | Slowest | Budget | Result |", "|---|---|---|---|---|---|");
+    for (const t of c.apiPerf.timings) L.push(`| ${t.method} ${cell(t.path)} | ${t.role ?? "-"} | ${t.median_ms} ms | ${t.p95_ms} ms | ${t.budget_ms} ms | ${t.over_budget ? "\u274C slow" : t.regressed ? `\u26A0\uFE0F ${t.slower_pct}% slower than before` : "\u2705"} |`);
+    for (const k of c.apiPerf.skipped) L.push(`| ${cell(k.path)} | ${k.role ?? "-"} | - | - | - | \u26D4 ${cell(k.reason)} |`);
+    L.push("", "_Not a load test: a few calls, one after the other._", "");
+  }
+  return L;
+}
+function renderAdminCoverage(c) {
+  const L = [];
+  const s = c.sweep;
+  if (s) {
+    const checkedBrowsers = s.matrix.browsers.filter((b) => !s.unavailable.some((u) => u.browser === b));
+    L.push(`- **Screens and devices:** checked in ${checkedBrowsers.map(browserName).join(" and ") || "no browser"} on ${s.matrix.viewports.map((v) => sizeOf(s, v.name)).join(" and ")} screens (${s.visits.filter((v) => !v.error).length} page views).`);
+    for (const u of s.unavailable) L.push(`- **Not checked:** ${browserName(u.browser)}, because it is not available on the machine that ran the check.`);
+    const slow = groupPerf(s.perf);
+    if (slow.length) for (const p of slow.slice(0, 3)) L.push(`- **Speed:** ${p.message.replace(/\bpage \(as [^)]+\)/, "page")}`);
+    else if (s.visits.some((v) => v.settled_ms !== void 0)) L.push("- **Speed:** every page that was timed opened within its limit.");
+    const vs = s.visual_summary;
+    if (vs.compared > 0) L.push(`- **Look of the screens:** ${vs.compared} compared with the approved look, ${vs.different} different.`);
+  }
+  if (c.mail.length) {
+    const bad = c.mail.filter((m) => !m.arrived || m.checks.some((x) => !x.ok));
+    L.push(`- **Messages the product sends:** ${c.mail.length} checked (${c.mail.map((m) => m.flow ?? m.channel).slice(0, 4).join(", ")}); ${bad.length ? `${bad.length} had something wrong with them` : "all looked right"}.`);
+  }
+  if (c.apiPerf?.timings.length) {
+    const slow = c.apiPerf.timings.filter((t) => t.over_budget);
+    L.push(`- **Speed of the behind-the-scenes calls:** ${c.apiPerf.timings.length} timed, ${slow.length ? `${slow.length} slower than their limit` : "all within their limit"}.`);
+  }
+  return L;
+}
+function lintCoverage(c, data) {
+  const errors = [];
+  const warnings = [];
+  if (!c) return { errors, warnings };
+  const notTestedText = data.notTested.map((n) => `${n.area} ${n.reason}`.toLowerCase());
+  const mentions = (...words) => notTestedText.some((t) => words.some((w) => t.includes(w)));
+  const s = c.sweep;
+  if (s) {
+    for (const u of s.unavailable) {
+      const words = u.browser === "chromium" ? ["chromium", "chrome"] : u.browser === "webkit" ? ["webkit", "safari"] : [u.browser];
+      if (!mentions(...words)) errors.push(`${browserName(u.browser)} could not run (${u.reason}), so everything in it was not tested: list it in not-tested.json (area and reason, with the plain wording), or the reports would imply it was checked.`);
+    }
+    if (s.skipped.some((k) => /Could not sign in/.test(k.reason)) && !mentions("sign in", "signed in", "sign-in", "login")) warnings.push("The sweep could not sign in as some role, so its pages were not visited: list them under Not tested with that reason.");
+    if (s.budget_reached && !mentions("time budget")) warnings.push("The sweep stopped at the time budget: list what it did not visit under Not tested (reason: time budget reached).");
+    const textOf = (f) => `${f.type} ${f.area} ${f.title}`.toLowerCase();
+    if (groupPerf(s.perf).some((p) => p.kind === "slow-page") && !data.findings.some((f) => /perf|slow|speed|load/.test(textOf(f))) && !data.unconfirmed.some((u) => /slow|speed|load|perf/.test(`${u.title} ${u.observation}`.toLowerCase()))) warnings.push("The sweep measured slow pages, and no finding or unconfirmed lead is about performance: report them (type performance) or say why they are not a problem.");
+    if (s.visual_summary.different > 0 && !data.findings.some((f) => /visual|layout|look|screenshot/.test(textOf(f))) && !data.unconfirmed.some((u) => /visual|layout|look/.test(`${u.title} ${u.observation}`.toLowerCase()))) warnings.push("The sweep found pictures that differ from their baseline, and no finding is about how a screen looks: report each difference that is a defect, or accept the new look (`baseline accept`).");
+  }
+  const failedMail = c.mail.filter((m) => m.arrived && m.checks.some((x) => !x.ok));
+  if (failedMail.length && !data.findings.some((f) => /mail|sms|message|notification/.test(`${f.type} ${f.area} ${f.title}`.toLowerCase())) && !data.unconfirmed.some((u) => /mail|sms|message/.test(`${u.title} ${u.observation}`.toLowerCase()))) warnings.push(`${failedMail.length} email or SMS check(s) failed and no finding is about a message: report them or say why they are fine.`);
+  const missing = c.mail.filter((m) => !m.arrived && !m.note?.includes("sandbox is configured"));
+  if (missing.length && !data.findings.some((f) => /mail|sms|message/.test(`${f.type} ${f.area} ${f.title}`.toLowerCase())) && !data.unconfirmed.some((u) => /mail|sms|message/.test(`${u.title} ${u.observation}`.toLowerCase())) && !mentions("email", "sms", "message")) warnings.push(`${missing.length} message(s) did not arrive in the sandbox: report that, list it under Unconfirmed, or list the flow under Not tested.`);
+  return { errors, warnings };
+}
+
+// core/lib/ticket.ts
+import path15 from "node:path";
+var CRITERION_STATUSES = ["met", "not-met", "not-testable"];
+var ticketFilePath = (runDir) => path15.join(runDir, "data", "ticket.json");
+var ticketResultsPath = (runDir) => path15.join(runDir, "data", "ticket-results.json");
+var one = (s) => s.replace(/\s+/g, " ").trim();
+function cleanRef(ref) {
+  const r = one(ref).slice(0, 200);
+  if (/^https?:\/\//i.test(r)) {
+    try {
+      const u = new URL(r);
+      return `${u.origin}${u.pathname}`;
+    } catch {
+      return r.replace(/[?#].*$/, "");
+    }
+  }
+  return r;
+}
+function readTicketData(runDir, trigger) {
+  const raw = readJson(ticketFilePath(runDir));
+  if (!raw || !Array.isArray(raw.criteria)) return void 0;
+  const results = readJson(ticketResultsPath(runDir));
+  const list = Array.isArray(results) ? results : [];
+  return { ticket: raw, results: list, assumed: trigger === "ci" ? raw.criteria.filter((c) => c.origin === "derived").map((c) => c.id) : [] };
+}
+function lintTicketResults(runDir, data, known, meta3) {
+  const errors = [];
+  const warnings = [];
+  if (!meta3.ticket_ref) return { errors, warnings };
+  if (!data?.ticket) {
+    errors.push("This is a ticket run but data/ticket.json is missing or unreadable: write the ticket's criteria first (`qamind ticket check --run ID` says what is wrong).");
+    return { errors, warnings };
+  }
+  const raw = readJson(ticketResultsPath(runDir));
+  if (raw === void 0) {
+    errors.push("data/ticket-results.json is missing: every criterion needs a result (met, not-met or not-testable, with why).");
+    return { errors, warnings };
+  }
+  if (!Array.isArray(raw)) {
+    errors.push("data/ticket-results.json must be a list of { criterion, status, why }.");
+    return { errors, warnings };
+  }
+  const ids = new Set(data.ticket.criteria.map((c) => c.id));
+  const answered = /* @__PURE__ */ new Set();
+  for (const [i, r] of data.results.entries()) {
+    const at = `ticket-results.json[${i}]${r?.criterion ? ` (${r.criterion})` : ""}`;
+    if (!r?.criterion || !ids.has(r.criterion)) {
+      errors.push(`${at}: "criterion" must be one of ${[...ids].join(", ")}.`);
+      continue;
+    }
+    if (answered.has(r.criterion)) errors.push(`${at}: ${r.criterion} is answered twice.`);
+    answered.add(r.criterion);
+    if (!CRITERION_STATUSES.includes(r.status)) {
+      errors.push(`${at}: "status" must be met, not-met or not-testable.`);
+      continue;
+    }
+    if (one(r.why ?? "").length < 12) errors.push(`${at}: "why" is a real sentence: ${r.status === "met" ? "what you did and saw" : r.status === "not-met" ? "what went wrong" : "why it cannot be tested here"}.`);
+    if (r.status === "met" && !(r.evidence?.length || r.tests?.length)) errors.push(`${at}: a criterion is only "met" with something to show for it: "evidence" (files in the run folder) or "tests" (bank tests that check it).`);
+    if (r.status === "not-met") {
+      const refs = r.findings ?? [];
+      if (refs.length === 0) errors.push(`${at}: a criterion that is not met is a finding: list it in "findings" (the ISSUE ids), or in unconfirmed.json if you could not reproduce it twice and use status not-testable.`);
+      for (const f of refs) if (!known.findings.includes(f)) errors.push(`${at}: ${f} is not a finding of this run.`);
+    }
+    for (const t of r.tests ?? []) if (known.tests && !known.tests.includes(t)) warnings.push(`${at}: ${t} is not in the test bank.`);
+  }
+  for (const id of ids) if (!answered.has(id)) errors.push(`Criterion ${id} has no result in data/ticket-results.json.`);
+  return { errors, warnings };
+}
+var MARK = { met: "\u2705 Met", "not-met": "\u274C Not met", "not-testable": "\u26D4 Cannot be tested", "no-result": "\u26D4 No result" };
+function checklistRows(d, plain) {
+  return (d.ticket?.criteria ?? []).map((c) => {
+    const r = d.results.find((x) => x.criterion === c.id);
+    return {
+      id: c.id,
+      text: plain ? c.plain || c.text : c.text,
+      origin: c.origin,
+      assumed: d.assumed.includes(c.id),
+      status: r && CRITERION_STATUSES.includes(r.status) ? r.status : "no-result",
+      why: one((plain ? r?.plain_why || r?.why : r?.why) ?? ""),
+      evidence: r?.evidence ?? [],
+      findings: r?.findings ?? [],
+      tests: r?.tests ?? []
+    };
+  });
+}
+function ticketCounts(d) {
+  const rows = checklistRows(d, false);
+  return { total: rows.length, met: rows.filter((r) => r.status === "met").length, not_met: rows.filter((r) => r.status === "not-met").length, not_testable: rows.filter((r) => r.status === "not-testable" || r.status === "no-result").length, assumed: d.assumed.length };
+}
+var cell2 = (s) => one(s).replace(/\|/g, "\\|");
+function renderTechnicalChecklist(d) {
+  const c = ticketCounts(d);
+  const t = d.ticket;
+  const L = [`## Ticket: ${cell2(t.ref)} (acceptance criteria)`, "", `**${cell2(t.title)}**: ${c.met} of ${c.total} criteria met, ${c.not_met} not met, ${c.not_testable} could not be tested.${c.assumed ? ` ${c.assumed} criteria were derived by QAMind and nobody could confirm them (assumed).` : ""}`, ""];
+  L.push("| Criterion | Result | Why | Findings | Tests |", "|---|---|---|---|---|");
+  for (const r of checklistRows(d, false)) L.push(`| **${r.id}** ${cell2(r.text)}${r.assumed ? " _(assumed)_" : r.origin === "derived" ? " _(derived, confirmed)_" : ""} | ${MARK[r.status]} | ${cell2(r.why)} | ${r.findings.map((f) => `[${f}](#${f})`).join(", ") || "-"} | ${r.tests.join(", ") || "-"} |`);
+  L.push("");
+  return L;
+}
+function renderAdminChecklist(d) {
+  const c = ticketCounts(d);
+  const t = d.ticket;
+  const L = [`## What was asked for (${cell2(t.title)})`, "", `${c.met} of ${c.total} things that were asked for are working${c.not_met ? `, ${c.not_met} are not` : ""}${c.not_testable ? `, ${c.not_testable} could not be checked` : ""}.${c.assumed ? ` ${c.assumed} of them were worked out by the checker because the request did not say what "done" means, and nobody could confirm them.` : ""}`, ""];
+  for (const r of checklistRows(d, true)) L.push(`- ${MARK[r.status]}: ${cell2(r.text)}${r.assumed ? " (assumed)" : ""}${r.why ? ` \u2014 ${cell2(r.why)}` : ""}`);
+  L.push("");
+  return L;
+}
+
 // core/lib/report.ts
 var SURFACES = ["api", "ui", "cross", "permissions", "business-rule", "other"];
 function compactFinding(f, bug) {
   return { id: f.id ?? "", title: f.title, severity: f.severity, surface: f.surface, area: f.area, type: f.type, ...f.ui ? { ui: f.ui } : {}, ...bug ? { bug } : {}, ...f.steps?.[0] ? { first_step: f.steps[0].slice(0, 200) } : {} };
 }
-var dataFile = (runDir, name) => path11.join(runDir, "data", name);
+var dataFile = (runDir, name) => path16.join(runDir, "data", name);
 function readList(runDir, name) {
   const v = readJson(dataFile(runDir, name));
   if (v === void 0) return [];
@@ -45169,11 +45751,11 @@ function readList(runDir, name) {
   return v;
 }
 function readRunData(runDir) {
-  const apiDir = path11.join(runDir, "data", "api-results");
+  const apiDir = path16.join(runDir, "data", "api-results");
   const apiSummaries = [];
-  if (fs6.existsSync(apiDir)) {
-    for (const f of fs6.readdirSync(apiDir).filter((x) => x.endsWith(".json")).sort()) {
-      const r = readJson(path11.join(apiDir, f));
+  if (fs7.existsSync(apiDir)) {
+    for (const f of fs7.readdirSync(apiDir).filter((x) => x.endsWith(".json")).sort()) {
+      const r = readJson(path16.join(apiDir, f));
       if (r?.summary) apiSummaries.push({ file: `data/api-results/${f}`, ...r.summary });
     }
   }
@@ -45190,7 +45772,7 @@ function readRunData(runDir) {
     const changed = fix.attempts.filter((a) => (a.status === "verified" || a.status === "best-effort" || a.status === "reverted") && a.finished_at).map((a) => Date.parse(a.finished_at));
     if (changed.length === 0) return false;
     try {
-      return fs6.statSync(dataFile(runDir, "admin.json")).mtimeMs < Math.max(...changed);
+      return fs7.statSync(dataFile(runDir, "admin.json")).mtimeMs < Math.max(...changed);
     } catch {
       return false;
     }
@@ -45214,7 +45796,15 @@ function readRunData(runDir) {
       const v = readJson(dataFile(runDir, "known-accepted.json"));
       return Array.isArray(v) && v.length ? { accepted: v } : {};
     })(),
-    ...bank ? { bank } : {}
+    ...bank ? { bank } : {},
+    ...(() => {
+      const t = meta3?.ticket_ref ? readTicketData(runDir, meta3.trigger) : void 0;
+      return t ? { ticket: t } : {};
+    })(),
+    ...(() => {
+      const c = readCoverageData(runDir);
+      return c ? { checks: c } : {};
+    })()
   };
 }
 function assignIds(runDir, data) {
@@ -45378,6 +45968,7 @@ function renderTechnicalReport(data, ctx = {}) {
   const api = data.apiSummaries.reduce((a, s) => ({ total: a.total + s.total, failed: a.failed + s.failed, signals: a.signals + s.signals }), { total: 0, failed: 0, signals: 0 });
   if (data.apiSummaries.length) L.push(`- API probes executed: **${api.total}** (${api.signals} produced a signal worth a look)`);
   L.push("");
+  if (data.ticket?.ticket) L.push(...renderTechnicalChecklist(data.ticket));
   const cameBack = (data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed");
   if (cameBack.length) {
     L.push("## \u26A0\uFE0F Came back (fixed before, found again)", "", "_These bugs were recorded as fixed and have been found again. They are listed first below._", "");
@@ -45469,6 +46060,7 @@ function renderTechnicalReport(data, ctx = {}) {
     for (const r of data.coverage) L.push(`| ${esc2(r.surface)} | ${esc2(r.area)} | ${esc2(r.role ?? "-")} | ${esc2(r.viewport ?? "-")} | ${r.critical_flow ? `#${r.critical_flow}` : "-"} | ${mark[r.status]} | ${esc2(r.note ?? "")} |`);
     L.push("");
   }
+  if (data.checks) L.push(...renderTechnicalCoverage(data.checks));
   L.push("## Not tested", "", "_Nothing here is reported as passing._", "");
   if (notTested.length === 0) L.push("_Everything planned was tested._", "");
   for (const n of notTested) L.push(`- **${n.area}**: ${n.reason}`);
@@ -45519,8 +46111,8 @@ function renderTechnicalReport(data, ctx = {}) {
   return L.join("\n");
 }
 function insideRun(runDir, rel) {
-  const abs = path11.resolve(runDir, rel);
-  const root = path11.resolve(runDir) + path11.sep;
+  const abs = path16.resolve(runDir, rel);
+  const root = path16.resolve(runDir) + path16.sep;
   return abs.startsWith(root) ? abs : null;
 }
 function lintRun(runDir, data, knownSecrets = []) {
@@ -45549,7 +46141,7 @@ function lintRun(runDir, data, knownSecrets = []) {
     for (const e of f.evidence ?? []) {
       const abs = insideRun(runDir, e);
       if (!abs) errors.push(`${tag}: evidence path "${e}" is outside the run folder.`);
-      else if (!fs6.existsSync(abs)) errors.push(`${tag}: evidence file "${e}" does not exist.`);
+      else if (!fs7.existsSync(abs)) errors.push(`${tag}: evidence file "${e}" does not exist.`);
     }
     if (!f.regression_test) warnings.push(`${tag}: no regression test proposed.`);
   }
@@ -45565,7 +46157,7 @@ function lintRun(runDir, data, knownSecrets = []) {
     if (!Array.isArray(p.how_to_see_it)) errors.push(`${tag}: plain.how_to_see_it must be a list (an empty list means it cannot be seen on screen).`);
     if (p.screenshot) {
       const abs = insideRun(runDir, p.screenshot);
-      if (!abs || !fs6.existsSync(abs)) errors.push(`${tag}: plain.screenshot "${p.screenshot}" does not exist inside the run folder.`);
+      if (!abs || !fs7.existsSync(abs)) errors.push(`${tag}: plain.screenshot "${p.screenshot}" does not exist inside the run folder.`);
     }
   }
   for (const n of data.notTested) if (!n.plain?.area?.trim() || !n.plain?.reason?.trim()) errors.push(`not-tested.json: "${n.area}" needs a plain { area, reason } for the admin report.`);
@@ -45580,25 +46172,33 @@ function lintRun(runDir, data, knownSecrets = []) {
     if (row.surface === "ui" && !row.ui) warnings.push(`coverage "${row.area}": a UI row without "ui" is grouped under "Web screens" in the admin report.`);
   }
   for (let i = 1; i <= flowCount; i++) if (!data.coverage.some((r) => r.critical_flow === i)) warnings.push(`Critical journey ${i} ("${data.meta?.critical_flows?.[i - 1]}") has no coverage row, so the verdict cannot be Ready.`);
-  const dataDir = path11.join(runDir, "data");
-  if (fs6.existsSync(dataDir)) {
-    const newestData = Math.max(0, ...fs6.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs6.statSync(path11.join(dataDir, f)).mtimeMs));
+  if (data.meta?.ticket_ref) {
+    const t = lintTicketResults(runDir, data.ticket, { findings: data.findings.map((f) => f.id ?? "").filter(Boolean), unconfirmed: data.unconfirmed.map((u) => u.id ?? "").filter(Boolean) }, data.meta);
+    errors.push(...t.errors);
+    warnings.push(...t.warnings);
+  }
+  const cov = lintCoverage(data.checks, data);
+  errors.push(...cov.errors);
+  warnings.push(...cov.warnings);
+  const dataDir = path16.join(runDir, "data");
+  if (fs7.existsSync(dataDir)) {
+    const newestData = Math.max(0, ...fs7.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs7.statSync(path16.join(dataDir, f)).mtimeMs));
     for (const name of ["TECHNICAL-REPORT.md", "ADMIN-REPORT.md"]) {
-      const file4 = path11.join(runDir, name);
-      if (fs6.existsSync(file4) && fs6.statSync(file4).mtimeMs + 1 < newestData) errors.push(`${name} is older than the data it is built from: run \`report build\` again.`);
+      const file4 = path16.join(runDir, name);
+      if (fs7.existsSync(file4) && fs7.statSync(file4).mtimeMs + 1 < newestData) errors.push(`${name} is older than the data it is built from: run \`report build\` again.`);
     }
   }
   for (const row of data.coverage) {
     if (row.status === "tested" && /not tested|blocked|skipped/i.test(row.note ?? "")) errors.push(`coverage "${row.area}" is marked tested but its note says otherwise.`);
   }
   if (data.findings.length === 0 && data.coverage.length === 0) warnings.push("No findings and no coverage rows: the report would not show what was checked.");
-  const scan = [path11.join(runDir, "TECHNICAL-REPORT.md")];
+  const scan = [path16.join(runDir, "TECHNICAL-REPORT.md")];
   for (const sub of ["evidence", "data"]) {
-    const dir = path11.join(runDir, sub);
-    if (!fs6.existsSync(dir)) continue;
+    const dir = path16.join(runDir, sub);
+    if (!fs7.existsSync(dir)) continue;
     const walk = (d) => {
-      for (const e of fs6.readdirSync(d, { withFileTypes: true })) {
-        const p = path11.join(d, e.name);
+      for (const e of fs7.readdirSync(d, { withFileTypes: true })) {
+        const p = path16.join(d, e.name);
         if (e.isDirectory()) walk(p);
         else if (/\.(json|md|txt|log|yml|yaml|har|html)$/i.test(e.name)) scan.push(p);
       }
@@ -45606,176 +46206,17 @@ function lintRun(runDir, data, knownSecrets = []) {
     walk(dir);
   }
   for (const file4 of scan) {
-    if (!fs6.existsSync(file4)) continue;
-    const isPlan = path11.relative(runDir, file4).split(path11.sep).join("/").startsWith("data/plans/");
-    const leaks = findSecretLeaks(fs6.readFileSync(file4, "utf8"), knownSecrets, { generic: !isPlan });
-    for (const leak of leaks) errors.push(`${path11.relative(runDir, file4)}: contains ${leak}; redact it before reporting.`);
+    if (!fs7.existsSync(file4)) continue;
+    const isPlan = path16.relative(runDir, file4).split(path16.sep).join("/").startsWith("data/plans/");
+    const leaks = findSecretLeaks(fs7.readFileSync(file4, "utf8"), knownSecrets, { generic: !isPlan });
+    for (const leak of leaks) errors.push(`${path16.relative(runDir, file4)}: contains ${leak}; redact it before reporting.`);
   }
   return { ok: errors.length === 0, errors, warnings };
 }
 
-// core/lib/privacy.ts
-import fs7 from "node:fs";
-import path12 from "node:path";
-var MASK = { "email address": "[masked email]", "phone number": "[masked phone]", "national ID number": "[masked ID]", "card number": "[masked card]", "custom pattern": "[masked data]" };
-var MASKED_FIELD = "[masked]";
-var EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
-var RESERVED_HOST = /(?:^|\.)(?:example\.(?:com|org|net)|[\w-]+\.(?:test|invalid|localhost|example)|test|invalid|localhost|example)$/i;
-var CNIC = /(?<!\d)\d{5}-\d{7}-\d(?!\d)/g;
-var PHONE = /(?<![\w.])(?:\+\d{1,3}[\s-]?\(?\d{2,4}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}|\(?\d{3}\)?[ -]\d{3}[ -]\d{4}|0\d{3}[ -]?\d{7})(?![\w])/g;
-var CARD = /(?<!\d)(?<!\d\.)(?:[3-6]\d{3}[ -]?\d{4}[ -]?\d{4}[ -]?\d{1,7}|[3-6]\d{12,18})(?!\d)(?!\.\d)/g;
-var FICTION_PHONE = /555[ -]?01\d\d/;
-function luhn2(digits) {
-  let sum = 0;
-  let alt = false;
-  for (let i = digits.length - 1; i >= 0; i--) {
-    let n = Number(digits[i]);
-    if (alt) {
-      n *= 2;
-      if (n > 9) n -= 9;
-    }
-    sum += n;
-    alt = !alt;
-  }
-  return sum % 10 === 0;
-}
-var emailAllowed = (m, ctx) => {
-  const lower = m.toLowerCase();
-  const host = lower.slice(lower.lastIndexOf("@") + 1);
-  return RESERVED_HOST.test(host) || ctx.allow.includes(lower) || ctx.prefix !== "" && lower.startsWith(ctx.prefix.toLowerCase());
-};
-function findPii(text2, ctx) {
-  const hits = [];
-  for (const m of text2.matchAll(EMAIL)) if (!emailAllowed(m[0], ctx)) hits.push({ kind: "email address", start: m.index, end: m.index + m[0].length });
-  for (const m of text2.matchAll(CNIC)) hits.push({ kind: "national ID number", start: m.index, end: m.index + m[0].length });
-  for (const m of text2.matchAll(CARD)) {
-    const digits = m[0].replace(/\D/g, "");
-    if (digits.length >= 13 && digits.length <= 19 && luhn2(digits)) hits.push({ kind: "card number", start: m.index, end: m.index + m[0].length });
-  }
-  for (const m of text2.matchAll(PHONE)) if (!FICTION_PHONE.test(m[0]) && m[0].replace(/\D/g, "").length >= 9 && !(ctx.prefix && text2.slice(Math.max(0, m.index - ctx.prefix.length), m.index).toLowerCase() === ctx.prefix.toLowerCase())) hits.push({ kind: "phone number", start: m.index, end: m.index + m[0].length });
-  for (const re of ctx.patterns) {
-    const g = new RegExp(re.source, re.flags.includes("g") ? re.flags : `${re.flags}g`);
-    for (const m of text2.matchAll(g)) if (m[0] !== "") hits.push({ kind: "custom pattern", start: m.index, end: m.index + m[0].length });
-  }
-  hits.sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start));
-  const out = [];
-  for (const h of hits) if (out.length === 0 || h.start >= out[out.length - 1].end) out.push(h);
-  return out;
-}
-function maskText(text2, ctx) {
-  const hits = findPii(text2, ctx);
-  if (hits.length === 0) return { text: text2, count: 0, kinds: {} };
-  let out = "";
-  let at = 0;
-  const kinds = {};
-  for (const h of hits) {
-    out += text2.slice(at, h.start) + MASK[h.kind];
-    at = h.end;
-    kinds[h.kind] = (kinds[h.kind] ?? 0) + 1;
-  }
-  return { text: out + text2.slice(at), count: hits.length, kinds };
-}
-function maskJson(value, ctx, tally = { count: 0, kinds: {} }, depth = 0) {
-  const walk = (v, d) => {
-    if (d > 20) return v;
-    if (typeof v === "string") {
-      const r = maskText(v, ctx);
-      tally.count += r.count;
-      for (const [k, n] of Object.entries(r.kinds)) tally.kinds[k] = (tally.kinds[k] ?? 0) + n;
-      return r.text;
-    }
-    if (Array.isArray(v)) return v.map((x) => walk(x, d + 1));
-    if (v && typeof v === "object") {
-      const out = {};
-      for (const [k, x] of Object.entries(v)) {
-        if (ctx.fields.includes(k.toLowerCase()) && (typeof x === "string" || typeof x === "number")) {
-          const keep = typeof x === "string" && ctx.prefix !== "" && x.toLowerCase().startsWith(ctx.prefix.toLowerCase());
-          if (!keep && String(x) !== "" && x !== MASKED_FIELD) {
-            tally.count += 1;
-            tally.kinds["custom pattern"] = (tally.kinds["custom pattern"] ?? 0) + 1;
-            out[k] = MASKED_FIELD;
-            continue;
-          }
-        }
-        out[k] = walk(x, d + 1);
-      }
-      return out;
-    }
-    return v;
-  };
-  const masked = walk(value, depth);
-  return { value: masked, count: tally.count, kinds: tally.kinds };
-}
-var DEFAULT_CONTEXT = { prefix: "QA-", allow: [], patterns: [], fields: [] };
-function contextFrom(config2, allow = []) {
-  if (!config2) return { ...DEFAULT_CONTEXT, allow: allow.map((a) => a.toLowerCase()) };
-  const patterns = [];
-  for (const p of config2.privacy.mask_patterns) {
-    try {
-      patterns.push(new RegExp(p, "gu"));
-    } catch {
-    }
-  }
-  return { prefix: config2.test_data_prefix, allow: allow.map((a) => a.toLowerCase()), patterns, fields: config2.privacy.mask_fields.map((f) => f.toLowerCase()) };
-}
-var projectRootOfRun = (runDir) => path12.resolve(runDir, "..", "..", "..");
-function contextForRun(runDir, env = process.env) {
-  const root = projectRootOfRun(runDir);
-  try {
-    if (!fs7.existsSync(path12.join(root, ".qa", "config.md"))) return DEFAULT_CONTEXT;
-    const config2 = checkConfigFile(root, env).config;
-    if (!config2) return DEFAULT_CONTEXT;
-    const names = config2.roles.flatMap((r) => [r.username_env, r.password_env]);
-    const { values } = loadQaEnv(root, env, names);
-    return contextFrom(config2, config2.roles.map((r) => values[r.username_env] ?? "").filter(Boolean));
-  } catch {
-    return DEFAULT_CONTEXT;
-  }
-}
-var TEXT_FILE = /\.(json|jsonl|md|txt|log|csv|har|html?|ya?ml|xml)$/i;
-var MAX_BYTES = 5 * 1024 * 1024;
-function textFiles(dir) {
-  const out = [];
-  const walk = (d) => {
-    for (const e of fs7.readdirSync(d, { withFileTypes: true })) {
-      if (e.name === "node_modules" || e.name === ".git") continue;
-      const p = path12.join(d, e.name);
-      if (e.isDirectory()) walk(p);
-      else if (TEXT_FILE.test(e.name) && fs7.statSync(p).size <= MAX_BYTES) out.push(p);
-    }
-  };
-  if (fs7.existsSync(dir)) walk(dir);
-  return out.sort();
-}
-function scanRun(runDir, ctx) {
-  const leaks = [];
-  const files = textFiles(runDir);
-  for (const f of files) {
-    const r = maskText(fs7.readFileSync(f, "utf8"), ctx);
-    const j = f.endsWith(".json") ? jsonLeaks(f, ctx) : void 0;
-    const kinds = { ...r.kinds };
-    let count = r.count;
-    if (j && j.count > 0 && r.count === 0) {
-      Object.assign(kinds, j.kinds);
-      count = j.count;
-    }
-    if (count > 0) leaks.push({ file: path12.relative(runDir, f).split(path12.sep).join("/"), kinds, count });
-  }
-  return { ok: leaks.length === 0, files_scanned: files.length, leaks, note: "Screenshots and other images are not scanned: they are blurred in the browser before capture (privacy.mask_selectors, and emails, phone numbers and ID numbers on the page)." };
-}
-function jsonLeaks(file4, ctx) {
-  if (ctx.fields.length === 0) return void 0;
-  try {
-    const r = maskJson(JSON.parse(fs7.readFileSync(file4, "utf8")), ctx);
-    return { count: r.count, kinds: r.kinds };
-  } catch {
-    return void 0;
-  }
-}
-
 // core/lib/reports.ts
 import fs9 from "node:fs";
-import path16 from "node:path";
+import path20 from "node:path";
 
 // core/lib/adminreport.ts
 var MISSING_PLAIN = "(plain-language text not written yet)";
@@ -45797,14 +46238,15 @@ var GLOSSARY = [
   ["Seen only once", "Something we noticed but could not repeat. It is not counted as a problem until it is confirmed."],
   ["Not tested", "Something we did not check, with the reason. It is never reported as working."]
 ];
-var one = (s) => (s ?? "").replace(/\s+/g, " ").trim();
-var cell = (s) => one(s).replace(/\|/g, "\\|");
+var one2 = (s) => (s ?? "").replace(/\s+/g, " ").trim();
+var cell3 = (s) => one2(s).replace(/\|/g, "\\|");
 var plural3 = (n, a, b) => `${n} ${n === 1 ? a : b}`;
 var MODE_TEXT = {
   full: "full check (everything we could reach)",
   quick: "quick check (key journeys and biggest risks)",
   regression: "re-check of earlier problems",
-  diff: "check of recent changes"
+  diff: "check of recent changes",
+  ticket: "check of one request (a ticket)"
 };
 function plainDate(iso) {
   const d = iso ? new Date(iso) : void 0;
@@ -45886,7 +46328,7 @@ function fixesOf(data) {
   if (!fix) return void 0;
   const lines = [];
   for (const f of [...data.findings].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""))) {
-    const title = one(f.plain?.title) || f.title;
+    const title = one2(f.plain?.title) || f.title;
     const o = f.fix?.outcome;
     if (o === "verified") lines.push(`\u2705 ${title}: fixed and checked.`);
     else if (o === "best-effort") lines.push(`\u26A0\uFE0F ${title}: fixed, but a person needs to confirm it.`);
@@ -45913,17 +46355,17 @@ function historyOf(data, f) {
 }
 function toProblem(f, data) {
   const p = f.plain;
-  const complete = !!p && !!one(p.title) && !!one(p.where) && !!one(p.what_happens) && !!one(p.who_is_affected) && !!one(p.expected) && Array.isArray(p.how_to_see_it);
+  const complete = !!p && !!one2(p.title) && !!one2(p.where) && !!one2(p.what_happens) && !!one2(p.who_is_affected) && !!one2(p.expected) && Array.isArray(p.how_to_see_it);
   const shot = p?.screenshot ?? f.evidence.find((e) => IMAGE.test(e));
   return {
     id: f.id ?? "ISSUE-???",
     severity: f.severity,
-    title: one(p?.title) || f.title,
-    where: one(p?.where) || MISSING_PLAIN,
-    what: one(p?.what_happens) || MISSING_PLAIN,
-    who: one(p?.who_is_affected) || MISSING_PLAIN,
-    steps: (p?.how_to_see_it ?? []).map(one).filter(Boolean),
-    expected: one(p?.expected) || MISSING_PLAIN,
+    title: one2(p?.title) || f.title,
+    where: one2(p?.where) || MISSING_PLAIN,
+    what: one2(p?.what_happens) || MISSING_PLAIN,
+    who: one2(p?.who_is_affected) || MISSING_PLAIN,
+    steps: (p?.how_to_see_it ?? []).map(one2).filter(Boolean),
+    expected: one2(p?.expected) || MISSING_PLAIN,
     ...shot ? { screenshot: shot } : {},
     status: statusText(f),
     ...p?.ticket ? { ticket: p.ticket } : {},
@@ -45975,10 +46417,10 @@ function buildAdminModel(data, previous = []) {
   const cameBackIds = new Set((data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed").map((l) => l.issue));
   const problems = [...data.findings].sort((a, b) => Number(cameBackIds.has(b.id ?? "")) - Number(cameBackIds.has(a.id ?? "")) || SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? "")).map((f) => toProblem(f, data));
   const notTested = mergedNotTested(data).map((n) => {
-    if (n.plain?.area?.trim() && n.plain?.reason?.trim()) return { area: one(n.plain.area), reason: one(n.plain.reason) };
+    if (n.plain?.area?.trim() && n.plain?.reason?.trim()) return { area: one2(n.plain.area), reason: one2(n.plain.reason) };
     const row = n.fromCoverage;
-    if (row) return { area: `${areaOf(row.surface, row.ui)} \u2192 ${one(row.area)}`, reason: /^(not covered|reason not recorded)\.?$/i.test(one(row.note)) || !one(row.note) ? "This was not checked in this run." : one(row.note) };
-    return { area: one(n.area), reason: one(n.reason) };
+    if (row) return { area: `${areaOf(row.surface, row.ui)} \u2192 ${one2(row.area)}`, reason: /^(not covered|reason not recorded)\.?$/i.test(one2(row.note)) || !one2(row.note) ? "This was not checked in this run." : one2(row.note) };
+    return { area: one2(n.area), reason: one2(n.reason) };
   });
   const fine = areas.filter((a) => a.result === "\u2705").length;
   const withProblems = areas.filter((a) => /^Problems found/.test(a.note)).length;
@@ -45987,13 +46429,13 @@ function buildAdminModel(data, previous = []) {
   const areaParts = [`${fine} fine`, `${withProblems} with problems`, ...partly > 0 ? [`${partly} partly checked`] : [], `${notChecked} not checked`];
   const meta3 = data.meta;
   const authored = data.adminStale ? void 0 : data.admin;
-  const biggest = one(authored?.biggest_risk) || (open2[0] && open2.some((f) => f.severity !== "minor") ? `${one(toProblem(topOpen(open2), data).title)}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
+  const biggest = one2(authored?.biggest_risk) || (open2[0] && open2.some((f) => f.severity !== "minor") ? `${one2(toProblem(topOpen(open2), data).title)}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
   const names = notTested.slice(0, 3).map((n) => n.area.length > 60 ? `${n.area.slice(0, 57)}...` : n.area);
   const summary = [
     `Checked on ${plainDate(meta3?.started)} \xB7 Environment: ${meta3?.environment ?? "unknown"} \xB7 Type of check: ${MODE_TEXT[meta3?.mode ?? ""] ?? meta3?.mode ?? "unknown"}`,
     `We looked at ${plural3(areas.length, "area", "areas")}: ${areaParts.join(", ")}.`,
     `Problems: \u{1F534} ${found.critical} critical \xB7 \u{1F7E0} ${found.important} important \xB7 \u{1F7E1} ${found.minor} minor${fixedVerified > 0 ? ` \xB7 ${fixedVerified} of them fixed and checked` : ""}`,
-    ...cameBackIds.size > 0 ? [`\u26A0\uFE0F ${plural3(cameBackIds.size, "problem came", "problems came")} back after being fixed: ${problems.filter((p) => p.cameBack).slice(0, 3).map((p) => one(p.title).replace(/[.\s]+$/, "")).join("; ")}${cameBackIds.size > 3 ? ` and ${cameBackIds.size - 3} more` : ""}.`] : [],
+    ...cameBackIds.size > 0 ? [`\u26A0\uFE0F ${plural3(cameBackIds.size, "problem came", "problems came")} back after being fixed: ${problems.filter((p) => p.cameBack).slice(0, 3).map((p) => one2(p.title).replace(/[.\s]+$/, "")).join("; ")}${cameBackIds.size > 3 ? ` and ${cameBackIds.size - 3} more` : ""}.`] : [],
     `Biggest risk: ${biggest}`,
     notTested.length ? `Not tested: ${names.join("; ")}${notTested.length > 3 ? ` and ${notTested.length - 3} more` : ""}.` : "Not tested: nothing; everything planned was checked."
   ];
@@ -46008,14 +46450,16 @@ function buildAdminModel(data, previous = []) {
   if (counts.critical > 0) fallbackSteps.push(fixedVerified > 0 ? "Have a developer fix the critical problems that are still open." : "Have a developer fix the critical problems first.");
   if (notTested.length > 0) fallbackSteps.push("Arrange what is needed to check the areas that were not tested (see the list below).");
   if (problems.length > 0) fallbackSteps.push("Run the check again after the fixes to confirm them.");
-  const authoredSteps = (authored?.next_steps ?? []).map(one).filter(Boolean);
+  const authoredSteps = (authored?.next_steps ?? []).map(one2).filter(Boolean);
   const nextSteps = (authoredSteps.length ? authoredSteps : fallbackSteps).slice(0, MAX_NEXT_STEPS);
-  const fixedSince = (data.lifecycle?.fixed ?? []).map((x) => `${one(x.plain_title ?? `A problem in "${x.area}" found earlier`).replace(/[.\s]+$/, "")}: ${x.source === "bank-test" ? "the saved automatic check for it passes now" : one(x.how).replace(/[.\s]+$/, "")}.`);
+  const fixedSince = (data.lifecycle?.fixed ?? []).map((x) => `${one2(x.plain_title ?? `A problem in "${x.area}" found earlier`).replace(/[.\s]+$/, "")}: ${x.source === "bank-test" ? "the saved automatic check for it passes now" : one2(x.how).replace(/[.\s]+$/, "")}.`);
   const knownAccepted = (data.accepted ?? []).map((f) => {
     const l = data.lifecycle?.accepted_seen.find((a) => a.bug === f.bug);
-    return `${one(f.plain?.title) || f.title}${l ? ` (accepted by ${l.by} on ${dayText(l.at)}${l.note ? `: ${one(l.note)}` : ""})` : ""}.`.replace(/\.\.$/, ".");
+    return `${one2(f.plain?.title) || f.title}${l ? ` (accepted by ${l.by} on ${dayText(l.at)}${l.note ? `: ${one2(l.note)}` : ""})` : ""}.`.replace(/\.\.$/, ".");
   });
-  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps, fixedSince, knownAccepted, ...fixes ? { fixes } : {} };
+  const ticketLines = data.ticket?.ticket ? renderAdminChecklist(data.ticket) : [];
+  const checkedLines = data.checks ? renderAdminCoverage(data.checks) : [];
+  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps, fixedSince, knownAccepted, ticketLines, checkedLines, ...fixes ? { fixes } : {} };
 }
 function renderAdminMarkdown(m) {
   const L = [m.verdict.line, ""];
@@ -46024,9 +46468,11 @@ function renderAdminMarkdown(m) {
   }
   L.push("> **30-second summary**", ...m.summary.map((s) => `> - ${s}`), "");
   L.push("## What we found, by area", "", "| Area | Result | Notes |", "|---|---|---|");
-  for (const a of m.areas) L.push(`| ${cell(a.area)} | ${a.result} | ${cell(a.note)} |`);
+  for (const a of m.areas) L.push(`| ${cell3(a.area)} | ${a.result} | ${cell3(a.note)} |`);
   if (m.areas.length === 0) L.push("| (nothing was recorded) | \u26D4 | No areas were checked. |");
   L.push("", "\u2705 nothing wrong found \xB7 \u26A0\uFE0F problems found or only partly checked \xB7 \u26D4 serious problems or not checked", "");
+  if (m.ticketLines.length) L.push(...m.ticketLines);
+  if (m.checkedLines.length) L.push("## Where and how it was checked", "", ...m.checkedLines, "");
   L.push("## Problems found", "");
   if (m.problems.length === 0) L.push("No problems were confirmed in what was checked.", "");
   else {
@@ -46034,7 +46480,7 @@ function renderAdminMarkdown(m) {
     if (notes.length) L.push(notes.join(" "), "");
   }
   for (const p of m.problems) {
-    L.push(`### ${ICON2[p.severity]} ${LABEL2[p.severity]}: ${one(p.title)}`, "");
+    L.push(`### ${ICON2[p.severity]} ${LABEL2[p.severity]}: ${one2(p.title)}`, "");
     L.push(`- **Where:** ${p.where}`, `- **What happens:** ${p.what}`, `- **Who is affected:** ${p.who}`);
     if (p.steps.length) {
       L.push("- **How to see it yourself:**");
@@ -46057,7 +46503,7 @@ function renderAdminMarkdown(m) {
   L.push("## Compared with the last check", "", ...m.trend.map((t) => `- ${t}`), "");
   L.push("## What was not tested", "");
   if (m.notTested.length === 0) L.push("Everything planned was checked.", "");
-  else L.push(...m.notTested.map((n) => `- **${one(n.area)}**: ${one(n.reason)}`), "");
+  else L.push(...m.notTested.map((n) => `- **${one2(n.area)}**: ${one2(n.reason)}`), "");
   if (m.nextSteps.length) L.push("## Suggested next steps", "", ...m.nextSteps.map((s, i) => `${i + 1}. ${s}`), "");
   L.push("## Words used in this report", "", ...GLOSSARY.map(([w, d]) => `- **${w}**: ${d}`), "");
   L.push(
@@ -46093,7 +46539,7 @@ function lintAdminLanguage(markdown) {
 
 // core/lib/memory/falsealarms.ts
 var SOURCES = ["owner", "reproduction", "spec"];
-var one2 = (s) => s.replace(/\s+/g, " ").trim();
+var one3 = (s) => s.replace(/\s+/g, " ").trim();
 function loadFalseAlarms(store, now = /* @__PURE__ */ new Date()) {
   const read = readJsonl(memoryPaths(store).falseAlarms);
   const warnings = [...read.warnings];
@@ -46112,9 +46558,9 @@ function loadFalseAlarms(store, now = /* @__PURE__ */ new Date()) {
 }
 function addFalseAlarm(store, input2, opts = {}) {
   const now = opts.now ?? /* @__PURE__ */ new Date();
-  const symptom = one2(input2.symptom);
-  const reason = one2(input2.reason);
-  const area = one2(input2.area);
+  const symptom = one3(input2.symptom);
+  const reason = one3(input2.reason);
+  const area = one3(input2.area);
   if (symptom.length < 12 || reason.length < 8 || !area) throw new Error("A false alarm needs an area, a symptom (what was seen) and a reason (why it is not a bug).");
   assertSafeText("this false alarm", `${area} ${symptom} ${reason}`, opts.knownSecrets ?? []);
   const loaded = loadFalseAlarms(store, now);
@@ -46168,7 +46614,7 @@ var LEARNINGS_CAP = 200;
 var ARCHIVE_BELOW = 3;
 var MERGE_AT = 0.6;
 var clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
-var one3 = (s) => s.replace(/\s+/g, " ").trim();
+var one4 = (s) => s.replace(/\s+/g, " ").trim();
 function loadLearnings(store, now = /* @__PURE__ */ new Date()) {
   const read = readJsonl(memoryPaths(store).learnings);
   const warnings = [...read.warnings];
@@ -46219,8 +46665,8 @@ function learningScore(l, now) {
 function learn(store, input2, opts = {}) {
   const now = opts.now ?? /* @__PURE__ */ new Date();
   if (!LEARNING_TYPES.includes(input2.type)) throw new Error(`type must be one of ${LEARNING_TYPES.join(", ")}.`);
-  const text2 = one3(input2.text);
-  const area = one3(input2.area);
+  const text2 = one4(input2.text);
+  const area = one4(input2.area);
   if (text2.length < 12 || text2.length > 400) throw new Error("A learning is one atomic statement of 12 to 400 characters.");
   if (!area || area.length > 120) throw new Error("A learning needs an area (a short label, up to 120 characters).");
   assertSafeText("this learning", `${area} ${text2}`, opts.knownSecrets ?? []);
@@ -46284,7 +46730,7 @@ function markApplied(store, ids, now = /* @__PURE__ */ new Date()) {
 }
 
 // core/lib/memory/runlife.ts
-import path13 from "node:path";
+import path17 from "node:path";
 
 // core/lib/apiplan.ts
 var STATUS_CLASS = /^[1-5]xx$/i;
@@ -46384,7 +46830,7 @@ var MAX_ACTIVE_TESTS = 300;
 var MAX_PROBES = 8;
 var MAX_STEPS = 40;
 var TARGET_KEYS = ["role", "text", "label", "testid", "selector"];
-var one4 = (s) => s.replace(/\s+/g, " ").trim();
+var one5 = (s) => s.replace(/\s+/g, " ").trim();
 var emptyStats = () => ({ runs: 0, passes: 0, failures: 0, flaky: 0, flips: 0, history: [], avg_ms: 0 });
 function loadBank(store) {
   const read = readJsonl(memoryPaths(store).bank);
@@ -46525,11 +46971,11 @@ function findDuplicate(tests, cand, ignoreId) {
   return tests.find((t) => t.status !== "retired" && t.id !== ignoreId && t.kind === cand.kind && (jaccard(signatureOf(t), sig) >= 0.8 || areaKey(t.area) === areaKey(cand.area) && similarity(t.title, cand.title) >= 0.75));
 }
 function saveTest(store, input2, ctx) {
-  const title = one4(input2.title);
-  const area = one4(input2.area);
+  const title = one5(input2.title);
+  const area = one5(input2.area);
   if (title.length < 8 || title.length > 140) throw new Error("A test needs a title of 8 to 140 characters that says what it checks.");
   if (!area) throw new Error("A test needs an area (the same wording the findings and coverage use).");
-  const card = { protects: one4(input2.card?.protects ?? ""), fails_when: one4(input2.card?.fails_when ?? ""), not_duplicate: one4(input2.card?.not_duplicate ?? "") };
+  const card = { protects: one5(input2.card?.protects ?? ""), fails_when: one5(input2.card?.fails_when ?? ""), not_duplicate: one5(input2.card?.not_duplicate ?? "") };
   for (const [k, v] of Object.entries(card)) if (v.length < 12) throw new Error(`The value card needs "${k}" (a real sentence): ${k === "protects" ? "what this test protects" : k === "fails_when" ? "what has to be wrong for it to fail" : "why it is not a duplicate of a test already in the bank"}.`);
   const warnings = [];
   let errors = [];
@@ -46559,6 +47005,10 @@ function saveTest(store, input2, ctx) {
     if (target.kind !== input2.kind) throw new Error(`${target.id} is a ${target.kind} test; it cannot become a ${input2.kind} test.`);
     Object.assign(target, { title, area, card, updated: now, revisions: target.revisions + 1, ...plan ? { plan } : {}, ...steps ? { steps } : {}, ...input2.ui ? { ui: input2.ui } : {}, ...input2.tags ? { tags: input2.tags } : {} });
     if (input2.protects_bug) target.protects_bug = input2.protects_bug;
+    if (input2.ticket) {
+      target.ticket = input2.ticket;
+      target.criteria = [.../* @__PURE__ */ new Set([...target.ticket === input2.ticket ? target.criteria ?? [] : [], ...input2.criteria ?? []])];
+    }
     saveBank(store, tests, loaded.unparsed);
     return { action: "extended", test: target, warnings, message: `${target.id} was extended (revision ${target.revisions}).` };
   }
@@ -46572,10 +47022,11 @@ function saveTest(store, input2, ctx) {
     area,
     status: "active",
     card,
-    ...input2.tags?.length ? { tags: input2.tags.map(one4).filter(Boolean).slice(0, 8) } : {},
+    ...input2.tags?.length ? { tags: input2.tags.map(one5).filter(Boolean).slice(0, 8) } : {},
     ...input2.protects_bug ? { protects_bug: input2.protects_bug } : {},
     ...input2.from_run ? { from_run: input2.from_run } : {},
     ...input2.from_issue ? { from_issue: input2.from_issue } : {},
+    ...input2.ticket ? { ticket: input2.ticket, criteria: input2.criteria ?? [] } : {},
     ...plan ? { plan } : {},
     ...input2.kind === "ui" ? { ui: input2.ui, steps } : {},
     created: now,
@@ -46859,7 +47310,7 @@ function summariseBugs(bugs) {
 }
 
 // core/lib/memory/runlife.ts
-var file2 = (runDir, name) => path13.join(runDir, "data", name);
+var file2 = (runDir, name) => path17.join(runDir, "data", name);
 var lifecycleFile = (runDir) => file2(runDir, "lifecycle.json");
 var readLifecycle = (runDir) => readJson(lifecycleFile(runDir));
 var readRechecks = (runDir) => {
@@ -47002,8 +47453,8 @@ function lintLifecycle(store, runDir, findings, unconfirmed) {
 }
 
 // core/lib/memory/memorylog.ts
-import path14 from "node:path";
-var file3 = (runDir) => path14.join(runDir, "data", "memory-log.json");
+import path18 from "node:path";
+var file3 = (runDir) => path18.join(runDir, "data", "memory-log.json");
 function readMemoryLog(runDir) {
   const v = readJson(file3(runDir));
   return Array.isArray(v) ? v : [];
@@ -47068,7 +47519,7 @@ function recordEnvQuirks(store, runId, health, now) {
 
 // core/scripts/consistency-check.ts
 import fs8 from "node:fs";
-import path15 from "node:path";
+import path19 from "node:path";
 var SEV_WORD = { "\u{1F534}": "critical", "\u{1F7E0}": "important", "\u{1F7E1}": "minor" };
 var VERDICT = /^(✅ \*\*Ready to release|⚠️ \*\*Ready with risks|⛔ \*\*Not ready to release)/;
 function section(text2, heading) {
@@ -47083,11 +47534,11 @@ function checkConsistency(runDir) {
   const errors = [];
   const warnings = [];
   const result = { ok: true, errors, warnings, technical: [], admin: [] };
-  const techFile = path15.join(runDir, "TECHNICAL-REPORT.md");
-  const adminFile = path15.join(runDir, "ADMIN-REPORT.md");
+  const techFile = path19.join(runDir, "TECHNICAL-REPORT.md");
+  const adminFile = path19.join(runDir, "ADMIN-REPORT.md");
   for (const f of [techFile, adminFile]) {
     if (!fs8.existsSync(f)) {
-      errors.push(`${path15.basename(f)} does not exist: run \`report build\` first.`);
+      errors.push(`${path19.basename(f)} does not exist: run \`report build\` first.`);
     }
   }
   if (errors.length) return { ...result, ok: false };
@@ -47192,7 +47643,7 @@ function previousRuns(store, currentRunId, limit = 3) {
   if (!store) return [];
   const dir = storeSubdirs(store).runs;
   if (!fs9.existsSync(dir)) return [];
-  return fs9.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().map((f) => readJson(path16.join(dir, f))).filter((r) => !!r && r.run_id !== currentRunId).slice(0, limit);
+  return fs9.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().map((f) => readJson(path20.join(dir, f))).filter((r) => !!r && r.run_id !== currentRunId).slice(0, limit);
 }
 function renderReports(runDir, store, ctx) {
   const first = readRunData(runDir);
@@ -47209,8 +47660,8 @@ function writeReports(runDir, store, ctx) {
   const privacy = contextForRun(runDir);
   const technical = maskText(r.technical, privacy).text;
   const admin = maskText(r.admin, privacy).text;
-  fs9.writeFileSync(path16.join(runDir, "TECHNICAL-REPORT.md"), technical, "utf8");
-  fs9.writeFileSync(path16.join(runDir, "ADMIN-REPORT.md"), admin, "utf8");
+  fs9.writeFileSync(path20.join(runDir, "TECHNICAL-REPORT.md"), technical, "utf8");
+  fs9.writeFileSync(path20.join(runDir, "ADMIN-REPORT.md"), admin, "utf8");
   return { ...r, technical, admin };
 }
 function lintFixRun(data, errors, warnings) {
@@ -47260,15 +47711,15 @@ function lintReports(runDir, knownSecrets = [], store) {
   }
   lintFixRun(data, errors, warnings);
   const scan = scanRun(runDir, contextForRun(runDir));
-  for (const leak of scan.leaks.slice(0, 10)) errors.push(`Privacy: ${leak.file} holds ${leak.count} unmasked item(s) (${Object.entries(leak.kinds).map(([k, n]) => `${n} ${k}`).join(", ")}). Run \`qamind privacy mask --run ${path16.basename(runDir)}\`, rebuild the reports and lint again.`);
-  if (scan.leaks.length > 10) errors.push(`Privacy: ${scan.leaks.length - 10} more file(s) hold unmasked data (\`qamind privacy scan --run ${path16.basename(runDir)}\` lists them all).`);
-  if (!fs9.existsSync(path16.join(runDir, "data", "pages.json"))) warnings.push("data/pages.json was not written: the product map will not learn which screens exist, and what changed since the last run cannot be reported for screens.");
+  for (const leak of scan.leaks.slice(0, 10)) errors.push(`Privacy: ${leak.file} holds ${leak.count} unmasked item(s) (${Object.entries(leak.kinds).map(([k, n]) => `${n} ${k}`).join(", ")}). Run \`qamind privacy mask --run ${path20.basename(runDir)}\`, rebuild the reports and lint again.`);
+  if (scan.leaks.length > 10) errors.push(`Privacy: ${scan.leaks.length - 10} more file(s) hold unmasked data (\`qamind privacy scan --run ${path20.basename(runDir)}\` lists them all).`);
+  if (!fs9.existsSync(path20.join(runDir, "data", "pages.json"))) warnings.push("data/pages.json was not written: the product map will not learn which screens exist, and what changed since the last run cannot be reported for screens.");
   return { ok: errors.length === 0, errors, warnings, consistency };
 }
 
 // core/lib/stack.ts
 import fs10 from "node:fs";
-import path17 from "node:path";
+import path21 from "node:path";
 var JS_FRAMEWORKS = [
   ["next", "nextjs"],
   ["react", "react"],
@@ -47303,14 +47754,14 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   const runners = /* @__PURE__ */ new Set();
   const commands = {};
   let packageManager;
-  const pkg = readJson(path17.join(root, "package.json"));
+  const pkg = readJson(path21.join(root, "package.json"));
   if (pkg) {
     languages.add("javascript");
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
     for (const [dep, name] of JS_FRAMEWORKS) if (deps[dep]) frameworks.add(name);
     for (const [dep, name] of JS_TEST_RUNNERS) if (deps[dep]) runners.add(name);
-    if (deps["typescript"] || exists(path17.join(root, "tsconfig.json"))) languages.add("typescript");
-    packageManager = exists(path17.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path17.join(root, "yarn.lock")) ? "yarn" : exists(path17.join(root, "bun.lock")) ? "bun" : "npm";
+    if (deps["typescript"] || exists(path21.join(root, "tsconfig.json"))) languages.add("typescript");
+    packageManager = exists(path21.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path21.join(root, "yarn.lock")) ? "yarn" : exists(path21.join(root, "bun.lock")) ? "bun" : "npm";
     const run = packageManager === "npm" ? "npm run" : packageManager;
     if (pkg.scripts?.["test"] && !/no test specified/.test(pkg.scripts["test"])) {
       commands.test = packageManager === "npm" ? "npm test" : `${packageManager} test`;
@@ -47320,7 +47771,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (pkg.scripts?.["dev"]) commands.dev = `${run} dev`;
     else if (pkg.scripts?.["start"]) commands.dev = packageManager === "npm" ? "npm start" : `${packageManager} start`;
   }
-  const composer = readIf(path17.join(root, "composer.json"));
+  const composer = readIf(path21.join(root, "composer.json"));
   if (composer) {
     languages.add("php");
     if (/laravel\/framework/.test(composer)) frameworks.add("laravel");
@@ -47328,19 +47779,19 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (/pestphp/.test(composer)) runners.add("pest");
     packageManager ??= "composer";
   }
-  const py = readIf(path17.join(root, "requirements.txt")) + readIf(path17.join(root, "pyproject.toml"));
-  if (py || exists(path17.join(root, "manage.py"))) {
+  const py = readIf(path21.join(root, "requirements.txt")) + readIf(path21.join(root, "pyproject.toml"));
+  if (py || exists(path21.join(root, "manage.py"))) {
     languages.add("python");
-    if (/django/i.test(py) || exists(path17.join(root, "manage.py"))) frameworks.add("django");
+    if (/django/i.test(py) || exists(path21.join(root, "manage.py"))) frameworks.add("django");
     if (/fastapi/i.test(py)) frameworks.add("fastapi");
     if (/flask/i.test(py)) frameworks.add("flask");
     if (/pytest/i.test(py)) runners.add("pytest");
     packageManager ??= "pip";
   }
-  if (/rails/.test(readIf(path17.join(root, "Gemfile")))) {
+  if (/rails/.test(readIf(path21.join(root, "Gemfile")))) {
     languages.add("ruby");
     frameworks.add("rails");
-    if (/rspec/.test(readIf(path17.join(root, "Gemfile")))) runners.add("rspec");
+    if (/rspec/.test(readIf(path21.join(root, "Gemfile")))) runners.add("rspec");
     packageManager ??= "bundler";
   }
   try {
@@ -47363,7 +47814,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   };
 }
 function saveStack(memoryDir, stack) {
-  const file4 = path17.join(memoryDir, "stack.json");
+  const file4 = path21.join(memoryDir, "stack.json");
   const prev = readJson(file4);
   const strip = (s) => JSON.stringify({ ...s, detected_at: void 0 });
   if (prev && strip(prev) === strip(stack)) return { changed: false };
@@ -47374,7 +47825,7 @@ function saveStack(memoryDir, stack) {
 // core/lib/fix/gitops.ts
 import { spawnSync } from "node:child_process";
 import fs11 from "node:fs";
-import path18 from "node:path";
+import path22 from "node:path";
 function git(root, args, input2) {
   const r = spawnSync("git", ["-C", root, "-c", "core.quotepath=off", ...args], { encoding: "utf8", input: input2, maxBuffer: 32 * 1024 * 1024, stdio: ["pipe", "pipe", "pipe"] });
   return { ok: r.status === 0, out: (r.stdout ?? "").toString(), err: (r.stderr ?? "").toString().trim(), code: r.status ?? -1 };
@@ -47400,12 +47851,12 @@ function projectPrefix(root) {
   return text(git(root, ["rev-parse", "--show-prefix"]));
 }
 function fromRepoRoot(prefix, file4) {
-  return prefix === "" ? file4 : path18.posix.relative(prefix.replace(/\/$/, ""), file4);
+  return prefix === "" ? file4 : path22.posix.relative(prefix.replace(/\/$/, ""), file4);
 }
 var QAMIND_OWN = /^(?:\.qa\/|\.env\.qa(?:$|\.))/;
 var QAMIND_GITIGNORE_LINES = /* @__PURE__ */ new Set(["# QAMind (private test credentials and reports)", ".env.qa", ".qa/"]);
 function gitignoreChangeIsQamindsOnly(root) {
-  const file4 = path18.join(root, ".gitignore");
+  const file4 = path22.join(root, ".gitignore");
   if (!fs11.existsSync(file4)) return false;
   const committed = git(root, ["show", "HEAD:./.gitignore"]);
   const before = (committed.ok ? committed.out : "").split(/\r?\n/);
@@ -47470,7 +47921,7 @@ function revertCommit(root, sha2) {
 }
 
 // core/lib/fix/protect.ts
-import path19 from "node:path";
+import path23 from "node:path";
 var BUILT_IN_PROTECTED = [
   { glob: ".git", why: "git's own data" },
   { glob: ".env*", why: "credential and environment files" },
@@ -47559,11 +48010,11 @@ function globToRegExp2(raw) {
   return new RegExp(anchored ? `^${body}(?:/.*)?$` : `(?:^|/)${body}(?:/.*)?$`, "i");
 }
 function relativeToRoot(root, p, cwd = root) {
-  const abs = path19.resolve(cwd, p);
-  const rel = path19.relative(path19.resolve(root), abs);
+  const abs = path23.resolve(cwd, p);
+  const rel = path23.relative(path23.resolve(root), abs);
   if (rel === "") return "";
-  if (rel === ".." || rel.startsWith(`..${path19.sep}`) || path19.isAbsolute(rel)) return void 0;
-  return rel.split(path19.sep).join("/");
+  if (rel === ".." || rel.startsWith(`..${path23.sep}`) || path23.isAbsolute(rel)) return void 0;
+  return rel.split(path23.sep).join("/");
 }
 function compileRules(doNotTouch = []) {
   return [
@@ -47696,7 +48147,7 @@ function stateOf(scope) {
   if (!s) throw new Error("The fix loop has not started for this run. Call fix_preflight first (after the baseline report is written).");
   return s;
 }
-var findingsFile = (runDir) => path20.join(runDir, "data", "findings.json");
+var findingsFile = (runDir) => path24.join(runDir, "data", "findings.json");
 function updateFinding(runDir, issue3, patch) {
   const list = readJson(findingsFile(runDir)) ?? [];
   const f = list.find((x) => x.id === issue3);
@@ -47757,7 +48208,7 @@ async function preflight(scope, now = /* @__PURE__ */ new Date(), opts = {}) {
   if (!isRepo(root)) return fail("not-a-git-repo", "A fix run needs a git repository: every fix is a commit on a branch. Nothing was changed.");
   const head = headCommit(root);
   if (!head) return fail("no-commits", "The repository has no commits yet, so there is nothing to fix on a branch. Nothing was changed.");
-  const baselineReport = path20.join(scope.runDir, "TECHNICAL-REPORT.md");
+  const baselineReport = path24.join(scope.runDir, "TECHNICAL-REPORT.md");
   if (!fs12.existsSync(findingsFile(scope.runDir)) || !fs12.existsSync(baselineReport)) {
     return fail("no-baseline-report", "Write the baseline report before any fix: test the product (Phases 0 to 3), write the data files, run report build and report lint, then call fix_preflight again.");
   }
@@ -47797,8 +48248,8 @@ async function preflight(scope, now = /* @__PURE__ */ new Date(), opts = {}) {
   const data = readRunData(scope.runDir);
   assignIds(scope.runDir, data);
   for (const [from, to] of [["TECHNICAL-REPORT.md", "BASELINE-TECHNICAL-REPORT.md"], ["ADMIN-REPORT.md", "BASELINE-ADMIN-REPORT.md"]]) {
-    const src = path20.join(scope.runDir, from);
-    const dst = path20.join(scope.runDir, to);
+    const src = path24.join(scope.runDir, from);
+    const dst = path24.join(scope.runDir, to);
     if (fs12.existsSync(src) && !fs12.existsSync(dst)) fs12.copyFileSync(src, dst);
   }
   const state = {
@@ -47910,7 +48361,7 @@ async function runTests(scope, input2, now = /* @__PURE__ */ new Date()) {
   if (rel.problem) return fail("protected", rel.problem);
   for (const f of rel.rel) {
     if (!isTestPath(f)) return fail("not-a-test-file", `${f} does not look like an automated test.`);
-    if (!fs12.existsSync(path20.join(scope.ctx.projectRoot, f))) return fail("missing", `${f} does not exist yet: write the test first.`);
+    if (!fs12.existsSync(path24.join(scope.ctx.projectRoot, f))) return fail("missing", `${f} does not exist yet: write the test first.`);
   }
   let command2;
   try {
@@ -47923,12 +48374,12 @@ async function runTests(scope, input2, now = /* @__PURE__ */ new Date()) {
 }
 function backupFixed(root, evidenceDir, rels) {
   return rels.map((rel) => {
-    const abs = path20.join(root, rel);
+    const abs = path24.join(root, rel);
     const tracked = isTracked(root, rel);
     if (!fs12.existsSync(abs)) return { rel, tracked };
     const content = fs12.readFileSync(abs);
-    const dest = path20.join(evidenceDir, "fixed", rel);
-    ensureDir(path20.dirname(dest));
+    const dest = path24.join(evidenceDir, "fixed", rel);
+    ensureDir(path24.dirname(dest));
     fs12.writeFileSync(dest, content);
     return { rel, content, mode: fs12.statSync(abs).mode, tracked };
   });
@@ -47939,16 +48390,16 @@ function unfix(root, backups) {
     const r = restoreFromHead(root, tracked);
     if (!r.ok) throw new Error(`Could not take the fix out to prove the test: ${r.err}`);
   }
-  for (const b of backups.filter((x) => !x.tracked)) fs12.rmSync(path20.join(root, b.rel), { force: true });
+  for (const b of backups.filter((x) => !x.tracked)) fs12.rmSync(path24.join(root, b.rel), { force: true });
 }
 function refix(root, backups) {
   for (const b of backups) {
-    const abs = path20.join(root, b.rel);
+    const abs = path24.join(root, b.rel);
     if (b.content === void 0) {
       fs12.rmSync(abs, { force: true });
       continue;
     }
-    ensureDir(path20.dirname(abs));
+    ensureDir(path24.dirname(abs));
     fs12.writeFileSync(abs, b.content);
     if (b.mode !== void 0) fs12.chmodSync(abs, b.mode);
   }
@@ -47989,7 +48440,7 @@ async function commit(scope, input2, now = /* @__PURE__ */ new Date()) {
     if (n && n.deleted > 0) return fail("existing-test-changed", `${t} is an existing test and ${n.deleted} of its lines were removed or changed. Never change an existing assertion to make something pass: add a new test instead.`);
   }
   if (stagedFiles(root).length) return fail("staged-changes", "Something is already staged in the index. Nothing may be staged before fix_commit; ask the user.");
-  const evidence = path20.join(scope.runDir, "evidence", "fix", input2.issue);
+  const evidence = path24.join(scope.runDir, "evidence", "fix", input2.issue);
   ensureDir(evidence);
   const backups = backupFixed(root, evidence, changedProd);
   const redact = redactor(scope);
@@ -48008,8 +48459,8 @@ async function commit(scope, input2, now = /* @__PURE__ */ new Date()) {
     refix(root, backups);
   }
   for (const b of backups) {
-    const now2 = fs12.existsSync(path20.join(root, b.rel)) ? fs12.readFileSync(path20.join(root, b.rel)) : void 0;
-    if (now2 === void 0 !== (b.content === void 0) || now2 && b.content && !now2.equals(b.content)) throw new Error(`Putting the fix back after the proof did not restore ${b.rel} exactly. The fixed files are saved in ${path20.relative(root, path20.join(evidence, "fixed"))}; restore them by hand.`);
+    const now2 = fs12.existsSync(path24.join(root, b.rel)) ? fs12.readFileSync(path24.join(root, b.rel)) : void 0;
+    if (now2 === void 0 !== (b.content === void 0) || now2 && b.content && !now2.equals(b.content)) throw new Error(`Putting the fix back after the proof did not restore ${b.rel} exactly. The fixed files are saved in ${path24.relative(root, path24.join(evidence, "fixed"))}; restore them by hand.`);
   }
   attempt.without_fix = toRecord(without, now);
   if (without.passed || without.timed_out || without.exit_code === null) {
@@ -48074,27 +48525,27 @@ function revert(scope, input2, now = /* @__PURE__ */ new Date()) {
     const foreign = changed.map((e) => norm(e.path)).filter((p) => !allowed.has(p));
     if (foreign.length) return fail("other-changes", `The working tree also has changes this attempt did not declare (${foreign.slice(0, 8).join(", ")}). They may be the user's, so nothing was touched. Ask the user.`, { files: foreign.slice(0, 20) });
     if (stagedFiles(root).length) return fail("staged-changes", "Something is staged in the index. Nothing was touched; ask the user.");
-    const saved = path20.join(scope.runDir, "evidence", "fix", input2.issue, "reverted-attempt");
+    const saved = path24.join(scope.runDir, "evidence", "fix", input2.issue, "reverted-attempt");
     ensureDir(saved);
     for (const e of changed) {
-      const src = path20.join(root, e.path);
+      const src = path24.join(root, e.path);
       if (fs12.existsSync(src)) {
-        const dst = path20.join(saved, e.path);
-        ensureDir(path20.dirname(dst));
+        const dst = path24.join(saved, e.path);
+        ensureDir(path24.dirname(dst));
         fs12.copyFileSync(src, dst);
       }
     }
     const diff = git(root, ["diff", "HEAD"]).out;
-    if (diff) fs12.writeFileSync(path20.join(saved, "attempt.patch"), diff, "utf8");
+    if (diff) fs12.writeFileSync(path24.join(saved, "attempt.patch"), diff, "utf8");
     const tracked = changed.filter((e) => !e.untracked).map((e) => norm(e.path));
     if (tracked.length) {
       const r = restoreFromHead(root, tracked);
       if (!r.ok) return fail("git-failed", `git could not restore the files: ${r.err}`);
     }
-    for (const e of changed.filter((x) => x.untracked)) fs12.rmSync(path20.join(root, e.path), { force: true });
+    for (const e of changed.filter((x) => x.untracked)) fs12.rmSync(path24.join(root, e.path), { force: true });
     if (statusEntries(root).length) return fail("not-clean", "After undoing the attempt the working tree is still not clean. Stop and ask the user.", { files: statusEntries(root).map((e) => e.path).slice(0, 20) });
     attempt.status = "reverted";
-    attempt.saved_to = path20.relative(scope.runDir, saved).split(path20.sep).join("/");
+    attempt.saved_to = path24.relative(scope.runDir, saved).split(path24.sep).join("/");
   } else if (attempt.status === "verified" || attempt.status === "best-effort") {
     if (!attempt.commit) return fail("no-commit", "This fix has no commit to revert.");
     if (statusEntries(root).length || stagedFiles(root).length) return fail("dirty-tree", "The working tree has changes. Ask the user before reverting a commit.");
@@ -48205,13 +48656,13 @@ function statusOf(scope, state) {
 }
 
 // core/lib/memory/service.ts
-import path34 from "node:path";
+import path39 from "node:path";
 
 // core/lib/project.ts
 import { execFileSync } from "node:child_process";
 import crypto2 from "node:crypto";
 import fs13 from "node:fs";
-import path21 from "node:path";
+import path25 from "node:path";
 function normalizeGitRemote(url2) {
   let s = url2.trim();
   if (!s) return null;
@@ -48244,7 +48695,7 @@ function isGitRepo(root) {
 }
 function resolveProject(root) {
   const real = fs13.realpathSync(root);
-  const name = path21.basename(real);
+  const name = path25.basename(real);
   const remoteRaw = gitOutput(real, ["remote", "get-url", "origin"]);
   const remote = remoteRaw ? normalizeGitRemote(remoteRaw) : null;
   if (remote) {
@@ -48255,9 +48706,9 @@ function resolveProject(root) {
 }
 var PROJECT_MARKERS = ["package.json", "composer.json", "pyproject.toml", "requirements.txt", "manage.py", "Gemfile", "pom.xml", "build.gradle", "go.mod", "Cargo.toml"];
 function looksLikeProject(root) {
-  if (exists(path21.join(root, ".qa", "config.md"))) return true;
+  if (exists(path25.join(root, ".qa", "config.md"))) return true;
   if (isGitRepo(root)) return true;
-  if (PROJECT_MARKERS.some((m) => exists(path21.join(root, m)))) return true;
+  if (PROJECT_MARKERS.some((m) => exists(path25.join(root, m)))) return true;
   try {
     return fs13.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"));
   } catch {
@@ -48268,7 +48719,7 @@ function ensureProjectStore(home, info, now = /* @__PURE__ */ new Date()) {
   const store = storeDir(home, info.id);
   const dirs = storeSubdirs(store);
   for (const d of Object.values(dirs)) ensureDir(d);
-  const file4 = path21.join(store, "project.json");
+  const file4 = path25.join(store, "project.json");
   const existing = readJson(file4);
   if (existing && existing.schema_version > SCHEMA_VERSION) {
     throw new Error(
@@ -48297,7 +48748,7 @@ function listKnownProjects(home) {
   const out = [];
   for (const entry of fs13.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const p = readJson(path21.join(root, entry.name, "project.json"));
+    const p = readJson(path25.join(root, entry.name, "project.json"));
     if (p) out.push({ id: p.id, name: p.name, paths_seen: p.paths_seen, last_seen: p.last_seen });
   }
   return out.sort((a, b) => b.last_seen.localeCompare(a.last_seen));
@@ -48305,15 +48756,15 @@ function listKnownProjects(home) {
 
 // core/lib/run.ts
 import fs16 from "node:fs";
-import path29 from "node:path";
+import path34 from "node:path";
 
 // core/lib/corepath.ts
-import path22 from "node:path";
+import path26 from "node:path";
 import { fileURLToPath } from "node:url";
 function corePath() {
-  const here = path22.dirname(fileURLToPath(import.meta.url));
-  const candidates = [process.env["QAMIND_CORE"], path22.resolve(here, "../core"), path22.resolve(here, "..")].filter((c) => !!c);
-  for (const c of candidates) if (exists(path22.join(c, "shared", "templates", "config.md"))) return c;
+  const here = path26.dirname(fileURLToPath(import.meta.url));
+  const candidates = [process.env["QAMIND_CORE"], path26.resolve(here, "../core"), path26.resolve(here, "..")].filter((c) => !!c);
+  for (const c of candidates) if (exists(path26.join(c, "shared", "templates", "config.md"))) return c;
   throw new Error(`Cannot locate QAMind's core files (looked in: ${candidates.join(", ")}).`);
 }
 
@@ -48356,7 +48807,7 @@ function gitInfo(root) {
 
 // core/lib/gitignore.ts
 import fs14 from "node:fs";
-import path23 from "node:path";
+import path27 from "node:path";
 var QA_GITIGNORE_ENTRIES = [".env.qa", ".qa/"];
 function isCovered(lines, entry) {
   const bare = entry.replace(/\/$/, "");
@@ -48364,7 +48815,7 @@ function isCovered(lines, entry) {
   return lines.some((l) => accepted.has(l.trim()));
 }
 function ensureGitignoreEntries(root, entries = QA_GITIGNORE_ENTRIES) {
-  const file4 = path23.join(root, ".gitignore");
+  const file4 = path27.join(root, ".gitignore");
   const current = fs14.existsSync(file4) ? fs14.readFileSync(file4, "utf8") : "";
   const lines = current.split(/\r?\n/);
   const missing = entries.filter((e) => !isCovered(lines, e));
@@ -48380,7 +48831,7 @@ function ensureGitignoreEntries(root, entries = QA_GITIGNORE_ENTRIES) {
 
 // core/lib/memory/migrate.ts
 import fs15 from "node:fs";
-import path24 from "node:path";
+import path28 from "node:path";
 var unchanged = (file4) => ({ id: `${file4}-1-to-2`, file: file4, from: 1, to: 2, describe: `${file4}: no change to the content; the version number moves to 2 so that a store is at one version`, up: (v) => v });
 var MIGRATIONS = [
   {
@@ -48413,7 +48864,7 @@ function memoryFiles(store) {
     { kind: "test-bank", file: p.bank, jsonl: true }
   ];
   if (fs15.existsSync(p.runs)) {
-    for (const f of fs15.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path24.join(p.runs, f), jsonl: false });
+    for (const f of fs15.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path28.join(p.runs, f), jsonl: false });
   }
   return refs.filter((r) => fs15.existsSync(r.file));
 }
@@ -48479,7 +48930,7 @@ function migrateStore(store, opts = {}) {
   const next = /* @__PURE__ */ new Map();
   for (const { ref, steps } of pending) {
     const to = steps[steps.length - 1]?.to ?? target;
-    const where = path24.basename(ref.file);
+    const where = path28.basename(ref.file);
     if (!ref.jsonl) {
       const value = JSON.parse(fs15.readFileSync(ref.file, "utf8"));
       next.set(ref.file, JSON.stringify({ ...applySteps(value, steps, where), schema_version: to }, null, 2) + "\n");
@@ -48506,10 +48957,10 @@ function migrateStore(store, opts = {}) {
     next.set(ref.file, out.join("\n"));
   }
   const lowest = Math.min(...pending.map((p) => p.from));
-  const backup = path24.join(storeSubdirs(store).backups, `${stampOf(now)}-schema-${lowest}-to-${target}`);
+  const backup = path28.join(storeSubdirs(store).backups, `${stampOf(now)}-schema-${lowest}-to-${target}`);
   for (const { ref } of pending) {
-    const dest = path24.join(backup, path24.relative(store, ref.file));
-    ensureDir(path24.dirname(dest));
+    const dest = path28.join(backup, path28.relative(store, ref.file));
+    ensureDir(path28.dirname(dest));
     fs15.copyFileSync(ref.file, dest);
   }
   const log = [];
@@ -48518,11 +48969,11 @@ function migrateStore(store, opts = {}) {
     const tmp = `${ref.file}.${process.pid}.tmp`;
     fs15.writeFileSync(tmp, next.get(ref.file), "utf8");
     fs15.renameSync(tmp, ref.file);
-    const entry = { file: path24.relative(store, ref.file).split(path24.sep).join("/"), from, to: steps[steps.length - 1]?.to ?? target, migrations: steps.map((s) => s.id) };
+    const entry = { file: path28.relative(store, ref.file).split(path28.sep).join("/"), from, to: steps[steps.length - 1]?.to ?? target, migrations: steps.map((s) => s.id) };
     report.migrated.push(entry);
-    log.push(JSON.stringify({ at: now.toISOString(), ...entry, backup: path24.relative(store, backup).split(path24.sep).join("/"), describe: steps.map((s) => s.describe) }));
+    log.push(JSON.stringify({ at: now.toISOString(), ...entry, backup: path28.relative(store, backup).split(path28.sep).join("/"), describe: steps.map((s) => s.describe) }));
   }
-  fs15.appendFileSync(path24.join(storeSubdirs(store).backups, "migrations.log.jsonl"), `${log.join("\n")}
+  fs15.appendFileSync(path28.join(storeSubdirs(store).backups, "migrations.log.jsonl"), `${log.join("\n")}
 `, "utf8");
   return report;
 }
@@ -48535,11 +48986,11 @@ function ensureMigrated(store) {
 }
 
 // core/lib/bank/gate.ts
-import path25 from "node:path";
+import path29 from "node:path";
 var BANK_SKIP_FILE = "bank-skip.json";
 function bankGate(i) {
   const saved = loadBank(i.store).tests.filter((t) => t.created >= i.started).length;
-  const raw = readJson(path25.join(i.runDir, "data", BANK_SKIP_FILE));
+  const raw = readJson(path29.join(i.runDir, "data", BANK_SKIP_FILE));
   const reason = typeof raw?.reason === "string" ? raw.reason.replace(/\s+/g, " ").trim() : "";
   const serious = i.findings.filter((f) => (f.severity === "critical" || f.severity === "important") && f.fix_status !== "fixed-verified");
   const exempt = i.trigger === "auto" || i.trigger === "ci" || i.budgetOver || i.environmentBroken || serious.length === 0;
@@ -48548,16 +48999,16 @@ function bankGate(i) {
   const ids = serious.map((f) => f.id ?? f.title).slice(0, 6).join(", ");
   return {
     saved: 0,
-    problem: `This run found ${serious.length} critical or important problem(s) (${ids}${serious.length > 6 ? ", ..." : ""}) and saved no test for any of them, so the next run cannot check them first. Save the checks worth keeping with bank_save_test (see shared/test-bank.md: one for each problem you reproduced twice, with from_issue), or, if none of them can be written as an API or UI test, say why in ${path25.join(i.runDir, "data", BANK_SKIP_FILE)} as {"reason": "..."} (a real sentence). Then finish again.${reason ? " The reason in that file is too short to count." : ""}`
+    problem: `This run found ${serious.length} critical or important problem(s) (${ids}${serious.length > 6 ? ", ..." : ""}) and saved no test for any of them, so the next run cannot check them first. Save the checks worth keeping with bank_save_test (see shared/test-bank.md: one for each problem you reproduced twice, with from_issue), or, if none of them can be written as an API or UI test, say why in ${path29.join(i.runDir, "data", BANK_SKIP_FILE)} as {"reason": "..."} (a real sentence). Then finish again.${reason ? " The reason in that file is too short to count." : ""}`
   };
 }
 
 // core/auto-qa/settings.ts
-import path26 from "node:path";
+import path30 from "node:path";
 var AUTO_SCHEMA = 1;
 var AUTO_MODES = ["diff", "quick", "full", "fix", "ask"];
-var projectAutoFile = (store) => path26.join(store, "auto.json");
-var globalAutoFile = (home) => path26.join(home, "auto.json");
+var projectAutoFile = (store) => path30.join(store, "auto.json");
+var globalAutoFile = (home) => path30.join(home, "auto.json");
 function readJsonTolerant(file4) {
   try {
     return readJson(file4);
@@ -48583,8 +49034,8 @@ function readAutoFile(file4) {
 }
 
 // core/auto-qa/state.ts
-import path27 from "node:path";
-var stateFile = (store, name) => path27.join(storeSubdirs(store).state, name);
+import path31 from "node:path";
+var stateFile = (store, name) => path31.join(storeSubdirs(store).state, name);
 var LAST_RUN = "last-run.json";
 function writeLastRun(store, run) {
   ensureDir(storeSubdirs(store).state);
@@ -48592,8 +49043,8 @@ function writeLastRun(store, run) {
 }
 
 // core/lib/envprep.ts
-import path28 from "node:path";
-var prepFile = (runDir) => path28.join(runDir, "data", "env-prep.json");
+import path32 from "node:path";
+var prepFile = (runDir) => path32.join(runDir, "data", "env-prep.json");
 var readPrep = (runDir) => readJson(prepFile(runDir));
 function commandProblem(command2, config2) {
   const lower = command2.toLowerCase();
@@ -48628,18 +49079,31 @@ async function restoreEnvironment(o) {
   return s;
 }
 
+// core/lib/sweep/service.ts
+import path33 from "node:path";
+
+// core/lib/sweep/png.ts
+var SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+
+// core/lib/sweep/service.ts
+function sweepPerfPoints(runDir) {
+  const sweep = readJson(path33.join(runDir, "data", "sweep.json"));
+  if (!sweep) return [];
+  return sweep.visits.filter((v) => !v.error && v.settled_ms !== void 0 && !v.signals.some((s) => s.kind === "never-settled")).map((v) => ({ key: `page|${v.page}|${v.role ?? "-"}|${v.browser}|${v.viewport}`, ms: v.settled_ms }));
+}
+
 // core/lib/run.ts
-var MODES = ["full", "quick", "regression", "diff"];
+var MODES = ["full", "quick", "regression", "diff", "ticket"];
 var MARKER_TTL_HOURS = 8;
 function realOrResolved(p) {
   try {
     return fs16.realpathSync(p);
   } catch {
-    return path29.resolve(p);
+    return path34.resolve(p);
   }
 }
 function browserStatus(home, projectRoot, expectedNames) {
-  const state = readJson(path29.join(home, "state", "browser-state.json"));
+  const state = readJson(path34.join(home, "state", "browser-state.json"));
   const key = Object.keys(state ?? {}).find((k) => realOrResolved(k) === realOrResolved(projectRoot));
   if (!state || !key) {
     return {
@@ -48660,12 +49124,12 @@ function browserStatus(home, projectRoot, expectedNames) {
 }
 function copyIfMissing(from, to, created) {
   if (exists(to)) return;
-  ensureDir(path29.dirname(to));
+  ensureDir(path34.dirname(to));
   fs16.copyFileSync(from, to);
   created.push(to);
 }
 function markerPath(store) {
-  return path29.join(storeSubdirs(store).state, RUN_MARKER_FILE);
+  return path34.join(storeSubdirs(store).state, RUN_MARKER_FILE);
 }
 function readMarker(store) {
   return readJson(markerPath(store));
@@ -48682,7 +49146,7 @@ function scanAllMarkers(home) {
   const out = [];
   for (const entry of fs16.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const m = readJson(path29.join(root, entry.name, "state", RUN_MARKER_FILE));
+    const m = readJson(path34.join(root, entry.name, "state", RUN_MARKER_FILE));
     if (m) out.push(m);
   }
   return out;
@@ -48690,7 +49154,10 @@ function scanAllMarkers(home) {
 function startRun(opts) {
   const env = opts.env ?? process.env;
   const now = opts.now ?? /* @__PURE__ */ new Date();
-  const root = path29.resolve(opts.project ?? opts.cwd);
+  const root = path34.resolve(opts.project ?? opts.cwd);
+  const ticketRef = opts.ticket ? cleanRef(opts.ticket) : void 0;
+  if (opts.mode === "ticket" && !ticketRef) throw new Error('Ticket mode needs the ticket to test: pass ticket (an id, an address, a file path, or "pasted text").');
+  if (ticketRef && opts.mode !== "ticket") throw new Error(`A ticket was given, so the mode is "ticket" (found "${opts.mode}").`);
   if (!exists(root) || !fs16.statSync(root).isDirectory()) {
     return { status: "no-project", message: `The folder ${root} does not exist. Ask the user which project folder to test.`, known_projects: listKnownProjects(opts.home) };
   }
@@ -48705,13 +49172,13 @@ function startRun(opts) {
   const { store } = ensureProjectStore(opts.home, info, now);
   ensureMigrated(store);
   const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store };
-  const configFile = path29.join(root, ".qa", "config.md");
+  const configFile = path34.join(root, ".qa", "config.md");
   const gitignoreAdded = env["QAMIND_TRIGGER"] === "ci" || opts.trigger === "ci" ? [] : ensureGitignoreEntries(root);
   if (!exists(configFile)) {
     const created = [];
     const core = corePath();
-    copyIfMissing(path29.join(core, "shared", "templates", "config.md"), configFile, created);
-    copyIfMissing(path29.join(core, "shared", "templates", "env.qa.example"), path29.join(root, ".env.qa.example"), created);
+    copyIfMissing(path34.join(core, "shared", "templates", "config.md"), configFile, created);
+    copyIfMissing(path34.join(core, "shared", "templates", "env.qa.example"), path34.join(root, ".env.qa.example"), created);
     return {
       status: "needs-config",
       message: "First run in this project: QAMind created .qa/config.md and .env.qa.example and added .qa/ and .env.qa to .gitignore. Fill in .qa/config.md (every REPLACE_ME), copy .env.qa.example to .env.qa and add the TEST account logins, then run QA again. Nothing was tested.",
@@ -48763,10 +49230,10 @@ function startRun(opts) {
     }
   }
   let runId = `run-${utcStamp(now)}`;
-  const reports = path29.join(root, ".qa", "reports");
-  for (let n = 2; exists(path29.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
-  const runDir = path29.join(reports, runId);
-  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path29.join(runDir, sub));
+  const reports = path34.join(root, ".qa", "reports");
+  for (let n = 2; exists(path34.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
+  const runDir = path34.join(reports, runId);
+  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path34.join(runDir, sub));
   const criticalFlows = parseCriticalFlows(check2.body ?? "");
   const stack = detectStack(root, now);
   saveStack(storeSubdirs(store).memory, stack);
@@ -48790,6 +49257,7 @@ function startRun(opts) {
     host: opts.host,
     ...opts.sessionId ? { session_id: opts.sessionId } : {},
     ...opts.focus ? { focus: opts.focus } : {},
+    ...ticketRef ? { ticket: ticketRef } : {},
     started: now.toISOString(),
     expires: new Date(now.getTime() + MARKER_TTL_HOURS * 36e5).toISOString(),
     policy,
@@ -48808,6 +49276,7 @@ function startRun(opts) {
     kind: opts.kind,
     host: opts.host,
     ...opts.focus ? { focus: opts.focus } : {},
+    ...ticketRef ? { ticket_ref: ticketRef } : {},
     started: now.toISOString(),
     critical_flows: criticalFlows,
     ...git3.branch ? { branch: git3.branch } : {},
@@ -48815,13 +49284,13 @@ function startRun(opts) {
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION
   };
-  writeJson(path29.join(runDir, "data", "meta.json"), meta3);
+  writeJson(path34.join(runDir, "data", "meta.json"), meta3);
   return {
     status: "ready",
     message: "Ready. Credentials are present for the roles listed (values are never shown).",
     project: projectOut,
     gitignore_added: gitignoreAdded,
-    run: { id: runId, dir: runDir, mode: opts.mode, ...opts.focus ? { focus: opts.focus } : {}, readonly: readonly2, report: path29.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...budget.time_minutes !== void 0 ? { time_minutes: budget.time_minutes } : {}, ...budget.max_cost !== void 0 ? { max_cost: budget.max_cost } : {}, ...budget.deadline ? { deadline: budget.deadline } : {} } },
+    run: { id: runId, dir: runDir, mode: opts.mode, ...opts.focus ? { focus: opts.focus } : {}, ...ticketRef ? { ticket: ticketRef } : {}, readonly: readonly2, report: path34.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...budget.time_minutes !== void 0 ? { time_minutes: budget.time_minutes } : {}, ...budget.max_cost !== void 0 ? { max_cost: budget.max_cost } : {}, ...budget.deadline ? { deadline: budget.deadline } : {} } },
     config: {
       environment: config2.environment.name,
       web_uis: config2.web_uis,
@@ -48856,11 +49325,15 @@ function finishRun(opts) {
     started: marker.started,
     trigger: marker.trigger,
     budgetOver: budgetStatus(marker.budget, marker.started, now).state === "over",
-    environmentBroken: (readJson(path29.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) === false,
+    environmentBroken: (readJson(path34.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) === false,
     findings: prior.findings
   });
   if (gate.problem) throw new Error(gate.problem);
   const lifeResult = applyRunLifecycle(marker.store, marker.run_dir, marker.run_id, now);
+  if ((readJson(path34.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) !== false) {
+    const points = [...sweepPerfPoints(marker.run_dir), ...apiPerfPoints(marker.run_dir)];
+    if (points.length) withStoreLock(marker.store, () => recordPerf(marker.store, points, marker.run_id, now));
+  }
   const data = readRunData(marker.run_dir);
   const bugOf = new Map((lifeResult.lifecycle.findings ?? []).map((l) => [l.issue, l.bug]));
   const counts = countBySeverity(data.findings);
@@ -48868,8 +49341,8 @@ function finishRun(opts) {
   const journeys = flowStatus(data);
   const started = new Date(marker.started).getTime();
   const duration_s = Math.max(0, Math.round((now.getTime() - started) / 1e3));
-  const meta3 = readJson(path29.join(marker.run_dir, "data", "meta.json"));
-  const health = readJson(path29.join(marker.run_dir, "data", "health.json"));
+  const meta3 = readJson(path34.join(marker.run_dir, "data", "meta.json"));
+  const health = readJson(path34.join(marker.run_dir, "data", "health.json"));
   const stop_reason = opts.stopReason ?? (health && health.environment_ok === false ? "environment problem" : "completed");
   const usage = parseUsage(opts.cost, duration_s);
   const bstat = budgetStatus(marker.budget, marker.started, now);
@@ -48903,12 +49376,16 @@ function finishRun(opts) {
     ...budgetOutcome ? { budget: budgetOutcome } : {},
     ...environment ? { environment } : {},
     bank: { saved: gate.saved, ...gate.skipped_reason ? { skipped_reason: gate.skipped_reason } : {} },
+    ...(() => {
+      const t = marker.ticket ? readTicketData(marker.run_dir, marker.trigger) : void 0;
+      return t?.ticket ? { ticket: { ref: marker.ticket, ...ticketCounts(t) } } : {};
+    })(),
     stop_reason,
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION,
     ...meta3?.branch ? { branch: meta3.branch } : {},
     ...meta3?.commit ? { commit: meta3.commit } : {},
-    report: path29.join(marker.run_dir, "TECHNICAL-REPORT.md")
+    report: path34.join(marker.run_dir, "TECHNICAL-REPORT.md")
   };
   const config2 = checkConfigFile(marker.project_root, process.env).config;
   const memory = applyRunToMemory({
@@ -48920,14 +49397,14 @@ function finishRun(opts) {
     roles: (config2?.roles ?? []).map((r) => r.name),
     uiUrls: Object.fromEntries((config2?.web_uis ?? []).map((u) => [u.name, u.url]))
   });
-  if (meta3) writeJson(path29.join(marker.run_dir, "data", "meta.json"), { ...meta3, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...budgetOutcome ? { budget: budgetOutcome } : {}, ...prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...prep.restore ? { restored: prep.restore.ok } : {} } } : {}, bank_saved: gate.saved, ...gate.skipped_reason ? { bank_skipped: gate.skipped_reason } : {}, memory_updated: memory.updated });
+  if (meta3) writeJson(path34.join(marker.run_dir, "data", "meta.json"), { ...meta3, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...budgetOutcome ? { budget: budgetOutcome } : {}, ...prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...prep.restore ? { restored: prep.restore.ok } : {} } } : {}, bank_saved: gate.saved, ...gate.skipped_reason ? { bank_skipped: gate.skipped_reason } : {}, memory_updated: memory.updated });
   summary.memory_updated = [...lifeResult.lines, ...memory.updated];
   const fixState = loadFixState(marker.run_dir);
   if (fixState) {
     const by = (o) => fixState.attempts.filter((a) => a.status === o).length;
     summary.fixes = { branch: fixState.branch, base_commit: fixState.base_commit.slice(0, 7), verified: by("verified"), best_effort: by("best-effort"), reverted: by("reverted"), deferred: by("deferred"), commits: fixState.attempts.filter((a) => a.commit && (a.status === "verified" || a.status === "best-effort")).map((a) => a.commit).map((c) => c.slice(0, 7)), suite: fixState.comparison?.verdict ?? "not-run" };
   }
-  writeJson(path29.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
+  writeJson(path34.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
   writeReports(marker.run_dir, marker.store);
   fs16.rmSync(markerPath(marker.store), { force: true });
   addToDay(marker.store, marker.trigger, duration_s, now);
@@ -48936,7 +49413,7 @@ function finishRun(opts) {
 }
 
 // core/lib/runctx.ts
-import path30 from "node:path";
+import path35 from "node:path";
 function loadRunContext(home, runId, env = process.env) {
   if (!runId) throw new Error("--run <run-id> is required (use the id printed by `run start`).");
   const marker = findMarkerByRunId(home, runId);
@@ -48954,7 +49431,7 @@ function loadRunContext(home, runId, env = process.env) {
   return {
     marker,
     projectRoot: marker.project_root,
-    runDir: path30.resolve(marker.run_dir),
+    runDir: path35.resolve(marker.run_dir),
     config: check2.config,
     policy: marker.policy,
     roles,
@@ -48964,12 +49441,12 @@ function loadRunContext(home, runId, env = process.env) {
 
 // core/lib/memory/context.ts
 import fs18 from "node:fs";
-import path32 from "node:path";
+import path37 from "node:path";
 
 // core/lib/memory/lessons.ts
 import crypto3 from "node:crypto";
 import fs17 from "node:fs";
-import path31 from "node:path";
+import path36 from "node:path";
 var PENDING_FILE = "pending-lessons.md";
 var APPROVED_FILE = "global-lessons.md";
 var REJECTED_FILE = "rejected-lessons.jsonl";
@@ -48977,7 +49454,7 @@ var USE_FILE = "lesson-use.json";
 var MAX_PENDING = 100;
 var MAX_LOADED = 25;
 var MERGE_AT2 = 0.6;
-var one5 = (s) => s.replace(/\s+/g, " ").trim();
+var one6 = (s) => s.replace(/\s+/g, " ").trim();
 var NOT_GENERIC = [
   [/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/, "an email address"],
   [/https?:\/\/|\bwww\./i, "a web address"],
@@ -49001,11 +49478,11 @@ function knownProjectNames(home, extra = []) {
   const names = new Set(extra);
   for (const p of listKnownProjects(home)) {
     names.add(p.name);
-    for (const seen of p.paths_seen) names.add(path31.basename(seen));
+    for (const seen of p.paths_seen) names.add(path36.basename(seen));
   }
   return [...names].filter((n) => n.trim().length > 0);
 }
-var hashId = (text2) => `H-${crypto3.createHash("sha1").update(one5(text2).toLowerCase()).digest("hex").slice(0, 6)}`;
+var hashId = (text2) => `H-${crypto3.createHash("sha1").update(one6(text2).toLowerCase()).digest("hex").slice(0, 6)}`;
 var HEADER = /^##\s+(.*)$/;
 var LESSON_LINE = /^-\s+\*\*Lesson:\*\*\s*(.+)$/;
 var WHY_LINE = /^-\s+\*\*Why:\*\*\s*(.+)$/;
@@ -49061,7 +49538,7 @@ function parseLessons(text2) {
 }
 var readFile = (file4) => parseLessons(fs17.existsSync(file4) ? fs17.readFileSync(file4, "utf8") : "");
 function writeText(file4, text2) {
-  ensureDir(path31.dirname(file4));
+  ensureDir(path36.dirname(file4));
   const tmp = `${file4}.${process.pid}.tmp`;
   fs17.writeFileSync(tmp, text2, "utf8");
   fs17.renameSync(tmp, file4);
@@ -49079,16 +49556,16 @@ var approvedHeader = `# Global lessons
 
 Lessons you approved. **Every QAMind project reads this file** (the newest ${MAX_LOADED} at most, best-used first), so each entry must help on any project: no project names, web addresses, files, tickets or code.
 An entry that breaks that rule is not loaded, and the review says why. You can add, edit or delete entries by hand.`;
-var rejectedRecords = (home) => readJsonl(path31.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
+var rejectedRecords = (home) => readJsonl(path36.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
 var allIds = (home) => {
-  const approved = readFile(path31.join(home, APPROVED_FILE)).blocks;
+  const approved = readFile(path36.join(home, APPROVED_FILE)).blocks;
   const origins = approved.flatMap((b) => b.lines.flatMap((l) => [...l.matchAll(/\(was ([A-Z]-\d+)\)/g)].map((m) => m[1])));
-  return [...readFile(path31.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
+  return [...readFile(path36.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
 };
 function proposeLesson(home, input2, ctx = {}) {
-  const text2 = one5(input2.text);
-  const reason = one5(input2.reason);
-  const area = input2.area ? one5(input2.area) : "";
+  const text2 = one6(input2.text);
+  const reason = one6(input2.reason);
+  const area = input2.area ? one6(input2.area) : "";
   if (text2.length < 20 || text2.length > 280) throw new Error("A lesson is one generic statement of 20 to 280 characters.");
   if (reason.length < 10 || reason.length > 280) throw new Error("Say why in 10 to 280 characters: what you saw that makes this true on any project.");
   if (area.length > 60) throw new Error("The area is a short label (up to 60 characters).");
@@ -49096,10 +49573,10 @@ function proposeLesson(home, input2, ctx = {}) {
   if (problems.length) throw new Error(`This lesson is not generic: it ${problems.join("; ")}. A global lesson must help on any project, so rewrite it without those (describe the kind of problem, not this product).`);
   assertSafeText("this lesson", `${area} ${text2} ${reason}`, ctx.knownSecrets ?? []);
   ensureDir(home);
-  const pendingFile = path31.join(home, PENDING_FILE);
+  const pendingFile = path36.join(home, PENDING_FILE);
   return withStoreLock(home, () => {
     const pending = readFile(pendingFile);
-    const known = [...pending.blocks, ...readFile(path31.join(home, APPROVED_FILE)).blocks];
+    const known = [...pending.blocks, ...readFile(path36.join(home, APPROVED_FILE)).blocks];
     const dup = known.map((e) => ({ e, s: similarity(e.text, text2) })).filter((x) => x.s >= MERGE_AT2).sort((a, b) => b.s - a.s)[0];
     if (dup) return { action: "existing", id: dup.e.id, file: pendingFile, pending: pending.blocks.length, matches: dup.e.text };
     const turned = rejectedRecords(home).map((r) => ({ r, s: similarity(r.text, text2) })).filter((x) => x.s >= MERGE_AT2).sort((a, b) => b.s - a.s)[0];
@@ -49116,14 +49593,14 @@ function proposeLesson(home, input2, ctx = {}) {
 }
 var readLessonUse = (home) => {
   try {
-    const v = readJson(path31.join(home, USE_FILE));
+    const v = readJson(path36.join(home, USE_FILE));
     return v && typeof v === "object" && !Array.isArray(v) ? v : {};
   } catch {
     return {};
   }
 };
 function loadApprovedLessons(home, ctx = {}) {
-  const entries = readFile(path31.join(home, APPROVED_FILE)).blocks;
+  const entries = readFile(path36.join(home, APPROVED_FILE)).blocks;
   const use = readLessonUse(home);
   const ok = [];
   const skipped = [];
@@ -49143,7 +49620,7 @@ function loadApprovedLessons(home, ctx = {}) {
   };
 }
 function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
-  const approved = new Set(readFile(path31.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
+  const approved = new Set(readFile(path36.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
   const unique = [...new Set(ids)];
   const recorded = unique.filter((i) => approved.has(i));
   const unknown2 = unique.filter((i) => !approved.has(i));
@@ -49152,7 +49629,7 @@ function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
     withStoreLock(home, () => {
       const use = readLessonUse(home);
       for (const id of recorded) use[id] = { hits: (use[id]?.hits ?? 0) + 1, last_applied: now.toISOString() };
-      writeJson(path31.join(home, USE_FILE), use);
+      writeJson(path36.join(home, USE_FILE), use);
     });
   }
   return { recorded, unknown: unknown2 };
@@ -49164,7 +49641,7 @@ var MAX_PAGES_SHOWN = 40;
 function recentRunSummaries(store, limit = 3) {
   const dir = memoryPaths(store).runs;
   if (!fs18.existsSync(dir)) return [];
-  return fs18.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path32.join(dir, f))).filter((r) => !!r);
+  return fs18.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path37.join(dir, f))).filter((r) => !!r);
 }
 function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), opts = {}) {
   const paths2 = memoryPaths(store);
@@ -49215,7 +49692,7 @@ function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), o
 }
 
 // core/lib/memory/observations.ts
-import path33 from "node:path";
+import path38 from "node:path";
 var MAX_PAGES = 300;
 var MAX_ENDPOINTS = 1e3;
 var OP = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(\/\S{0,200})$/i;
@@ -49223,10 +49700,10 @@ var clean = (s) => s.replace(/\s+/g, " ").trim();
 function recordObservations(runDir, input2, opts) {
   const secrets = opts.knownSecrets ?? [];
   const warnings = [];
-  const dir = path33.join(runDir, "data");
+  const dir = path38.join(runDir, "data");
   ensureDir(dir);
   const stored = (() => {
-    const raw = readJson(path33.join(dir, "pages.json"));
+    const raw = readJson(path38.join(dir, "pages.json"));
     return Array.isArray(raw) ? raw.filter((p) => !!p && typeof p === "object" && typeof p.path === "string" && typeof p.ui === "string") : [];
   })();
   const byKey = new Map(stored.map((p) => [`${p.ui}|${p.path}`, p]));
@@ -49257,9 +49734,9 @@ function recordObservations(runDir, input2, opts) {
     pagesAdded++;
   }
   if (stored.length > MAX_PAGES) throw new Error(`That is more than ${MAX_PAGES} distinct pages. Record page types, not every record (ids are collapsed automatically).`);
-  if (input2.pages?.length) writeJson(path33.join(dir, "pages.json"), stored);
+  if (input2.pages?.length) writeJson(path38.join(dir, "pages.json"), stored);
   const storedOps = (() => {
-    const raw = readJson(path33.join(dir, "endpoints.json"));
+    const raw = readJson(path38.join(dir, "endpoints.json"));
     return Array.isArray(raw) ? raw.filter((x) => typeof x === "string") : [];
   })();
   const ops = new Set(storedOps);
@@ -49274,7 +49751,7 @@ function recordObservations(runDir, input2, opts) {
     }
   }
   if (ops.size > MAX_ENDPOINTS) throw new Error(`That is more than ${MAX_ENDPOINTS} endpoints.`);
-  if (input2.endpoints?.length) writeJson(path33.join(dir, "endpoints.json"), [...ops]);
+  if (input2.endpoints?.length) writeJson(path38.join(dir, "endpoints.json"), [...ops]);
   return { pages_added: pagesAdded, pages_total: stored.length, endpoints_added: endpointsAdded, endpoints_total: ops.size, warnings };
 }
 
@@ -49290,7 +49767,7 @@ function defaultProjectDir(env = process.env, cwd = process.cwd()) {
 }
 function projectScope(home, opts = {}) {
   const env = opts.env ?? process.env;
-  const root = path34.resolve(opts.project ?? defaultProjectDir(env, opts.cwd ?? process.cwd()));
+  const root = path39.resolve(opts.project ?? defaultProjectDir(env, opts.cwd ?? process.cwd()));
   let info;
   try {
     info = resolveProject(root);
@@ -49306,7 +49783,7 @@ function scopeFor(home, opts) {
 }
 var secretsOf = (s) => s.ctx.passwords;
 function projectNamesOf(scope) {
-  return scope.kind === "run" ? [path34.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path34.basename(scope.project.root)];
+  return scope.kind === "run" ? [path39.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path39.basename(scope.project.root)];
 }
 function getContext(scope, limit = 3) {
   const ctx = loadMemoryContext(scope.store, limit, /* @__PURE__ */ new Date(), { home: scope.home, projectNames: projectNamesOf(scope) });
@@ -49552,7 +50029,7 @@ var FIX_TOOLS = [
 
 // core/lib/bank/service.ts
 import fs19 from "node:fs";
-import path35 from "node:path";
+import path40 from "node:path";
 
 // core/lib/openapi.ts
 var import_yaml2 = __toESM(require_dist2(), 1);
@@ -49562,23 +50039,31 @@ var secretNamesOf = (config2) => config2.roles.flatMap((r) => [r.username_env, r
 function saveBankTest(scope, input2, now = /* @__PURE__ */ new Date()) {
   const ctx = scope.ctx;
   if (input2.from_issue) {
-    const findings = readJson(path35.join(scope.runDir, "data", "findings.json")) ?? [];
+    const findings = readJson(path40.join(scope.runDir, "data", "findings.json")) ?? [];
     if (!findings.some((f) => f.id === input2.from_issue)) throw new Error(`from_issue ${input2.from_issue} is not a finding of this run (findings.json has ${findings.map((f) => f.id).filter(Boolean).join(", ") || "none yet"}). Write the findings first, then save the tests that protect them.`);
   }
+  const ticket = readJson(path40.join(scope.runDir, "data", "ticket.json"));
+  if (input2.criteria?.length) {
+    const ids = new Set((ticket?.criteria ?? []).map((c) => c.id));
+    if (!ticket?.ref) throw new Error("criteria can only be named in a ticket run (data/ticket.json).");
+    const bad = input2.criteria.filter((c) => !ids.has(c));
+    if (bad.length) throw new Error(`criteria ${bad.join(", ")} are not in this run's ticket (it has ${[...ids].join(", ")}).`);
+  }
+  const tagged = ticket?.ref && scope.ctx.marker.ticket ? { ...input2, ticket: scope.ctx.marker.ticket } : input2;
   return withStoreLock(
     scope.store,
     () => saveTest(
       scope.store,
-      { ...input2, ...input2.from_issue ? { from_run: scope.runId } : {} },
+      { ...tagged, ...input2.from_issue ? { from_run: scope.runId } : {} },
       { roles: ctx.config.roles.map((r) => r.name), uis: ctx.config.web_uis.map((u) => u.name), secretNames: secretNamesOf(ctx.config), knownSecrets: ctx.passwords, now }
     )
   );
 }
 function saveBankTestFromFile(scope, file4, opts = {}) {
-  const base = path35.join(scope.runDir, "data", "bank");
-  const abs = path35.isAbsolute(file4) ? path35.resolve(file4) : path35.resolve(fs19.existsSync(path35.resolve(file4)) && opts.anywhere ? path35.resolve(file4) : path35.join(base, file4));
-  const inside = abs === scope.runDir || abs.startsWith(scope.runDir + path35.sep);
-  if (!opts.anywhere && !inside) throw new Error(`The test file has to be inside the run folder (write it to ${path35.join(scope.runDir, "data", "bank", "<name>.json")}).`);
+  const base = path40.join(scope.runDir, "data", "bank");
+  const abs = path40.isAbsolute(file4) ? path40.resolve(file4) : path40.resolve(fs19.existsSync(path40.resolve(file4)) && opts.anywhere ? path40.resolve(file4) : path40.join(base, file4));
+  const inside = abs === scope.runDir || abs.startsWith(scope.runDir + path40.sep);
+  if (!opts.anywhere && !inside) throw new Error(`The test file has to be inside the run folder (write it to ${path40.join(scope.runDir, "data", "bank", "<name>.json")}).`);
   if (!fs19.existsSync(abs)) throw new Error(`No test file at ${abs}. Write the test as JSON there first.`);
   if (fs19.statSync(abs).size > 12e4) throw new Error("The test file is larger than 120 KB: a test checks one thing, split it.");
   let input2;
@@ -49606,7 +50091,8 @@ var TOOLS = [
     description: "Start a QA run for this project. This is the first call of every run. It checks the config and the URLs (production is refused), creates the run folder, and returns the run id and folder, the config summary (web UIs, roles, critical journeys), the detected stack, git changes and browser status. If `status` is not `ready`, nothing was tested: follow `message` and the other fields it names (it may have just created `.qa/config.md`).",
     annotations: ADD,
     input: {
-      mode: external_exports.enum(MODES).default("full").describe("full, quick, regression or diff."),
+      mode: external_exports.enum(MODES).default("full").describe("full, quick, regression, diff, or ticket (with `ticket`)."),
+      ticket: line(1, 200, "ticket").optional().describe('Ticket mode: the ticket to test (an id, an address, a file path, or "pasted text"). Give it with mode ticket.'),
       focus: line(1, 300, "focus").optional().describe("Free-text focus from the user."),
       session: line(1, 200, "session").optional().describe("The host's session id, so the safety hook can recognise this run."),
       project,
@@ -49627,6 +50113,7 @@ var TOOLS = [
       now: c.now(),
       ...a.project ? { project: a.project } : {},
       ...a.focus ? { focus: a.focus } : {},
+      ...a.ticket ? { ticket: a.ticket } : {},
       ...a.session ? { sessionId: a.session } : {}
     })
   }),

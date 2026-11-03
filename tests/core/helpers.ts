@@ -47,10 +47,13 @@ export const DEMO_ENV: Record<string, string> = {
 };
 
 /** Project with the demo config filled in, plus a matching .env.qa (so no process env is needed). */
-export function makeConfiguredProject(opts: { remote?: string } = {}): string {
+/** The demo config with extra YAML added to the front matter (before its closing line). */
+export const withConfigYaml = (extra: string): string => DEMO_CONFIG.replace("health:\n  checks: [/health]\n---", `health:\n  checks: [/health]\n\n${extra}\n---`);
+
+export function makeConfiguredProject(opts: { remote?: string; configYaml?: string } = {}): string {
   const dir = makeProject(opts);
   fs.mkdirSync(path.join(dir, ".qa"), { recursive: true });
-  fs.writeFileSync(path.join(dir, ".qa", "config.md"), DEMO_CONFIG);
+  fs.writeFileSync(path.join(dir, ".qa", "config.md"), opts.configYaml ? withConfigYaml(opts.configYaml) : DEMO_CONFIG);
   fs.copyFileSync(path.join(repoRoot, "demo-app", "openapi.yaml"), path.join(dir, "openapi.yaml"));
   fs.writeFileSync(path.join(dir, ".env.qa"), Object.entries(DEMO_ENV).map(([k, v]) => `${k}=${v}`).join("\n") + "\n");
   return dir;
@@ -100,7 +103,11 @@ export interface FixtureOptions {
   health?: { environment_ok: boolean; checks: Array<{ name: string; ok: boolean; detail: string; skipped?: boolean }> };
   admin?: { biggest_risk?: string; next_steps?: string[] };
   unconfirmed?: number;
-  mode?: "full" | "quick" | "regression" | "diff";
+  mode?: "full" | "quick" | "regression" | "diff" | "ticket";
+  /** Ticket mode: the ticket the run tests. */
+  ticket?: string;
+  /** Extra lines for the config's front matter (YAML), for runs that need a catcher, browsers or budgets. */
+  configYaml?: string;
   pages?: Array<{ ui?: string; path?: string; url?: string; title?: string; roles?: string[] }>;
   endpoints?: string[];
   /** Leave out data/bank-skip.json, so the run needs a saved test or a reason to finish. */
@@ -175,8 +182,8 @@ export function writeFixtureData(runDir: string, opts: FixtureOptions = {}): voi
 /** A configured project with a started run and the given data files written. The run is NOT finished (marker stays). */
 export function makeRunWithData(opts: FixtureOptions = {}): { home: string; proj: string; runId: string; runDir: string; store: string } {
   const home = tmp("qamind-home-");
-  const proj = makeConfiguredProject({ remote: "https://github.com/acme/shop.git" });
-  const r = startRun({ cwd: proj, mode: opts.mode ?? "full", kind: "qa-only", host: "test", home, env: {}, sessionId: "s1", now: new Date("2026-10-30T10:00:00Z") });
+  const proj = makeConfiguredProject({ remote: "https://github.com/acme/shop.git", ...(opts.configYaml ? { configYaml: opts.configYaml } : {}) });
+  const r = startRun({ cwd: proj, mode: opts.mode ?? "full", kind: "qa-only", host: "test", home, env: {}, sessionId: "s1", now: new Date("2026-10-30T10:00:00Z"), ...(opts.ticket ? { ticket: opts.ticket } : {}) });
   if (r.status !== "ready" || !r.run || !r.project) throw new Error(`fixture run did not start: ${r.status}`);
   writeFixtureData(r.run.dir, opts);
   return { home, proj, runId: r.run.id, runDir: r.run.dir, store: r.project.store };

@@ -1,6 +1,8 @@
 import type { Severity } from "./config.ts";
 import { countBySeverity, mergedNotTested } from "./report.ts";
 import type { Finding, FixStatus, RunData } from "./report.ts";
+import { renderAdminCoverage } from "./coverage-report.ts";
+import { renderAdminChecklist } from "./ticket.ts";
 import type { RunSummary } from "./run.ts";
 import { describeChanges } from "./memory/productmap.ts";
 import { computeVerdict, flowStatus, isOpen } from "./verdict.ts";
@@ -65,6 +67,10 @@ export interface AdminModel {
   fixedSince: string[];
   /** Problems a person decided to live with: listed, not counted. */
   knownAccepted: string[];
+  /** Ticket mode: the checklist of what was asked for (spec 13.4). */
+  ticketLines: string[];
+  /** Where and how it was checked: screens and devices, speed, messages (spec 13.7, 13.9 to 13.11). */
+  checkedLines: string[];
 }
 
 export const CANNOT_SEE_ON_SCREEN = "This cannot be seen on screen. A developer can confirm it using the technical details linked at the end of this problem.";
@@ -92,6 +98,7 @@ const MODE_TEXT: Record<string, string> = {
   quick: "quick check (key journeys and biggest risks)",
   regression: "re-check of earlier problems",
   diff: "check of recent changes",
+  ticket: "check of one request (a ticket)",
 };
 
 export function plainDate(iso: string | undefined): string {
@@ -348,7 +355,9 @@ export function buildAdminModel(data: RunData, previous: RunSummary[] = []): Adm
     const l = data.lifecycle?.accepted_seen.find((a) => a.bug === f.bug);
     return `${one(f.plain?.title) || f.title}${l ? ` (accepted by ${l.by} on ${dayText(l.at)}${l.note ? `: ${one(l.note)}` : ""})` : ""}.`.replace(/\.\.$/, ".");
   });
-  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps, fixedSince, knownAccepted, ...(fixes ? { fixes } : {}) };
+  const ticketLines = data.ticket?.ticket ? renderAdminChecklist(data.ticket) : [];
+  const checkedLines = data.checks ? renderAdminCoverage(data.checks) : [];
+  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps, fixedSince, knownAccepted, ticketLines, checkedLines, ...(fixes ? { fixes } : {}) };
 }
 
 export function renderAdminMarkdown(m: AdminModel): string {
@@ -362,6 +371,9 @@ export function renderAdminMarkdown(m: AdminModel): string {
   for (const a of m.areas) L.push(`| ${cell(a.area)} | ${a.result} | ${cell(a.note)} |`);
   if (m.areas.length === 0) L.push("| (nothing was recorded) | ⛔ | No areas were checked. |");
   L.push("", "✅ nothing wrong found · ⚠️ problems found or only partly checked · ⛔ serious problems or not checked", "");
+
+  if (m.ticketLines.length) L.push(...m.ticketLines);
+  if (m.checkedLines.length) L.push("## Where and how it was checked", "", ...m.checkedLines, "");
 
   L.push("## Problems found", "");
   if (m.problems.length === 0) L.push("No problems were confirmed in what was checked.", "");

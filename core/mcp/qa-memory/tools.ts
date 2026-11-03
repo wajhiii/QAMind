@@ -42,7 +42,8 @@ export const TOOLS: ToolDef[] = [
       "If `status` is not `ready`, nothing was tested: follow `message` and the other fields it names (it may have just created `.qa/config.md`).",
     annotations: ADD,
     input: {
-      mode: z.enum(MODES).default("full").describe("full, quick, regression or diff."),
+      mode: z.enum(MODES).default("full").describe("full, quick, regression, diff, or ticket (with `ticket`)."),
+      ticket: line(1, 200, "ticket").optional().describe("Ticket mode: the ticket to test (an id, an address, a file path, or \"pasted text\"). Give it with mode ticket."),
       focus: line(1, 300, "focus").optional().describe("Free-text focus from the user."),
       session: line(1, 200, "session").optional().describe("The host's session id, so the safety hook can recognise this run."),
       project,
@@ -64,6 +65,7 @@ export const TOOLS: ToolDef[] = [
         now: c.now(),
         ...(a.project ? { project: a.project } : {}),
         ...(a.focus ? { focus: a.focus } : {}),
+        ...(a.ticket ? { ticket: a.ticket } : {}),
         ...(a.session ? { sessionId: a.session } : {}),
       }),
   }),

@@ -32,8 +32,13 @@ import { detectStack, saveStack } from "./stack.ts";
 import type { StackInfo } from "./stack.ts";
 import type { RunPolicy } from "./urlpolicy.ts";
 import { KNOWLEDGE_VERSION, QAMIND_VERSION } from "./version.ts";
+import { cleanRef, readTicketData, ticketCounts } from "./ticket.ts";
+import { apiPerfPoints } from "./perf/api.ts";
+import { recordPerf } from "./perf/store.ts";
+import { sweepPerfPoints } from "./sweep/service.ts";
+import { withStoreLock } from "./memory/lock.ts";
 
-export const MODES = ["full", "quick", "regression", "diff"] as const;
+export const MODES = ["full", "quick", "regression", "diff", "ticket"] as const;
 export type Mode = (typeof MODES)[number];
 export const MARKER_TTL_HOURS = 8;
 
@@ -52,6 +57,8 @@ export interface RunMarker {
   host: string;
   session_id?: string;
   focus?: string;
+  /** Ticket mode (spec 13.4): the ticket under test, as given (an id, an address without its query, a file, or "pasted text"). The ticket's text is only in the run's data files. */
+  ticket?: string;
   started: string;
   expires: string;
   policy: RunPolicy;
@@ -99,6 +106,8 @@ export interface RunSummary {
   lifecycle?: LifecycleCounts;
   /** Tests this run saved to the bank, and, when it saved none, why (spec 13.3). */
   bank?: { saved: number; skipped_reason?: string };
+  /** Ticket mode: the ticket and how many of its criteria are met, not met, or could not be tested (spec 13.4). */
+  ticket?: { ref: string; total: number; met: number; not_met: number; not_testable: number; assumed: number };
   memory_updated?: string[];
 }
 
@@ -157,7 +166,7 @@ export interface StartResult {
   advisories?: string[];
   known_projects?: Array<{ id: string; name: string; paths_seen: string[]; last_seen: string }>;
   active_run?: { run_id: string; started: string };
-  run?: { id: string; dir: string; mode: Mode; focus?: string; readonly: boolean; report: string; /** The run's budget in words, and the deadline: check it with `qamind budget status` before each new area. */ budget?: { message: string; time_minutes?: number; max_cost?: number; deadline?: string } };
+  run?: { id: string; dir: string; mode: Mode; focus?: string; ticket?: string; readonly: boolean; report: string; /** The run's budget in words, and the deadline: check it with `qamind budget status` before each new area. */ budget?: { message: string; time_minutes?: number; max_cost?: number; deadline?: string } };
   config?: {
     environment: string;
     web_uis: Array<{ name: string; url: string }>;
@@ -179,6 +188,8 @@ export interface StartOptions {
   project?: string;
   mode: Mode;
   focus?: string;
+  /** Ticket mode: what to test (an id, an address, a file, or "pasted text"). Needs `mode: "ticket"`, and ticket mode needs this. */
+  ticket?: string;
   sessionId?: string;
   host: string;
   kind: "qa-only" | "qa";
@@ -241,6 +252,9 @@ export function startRun(opts: StartOptions): StartResult {
   const env = opts.env ?? process.env;
   const now = opts.now ?? new Date();
   const root = path.resolve(opts.project ?? opts.cwd);
+  const ticketRef = opts.ticket ? cleanRef(opts.ticket) : undefined;
+  if (opts.mode === "ticket" && !ticketRef) throw new Error('Ticket mode needs the ticket to test: pass ticket (an id, an address, a file path, or "pasted text").');
+  if (ticketRef && opts.mode !== "ticket") throw new Error(`A ticket was given, so the mode is "ticket" (found "${opts.mode}").`);
   if (!exists(root) || !fs.statSync(root).isDirectory()) {
     return { status: "no-project", message: `The folder ${root} does not exist. Ask the user which project folder to test.`, known_projects: listKnownProjects(opts.home) };
   }
@@ -354,6 +368,7 @@ export function startRun(opts: StartOptions): StartResult {
     host: opts.host,
     ...(opts.sessionId ? { session_id: opts.sessionId } : {}),
     ...(opts.focus ? { focus: opts.focus } : {}),
+    ...(ticketRef ? { ticket: ticketRef } : {}),
     started: now.toISOString(),
     expires: new Date(now.getTime() + MARKER_TTL_HOURS * 3600_000).toISOString(),
     policy,
@@ -373,6 +388,7 @@ export function startRun(opts: StartOptions): StartResult {
     kind: opts.kind,
     host: opts.host,
     ...(opts.focus ? { focus: opts.focus } : {}),
+    ...(ticketRef ? { ticket_ref: ticketRef } : {}),
     started: now.toISOString(),
     critical_flows: criticalFlows,
     ...(git.branch ? { branch: git.branch } : {}),
@@ -387,7 +403,7 @@ export function startRun(opts: StartOptions): StartResult {
     message: "Ready. Credentials are present for the roles listed (values are never shown).",
     project: projectOut,
     gitignore_added: gitignoreAdded,
-    run: { id: runId, dir: runDir, mode: opts.mode, ...(opts.focus ? { focus: opts.focus } : {}), readonly, report: path.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...(budget.time_minutes !== undefined ? { time_minutes: budget.time_minutes } : {}), ...(budget.max_cost !== undefined ? { max_cost: budget.max_cost } : {}), ...(budget.deadline ? { deadline: budget.deadline } : {}) } },
+    run: { id: runId, dir: runDir, mode: opts.mode, ...(opts.focus ? { focus: opts.focus } : {}), ...(ticketRef ? { ticket: ticketRef } : {}), readonly, report: path.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...(budget.time_minutes !== undefined ? { time_minutes: budget.time_minutes } : {}), ...(budget.max_cost !== undefined ? { max_cost: budget.max_cost } : {}), ...(budget.deadline ? { deadline: budget.deadline } : {}) } },
     config: {
       environment: config.environment.name,
       web_uis: config.web_uis,
@@ -439,6 +455,11 @@ export function finishRun(opts: FinishOptions): RunSummary {
   if (gate.problem) throw new Error(gate.problem);
   // Bugs and feedback (spec 13.12, 13.5): what each finding is across runs, written to memory before the summary is composed, so the summary can name the bug of each finding.
   const lifeResult = applyRunLifecycle(marker.store, marker.run_dir, marker.run_id, now);
+  // How long pages and endpoints took goes into memory only from a run that finished with a working environment (spec 13.11): a broken one would teach it slow numbers.
+  if ((readJson<{ environment_ok?: boolean }>(path.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) !== false) {
+    const points = [...sweepPerfPoints(marker.run_dir), ...apiPerfPoints(marker.run_dir)];
+    if (points.length) withStoreLock(marker.store, () => recordPerf(marker.store, points, marker.run_id, now));
+  }
   const data = readRunData(marker.run_dir);
   const bugOf = new Map((lifeResult.lifecycle.findings ?? []).map((l) => [l.issue, l.bug]));
   const counts = countBySeverity(data.findings);
@@ -482,6 +503,10 @@ export function finishRun(opts: FinishOptions): RunSummary {
     ...(budgetOutcome ? { budget: budgetOutcome } : {}),
     ...(environment ? { environment } : {}),
     bank: { saved: gate.saved, ...(gate.skipped_reason ? { skipped_reason: gate.skipped_reason } : {}) },
+    ...((): { ticket?: RunSummary["ticket"] } => {
+      const t = marker.ticket ? readTicketData(marker.run_dir, marker.trigger) : undefined;
+      return t?.ticket ? { ticket: { ref: marker.ticket as string, ...ticketCounts(t) } } : {};
+    })(),
     stop_reason,
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION,

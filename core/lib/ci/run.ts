@@ -33,10 +33,16 @@ import { detectCi } from "./provider.ts";
 
 export const DEFAULT_CI_MAX_USD = 10;
 
+/** What a CI run can be: one of the configured modes, or "ticket" (`--ticket FILE`): test one request and report its criteria (spec 13.4). */
+export type CiRunMode = CiMode | "ticket";
+const TICKET_FILE_MAX = 100_000;
+
 export interface CiRunOptions {
   projectDir: string;
   env?: NodeJS.ProcessEnv;
   mode?: CiMode;
+  /** Ticket mode: a file in the project (a story, a PRD section, an exported issue) that says what to test. Nobody can confirm criteria in CI, so the ones the agent derives are listed as assumed. */
+  ticket?: string;
   outDir?: string;
   /** A shell command that does the testing instead of the host's own CLI (another tool, or a test). It gets QAMIND_CI_PROMPT and QAMIND_CI_MODE. */
   agentCommand?: string;
@@ -64,7 +70,7 @@ export interface CiRunOptions {
 export interface CiResult {
   outcome: CiOutcomeOrError;
   exit_code: 0 | 1 | 2;
-  mode: CiMode;
+  mode: CiRunMode;
   run_id?: string;
   reasons: string[];
   gate?: CiGate;
@@ -93,9 +99,10 @@ export function pluginRoot(): string {
   throw new Error("Cannot find the built QAMind runtime (dist/qamind.mjs) to give the host CLI. Run `node scripts/build.ts` first.");
 }
 
-function promptFor(invoke: string, mode: CiMode, pr: number | undefined, base: string | undefined): string {
+function promptFor(invoke: string, mode: CiRunMode, pr: number | undefined, base: string | undefined): string {
   const where = pr !== undefined ? ` for pull request #${pr}${base ? ` (into ${base})` : ""}` : "";
-  const focus: Record<CiMode, string> = {
+  const focus: Record<CiRunMode, string> = {
+    ticket: "Test exactly what the ticket file asks for and what it directly touches. Nobody can confirm criteria in a CI run: if the ticket states none, derive them and list them as assumed in ticket.json (origin derived, no confirmation). Record a result for every criterion.",
     diff: "Test what this change touches: the files in git.changed_files from run_start and the flows that depend on them (the product map shows what depends on what).",
     quick: "Test the critical flows and the top risks.",
     regression: "Re-run the findings of the last run and check whether they are fixed.",
@@ -221,7 +228,19 @@ export async function runCi(opts: CiRunOptions): Promise<CiResult> {
   const check = checkConfigFile(root, env);
   const cfg: QamindConfig | undefined = check.status === "ok" ? check.config : undefined;
   const settings = cfg?.ci ?? checkConfigFile(root, env).config?.ci ?? { fail_on: ["critical", "environment-problem"], warn_on: ["important"], cache_memory: false, mode: "diff" as CiMode, comment: true, status: true, status_context: "qamind", timeout_minutes: 25 };
-  const mode: CiMode = opts.mode ?? settings.mode;
+  // Ticket mode needs a file inside the project that can be read as it is: a path with no spaces, not a link out of the checkout, small.
+  let ticketRef: string | undefined;
+  let ticketProblem: string | undefined;
+  if (opts.ticket) {
+    const abs = path.resolve(root, opts.ticket);
+    const rel = path.relative(root, abs).split(path.sep).join("/");
+    if (rel.startsWith("..") || path.isAbsolute(rel)) ticketProblem = `the ticket file ${opts.ticket} is outside the project`;
+    else if (/[\s"'`$;&|<>\\]/.test(rel)) ticketProblem = `the ticket file's path (${rel}) has a space or a special character: use a plain path`;
+    else if (!fs.existsSync(abs) || !fs.statSync(abs).isFile()) ticketProblem = `there is no ticket file ${rel} in the project`;
+    else if (fs.statSync(abs).size > TICKET_FILE_MAX) ticketProblem = `the ticket file ${rel} is larger than ${TICKET_FILE_MAX / 1000} KB: give a shorter story`;
+    else ticketRef = rel;
+  }
+  const mode: CiRunMode = opts.ticket ? "ticket" : (opts.mode ?? settings.mode);
   const home = opts.home ?? (opts.userStore ? qamindHome(env) : settings.cache_memory ? path.join(root, ".qamind-ci", "home") : fs.mkdtempSync(path.join(os.tmpdir(), "qamind-ci-")));
   ensureDir(home);
   const poster = opts.dryRun ? { canComment: false, canStatus: false, why: ["a dry run posts nothing"] } : apiFor(ctx, settings, opts.fetchImpl);
@@ -303,6 +322,8 @@ export async function runCi(opts: CiRunOptions): Promise<CiResult> {
     return conclude("error", { error: why });
   }
 
+  if (ticketProblem) return conclude("error", { error: ticketProblem });
+
   // ---------------------------------------------------------------------------------------------- judge an earlier run
   if (opts.fromRun) {
     const dir = path.join(root, ".qa", "reports", opts.fromRun);
@@ -339,7 +360,7 @@ export async function runCi(opts: CiRunOptions): Promise<CiResult> {
 
   const secrets = [...Object.values(logins), ...[...(spec?.auth_env_any ?? []), "GITHUB_TOKEN", "QAMIND_GITLAB_TOKEN", "GITLAB_TOKEN"].map((k) => env[k] ?? "")].filter((v) => v.length >= 4);
   const redact = makeRedactor(secrets).text;
-  const prompt = promptFor(spec ? invokeFor(spec, mode) : `Run the QAMind QA procedure in ${mode} mode.`, mode, ctx.pr, ctx.base_ref);
+  const prompt = promptFor(spec ? invokeFor(spec, ticketRef ? `--ticket ${ticketRef}` : mode) : `Run the QAMind QA procedure in ${mode} mode${ticketRef ? ` for the ticket in ${ticketRef} (--ticket ${ticketRef})` : ""}.`, mode, ctx.pr, ctx.base_ref);
   const childEnv = agentEnv(env, {
     QAMIND_HOME: home,
     QAMIND_TRIGGER: "ci",

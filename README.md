@@ -78,15 +78,15 @@ claude plugin install qamind@qamind
 
 | What | Claude Code | Notes |
 |------|-------------|-------|
-| Test and report | `/qamind:qa-only [full\|quick\|regression\|diff] [focus]` (Cursor: `/qamind-qa-only`) | Writes only inside `.qa/` and the QAMind user store |
+| Test and report | `/qamind:qa-only [full\|quick\|regression\|diff] [--ticket ID\|FILE] [focus]` (Cursor: `/qamind-qa-only`) | Writes only inside `.qa/` and the QAMind user store. `--ticket` tests one request and reports its criteria, see [Coverage](#coverage-other-browsers-speed-email-and-tickets) |
 | Test and fix | `/qamind:qa [full\|quick\|regression\|diff] [focus]` | Fixes on a git branch, one commit per fix with its regression test; never pushes, merges or opens a pull request. Needs a clean working tree and a project test command; see [Fix mode](#fix-mode-qamindqa) |
 | Auto-QA on, off, mode, pause | `/qamind:qa-auto on\|off\|status\|mode diff\|quick\|full\|fix\|ask\|pause 1h\|global on\|off` | QA after every task that changed code. **Off by default.** See [Auto-QA](#auto-qa-qamindqa-auto) |
 | Review what QAMind remembers | `/qamind:qa-memory-review [lessons\|prune\|stats]` | Approve or reject the generic lessons it proposed for all projects, archive stale memory, see run statistics. Only you decide. See [Memory review](#memory-review-qamindqa-memory-review) |
 | Tell QAMind what you think of a finding | `/qamind:qa-feedback [ISSUE-003 not-a-bug why \| list \| import <run>]` | Not a bug, wrong severity, duplicate, confirmed, fixed, won't fix, good catch: the next run changes accordingly. Only you can: a QA run cannot. See [Findings across runs](#findings-across-runs-the-test-bank-and-your-feedback) |
-| The test bank | `/qamind:qa-tests [status\|run\|export\|prune]` | The checks earlier runs saved. See what it holds, run it, copy tests into your project as real Playwright tests (only with your yes), retire stale ones |
+| The test bank, baselines, browsers | `/qamind:qa-tests [status\|run\|export\|prune\|baseline accept\|browsers]` | The checks earlier runs saved. See what it holds, run it, copy tests into your project as real Playwright tests (only with your yes), retire stale ones; accept a run's screenshots as the baseline later runs are compared with; add a browser (WebKit, Firefox) |
 
 Modes: `full` (everything), `quick` (critical flows and top risks), `regression` (re-run last findings), `diff` (changed
-code and what depends on it). Free text after the mode narrows the focus.
+code and what depends on it), `ticket` (one request, with `--ticket`). Free text after the mode narrows the focus.
 
 ## What you get
 
@@ -226,6 +226,24 @@ qamind tests status | run [--run ID] | export [--ids T-001,T-004] [--dir D] [--y
 
 Limits, and what was not verified: [decision 0008](docs/decisions/0008-test-bank-bugs-feedback.md).
 
+## Coverage: other browsers, speed, email, and tickets
+
+Optional, and each is a command that does exact work while the agent judges the results. Settings (`browsers`, `viewports`, `visual`, `performance`, `mail`, `sms`) are in the config QAMind creates, commented.
+
+- **Other browsers and screen sizes.** The key pages are visited in every browser and size the mode asks for (`diff` one of each, `quick` adds the mobile size, `full` all you configured: Chromium, **WebKit** (Safari's engine), Firefox; desktop 1366×768, mobile 390×844, a tablet if you add one). A problem is reported **once, with where it happens** ("only at mobile", "only in webkit"). A browser that is not installed (`qamind browsers install webkit`, about 80 MB, yours to run) is **Not tested**, and the report must say so.
+- **Does it still look right?** After a run you judge good, `/qamind:qa-tests baseline accept` saves its screenshots as the baseline per page, role, browser and screen size. Later runs compare, ignoring the parts you name (dates, avatars) and private data; a difference comes with before, after and a picture of what changed. A QA run cannot accept a baseline.
+- **Is it fast enough?** Page time (until the page is ready) and a few read-only API calls (median and slowest) against `performance.page_load_ms` and `api_p95_ms`, and against recent runs: "this page takes 4 seconds, twice as long as last week" even when under budget. Not a load test.
+- **Emails and texts.** With a sandbox that catches them (`mail.catcher`: Mailpit, MailHog, Mailtrap or your own API; `sms.catcher`), the agent starts a flow with a test address and checks what arrived: the right recipient, no `{{name}}` left, **every link opens and stays in the test environment**, an unsubscribe where needed, the language. **Without a sandbox those flows are Not tested ("no email sandbox configured").** Nothing is ever sent to a real address.
+- **Test this ticket.** `/qamind:qa-only --ticket LUM-214` (or a file or pasted text) turns a request into acceptance criteria (ones the agent works out are shown to you first), tests each, and puts a **checklist** in both reports: ✅ met, ❌ not met, ⛔ cannot be tested, with why. Checks it saves are tagged with the ticket. In CI, `qamind ci --ticket docs/story.md` lists derived criteria as **assumed**.
+
+```
+qamind sweep check|run --run ID [--browsers webkit] [--viewports mobile]     qamind perf check|api --run ID
+qamind mail wait --run ID --to a-test-address --flow "password reset"        qamind ticket check|status --run ID
+qamind baseline status | accept --run ID [--pages a,b]                       qamind browsers status | install webkit
+```
+
+Details, settings and limits (Mailpit, MailHog and Mailtrap were not run against live services; Firefox was not run): [docs/COVERAGE.md](docs/COVERAGE.md), [decision 0010](docs/decisions/0010-coverage-depth.md).
+
 ## CI and pull requests (`qamind ci`)
 
 `qamind ci` tests a pull request headlessly and says the result where your team looks: **one comment** that is rewritten on every push, a **commit status** (`qamind`), an **exit code** (0 pass or warn, 1 fail, 2 could not check) and the reports as **artifacts**. It is always report-only: it never fixes, commits or pushes, and it cannot be started by a QA run.
@@ -274,8 +292,9 @@ Private-data masking and its limits (names and addresses in free text, images) a
 | 7.5 ✅ (without Codex) | `qamind setup \| status \| update \| uninstall`; Cursor (experimental) and generic (instruction-only) hosts; conformance suite; `docs/ADDING-A-HOST.md`. Codex deferred by the owner |
 | 7.6 ✅ | Reliability: environment problems are not bugs, test data setup, time budgets, private-data masking and scan, memory migration with backup |
 | 7.7 ✅ | Test bank (run first, flaky tests quarantined, export to Playwright), bugs across runs (new, still open, fixed, came back), your feedback changes the next run |
-| 7.8 ✅ (this) | `qamind ci` (one pull request comment kept up to date, a status, exit codes, artifacts), `ci.fail_on` / `ci.warn_on`, GitHub and GitLab templates, `qamind schedule` |
-| 7.9 – 7.10 | coverage depth, release verdict and metrics (Codex whenever the owner asks) |
+| 7.8 ✅ | `qamind ci` (one pull request comment kept up to date, a status, exit codes, artifacts), `ci.fail_on` / `ci.warn_on`, GitHub and GitLab templates, `qamind schedule` |
+| 7.9 ✅ (this) | Coverage depth: ticket mode with a criteria checklist, email and SMS sandbox checks, visual baselines, other browsers (WebKit, Firefox) and screen sizes, page and API speed against budgets and recent runs |
+| 7.10 | release verdict and metrics (Codex whenever the owner asks) |
 | 8 | Linear and Sentry, polish |
 
 ## Development

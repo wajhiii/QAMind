@@ -191,7 +191,23 @@ qamind ci ─► detect CI (provider.ts) ─► config check ─► pending stat
 `core/lib/ci/` holds the pieces (`provider.ts` where we are, `gate.ts` what the run means, `comment.ts` the text, `api.ts` the GitHub and GitLab clients with an injectable `fetch`, `host.ts` the host's headless launcher, `templates.ts` the generated files, `run.ts` the orchestrator). The orchestrator never trusts the agent: it times it out, checks the checkout, and judges only data files.
 `ci init` and `schedule` write workflow files (never over an existing one); a QA run cannot start either (hook).
 
+## Coverage depth: browsers, pictures, timings, messages, tickets
+
+([decision 0010](decisions/0010-coverage-depth.md), [COVERAGE.md](COVERAGE.md))
+
+```
+sweep-pages.json (agent) ─► sweep: per browser ► per screen size ► per role (signed in once) ► per page:  policy-checked context + mask + page audit
+      ─► signals, time until ready, screenshot ─► compare with baseline (owner-accepted, per page/role/browser/size) ─► data/sweep.json ─► grouped by where it happens
+perf-endpoints.json (agent) ─► perf api: a few GET/HEAD calls ─► median, slowest ─► budget + recent runs (memory/perf.json, written by a finished run) ─► data/perf-api.json
+mail wait: poll the sandbox (mailpit | mailhog | mailtrap | custom) ─► the message ─► checks (recipient, placeholders, links in policy, unsubscribe, language) ─► data/mail-checks.json + masked evidence
+ticket.json + ticket-results.json (agent) ─► ticket check (derived ⇒ confirmed, or assumed in CI) ─► lint (every criterion answered and backed) ─► checklist in both reports; bank tests tagged
+```
+
+`core/lib/browsers.ts` (Playwright discovery, engines, the request policy) and `core/lib/bank/uisteps.ts` (the step vocabulary) are shared by the bank's UI runner and the sweep, so the policy (redirects checked by hand) is one piece of code. `core/lib/sweep/` has `png.ts` (a small codec: no dependency), `visual.ts` (comparison and the baseline store), `pages.ts` (the file and the browser/size matrix per mode), `engine.ts` (the visits), `results.ts` (grouping), `service.ts` (the CLI's entry points);
+`core/lib/perf/` the budgets, history and API timer; `core/lib/mail/` the catchers, a small MIME reader and the checks; `core/lib/ticket.ts` the criteria; `core/lib/coverage-report.ts` what the reports show and what the lint asks. The CLI's commands for all of it are in `cli/src/coverage.ts`.
+Whose decision it is: `baseline accept` and `browsers install` are the owner's (the hook refuses them in a run, as it refuses writes to `baselines/` and `perf.json`).
+
 ## Formats and versioning
 
-Every file QAMind writes carries `schema_version`. Memory is at schema 2; a store written by an older QAMind is **migrated on first use** after a byte-for-byte copy to `backups/<time>-schema-N-to-M/` and a line per file in `backups/migrations.log.jsonl` (`core/lib/memory/migrate.ts`); a store written by a newer QAMind is refused untouched.
+Every file QAMind writes carries `schema_version`. Memory is at schema 2 (`perf.json` joined it in 7.9, and the baselines live in the store's `baselines/` folder); a store written by an older QAMind is **migrated on first use** after a byte-for-byte copy to `backups/<time>-schema-N-to-M/` and a line per file in `backups/migrations.log.jsonl` (`core/lib/memory/migrate.ts`); a store written by a newer QAMind is refused untouched.
 Reports record the QAMind and knowledge versions. See [MEMORY.md](MEMORY.md).

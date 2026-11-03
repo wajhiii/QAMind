@@ -144,6 +144,14 @@ Known gaps (not yet covered): GraphQL, WebSocket and server-sent-event APIs; a J
 long-running or scheduled jobs; cross-browser testing beyond a list of differences to suspect; Nuxt, NestJS, Angular, Svelte, Flask and FastAPI
 notes; handling secrets and personal data found in evidence (arrives with Phase 7.6).
 
+## The coverage checks (sweep, mail, speed, tickets)
+
+- **Real browsers in tests.** `tests/core/sweep.test.ts` drives Chrome (and checks WebKit is reported unavailable when it is not installed) against a small site served by the test; it skips without Chrome or `plugins/qamind/node_modules/playwright-core`. To try WebKit by hand: install it into a scratch folder (`PLAYWRIGHT_BROWSERS_PATH=/tmp/pw node plugins/qamind/node_modules/playwright-core/cli.js install webkit`, about 80 MB) and run with the same variable set.
+- **The mail stand-in.** `demo-app/scripts/mail-catcher.mjs` speaks the slice of Mailpit's API (v1) that `core/lib/mail/catchers.ts` reads. If Mailpit's API changes, change both and re-read its OpenAPI file (`server/ui/api/v1/swagger.json` in its repository). MailHog and Mailtrap were never run; when someone can, run `qamind mail wait` against each and correct `catchers.ts`.
+- **The answer key for WebKit.** DB-16 in `demo-app/SEEDED-BUGS.md` is verified on Playwright WebKit 26.6 only. A newer WebKit may accept `'2026-09-02 10:30:00 UTC'`: if the sweep stops finding it, pick another string from the list in the key (they were compared in Chrome and WebKit) rather than editing the check.
+- **Baselines are pictures of one browser build.** After upgrading Chrome or Playwright, a baseline may differ by antialiasing: tune `CHANNEL_TOLERANCE` in `core/lib/sweep/visual.ts` only with a test, and tell owners to re-accept.
+- After a change to the sweep, the mail checks, ticket mode or their instructions (`core/shared/coverage.md`, `ticket-mode.md`), run `node scripts/eval-coverage.ts --label <phase> --browsers-path <folder with webkit>` (needs ports 4100 to 4102, 1025 and 8025 free; about 40 minutes and $10 to $15 for both runs).
+
 ## Trying the agent end to end
 
 `docs/EVALUATION-LOG.md` has the exact procedure (a copy of the demo app without its answer key, a scratch `QAMIND_HOME`, a headless

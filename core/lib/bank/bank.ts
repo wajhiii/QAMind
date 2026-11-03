@@ -76,6 +76,9 @@ export interface BankTest {
   protects_bug?: string;
   from_run?: string;
   from_issue?: string;
+  /** The ticket (and its criteria) this test came from, so a ticket can be traced to the checks that guard it. */
+  ticket?: string;
+  criteria?: string[];
   /** API tests: the requests and what each must answer. */
   plan?: Plan;
   /** UI tests: the web UI (a name from the config) the steps start in, and the steps. */
@@ -283,6 +286,9 @@ export interface SaveInput {
   protects_bug?: string;
   from_run?: string;
   from_issue?: string;
+  /** Ticket mode (spec 13.4): the ticket this check came from, and which of its criteria it checks. Set from the run's own ticket when the run is a ticket run. */
+  ticket?: string;
+  criteria?: string[];
   /** Replace the plan or steps of this existing test instead of adding a new one. */
   extends?: string;
 }
@@ -333,6 +339,10 @@ export function saveTest(store: string, input: SaveInput, ctx: SaveContext): Sav
     if (target.kind !== input.kind) throw new Error(`${target.id} is a ${target.kind} test; it cannot become a ${input.kind} test.`);
     Object.assign(target, { title, area, card, updated: now, revisions: target.revisions + 1, ...(plan ? { plan } : {}), ...(steps ? { steps } : {}), ...(input.ui ? { ui: input.ui } : {}), ...(input.tags ? { tags: input.tags } : {}) });
     if (input.protects_bug) target.protects_bug = input.protects_bug;
+    if (input.ticket) {
+      target.ticket = input.ticket;
+      target.criteria = [...new Set([...(target.ticket === input.ticket ? (target.criteria ?? []) : []), ...(input.criteria ?? [])])];
+    }
     saveBank(store, tests, loaded.unparsed);
     return { action: "extended", test: target, warnings, message: `${target.id} was extended (revision ${target.revisions}).` };
   }
@@ -352,6 +362,7 @@ export function saveTest(store: string, input: SaveInput, ctx: SaveContext): Sav
     ...(input.protects_bug ? { protects_bug: input.protects_bug } : {}),
     ...(input.from_run ? { from_run: input.from_run } : {}),
     ...(input.from_issue ? { from_issue: input.from_issue } : {}),
+    ...(input.ticket ? { ticket: input.ticket, criteria: input.criteria ?? [] } : {}),
     ...(plan ? { plan } : {}),
     ...(input.kind === "ui" ? { ui: input.ui as string, steps: steps as UiStep[] } : {}),
     created: now,

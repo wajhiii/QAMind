@@ -30,9 +30,14 @@ export interface CommentInput {
 const HEAD: Record<CiOutcomeOrError, string> = { pass: "✅ Passed", warn: "⚠️ Passed with warnings", fail: "⛔ Failed", error: "⚪ Could not check this change" };
 
 /** The status line and the 30-second summary of an admin report, and its problems, as they are written there. */
-export function readAdminReport(md: string): { verdict: string; summary: string[]; problems: Array<{ icon: string; severity: string; title: string }> } {
+export function readAdminReport(md: string): { verdict: string; summary: string[]; problems: Array<{ icon: string; severity: string; title: string }>; checklist?: { title: string; lines: string[] } } {
   const lines = md.split("\n");
+  // Ticket mode (spec 13.4): the checklist of what was asked for, as the admin report words it.
+  const at = lines.findIndex((l) => /^## What was asked for \(/.test(l));
+  const end = at < 0 ? -1 : lines.findIndex((l, i) => i > at && l.startsWith("## "));
+  const checklist = at < 0 ? undefined : { title: (lines[at] as string).replace(/^## /, ""), lines: lines.slice(at + 1, end < 0 ? undefined : end).filter((l) => l.trim() !== "") };
   return {
+    ...(checklist ? { checklist } : {}),
     verdict: (lines[0] ?? "").trim(),
     summary: lines.filter((l) => l.startsWith("> - ")).map((l) => l.slice(4).trim()),
     problems: [...md.matchAll(/^### (🔴|🟠|🟡) (Critical|Important|Minor): (.+)$/gm)].map((m) => ({ icon: m[1] as string, severity: m[2] as string, title: (m[3] as string).trim() })),
@@ -47,6 +52,7 @@ export function renderComment(i: CommentInput, privacy: PrivacyContext): string 
     const r = i.adminReport ? readAdminReport(i.adminReport) : undefined;
     if (r?.verdict) L.push(r.verdict, "");
     if (r?.summary.length) L.push("> **30-second summary**", ...r.summary.map((s) => `> - ${s}`), "");
+    if (r?.checklist) L.push(`**${r.checklist.title}**`, "", ...r.checklist.lines, "");
     if (i.gate && (i.gate.failed.length || i.gate.warned.length)) {
       L.push(i.outcome === "fail" ? "**Why this fails:**" : "**To look at:**", ...i.gate.reasons.map((x) => `- ${x}`), "");
     }

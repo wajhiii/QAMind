@@ -8,7 +8,7 @@
   var view = document.getElementById('order-view');
 
   function placedOn(iso) {
-    var placed = new Date(iso.slice(0, 19).replace('T', ' '));
+    var placed = new Date(iso.slice(0, 19).replace('T', ' ') + ' UTC');
     return 'Placed on ' + placed.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 

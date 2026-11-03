@@ -97,7 +97,7 @@
     },
     "qa-tests": {
       "disable-model-invocation": true,
-      "allowed-tools": "Bash(qamind tests status) Bash(qamind tests status *) Bash(qamind tests prune) Bash(qamind tests prune *) Bash(qamind tests run) Bash(qamind tests run *) Bash(qamind tests export)"
+      "allowed-tools": "Bash(qamind tests status) Bash(qamind tests status *) Bash(qamind tests prune) Bash(qamind tests prune *) Bash(qamind tests run) Bash(qamind tests run *) Bash(qamind tests export) Bash(qamind baseline status) Bash(qamind baseline status *) Bash(qamind browsers status) Bash(qamind browsers status *)"
     }
   },
   "headless": {

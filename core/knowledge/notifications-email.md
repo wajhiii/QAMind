@@ -18,6 +18,9 @@ recipients and leaked placeholders.
 6. If the catcher's web page is blocked by the browser guard, tell the user the origin must be added to the allowed extra
    origins in the configuration; do not work around the guard.
 
+## Reading the catcher: `mail wait`
+When the config has `mail.catcher` (`sms.catcher` for texts), do not read the catcher's own web page by hand: after you start the flow with a test account's address, run `mail wait --to <address> --flow "<name>"` (the coverage instructions, section 3, have the details). It waits for the message, saves it as evidence (masked), and checks the recipient, a subject, left-over placeholders, that every link opens and stays in the test environment, an unsubscribe where the kind needs one (`--kind marketing|notification`), and the language (`--language ur`). Read the excerpt too: the checks cannot judge the wording. It refuses an address that is not a test address.
+
 ## Checks
 
 ### 1. Inventory of triggers

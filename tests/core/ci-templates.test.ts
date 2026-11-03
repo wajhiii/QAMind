@@ -169,7 +169,7 @@ test("bad input is refused with what to write: a cron expression, a mode, ticket
   assert.match((await cli(home, "schedule", "--project", proj, "--provider", "cron", "--cron", "every night")).json.error, /not a five-field cron expression/);
   assert.match((await cli(home, "schedule", "--project", proj, "--provider", "cron", "--mode", "turbo")).json.error, /--mode must be one of diff, quick, regression, full/);
   assert.match((await cli(home, "schedule", "--project", proj)).json.error, /schedule needs --provider/);
-  assert.match((await cli(home, "ci", "--project", proj, "--mode", "ticket")).json.error, /ticket mode comes with ticket mode itself/);
+  assert.match((await cli(home, "ci", "--project", proj, "--mode", "ticket")).json.error, /ticket mode needs the ticket: --ticket FILE/);
   assert.match((await cli(home, "ci", "init", "--project", proj)).json.error, /ci init needs --provider github\|gitlab/);
   assert.equal(validCron("0 2 * * *"), true);
   assert.equal(validCron("*/15 0-6 1,15 * 1-5"), true);

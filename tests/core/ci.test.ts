@@ -402,3 +402,47 @@ test("a CI run never edits the checkout, .gitignore included; and `.qa/*` with t
   const plain = tmp("qamind-plain-");
   assert.deepEqual(ensureGitignoreEntries(plain), [".env.qa", ".qa/"], "a project with nothing still gets the usual two lines");
 });
+
+// ---------------------------------------------------------------------------------------------- ticket mode in CI (spec 13.4)
+
+test("a CI ticket run: the prompt says which file to test, nobody confirms criteria so derived ones are assumed, and the comment says so", async () => {
+  reset();
+  const proj = ciProject();
+  fs.mkdirSync(path.join(proj, "docs"), { recursive: true });
+  fs.writeFileSync(path.join(proj, "docs", "story.md"), "As a customer I want to reorder a past order so that I do not retype it.\n");
+  const r = await run(proj, ghEnv({ FAKE_SCENARIO: "ticket", FAKE_TICKET: "docs/story.md" }), { ticket: "docs/story.md", home: tmp("qamind-ci-home-") });
+  assert.equal(r.mode, "ticket");
+  assert.equal(r.outcome, "pass", JSON.stringify(r));
+  const log = fs.readFileSync(path.join(r.out_dir, "agent.log"), "utf8");
+  assert.match(log, /the mode is ticket/);
+  assert.match(log, /prompt: Run the QAMind QA procedure in ticket mode for the ticket in docs\/story\.md \(--ticket docs\/story\.md\)\./);
+  assert.match(log, /Nobody can confirm criteria in a CI run: if the ticket states none, derive them and list them as assumed/);
+  const dir = path.join(proj, ".qa", "reports", r.run_id as string);
+  const data = readRunData(dir);
+  assert.deepEqual(data.ticket?.assumed, ["AC-1"]);
+  const comment = mock.comments.at(-1)?.body ?? "";
+  assert.match(comment, /What was asked for \(Reorder a past order\)/);
+  assert.match(comment, /worked out by the checker because the request did not say what "done" means/);
+  assert.match(comment, /mode `ticket`/);
+  assert.deepEqual(readJson<{ ticket?: { assumed: number } }>(path.join(proj, ".qa", "reports", r.run_id as string, "data", "meta.json"))?.ticket, undefined, "the summary, not the meta, holds the counts");
+});
+
+test("a CI ticket run needs a plain file inside the project, and the CLI says so before anything starts", async () => {
+  reset();
+  const proj = ciProject();
+  fs.writeFileSync(path.join(proj, "story file.md"), "x");
+  fs.writeFileSync(path.join(proj, "big.md"), "x".repeat(120_000));
+  fs.writeFileSync(path.join(proj, "ok.md"), "A story.");
+  const outside = path.join(tmp("qamind-out-"), "story.md");
+  fs.writeFileSync(outside, "x");
+  for (const [ticket, re] of [["missing.md", /there is no ticket file missing\.md in the project/], [outside, /is outside the project/], ["../story.md", /is outside the project/], ["story file.md", /has a space or a special character/], ["big.md", /larger than 100 KB/], ["ok.md;rm -rf x", /special character/]] as const) {
+    const r = await run(proj, ghEnv(), { ticket, dryRun: true });
+    assert.equal(r.outcome, "error", ticket);
+    assert.equal(r.exit_code, 2);
+    assert.match(r.error ?? "", re, ticket);
+  }
+  const { cli } = await import("./helpers.ts");
+  const noFile = await cli(tmp(), "ci", "--mode", "ticket", "--project", proj);
+  assert.match(noFile.json.error, /ticket mode needs the ticket: --ticket FILE/);
+  assert.match((await cli(tmp(), "ci", "--mode", "full", "--ticket", "ok.md", "--project", proj)).json.error, /--ticket means ticket mode/);
+});

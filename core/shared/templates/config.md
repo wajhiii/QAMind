@@ -101,6 +101,35 @@ health:
 #   mask_selectors: [".customer-address", "[data-private]"]   # screen elements blurred before screenshots
 #   mask_fields: [name, address]    # fields whose values are masked in saved API evidence
 
+# Other browsers and screen sizes (optional). A run covers: diff one browser at one size, quick adds the mobile size, full every browser and size listed here.
+# A browser that is not installed is reported as Not tested (the owner installs one with: qamind browsers install webkit).
+# browsers: [chromium, webkit]    # chromium (default), firefox, webkit
+# viewports:                      # default: desktop 1366x768 and mobile 390x844
+#   - { name: desktop, width: 1366, height: 768 }
+#   - { name: mobile, width: 390, height: 844 }
+#   - { name: tablet, width: 768, height: 1024 }
+
+# How a screen looks over time (optional). Baselines are accepted by the owner after a good run: /qa-tests baseline accept
+# visual:
+#   threshold: 0.2                          # percent of a page's pixels that may differ before it is reported
+#   ignore_selectors: [".avatar", "[data-dynamic]"]   # parts that change by themselves (dates, ads), hidden before each screenshot
+
+# Speed (optional). A few measurements, not a load test.
+# performance:
+#   page_load_ms: 3000               # a page is slow above this until it is ready for a person
+#   api_p95_ms: 800                  # an endpoint is slow when the slowest of a few calls is above this
+#   regression_pct: 30               # slower than the recent runs by more than this is reported even when under budget
+#   pages: { "/reports.html": 6000 }                  # own budgets
+#   endpoints: { "GET /admin/reports/sales": 5000 }
+
+# Emails and texts the product sends (optional). A sandbox that catches them, so nothing reaches a real address. Without one, those flows are Not tested.
+# mail:
+#   catcher: mailpit               # mailpit | mailhog | mailtrap | the address of a custom JSON API
+#   url: http://127.0.0.1:8025     # (mailtrap: token_env: MAILTRAP_API_TOKEN, account_id, inbox_id instead)
+#   timeout_s: 30
+# sms:
+#   catcher: https://sms-sandbox.example.test/api/messages   # a test endpoint that lists the messages it received
+
 # CI / pull-request mode (optional): `qamind ci` tests a pull request, report-only, and posts one comment that it updates on every push.
 # ci:
 #   fail_on: [critical, environment-problem]   # any of these fails the run (exit code 1, failing status). Also: important, minor, came-back, bank-failure, not-ready

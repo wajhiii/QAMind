@@ -117,6 +117,59 @@ export interface PrivacySettings {
   mask_fields: string[];
 }
 
+/** Where messages the product sends are caught, so a run can read them without sending anything to a real address or number (spec 13.7). */
+export const CATCHER_TYPES = ["mailpit", "mailhog", "mailtrap", "custom"] as const;
+export type CatcherType = (typeof CATCHER_TYPES)[number];
+export interface CatcherSettings {
+  type: CatcherType;
+  /** The catcher's HTTP address: its API (Mailpit, MailHog, a custom API) or, for Mailtrap, its API root. */
+  url: string;
+  /** The NAME of the variable holding an API token, when the catcher needs one (Mailtrap, a custom API). Never the token. */
+  token_env?: string;
+  /** Mailtrap: the account and the inbox to read. */
+  account_id?: string;
+  inbox_id?: string;
+  /** How long a run waits for a message to arrive. */
+  timeout_s: number;
+}
+export const DEFAULT_CATCHER_TIMEOUT_S = 30;
+
+/** Browsers and screen sizes to check (spec 13.10). */
+export const BROWSER_ENGINES = ["chromium", "firefox", "webkit"] as const;
+export type BrowserEngine = (typeof BROWSER_ENGINES)[number];
+export interface Viewport {
+  name: string;
+  width: number;
+  height: number;
+}
+export const DEFAULT_VIEWPORTS: Viewport[] = [
+  { name: "desktop", width: 1366, height: 768 },
+  { name: "mobile", width: 390, height: 844 },
+];
+
+/** Visual regression (spec 13.9). */
+export interface VisualSettings {
+  /** The share of a page's pixels (percent) that may differ before a difference is reported. */
+  threshold: number;
+  /** Parts of a page that change by themselves (dates, avatars, ads): hidden before every screenshot. */
+  ignore_selectors: string[];
+}
+export const DEFAULT_VISUAL_THRESHOLD = 0.2;
+
+/** Basic performance checks (spec 13.11). */
+export interface PerformanceSettings {
+  /** A page is slow above this many milliseconds until it settles. */
+  page_load_ms: number;
+  /** An API endpoint is slow when its 95th percentile of a few calls is above this. */
+  api_p95_ms: number;
+  /** Slower than the recent runs by more than this percent is a regression, even when under budget. */
+  regression_pct: number;
+  /** Own budgets: a page path (`/reports.html`) or an endpoint (`GET /admin/reports/sales`) to its milliseconds. */
+  pages: Record<string, number>;
+  endpoints: Record<string, number>;
+}
+export const DEFAULT_PERFORMANCE: PerformanceSettings = { page_load_ms: 3000, api_p95_ms: 800, regression_pct: 30, pages: {}, endpoints: {} };
+
 export interface QamindConfig {
   schema_version: number;
   environment: { name: string; confirmed_non_production: boolean };
@@ -131,6 +184,14 @@ export interface QamindConfig {
   budget: BudgetSettings;
   privacy: PrivacySettings;
   ci: CiSettings;
+  /** The email and SMS catchers; absent when none is configured (the flows that send messages are then Not tested). */
+  mail?: CatcherSettings;
+  sms?: CatcherSettings;
+  /** The browsers to check. Default: chromium. */
+  browsers: BrowserEngine[];
+  viewports: Viewport[];
+  visual: VisualSettings;
+  performance: PerformanceSettings;
 }
 
 export interface ConfigCheck {
@@ -254,7 +315,7 @@ function normalizeCi(raw: unknown, problems: string[]): CiSettings {
     return typeof v === "boolean" ? v : DEFAULT_CI[key];
   };
   const mode = raw["mode"];
-  if (mode !== undefined && !(typeof mode === "string" && (CI_MODES as readonly string[]).includes(mode))) problems.push(`ci.mode must be one of ${CI_MODES.join(", ")} (ticket mode comes with ticket mode).`);
+  if (mode !== undefined && !(typeof mode === "string" && (CI_MODES as readonly string[]).includes(mode))) problems.push(`ci.mode must be one of ${CI_MODES.join(", ")} (a ticket is given on the command line with --ticket, not in the config).`);
   const context = raw["status_context"];
   if (context !== undefined && !(typeof context === "string" && /^[\w .:/-]{1,60}$/.test(context))) problems.push("ci.status_context must be a short name (letters, digits, space and . : / - _).");
   const timeout = raw["timeout_minutes"];
@@ -313,6 +374,144 @@ function normalizePrivacy(raw: unknown, problems: string[]): PrivacySettings {
     // A selector goes into a style sheet: braces and angle brackets could end the rule and add another, so they are refused.
     mask_selectors: limitedStrings(o["mask_selectors"], "privacy.mask_selectors", problems, { max: 200, test: (s) => (/[{}<>;\\]/.test(s) ? "contains a character that is not allowed in a CSS selector here ({ } < > ; \\)" : undefined) }),
     mask_fields: limitedStrings(o["mask_fields"], "privacy.mask_fields", problems, { max: 60, test: (s) => (/^[A-Za-z_][\w.-]*$/.test(s) ? undefined : "is not a field name (letters, digits, _ . -)") }),
+  };
+}
+
+const ID_TEXT = /^[A-Za-z0-9_.-]{1,40}$/;
+
+function normalizeCatcher(raw: unknown, where: "mail" | "sms", problems: string[]): CatcherSettings | undefined {
+  if (raw === undefined || raw === null) return undefined;
+  if (!isObj(raw)) {
+    problems.push(`${where} must be a mapping (catcher, url, token_env, timeout_s).`);
+    return undefined;
+  }
+  const kind = str(raw["catcher"]);
+  if (!kind) {
+    problems.push(`${where}.catcher is required: ${CATCHER_TYPES.join(", ")}, or the http(s) address of a custom JSON API.`);
+    return undefined;
+  }
+  // A full address as the catcher means a custom API at that address.
+  const lower = kind.toLowerCase();
+  const asUrl = parseUrl(kind) ? kind : undefined;
+  const type: CatcherType | undefined = asUrl ? "custom" : (CATCHER_TYPES as readonly string[]).includes(lower) ? (lower as CatcherType) : undefined;
+  if (!type) {
+    problems.push(`${where}.catcher "${kind}" is not one of ${CATCHER_TYPES.join(", ")} or an http(s) address.`);
+    return undefined;
+  }
+  if (where === "sms" && type !== "custom") problems.push("sms.catcher must be the http(s) address of a test endpoint (a custom JSON API that lists the messages it received).");
+  const url = asUrl ?? str(raw["url"]);
+  if (type === "mailtrap") {
+    // Mailtrap's API is one fixed service; the address is only needed to point at a different API root.
+    if (!str(raw["token_env"])) problems.push("mail.token_env is required for mailtrap: the NAME of the variable that holds the API token.");
+    const given = (k: string): boolean => typeof raw[k] === "number" || !!str(raw[k]);
+    if (!given("inbox_id") || !given("account_id")) problems.push("mail.account_id and mail.inbox_id are required for mailtrap.");
+  } else if (!url) problems.push(`${where}.url is required: the address of the catcher's API (for example http://127.0.0.1:8025 for Mailpit).`);
+  else if (!parseUrl(url)) problems.push(`${where}.url "${url}" is not a valid http(s) address.`);
+  const tokenEnv = str(raw["token_env"]);
+  if (tokenEnv && !ENV_NAME.test(tokenEnv)) problems.push(`${where}.token_env "${tokenEnv}" is not a valid variable name (give the name, never the token itself).`);
+  for (const k of ["account_id", "inbox_id"] as const) {
+    const v = raw[k];
+    if (v !== undefined && !(typeof v === "number" || (typeof v === "string" && ID_TEXT.test(v)))) problems.push(`${where}.${k} must be a short id (letters, digits, - _ .).`);
+  }
+  const timeout = raw["timeout_s"];
+  if (timeout !== undefined && !(typeof timeout === "number" && timeout >= 1 && timeout <= 600)) problems.push(`${where}.timeout_s must be a number of seconds from 1 to 600.`);
+  const finalUrl = type === "mailtrap" ? (url ?? "https://mailtrap.io/api") : url;
+  if (!finalUrl || !parseUrl(finalUrl)) return undefined;
+  const id = (k: "account_id" | "inbox_id"): string | undefined => (typeof raw[k] === "number" ? String(raw[k]) : str(raw[k]));
+  return {
+    type,
+    url: finalUrl.replace(/\/+$/, ""),
+    ...(tokenEnv && ENV_NAME.test(tokenEnv) ? { token_env: tokenEnv } : {}),
+    ...(id("account_id") ? { account_id: id("account_id") as string } : {}),
+    ...(id("inbox_id") ? { inbox_id: id("inbox_id") as string } : {}),
+    timeout_s: typeof timeout === "number" && timeout >= 1 && timeout <= 600 ? timeout : DEFAULT_CATCHER_TIMEOUT_S,
+  };
+}
+
+function normalizeBrowsers(raw: unknown, problems: string[]): BrowserEngine[] {
+  if (raw === undefined || raw === null) return ["chromium"];
+  if (!Array.isArray(raw) || raw.length === 0) {
+    problems.push(`browsers must be a list of: ${BROWSER_ENGINES.join(", ")}.`);
+    return ["chromium"];
+  }
+  const out: BrowserEngine[] = [];
+  for (const b of raw) {
+    if (typeof b === "string" && (BROWSER_ENGINES as readonly string[]).includes(b.toLowerCase())) out.push(b.toLowerCase() as BrowserEngine);
+    else problems.push(`browsers: "${String(b)}" is not a browser. Use ${BROWSER_ENGINES.join(", ")}.`);
+  }
+  return out.length ? [...new Set(out)] : ["chromium"];
+}
+
+function normalizeViewports(raw: unknown, problems: string[]): Viewport[] {
+  if (raw === undefined || raw === null) return DEFAULT_VIEWPORTS.map((v) => ({ ...v }));
+  if (!Array.isArray(raw) || raw.length === 0) {
+    problems.push("viewports must be a list of { name, width, height } (for example desktop 1366x768, mobile 390x844, tablet 768x1024).");
+    return DEFAULT_VIEWPORTS.map((v) => ({ ...v }));
+  }
+  const out: Viewport[] = [];
+  for (const [i, v] of raw.entries()) {
+    const o = isObj(v) ? v : {};
+    const name = str(o["name"]);
+    const w = o["width"];
+    const h = o["height"];
+    if (!name || !/^[\w .-]{1,30}$/.test(name) || !(typeof w === "number" && Number.isInteger(w) && w >= 240 && w <= 4000) || !(typeof h === "number" && Number.isInteger(h) && h >= 240 && h <= 4000)) {
+      problems.push(`viewports[${i}] needs a short name and a whole width and height from 240 to 4000.`);
+      continue;
+    }
+    if (out.some((x) => x.name === name)) problems.push(`viewports: the name "${name}" is used twice.`);
+    else out.push({ name, width: w, height: h });
+  }
+  return out.length ? out : DEFAULT_VIEWPORTS.map((v) => ({ ...v }));
+}
+
+function normalizeVisual(raw: unknown, problems: string[]): VisualSettings {
+  if (raw !== undefined && raw !== null && !isObj(raw)) {
+    problems.push("visual must be a mapping (threshold, ignore_selectors).");
+    return { threshold: DEFAULT_VISUAL_THRESHOLD, ignore_selectors: [] };
+  }
+  const o = isObj(raw) ? raw : {};
+  const t = o["threshold"];
+  if (t !== undefined && !(typeof t === "number" && t >= 0 && t <= 100)) problems.push("visual.threshold must be a percentage from 0 to 100: the share of a page's pixels that may differ.");
+  return {
+    threshold: typeof t === "number" && t >= 0 && t <= 100 ? t : DEFAULT_VISUAL_THRESHOLD,
+    // Like privacy.mask_selectors, a selector goes into a style sheet.
+    ignore_selectors: limitedStrings(o["ignore_selectors"], "visual.ignore_selectors", problems, { max: 200, test: (s) => (/[{}<>;\\]/.test(s) ? "contains a character that is not allowed in a CSS selector here ({ } < > ; \\)" : undefined) }),
+  };
+}
+
+function budgetMap(raw: unknown, where: string, problems: string[]): Record<string, number> {
+  if (raw === undefined || raw === null) return {};
+  if (!isObj(raw)) {
+    problems.push(`${where} must be a mapping from a ${where.endsWith("pages") ? "page path" : "method and path"} to milliseconds.`);
+    return {};
+  }
+  const out: Record<string, number> = {};
+  for (const [k, v] of Object.entries(raw).slice(0, LIST_MAX)) {
+    if (typeof v === "number" && v >= 50 && v <= 600_000 && k.length <= 200) out[k] = v;
+    else problems.push(`${where}.${k}: a number of milliseconds from 50 to 600000.`);
+  }
+  return out;
+}
+
+function normalizePerformance(raw: unknown, problems: string[]): PerformanceSettings {
+  if (raw !== undefined && raw !== null && !isObj(raw)) {
+    problems.push("performance must be a mapping (page_load_ms, api_p95_ms, regression_pct, pages, endpoints).");
+    return { ...DEFAULT_PERFORMANCE, pages: {}, endpoints: {} };
+  }
+  const o = isObj(raw) ? raw : {};
+  const ms = (key: "page_load_ms" | "api_p95_ms"): number => {
+    const v = o[key];
+    if (v !== undefined && !(typeof v === "number" && v >= 50 && v <= 600_000)) problems.push(`performance.${key} must be a number of milliseconds from 50 to 600000.`);
+    return typeof v === "number" && v >= 50 && v <= 600_000 ? v : DEFAULT_PERFORMANCE[key];
+  };
+  const pct = o["regression_pct"];
+  if (pct !== undefined && !(typeof pct === "number" && pct >= 5 && pct <= 1000)) problems.push("performance.regression_pct must be a percentage from 5 to 1000.");
+  return {
+    page_load_ms: ms("page_load_ms"),
+    api_p95_ms: ms("api_p95_ms"),
+    regression_pct: typeof pct === "number" && pct >= 5 && pct <= 1000 ? pct : DEFAULT_PERFORMANCE.regression_pct,
+    pages: budgetMap(o["pages"], "performance.pages", problems),
+    endpoints: budgetMap(o["endpoints"], "performance.endpoints", problems),
   };
 }
 
@@ -412,6 +611,18 @@ export function normalizeConfig(raw: unknown, problems: string[]): QamindConfig 
     budget: normalizeBudget(raw["budget"], problems),
     privacy: normalizePrivacy(raw["privacy"], problems),
     ci: normalizeCi(raw["ci"], problems),
+    ...((): { mail?: CatcherSettings } => {
+      const c = normalizeCatcher(raw["mail"], "mail", problems);
+      return c ? { mail: c } : {};
+    })(),
+    ...((): { sms?: CatcherSettings } => {
+      const c = normalizeCatcher(raw["sms"], "sms", problems);
+      return c ? { sms: c } : {};
+    })(),
+    browsers: normalizeBrowsers(raw["browsers"], problems),
+    viewports: normalizeViewports(raw["viewports"], problems),
+    visual: normalizeVisual(raw["visual"], problems),
+    performance: normalizePerformance(raw["performance"], problems),
   };
   return config;
 }
@@ -469,6 +680,10 @@ export function checkConfigText(text: string, opts: { projectRoot: string; env?:
   }
   if (config.api.openapi && !parseUrl(config.api.openapi) && !fs.existsSync(path.resolve(opts.projectRoot, config.api.openapi))) {
     result.problems.push(`api.openapi points to "${config.api.openapi}", which does not exist in the project.`);
+  }
+  // A catcher is only read, never browsed, so it is not an origin the product may be reached at; but one that names production is still refused.
+  for (const [label, c] of [["mail.url", config.mail], ["sms.url", config.sms]] as const) {
+    if (c && c.type !== "mailtrap" && classifyUrl(c.url, config.security).verdict === "blocked") result.blocked.push({ url: c.url, reason: `${label} ${classifyUrl(c.url, config.security).reason}` });
   }
   for (const { label, url } of configUrls(config)) {
     if (!parseUrl(url)) {

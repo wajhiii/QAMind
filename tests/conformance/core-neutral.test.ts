@@ -43,6 +43,16 @@ test("the CI code in core names no host: how a host's CLI is run is in that host
   assert.deepEqual(problems, []);
 });
 
+test("the coverage code (sweep, mail, timings, tickets, browsers) names no host either", () => {
+  const problems: string[] = [];
+  const files = [...["sweep", "mail", "perf"].flatMap((d) => walk(path.join(repoRoot, "core", "lib", d), /\.ts$/)), ...["browsers.ts", "ticket.ts", "coverage-report.ts"].map((f) => path.join(repoRoot, "core", "lib", f))];
+  for (const f of files) {
+    const text = fs.readFileSync(f, "utf8");
+    for (const re of [/claude/i, /anthropic/i, /cursor/i, /codex/i, /\/qamind:/]) if (re.test(text)) problems.push(`${rel(f)} mentions ${re}`);
+  }
+  assert.deepEqual(problems, []);
+});
+
 test("every placeholder core uses is one a host can give, so a new host has a fixed, short list to fill in", () => {
   const used = new Set<string>();
   for (const f of [...walk(path.join(repoRoot, "core", "skills"), /\.md$/), ...walk(path.join(repoRoot, "core", "shared"), /\.md$/), ...walk(path.join(repoRoot, "core", "knowledge"), /\.md$/)]) for (const m of fs.readFileSync(f, "utf8").matchAll(/\{\{([A-Z_]+)\}\}/g)) used.add(m[1] as string);

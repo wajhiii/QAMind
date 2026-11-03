@@ -1,9 +1,9 @@
 ---
 name: qa-tests
 description: The test bank: checks that earlier QA runs saved as tests. See what it holds and how each test is doing, run it on its own, copy tests into the project as real Playwright tests (with your approval), or retire stale ones.
-argument-hint: "[status | run | export | prune]"
+argument-hint: "[status | run | export | prune | baseline accept|status]"
 disable-model-invocation: true
-allowed-tools: "Bash(qamind tests status) Bash(qamind tests status *) Bash(qamind tests prune) Bash(qamind tests prune *) Bash(qamind tests run) Bash(qamind tests run *) Bash(qamind tests export)"
+allowed-tools: "Bash(qamind tests status) Bash(qamind tests status *) Bash(qamind tests prune) Bash(qamind tests prune *) Bash(qamind tests run) Bash(qamind tests run *) Bash(qamind tests export) Bash(qamind baseline status) Bash(qamind baseline status *) Bash(qamind browsers status) Bash(qamind browsers status *)"
 ---
 
 # /qamind:qa-tests: the test bank
@@ -21,6 +21,9 @@ Everything goes through `qamind` (one command per call, no `&&`, `||` or pipes; 
 | `run` | `qamind tests run`. It needs the test environment up and test logins in `.env.qa`; it refuses a production address. Report passed, failed, flaky and skipped, and for each failure the test's title and the detail. A test that fails twice is a lead, not yet a bug: offer `/qamind:qa-only regression` to confirm it. |
 | `export` | Copy tests into the project, below. |
 | `prune` | Walk through the stale tests, below. |
+| `baseline status` | `qamind baseline status`: which pictures (page, role, browser, screen size) are the baseline now and when each was accepted. |
+| `baseline accept` | Accept a run's pictures as the baseline, below. |
+| `browsers` | `qamind browsers status`: which browsers QAMind's own checks can start here. To add one (`webkit` for Safari's engine, `firefox`): ask first, it is a download of about 80 MB into Playwright's own browser folder, then `qamind browsers install webkit`. |
 
 ## Export
 
@@ -33,6 +36,13 @@ Each test becomes a real Playwright Test file written by QAMind from the saved d
 
 `qamind tests prune` lists tests that look stale (failed their last five runs, quarantined for over a month, never run). These are suggestions. A test that keeps failing may be a real bug that is still open: say so, and ask what they want.
 For a test they want gone: `qamind tests retire T-003 --reason "why"` (it moves to the archive, never deleted). For a flaky one they want back: `qamind tests unquarantine T-003` (its history starts again); to set one aside by hand: `qamind tests quarantine T-003 --reason "why"`.
+
+## Baseline
+
+The sweep of a QA run photographs the key pages; a **baseline** is the set of pictures the owner judged good, and later runs are compared with it (a difference above `visual.threshold` becomes a finding with before, after and difference pictures).
+1. Ask which run is good (the id is in its report folder name, `.qa/reports/<id>`), and look with them at what it photographed: the report's "Browsers, screen sizes and speed" section lists the pages. A run that found problems on a page makes that page's picture a baseline **with the problem in it**: say so, and offer to accept only the pages that look right (`--pages my-orders,login`).
+2. Only after their yes: `qamind baseline accept --run <id>` (add `--pages a,b` for some pages). It replaces the earlier baseline of each picture it saves, and says which pages had problems when photographed.
+3. A picture that changed on purpose (a redesign) is accepted the same way; one that changed by accident is a bug to fix, not to accept.
 
 ## Always
 - The owner decides. No write into the project and no retirement without their answer in this conversation.
