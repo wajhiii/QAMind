@@ -1,4 +1,6 @@
 import { execFileSync } from "node:child_process";
+import path from "node:path";
+import { workspaceRepos } from "./project.ts";
 
 function git(root: string, args: string[], raw = false): string | undefined {
   try {
@@ -24,12 +26,28 @@ export interface GitInfo {
   commit?: string;
   base?: string;
   dirty?: boolean;
-  /** Files changed against the base branch plus uncommitted work (capped). Used by `diff` mode. */
+  /** Files changed against the base branch plus uncommitted work (capped). Used by `diff` mode. In a workspace each path starts with its repository's folder. */
   changed_files: string[];
+  /** A workspace (a folder that holds several repositories, none of them the folder itself): what each one says, with `path` its folder. `is_repo` is false for the folder itself. */
+  repos?: Array<{ path: string; is_repo: boolean; branch?: string; commit?: string; base?: string; dirty?: boolean; changed_files: string[] }>;
+}
+
+const MAX_CHANGED = 300;
+
+/** The git state of a workspace: one entry per repository in it, and every changed file under its repository's folder. */
+function workspaceGitInfo(root: string, names: string[]): GitInfo {
+  const repos = names.map((name) => {
+    const one = gitInfo(path.join(root, name));
+    return { path: name, is_repo: one.is_repo, ...(one.branch ? { branch: one.branch } : {}), ...(one.commit ? { commit: one.commit } : {}), ...(one.base ? { base: one.base } : {}), ...(one.dirty !== undefined ? { dirty: one.dirty } : {}), changed_files: one.changed_files.map((f) => `${name}/${f}`) };
+  });
+  return { is_repo: false, repos, changed_files: repos.flatMap((r) => r.changed_files).slice(0, MAX_CHANGED) };
 }
 
 export function gitInfo(root: string): GitInfo {
-  if (git(root, ["rev-parse", "--is-inside-work-tree"]) !== "true") return { is_repo: false, changed_files: [] };
+  if (git(root, ["rev-parse", "--is-inside-work-tree"]) !== "true") {
+    const names = workspaceRepos(root);
+    return names.length ? workspaceGitInfo(root, names) : { is_repo: false, changed_files: [] };
+  }
   const branch = git(root, ["rev-parse", "--abbrev-ref", "HEAD"]);
   const commit = git(root, ["rev-parse", "--short", "HEAD"]);
   const files = porcelainFiles(root);
@@ -48,6 +66,6 @@ export function gitInfo(root: string): GitInfo {
     ...(commit ? { commit } : {}),
     ...(base ? { base } : {}),
     dirty: files.length > 0,
-    changed_files: [...changed].slice(0, 300),
+    changed_files: [...changed].slice(0, MAX_CHANGED),
   };
 }

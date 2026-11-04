@@ -31,7 +31,8 @@ export function makeProject(opts: { remote?: string; git?: boolean; files?: Reco
   return dir;
 }
 
-export const DEMO_CONFIG = fs.readFileSync(path.join(repoRoot, "demo-app", "qa-fixture", "config.md"), "utf8");
+// A Windows checkout turns line endings into CRLF; `withConfigYaml` below matches on "\n", and a missed match would silently drop the settings a test adds.
+export const DEMO_CONFIG = fs.readFileSync(path.join(repoRoot, "demo-app", "qa-fixture", "config.md"), "utf8").replace(/\r\n/g, "\n");
 
 export const DEMO_ENV: Record<string, string> = {
   QA_ADMIN_USER: "admin@lumen.test",

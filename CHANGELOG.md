@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.1.0 (unreleased)
+
+A product kept as several repositories in one parent folder ([decision 0013](docs/decisions/0013-workspaces.md)), and the CI results read for the first time.
+
+- **Workspaces**: a folder that is not a repository and holds one or more projects (a git repository or a dependency manifest in a folder directly inside it; not dot folders, `node_modules`, `vendor`, `dist`, `build`) is accepted as the project instead of stopping with `no-project`. One config, one set of reports, one memory (path-based). `run_start` returns `project.workspace.repos` and `git.repos`; `git.changed_files` has every repository's changes under its folder; the stack is the union of the repositories'; **auto-QA** sees a task's changes in any repository; no `.gitignore` is written; the shared workflow tells the agent to treat the repositories as one product and to name the repository when it says where a bug lives.
+- **Fix mode does not run from a workspace** (a fix is a commit on one repository's branch): `/qamind:qa` says so before it starts testing and `fix_preflight` refuses with the way out (start in the repository's folder).
+- **CI**: the failing tests of a CI job are now put into an annotation (`scripts/ci-annotate.mjs`), because the logs need a login. The first CI results showed two faults in the tests, not in QAMind: a test that committed without a git identity (Linux runners have none), and a test helper whose find-and-replace missed on Windows line endings (`\r\n`) and silently dropped the settings a test added. Both fixed.
+- New: `tests/core/workspace.test.ts` (5), `docs/decisions/0013-workspaces.md`, a README section, a hint in the config template.
+- **Not verified**: a real run by an agent in a workspace; fix mode from a workspace beyond its refusal; the Windows job's remaining results after the helper fix.
+
 ## 1.0.0 (2026-11-04)
 
 The first release: every phase of the spec (1 to 8) built, tested and merged; Codex was deferred by the owner and is not part of it. Released as the Git tag `v1.0.0` ([MAINTAINING.md](MAINTAINING.md)).

@@ -9,6 +9,7 @@ import { makeRedactor } from "../redact.ts";
 import { assignIds, readRunData } from "../report.ts";
 import type { Finding, FindingFix } from "../report.ts";
 import { lintReports } from "../reports.ts";
+import { workspaceRepos } from "../project.ts";
 import { detectStack } from "../stack.ts";
 import { commitFiles, createBranch, currentBranch, defaultBranch, git, headCommit, isRepo, isTracked, numstat, restoreFromHead, revertCommit, shortCommit, stagedFiles, statusEntries } from "./gitops.ts";
 import { compileRules, isTestPath, protectedReason, relativeToRoot } from "./protect.ts";
@@ -123,7 +124,11 @@ export async function preflight(scope: RunScope, now = new Date(), opts: { api_o
   const existing = loadFixState(scope.runDir);
   if (existing) return { ok: true, resumed: true, ...statusOf(scope, existing), message: "The fix loop was already started for this run; here is where it stands." };
 
-  if (!isRepo(root)) return fail("not-a-git-repo", "A fix run needs a git repository: every fix is a commit on a branch. Nothing was changed.");
+  if (!isRepo(root)) {
+    const repos = workspaceRepos(root);
+    if (repos.length) return fail("workspace", `This folder holds several repositories (${repos.join(", ")}), not one, and a fix is a commit on one repository's branch. Fix mode works inside one repository: start in that repository's folder (it needs its own .qa/config.md; copy this one and change what differs). Testing and reporting from here work as usual. Nothing was changed.`, { repos });
+    return fail("not-a-git-repo", "A fix run needs a git repository: every fix is a commit on a branch. Nothing was changed.");
+  }
   const head = headCommit(root);
   if (!head) return fail("no-commits", "The repository has no commits yet, so there is nothing to fix on a branch. Nothing was changed.");
 

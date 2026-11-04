@@ -9,7 +9,7 @@ It tests your **API** (from its OpenAPI spec), each **web UI** per role, cross-s
 business rules, and writes a technical report with reproducible findings, evidence, and an explicit **Not tested** list.
 It works on staging or local environments only, never production.
 
-> **Status: version 1.0.0, all 8 phases built.** Working today: `/qa-only` and `/qa` (fix mode) on **Claude Code**: API testing from OpenAPI, browser testing of web UIs in several browsers and screen sizes, ticket mode, page speed, emails and visual baselines, a safety guard, a built-in QA knowledge base (27 topic files, sourced in
+> **Status: version 1.1.0 (unreleased; 1.0.0 is the first release), all 8 phases built.** Working today: `/qa-only` and `/qa` (fix mode) on **Claude Code**: API testing from OpenAPI, browser testing of web UIs in several browsers and screen sizes, ticket mode, page speed, emails and visual baselines, a safety guard, a built-in QA knowledge base (27 topic files, sourced in
 > [docs/KNOWLEDGE-SOURCES.md](docs/KNOWLEDGE-SOURCES.md)), a technical report for developers and a plain-language admin report for managers (release verdict with your own rules, email-ready HTML), **project memory** that each run applies, bugs tracked across runs, your feedback, a **test bank**, agent performance metrics, a validated **`qa-memory` MCP server**, **auto-QA** after every task that changed code (off by default), **global lessons you approve**, **CI and pull requests**, and optional **Linear** tickets and **Sentry** errors.
 > Other tools: **Cursor** (experimental, from its docs, never run in a real Cursor) and any agent that reads `AGENTS.md` (instruction-only), with `qamind setup | status | update | uninstall`. Codex was deferred by the owner. Not verified: Linear and Sentry themselves (checked against stand-ins), GitHub as the Git host, Windows. Nothing below is claimed beyond what is built; it has not yet been run on a real project.
 
@@ -84,6 +84,25 @@ claude plugin install qamind@qamind
 3. Fill in `.qa/config.md` (URLs, the production addresses to block, test accounts, critical flows, business rules) and
    copy `.env.qa.example` to `.env.qa` with **test** logins. Use at least two client accounts from different customers.
 4. Restart the Claude Code session once (the browser tool reads credentials when it starts), then run `/qamind:qa-only` again.
+
+### A product kept as several repositories
+
+If your API, client portal and admin are separate repositories side by side in one parent folder, **open that parent folder** in Claude Code and run QAMind there. A folder
+that is not a repository itself and holds one or more projects (a git repository, or a folder with a `package.json`, `composer.json`, `pom.xml`, ...) is a **workspace**:
+it is one product with one config (`.qa/config.md` in the parent: every web UI, the API and the roles), one set of reports and one memory. Folders that start with a dot,
+`node_modules`, `vendor`, `dist` and `build` are not counted as projects.
+
+- **Tested together**, as an API plus web UIs always are, including checks that they agree with each other. Point the config at what is inside a repository by its path from the
+  parent, for example `api.openapi: reservation-backend/openapi.yaml`.
+- **`diff` mode and auto-QA** look at every repository: the changed files of each one (committed on its branch and uncommitted) are listed under their repository's folder, and a task
+  that changed code in any of them counts. `git.repos` in the run shows each repository's branch and commit.
+- **Nothing is added to a `.gitignore`** (the parent is not a repository): keep the parent's `.qa/` and `.env.qa` out of any repository you commit. The memory is per machine and
+  keyed by the parent folder's path (a repository's memory is keyed by its git remote).
+- **Fix mode (`/qamind:qa`) does not fix from a workspace**: a fix is a commit with a proven regression test on one repository's branch. It says so before it starts. To fix, start in
+  that repository's folder (it needs its own `.qa/config.md`; copy the parent's). From the parent, `/qamind:qa` can only run as a report-only run.
+- **Saved tests**: `/qamind:qa-tests export` writes into `tests/qamind` of the parent unless you name a folder, for example inside one repository.
+- A folder with a `package.json` (or other manifest) of its own is a project, not a workspace, even when it has project folders inside; a folder inside a git repository is that repository's project.
+- If QAMind still says the folder does not look like a project, put an empty `.qa/config.md` in it or start QAMind with the project folder it asks for.
 
 ## Commands
 

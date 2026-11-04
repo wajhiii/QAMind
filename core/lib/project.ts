@@ -81,16 +81,44 @@ export function resolveProject(root: string): ProjectInfo {
 
 const PROJECT_MARKERS = ["package.json", "composer.json", "pyproject.toml", "requirements.txt", "manage.py", "Gemfile", "pom.xml", "build.gradle", "go.mod", "Cargo.toml"];
 
-/** Heuristic for Phase 0 step 0: is this folder a project QAMind could test? */
-export function looksLikeProject(root: string): boolean {
-  if (exists(path.join(root, ".qa", "config.md"))) return true;
-  if (isGitRepo(root)) return true;
-  if (PROJECT_MARKERS.some((m) => exists(path.join(root, m)))) return true;
+/** A folder with app code in it, by the marks every project has (a git repository, a dependency manifest, a .NET project file). */
+function hasProjectMarks(dir: string): boolean {
+  if (exists(path.join(dir, ".git")) || PROJECT_MARKERS.some((m) => exists(path.join(dir, m)))) return true;
   try {
-    return fs.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"));
+    return fs.readdirSync(dir).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"));
   } catch {
     return false;
   }
+}
+
+/** Folders that sit in a workspace without being one of its projects. Names that start with a dot (.claude, .worktrees, ...) are skipped as well. */
+const NOT_A_PROJECT_DIR = new Set(["node_modules", "vendor", "dist", "build", "coverage", "tmp", "temp"]);
+const MAX_WORKSPACE_REPOS = 40;
+
+/**
+ * The projects inside a folder that is not a project itself: a product kept as several repositories (an API, a client, an admin) side by side in one parent
+ * folder. Empty when the folder is a project itself (inside a git repository, a monorepo included, or with a dependency manifest of its own) or has no project
+ * folder in it. Names are relative to the folder, sorted.
+ */
+export function workspaceRepos(root: string): string[] {
+  if (isGitRepo(root) || hasProjectMarks(root)) return [];
+  try {
+    return fs
+      .readdirSync(root, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && !e.name.startsWith(".") && !NOT_A_PROJECT_DIR.has(e.name) && hasProjectMarks(path.join(root, e.name)))
+      .map((e) => e.name)
+      .sort()
+      .slice(0, MAX_WORKSPACE_REPOS);
+  } catch {
+    return [];
+  }
+}
+
+/** Heuristic for Phase 0 step 0: is this folder a project QAMind could test? A folder that holds several projects counts as one (a workspace). */
+export function looksLikeProject(root: string): boolean {
+  if (exists(path.join(root, ".qa", "config.md"))) return true;
+  if (isGitRepo(root) || hasProjectMarks(root)) return true;
+  return workspaceRepos(root).length > 0;
 }
 
 /** Create the project's store folders and keep project.json current. Never touches the project folder. */

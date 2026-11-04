@@ -10,7 +10,7 @@ import type { GitInfo } from "./git.ts";
 import { ensureGitignoreEntries } from "./gitignore.ts";
 import { RUN_MARKER_FILE, SCHEMA_VERSION, projectsRoot, storeSubdirs } from "./paths.ts";
 import { MEMORY_SCHEMA } from "./memory/store.ts";
-import { ensureProjectStore, listKnownProjects, looksLikeProject, resolveProject } from "./project.ts";
+import { ensureProjectStore, listKnownProjects, looksLikeProject, resolveProject, workspaceRepos } from "./project.ts";
 import { assignIds, countBySeverity, mergedNotTested, readRunData } from "./report.ts";
 import { compactFinding } from "./report.ts";
 import type { CompactFinding, RunBudgetOutcome, RunMeta } from "./report.ts";
@@ -159,7 +159,8 @@ export interface StartResult {
   status: StartStatus;
   /** Plain-language next step for the user. */
   message: string;
-  project?: { id: string; name: string; root: string; id_source: string; store: string };
+  /** `workspace` is present when the folder holds several repositories (and is none itself): their folder names. */
+  project?: { id: string; name: string; root: string; id_source: string; store: string; workspace?: { repos: string[] } };
   created?: string[];
   gitignore_added?: string[];
   problems?: string[];
@@ -267,7 +268,7 @@ export function startRun(opts: StartOptions): StartResult {
   if (!opts.project && !looksLikeProject(root)) {
     return {
       status: "no-project",
-      message: "The current folder does not look like a project (no git repository, app code or .qa/config.md). Ask the user which project folder to test, offering the known projects below, then run again with --project <folder>.",
+      message: "The current folder does not look like a project (no git repository, app code, .qa/config.md, or folders inside it that are projects). Ask the user which project folder to test, offering the known projects below, then run again with --project <folder>. A parent folder that holds the project's repositories side by side is a valid answer: if the user says this folder is it, pass it as the project.",
       known_projects: listKnownProjects(opts.home),
     };
   }
@@ -275,12 +276,15 @@ export function startRun(opts: StartOptions): StartResult {
   const info = resolveProject(root);
   const { store } = ensureProjectStore(opts.home, info, now);
   ensureMigrated(store); // old memory is migrated (after a backup); memory from a newer QAMind refuses the run here, before anything is written
-  const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store };
+  // A folder that holds several repositories (an API, a client, an admin) is one project to test: one config, one set of reports, one memory.
+  const repos = workspaceRepos(root);
+  const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store, ...(repos.length ? { workspace: { repos } } : {}) };
 
   // First run: scaffold the config and stop. Never overwrites anything that exists.
   const configFile = path.join(root, ".qa", "config.md");
   // A CI run is report-only and never edits the checkout, `.gitignore` included (the team's own file decides what is committed).
-  const gitignoreAdded = env["QAMIND_TRIGGER"] === "ci" || opts.trigger === "ci" ? [] : ensureGitignoreEntries(root);
+  // A workspace is not a git repository, so there is nothing for a .gitignore to protect in it (each repository inside keeps its own).
+  const gitignoreAdded = env["QAMIND_TRIGGER"] === "ci" || opts.trigger === "ci" || repos.length ? [] : ensureGitignoreEntries(root);
   if (!exists(configFile)) {
     const created: string[] = [];
     const core = corePath();
@@ -289,7 +293,9 @@ export function startRun(opts: StartOptions): StartResult {
     return {
       status: "needs-config",
       message:
-        "First run in this project: QAMind created .qa/config.md and .env.qa.example and added .qa/ and .env.qa to .gitignore. " +
+        (repos.length
+          ? `First run in this workspace (a folder that holds ${repos.length} project${repos.length === 1 ? "" : "s"}: ${repos.join(", ")}): QAMind created .qa/config.md and .env.qa.example in it. It is not a git repository, so no .gitignore was touched: keep .qa/ and .env.qa out of any repository you commit. `
+          : "First run in this project: QAMind created .qa/config.md and .env.qa.example and added .qa/ and .env.qa to .gitignore. ") +
         "Fill in .qa/config.md (every REPLACE_ME), copy .env.qa.example to .env.qa and add the TEST account logins, then run QA again. Nothing was tested.",
       project: projectOut,
       created,
@@ -425,7 +431,16 @@ export function startRun(opts: StartOptions): StartResult {
       critical_flows: criticalFlows,
     },
     ...(check.missing_env.length ? { missing_env: check.missing_env } : {}),
-    ...(check.advisories.length ? { advisories: check.advisories } : {}),
+    ...(check.advisories.length || (repos.length && opts.kind === "qa")
+      ? {
+          advisories: [
+            ...check.advisories,
+            ...(repos.length && opts.kind === "qa"
+              ? [`This folder holds several repositories (${repos.join(", ")}), not one, and a fix is a commit on one repository's branch, so this run cannot fix anything from here. It can test and report as usual. Tell the user now, before testing: to fix, start in one repository's folder (it needs its own .qa/config.md); otherwise ask whether to continue as a report-only run.`]
+              : []),
+          ],
+        }
+      : {}),
     stack,
     git,
     policy,

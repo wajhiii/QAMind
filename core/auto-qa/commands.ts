@@ -3,9 +3,9 @@ import { parseArgs } from "node:util";
 import { dayUsage } from "../lib/budget.ts";
 import { checkConfigFile } from "../lib/config.ts";
 import { exists } from "../lib/fsutil.ts";
-import { isRepo } from "../lib/fix/gitops.ts";
 import { storeDir } from "../lib/paths.ts";
 import { ensureProjectStore, resolveProject } from "../lib/project.ts";
+import { canSeeChanges } from "./changes.ts";
 import { effectiveFor } from "./gate.ts";
 import type { HookEnv } from "./gate.ts";
 import { AUTO_MODES, DEFAULT_IGNORE, globalAutoFile, parseDuration, projectAutoFile, readAutoFile, updateAutoFile } from "./settings.ts";
@@ -77,7 +77,7 @@ export function autoCommand(args: string[], h: HookEnv, cwd: string): Record<str
     case "status":
       return status(project, store, h);
     case "on": {
-      if (!isRepo(info.root)) warnings.push("This folder is not a git repository: auto-QA needs git to see what a task changed, so it will skip every task until it is one.");
+      if (!canSeeChanges(info.root)) warnings.push("This folder is not a git repository, and none of the folders in it is one: auto-QA needs git to see what a task changed, so it will skip every task until there is.");
       if (!exists(path.join(info.root, ".qa", "config.md"))) warnings.push("No .qa/config.md yet: run the QAMind qa-only skill once to set up the config and the test logins. Until then auto-QA skips with a one-line notice.");
       write({ enabled: true, paused_until: undefined });
       const eff = effectiveFor(store, h);

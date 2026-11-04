@@ -44,7 +44,7 @@ there is one, `focus`.
 
 Act on the JSON `status`:
 - `needs-config`: first run. Tell the user, in plain words, that `.qa/config.md` and `.env.qa.example` were created and
-  `.qa/` and `.env.qa` were added to `.gitignore`, what they must fill in (the config's REPLACE_ME values; test logins in a
+  `.qa/` and `.env.qa` were added to `.gitignore` (the result's message says exactly what happened: in a workspace of several repositories nothing is added to any `.gitignore`), what they must fill in (the config's REPLACE_ME values; test logins in a
   copy named `.env.qa`; at least two client accounts from different customers), and that you tested nothing. **Stop.**
 - `no-project`: show the `known_projects` (if any) and ask which folder to test; call `run_start` again with `project: "<folder>"`.
 - `unfilled`, `invalid`, `blocked-url`: show the `problems` / `blocked` entries in plain language. **Stop.**

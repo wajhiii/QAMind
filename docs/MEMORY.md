@@ -37,7 +37,7 @@ $QAMIND_HOME/
 
 The normalized git `origin` URL (`git@github.com:Owner/Repo.git` and `https://github.com/owner/repo` both become
 `github.com/owner/repo`) gives `<slug>-<8 hex>`, so two clones of one repo share memory. Without a remote it is
-`path-<folder>-<12 hex of the real path>`. Every path seen is recorded in `project.json`.
+`path-<folder>-<12 hex of the real path>` (so is a workspace: a parent folder that holds several repositories and is none itself, see decision 0013). Every path seen is recorded in `project.json`.
 
 ## How a run uses memory
 

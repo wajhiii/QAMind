@@ -24,6 +24,8 @@ export interface TaskStart {
   at: string;
   /** HEAD when the task began, to see commits made during it. */
   head?: string;
+  /** A workspace: HEAD of each repository in it, by folder. */
+  heads?: Record<string, string>;
   /** Content hash of every file that was changed or untracked when the task began. */
   files: Record<string, string>;
   truncated?: boolean;

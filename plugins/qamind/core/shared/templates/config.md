@@ -20,7 +20,7 @@ web_uis:
 
 api:
   base_url: REPLACE_ME            # e.g. https://api.staging.example.com  (or "none" if there is no API)
-  openapi: REPLACE_ME             # file path in this project, a URL, or "none" (routes are then read from the source code)
+  openapi: REPLACE_ME             # file path in this project, a URL, or "none" (routes are then read from the source code). In a folder that holds several repositories: the path from here, e.g. backend/openapi.yaml
   # How the test runner signs in over the API (credentials come from the roles table below).
   login:
     path: /api/auth/login

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { exists, readJson, writeJson } from "./fsutil.ts";
 import { MEMORY_SCHEMA } from "./memory/store.ts";
+import { workspaceRepos } from "./project.ts";
 
 export interface StackInfo {
   schema_version: number;
@@ -85,6 +86,15 @@ export function detectStack(root: string, now = new Date()): StackInfo {
     }
   } catch {
     /* unreadable folder: leave undetected */
+  }
+
+  // A workspace (a folder that holds several repositories) has no stack of its own: it has the stacks of the repositories in it. The commands stay empty,
+  // because `npm test` and the like belong to one repository's folder.
+  for (const name of workspaceRepos(root)) {
+    const one = detectStack(path.join(root, name), now);
+    for (const f of one.frameworks) frameworks.add(f);
+    for (const l of one.languages) languages.add(l);
+    for (const r of one.test_runners) runners.add(r);
   }
 
   return {

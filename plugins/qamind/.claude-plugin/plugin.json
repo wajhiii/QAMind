@@ -1,7 +1,7 @@
 {
   "name": "qamind",
   "displayName": "QAMind",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A reusable Senior QA Engineer agent: tests your API and web UIs, reports with evidence, and never touches production.",
   "author": {
     "name": "QAMind"

@@ -3,12 +3,11 @@ import { checkConfigFile } from "../lib/config.ts";
 import { loadQaEnv } from "../lib/dotenv.ts";
 import { dailyBudgetProblem, dayOf } from "../lib/budget.ts";
 import { ensureDir, exists, readJson, writeJson } from "../lib/fsutil.ts";
-import { isRepo } from "../lib/fix/gitops.ts";
 import { ensureProjectStore, resolveProject } from "../lib/project.ts";
 import type { ProjectInfo } from "../lib/project.ts";
 import { storeDir, storeSubdirs } from "../lib/paths.ts";
 import { findActiveMarkers } from "../lib/run.ts";
-import { changedInTask, stateHash, takeSnapshot } from "./changes.ts";
+import { canSeeChanges, changedInTask, stateHash, takeSnapshot } from "./changes.ts";
 import { buildReason } from "./prompt.ts";
 import { AutoTooNewError, globalAutoFile, projectAutoFile, readAutoFile, resolveEffective } from "./settings.ts";
 import type { AutoEffective, AutoMode } from "./settings.ts";
@@ -105,7 +104,7 @@ export function onPrompt(input: PromptInput, h: HookEnv): void {
     return;
   }
   const snap = takeSnapshot(where.root);
-  if (snap) putSession<TaskStart>(where.store, TASK_START, where.session, { at, ...(snap.head ? { head: snap.head } : {}), files: snap.files, ...(snap.truncated ? { truncated: true } : {}) });
+  if (snap) putSession<TaskStart>(where.store, TASK_START, where.session, { at, ...(snap.head ? { head: snap.head } : {}), ...(snap.heads ? { heads: snap.heads } : {}), files: snap.files, ...(snap.truncated ? { truncated: true } : {}) });
   else dropSession(where.store, TASK_START, where.session);
 }
 
@@ -185,10 +184,10 @@ export function onStop(input: StopInput, h: HookEnv): Decision {
   if (!start) {
     consume();
     // The task began before auto-QA was on (or this is a folder with no git): there is no way to say what it changed.
-    return isRepo(where.root) ? skip("5", "no start-of-task snapshot (auto-QA was turned on during this task)") : onceNotice(where, h, "5", "this folder is not a git repository, so there is no way to tell what a task changed.", !!forced);
+    return canSeeChanges(where.root) ? skip("5", "no start-of-task snapshot (auto-QA was turned on during this task)") : onceNotice(where, h, "5", "this folder is not a git repository, so there is no way to tell what a task changed.", !!forced);
   }
   const now = takeSnapshot(where.root);
-  const startSnap = { ...(start.head ? { head: start.head } : {}), files: start.files, truncated: !!start.truncated };
+  const startSnap = { ...(start.head ? { head: start.head } : {}), ...(start.heads ? { heads: start.heads } : {}), files: start.files, truncated: !!start.truncated };
   const changed = now ? changedInTask(where.root, startSnap, now, eff.ignore) : [];
   const hash = now ? stateHash(now, eff.ignore) : "";
   const lastAuto = readLast(where.store);

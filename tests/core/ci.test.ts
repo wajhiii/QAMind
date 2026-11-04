@@ -388,7 +388,7 @@ test("a CI run never edits the checkout, .gitignore included; and `.qa/*` with t
   const proj = ciProject();
   fs.writeFileSync(path.join(proj, ".gitignore"), "node_modules\n");
   execFileSync("git", ["-C", proj, "add", "-A"], { stdio: "ignore" });
-  execFileSync("git", ["-C", proj, "commit", "-qm", "gitignore"], { stdio: "ignore" });
+  execFileSync("git", ["-C", proj, "-c", "user.name=t", "-c", "user.email=t@t.t", "commit", "-qm", "gitignore"], { stdio: "ignore" }); // a CI runner has no git identity of its own
   reset();
   const r = await run(proj, ghEnv({ FAKE_SCENARIO: "clean" }));
   assert.equal(r.outcome, "pass", r.error ?? "");

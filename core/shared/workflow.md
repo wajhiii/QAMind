@@ -28,6 +28,13 @@ proof**: re-verify current behaviour, and cite it when it shaped a decision. It 
 how you run things, false alarms not to report again, the last run's findings, and the product map. State in one short paragraph what
 it says to focus on (or that this is a first run). Record what you used with `memory_record_applied` and in `data/meta.json` → `memory_applied`.
 
+**A workspace.** When `run_start` returns `project.workspace`, the folder you were started in is not one repository: it holds several side by side
+(`project.workspace.repos`, for example an API, a client portal and an admin), and they are one product. Test them together under the one config, as
+you would a product with an API and web UIs. The source of each surface is in the folder of the repository that serves it, so look for its routes,
+pages and OpenAPI file there (the config's `api.openapi` may be a path like `backend/openapi.yaml`). `git.repos` says what each repository's branch,
+commit and uncommitted work are, and every path in `git.changed_files` starts with its repository's folder. When you say where a bug probably lives, name
+the repository as well as the file. Fix mode does not run from a workspace (a fix is a commit on one repository's branch): it needs that repository's folder.
+
 ## Phase 2: plan with charters (before probing)
 For each surface and critical flow write a charter: goal, risk, entry point, expected results, exit condition (the templates
 in `exploratory-charters.md` fit most product areas).

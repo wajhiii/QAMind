@@ -3270,8 +3270,8 @@ var require_utils = __commonJS({
       }
       return ind;
     }
-    function removeDotSegments(path44) {
-      let input2 = path44;
+    function removeDotSegments(path45) {
+      let input2 = path45;
       const output2 = [];
       let nextSlash = -1;
       let len = 0;
@@ -3345,11 +3345,11 @@ var require_utils = __commonJS({
       }
       return output2.join("");
     }
-    function removeDotSegmentsRelative(path44) {
-      if (path44 === "" || path44[0] === "/") {
-        return removeDotSegments(path44);
+    function removeDotSegmentsRelative(path45) {
+      if (path45 === "" || path45[0] === "/") {
+        return removeDotSegments(path45);
       }
-      const segments = path44.split("/");
+      const segments = path45.split("/");
       const last = segments.length - 1;
       const output2 = [];
       let trailingDirectory = false;
@@ -3712,8 +3712,8 @@ var require_schemes = __commonJS({
       }
       if (wsComponent.resourceName) {
         const queryIndex = wsComponent.resourceName.indexOf("?");
-        const path44 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
-        wsComponent.path = path44 && path44 !== "/" ? path44 : void 0;
+        const path45 = queryIndex === -1 ? wsComponent.resourceName : wsComponent.resourceName.slice(0, queryIndex);
+        wsComponent.path = path45 && path45 !== "/" ? path45 : void 0;
         wsComponent.query = queryIndex === -1 ? void 0 : wsComponent.resourceName.slice(queryIndex + 1);
         wsComponent.resourceName = void 0;
       }
@@ -7340,17 +7340,17 @@ var require_visit = __commonJS({
     visit2.BREAK = BREAK;
     visit2.SKIP = SKIP;
     visit2.REMOVE = REMOVE;
-    function visit_(key, node2, visitor, path44) {
-      const ctrl = callVisitor(key, node2, visitor, path44);
+    function visit_(key, node2, visitor, path45) {
+      const ctrl = callVisitor(key, node2, visitor, path45);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path44, ctrl);
-        return visit_(key, ctrl, visitor, path44);
+        replaceNode(key, path45, ctrl);
+        return visit_(key, ctrl, visitor, path45);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node2)) {
-          path44 = Object.freeze(path44.concat(node2));
+          path45 = Object.freeze(path45.concat(node2));
           for (let i = 0; i < node2.items.length; ++i) {
-            const ci = visit_(i, node2.items[i], visitor, path44);
+            const ci = visit_(i, node2.items[i], visitor, path45);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -7361,13 +7361,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node2)) {
-          path44 = Object.freeze(path44.concat(node2));
-          const ck = visit_("key", node2.key, visitor, path44);
+          path45 = Object.freeze(path45.concat(node2));
+          const ck = visit_("key", node2.key, visitor, path45);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node2.key = null;
-          const cv = visit_("value", node2.value, visitor, path44);
+          const cv = visit_("value", node2.value, visitor, path45);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -7388,17 +7388,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node2, visitor, path44) {
-      const ctrl = await callVisitor(key, node2, visitor, path44);
+    async function visitAsync_(key, node2, visitor, path45) {
+      const ctrl = await callVisitor(key, node2, visitor, path45);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path44, ctrl);
-        return visitAsync_(key, ctrl, visitor, path44);
+        replaceNode(key, path45, ctrl);
+        return visitAsync_(key, ctrl, visitor, path45);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node2)) {
-          path44 = Object.freeze(path44.concat(node2));
+          path45 = Object.freeze(path45.concat(node2));
           for (let i = 0; i < node2.items.length; ++i) {
-            const ci = await visitAsync_(i, node2.items[i], visitor, path44);
+            const ci = await visitAsync_(i, node2.items[i], visitor, path45);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -7409,13 +7409,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node2)) {
-          path44 = Object.freeze(path44.concat(node2));
-          const ck = await visitAsync_("key", node2.key, visitor, path44);
+          path45 = Object.freeze(path45.concat(node2));
+          const ck = await visitAsync_("key", node2.key, visitor, path45);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node2.key = null;
-          const cv = await visitAsync_("value", node2.value, visitor, path44);
+          const cv = await visitAsync_("value", node2.value, visitor, path45);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -7442,23 +7442,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node2, visitor, path44) {
+    function callVisitor(key, node2, visitor, path45) {
       if (typeof visitor === "function")
-        return visitor(key, node2, path44);
+        return visitor(key, node2, path45);
       if (identity.isMap(node2))
-        return visitor.Map?.(key, node2, path44);
+        return visitor.Map?.(key, node2, path45);
       if (identity.isSeq(node2))
-        return visitor.Seq?.(key, node2, path44);
+        return visitor.Seq?.(key, node2, path45);
       if (identity.isPair(node2))
-        return visitor.Pair?.(key, node2, path44);
+        return visitor.Pair?.(key, node2, path45);
       if (identity.isScalar(node2))
-        return visitor.Scalar?.(key, node2, path44);
+        return visitor.Scalar?.(key, node2, path45);
       if (identity.isAlias(node2))
-        return visitor.Alias?.(key, node2, path44);
+        return visitor.Alias?.(key, node2, path45);
       return void 0;
     }
-    function replaceNode(key, path44, node2) {
-      const parent = path44[path44.length - 1];
+    function replaceNode(key, path45, node2) {
+      const parent = path45[path45.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node2;
       } else if (identity.isPair(parent)) {
@@ -8070,10 +8070,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path44, value) {
+    function collectionFromPath(schema, path45, value) {
       let v = value;
-      for (let i = path44.length - 1; i >= 0; --i) {
-        const k = path44[i];
+      for (let i = path45.length - 1; i >= 0; --i) {
+        const k = path45[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -8092,7 +8092,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path44) => path44 == null || typeof path44 === "object" && !!path44[Symbol.iterator]().next().done;
+    var isEmptyPath = (path45) => path45 == null || typeof path45 === "object" && !!path45[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -8122,11 +8122,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path44, value) {
-        if (isEmptyPath(path44))
+      addIn(path45, value) {
+        if (isEmptyPath(path45))
           this.add(value);
         else {
-          const [key, ...rest] = path44;
+          const [key, ...rest] = path45;
           const node2 = this.get(key, true);
           if (identity.isCollection(node2))
             node2.addIn(rest, value);
@@ -8140,8 +8140,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path44) {
-        const [key, ...rest] = path44;
+      deleteIn(path45) {
+        const [key, ...rest] = path45;
         if (rest.length === 0)
           return this.delete(key);
         const node2 = this.get(key, true);
@@ -8155,8 +8155,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path44, keepScalar) {
-        const [key, ...rest] = path44;
+      getIn(path45, keepScalar) {
+        const [key, ...rest] = path45;
         const node2 = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node2) ? node2.value : node2;
@@ -8174,8 +8174,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path44) {
-        const [key, ...rest] = path44;
+      hasIn(path45) {
+        const [key, ...rest] = path45;
         if (rest.length === 0)
           return this.has(key);
         const node2 = this.get(key, true);
@@ -8185,8 +8185,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path44, value) {
-        const [key, ...rest] = path44;
+      setIn(path45, value) {
+        const [key, ...rest] = path45;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -10701,9 +10701,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path44, value) {
+      addIn(path45, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path44, value);
+          this.contents.addIn(path45, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -10778,14 +10778,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path44) {
-        if (Collection.isEmptyPath(path44)) {
+      deleteIn(path45) {
+        if (Collection.isEmptyPath(path45)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path44) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path45) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -10800,10 +10800,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path44, keepScalar) {
-        if (Collection.isEmptyPath(path44))
+      getIn(path45, keepScalar) {
+        if (Collection.isEmptyPath(path45))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path44, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path45, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -10814,10 +10814,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path44) {
-        if (Collection.isEmptyPath(path44))
+      hasIn(path45) {
+        if (Collection.isEmptyPath(path45))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path44) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path45) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -10834,13 +10834,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path44, value) {
-        if (Collection.isEmptyPath(path44)) {
+      setIn(path45, value) {
+        if (Collection.isEmptyPath(path45)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path44), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path45), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path44, value);
+          this.contents.setIn(path45, value);
         }
       }
       /**
@@ -12801,9 +12801,9 @@ var require_cst_visit = __commonJS({
     visit2.BREAK = BREAK;
     visit2.SKIP = SKIP;
     visit2.REMOVE = REMOVE;
-    visit2.itemAtPath = (cst, path44) => {
+    visit2.itemAtPath = (cst, path45) => {
       let item = cst;
-      for (const [field, index] of path44) {
+      for (const [field, index] of path45) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -12812,23 +12812,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit2.parentCollection = (cst, path44) => {
-      const parent = visit2.itemAtPath(cst, path44.slice(0, -1));
-      const field = path44[path44.length - 1][0];
+    visit2.parentCollection = (cst, path45) => {
+      const parent = visit2.itemAtPath(cst, path45.slice(0, -1));
+      const field = path45[path45.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path44, item, visitor) {
-      let ctrl = visitor(item, path44);
+    function _visit(path45, item, visitor) {
+      let ctrl = visitor(item, path45);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path44.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path45.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -12839,10 +12839,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path44);
+            ctrl = ctrl(item, path45);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path44) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path45) : ctrl;
     }
     exports.visit = visit2;
   }
@@ -14967,8 +14967,8 @@ function getErrorMap() {
 
 // node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
-  const { data, path: path44, errorMaps, issueData } = params;
-  const fullPath = [...path44, ...issueData.path || []];
+  const { data, path: path45, errorMaps, issueData } = params;
+  const fullPath = [...path45, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -15083,11 +15083,11 @@ var errorUtil;
 
 // node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
-  constructor(parent, value, path44, key) {
+  constructor(parent, value, path45, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path44;
+    this._path = path45;
     this._key = key;
   }
   get path() {
@@ -19042,10 +19042,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path44) {
-  if (!path44)
+function getElementAtPath(obj, path45) {
+  if (!path45)
     return obj;
-  return path44.reduce((acc, key) => acc?.[key], obj);
+  return path45.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -19385,11 +19385,11 @@ function explicitlyAborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path44, issues) {
+function prefixIssues(path45, issues) {
   return issues.map((iss) => {
     var _a3;
     (_a3 = iss).path ?? (_a3.path = []);
-    iss.path.unshift(path44);
+    iss.path.unshift(path45);
     return iss;
   });
 }
@@ -19851,16 +19851,16 @@ function flattenError(error62, mapper = (issue3) => issue3.message) {
 }
 function formatError(error62, mapper = (issue3) => issue3.message) {
   const fieldErrors = { _errors: [] };
-  const processError = (error63, path44 = []) => {
+  const processError = (error63, path45 = []) => {
     for (const issue3 of error63.issues) {
       if (issue3.code === "invalid_union" && issue3.errors.length) {
-        issue3.errors.map((issues) => processError({ issues }, [...path44, ...issue3.path]));
+        issue3.errors.map((issues) => processError({ issues }, [...path45, ...issue3.path]));
       } else if (issue3.code === "invalid_key") {
-        processError({ issues: issue3.issues }, [...path44, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path45, ...issue3.path]);
       } else if (issue3.code === "invalid_element") {
-        processError({ issues: issue3.issues }, [...path44, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path45, ...issue3.path]);
       } else {
-        const fullpath = [...path44, ...issue3.path];
+        const fullpath = [...path45, ...issue3.path];
         if (fullpath.length === 0) {
           fieldErrors._errors.push(mapper(issue3));
         } else {
@@ -19899,17 +19899,17 @@ function formatError(error62, mapper = (issue3) => issue3.message) {
 }
 function treeifyError(error62, mapper = (issue3) => issue3.message) {
   const result = { errors: [] };
-  const processError = (error63, path44 = []) => {
+  const processError = (error63, path45 = []) => {
     var _a3;
     for (const issue3 of error63.issues) {
       if (issue3.code === "invalid_union" && issue3.errors.length) {
-        issue3.errors.map((issues) => processError({ issues }, [...path44, ...issue3.path]));
+        issue3.errors.map((issues) => processError({ issues }, [...path45, ...issue3.path]));
       } else if (issue3.code === "invalid_key") {
-        processError({ issues: issue3.issues }, [...path44, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path45, ...issue3.path]);
       } else if (issue3.code === "invalid_element") {
-        processError({ issues: issue3.issues }, [...path44, ...issue3.path]);
+        processError({ issues: issue3.issues }, [...path45, ...issue3.path]);
       } else {
-        const fullpath = [...path44, ...issue3.path];
+        const fullpath = [...path45, ...issue3.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue3));
           continue;
@@ -19948,8 +19948,8 @@ function treeifyError(error62, mapper = (issue3) => issue3.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path44 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path44) {
+  const path45 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path45) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -35500,11 +35500,11 @@ function normalizeObjectSchema(schema) {
   }
   return void 0;
 }
-function getDotPath(path44) {
-  if (path44.length === 0) {
+function getDotPath(path45) {
+  if (path45.length === 0) {
     return "object root";
   }
-  return path44.reduce((acc, seg, index) => {
+  return path45.reduce((acc, seg, index) => {
     if (index === 0) {
       return String(seg);
     }
@@ -37731,13 +37731,13 @@ function resolveRef(ref, ctx) {
   if (!ref.startsWith("#")) {
     throw new Error("External $ref is not supported, only local refs (#/...) are allowed");
   }
-  const path44 = ref.slice(1).split("/").filter(Boolean);
-  if (path44.length === 0) {
+  const path45 = ref.slice(1).split("/").filter(Boolean);
+  if (path45.length === 0) {
     return ctx.rootSchema;
   }
   const defsKey = ctx.version === "draft-2020-12" ? "$defs" : "definitions";
-  if (path44[0] === defsKey) {
-    const key = path44[1] === void 0 ? void 0 : decodeJSONPointerSegment(path44[1]);
+  if (path45[0] === defsKey) {
+    const key = path45[1] === void 0 ? void 0 : decodeJSONPointerSegment(path45[1]);
     if (!key || !ctx.defs[key]) {
       throw new Error(`Reference not found: ${ref}`);
     }
@@ -44227,7 +44227,7 @@ function assertSafeText(what, text2, knownSecrets = []) {
 var daysBetween = (from, to) => Math.max(0, (to.getTime() - new Date(from).getTime()) / 864e5);
 
 // core/lib/version.ts
-var QAMIND_VERSION = true ? "1.0.0" : "dev";
+var QAMIND_VERSION = true ? "1.1.0" : "dev";
 var KNOWLEDGE_VERSION = true ? "0.1.2" : "dev";
 
 // core/mcp/servers.ts
@@ -44250,8 +44250,8 @@ var QA_FIX_TOOLS = ["fix_preflight", "fix_create_branch", "fix_begin", "fix_run_
 var ALL_QA_TOOLS = [...QA_MEMORY_TOOLS, ...QA_FIX_TOOLS];
 
 // core/lib/fix/loop.ts
-import fs12 from "node:fs";
-import path27 from "node:path";
+import fs13 from "node:fs";
+import path28 from "node:path";
 
 // core/lib/budget.ts
 import path5 from "node:path";
@@ -48147,9 +48147,118 @@ function lintReports(runDir, knownSecrets = [], store) {
   return { ok: errors.length === 0, errors, warnings, consistency };
 }
 
-// core/lib/stack.ts
+// core/lib/project.ts
+import { execFileSync } from "node:child_process";
+import crypto2 from "node:crypto";
 import fs10 from "node:fs";
 import path24 from "node:path";
+function normalizeGitRemote(url2) {
+  let s = url2.trim();
+  if (!s) return null;
+  const scp = /^(?:[^@/\s]+@)?([^:/\s]+):(?!\/\/)(.+)$/.exec(s);
+  if (scp && !/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) {
+    s = `${scp[1]}/${scp[2]}`;
+  } else {
+    s = s.replace(/^[a-z][a-z0-9+.-]*:\/\//i, "").replace(/^[^@/]+@/, "");
+  }
+  s = s.replace(/[?#].*$/, "").replace(/\.git$/i, "").replace(/\/+$/, "").replace(/:\d+(?=\/)/, "");
+  const parts = s.split("/").filter(Boolean);
+  if (parts.length < 2) return null;
+  return parts.join("/").toLowerCase();
+}
+function slug(text2, max = 60) {
+  return text2.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, max) || "project";
+}
+function sha(text2, len) {
+  return crypto2.createHash("sha256").update(text2).digest("hex").slice(0, len);
+}
+function gitOutput(root, args) {
+  try {
+    return execFileSync("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return void 0;
+  }
+}
+function isGitRepo(root) {
+  return gitOutput(root, ["rev-parse", "--is-inside-work-tree"]) === "true";
+}
+function resolveProject(root) {
+  const real = fs10.realpathSync(root);
+  const name = path24.basename(real);
+  const remoteRaw = gitOutput(real, ["remote", "get-url", "origin"]);
+  const remote = remoteRaw ? normalizeGitRemote(remoteRaw) : null;
+  if (remote) {
+    return { id: `${slug(remote.replace(/\//g, "-"))}-${sha(remote, 8)}`, name: remote.split("/").pop() ?? name, root: real, idSource: "git-remote", gitRemote: remote };
+  }
+  const key = process.platform === "win32" ? real.toLowerCase() : real;
+  return { id: `path-${slug(name, 40)}-${sha(key, 12)}`, name, root: real, idSource: "path" };
+}
+var PROJECT_MARKERS = ["package.json", "composer.json", "pyproject.toml", "requirements.txt", "manage.py", "Gemfile", "pom.xml", "build.gradle", "go.mod", "Cargo.toml"];
+function hasProjectMarks(dir) {
+  if (exists(path24.join(dir, ".git")) || PROJECT_MARKERS.some((m) => exists(path24.join(dir, m)))) return true;
+  try {
+    return fs10.readdirSync(dir).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"));
+  } catch {
+    return false;
+  }
+}
+var NOT_A_PROJECT_DIR = /* @__PURE__ */ new Set(["node_modules", "vendor", "dist", "build", "coverage", "tmp", "temp"]);
+var MAX_WORKSPACE_REPOS = 40;
+function workspaceRepos(root) {
+  if (isGitRepo(root) || hasProjectMarks(root)) return [];
+  try {
+    return fs10.readdirSync(root, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith(".") && !NOT_A_PROJECT_DIR.has(e.name) && hasProjectMarks(path24.join(root, e.name))).map((e) => e.name).sort().slice(0, MAX_WORKSPACE_REPOS);
+  } catch {
+    return [];
+  }
+}
+function looksLikeProject(root) {
+  if (exists(path24.join(root, ".qa", "config.md"))) return true;
+  if (isGitRepo(root) || hasProjectMarks(root)) return true;
+  return workspaceRepos(root).length > 0;
+}
+function ensureProjectStore(home, info, now = /* @__PURE__ */ new Date()) {
+  const store = storeDir(home, info.id);
+  const dirs = storeSubdirs(store);
+  for (const d of Object.values(dirs)) ensureDir(d);
+  const file4 = path24.join(store, "project.json");
+  const existing = readJson(file4);
+  if (existing && existing.schema_version > SCHEMA_VERSION) {
+    throw new Error(
+      `Memory for this project was written by a newer QAMind (schema ${existing.schema_version}, this is ${SCHEMA_VERSION}). Update QAMind before running.`
+    );
+  }
+  const stamp = now.toISOString();
+  const project2 = existing ?? {
+    schema_version: SCHEMA_VERSION,
+    id: info.id,
+    id_source: info.idSource,
+    name: info.name,
+    ...info.gitRemote ? { git_remote: info.gitRemote } : {},
+    paths_seen: [],
+    created: stamp,
+    last_seen: stamp
+  };
+  if (!project2.paths_seen.includes(info.root)) project2.paths_seen.push(info.root);
+  project2.last_seen = stamp;
+  writeJson(file4, project2);
+  return { store, project: project2 };
+}
+function listKnownProjects(home) {
+  const root = projectsRoot(home);
+  if (!exists(root)) return [];
+  const out = [];
+  for (const entry of fs10.readdirSync(root, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const p = readJson(path24.join(root, entry.name, "project.json"));
+    if (p) out.push({ id: p.id, name: p.name, paths_seen: p.paths_seen, last_seen: p.last_seen });
+  }
+  return out.sort((a, b) => b.last_seen.localeCompare(a.last_seen));
+}
+
+// core/lib/stack.ts
+import fs11 from "node:fs";
+import path25 from "node:path";
 var JS_FRAMEWORKS = [
   ["next", "nextjs"],
   ["react", "react"],
@@ -48173,7 +48282,7 @@ var JS_TEST_RUNNERS = [
 ];
 function readIf(file4) {
   try {
-    return fs10.readFileSync(file4, "utf8");
+    return fs11.readFileSync(file4, "utf8");
   } catch {
     return "";
   }
@@ -48184,14 +48293,14 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   const runners = /* @__PURE__ */ new Set();
   const commands = {};
   let packageManager;
-  const pkg = readJson(path24.join(root, "package.json"));
+  const pkg = readJson(path25.join(root, "package.json"));
   if (pkg) {
     languages.add("javascript");
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
     for (const [dep, name] of JS_FRAMEWORKS) if (deps[dep]) frameworks.add(name);
     for (const [dep, name] of JS_TEST_RUNNERS) if (deps[dep]) runners.add(name);
-    if (deps["typescript"] || exists(path24.join(root, "tsconfig.json"))) languages.add("typescript");
-    packageManager = exists(path24.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path24.join(root, "yarn.lock")) ? "yarn" : exists(path24.join(root, "bun.lock")) ? "bun" : "npm";
+    if (deps["typescript"] || exists(path25.join(root, "tsconfig.json"))) languages.add("typescript");
+    packageManager = exists(path25.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path25.join(root, "yarn.lock")) ? "yarn" : exists(path25.join(root, "bun.lock")) ? "bun" : "npm";
     const run = packageManager === "npm" ? "npm run" : packageManager;
     if (pkg.scripts?.["test"] && !/no test specified/.test(pkg.scripts["test"])) {
       commands.test = packageManager === "npm" ? "npm test" : `${packageManager} test`;
@@ -48201,7 +48310,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (pkg.scripts?.["dev"]) commands.dev = `${run} dev`;
     else if (pkg.scripts?.["start"]) commands.dev = packageManager === "npm" ? "npm start" : `${packageManager} start`;
   }
-  const composer = readIf(path24.join(root, "composer.json"));
+  const composer = readIf(path25.join(root, "composer.json"));
   if (composer) {
     languages.add("php");
     if (/laravel\/framework/.test(composer)) frameworks.add("laravel");
@@ -48209,29 +48318,35 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (/pestphp/.test(composer)) runners.add("pest");
     packageManager ??= "composer";
   }
-  const py = readIf(path24.join(root, "requirements.txt")) + readIf(path24.join(root, "pyproject.toml"));
-  if (py || exists(path24.join(root, "manage.py"))) {
+  const py = readIf(path25.join(root, "requirements.txt")) + readIf(path25.join(root, "pyproject.toml"));
+  if (py || exists(path25.join(root, "manage.py"))) {
     languages.add("python");
-    if (/django/i.test(py) || exists(path24.join(root, "manage.py"))) frameworks.add("django");
+    if (/django/i.test(py) || exists(path25.join(root, "manage.py"))) frameworks.add("django");
     if (/fastapi/i.test(py)) frameworks.add("fastapi");
     if (/flask/i.test(py)) frameworks.add("flask");
     if (/pytest/i.test(py)) runners.add("pytest");
     packageManager ??= "pip";
   }
-  if (/rails/.test(readIf(path24.join(root, "Gemfile")))) {
+  if (/rails/.test(readIf(path25.join(root, "Gemfile")))) {
     languages.add("ruby");
     frameworks.add("rails");
-    if (/rspec/.test(readIf(path24.join(root, "Gemfile")))) runners.add("rspec");
+    if (/rspec/.test(readIf(path25.join(root, "Gemfile")))) runners.add("rspec");
     packageManager ??= "bundler";
   }
   try {
-    if (fs10.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"))) {
+    if (fs11.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"))) {
       languages.add("csharp");
       frameworks.add("dotnet");
       commands.test ??= "dotnet test";
       packageManager ??= "nuget";
     }
   } catch {
+  }
+  for (const name of workspaceRepos(root)) {
+    const one7 = detectStack(path25.join(root, name), now);
+    for (const f of one7.frameworks) frameworks.add(f);
+    for (const l of one7.languages) languages.add(l);
+    for (const r of one7.test_runners) runners.add(r);
   }
   return {
     schema_version: MEMORY_SCHEMA,
@@ -48244,7 +48359,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   };
 }
 function saveStack(memoryDir, stack) {
-  const file4 = path24.join(memoryDir, "stack.json");
+  const file4 = path25.join(memoryDir, "stack.json");
   const prev = readJson(file4);
   const strip = (s) => JSON.stringify({ ...s, detected_at: void 0 });
   if (prev && strip(prev) === strip(stack)) return { changed: false };
@@ -48254,8 +48369,8 @@ function saveStack(memoryDir, stack) {
 
 // core/lib/fix/gitops.ts
 import { spawnSync } from "node:child_process";
-import fs11 from "node:fs";
-import path25 from "node:path";
+import fs12 from "node:fs";
+import path26 from "node:path";
 function git(root, args, input2) {
   const r = spawnSync("git", ["-C", root, "-c", "core.quotepath=off", ...args], { encoding: "utf8", input: input2, maxBuffer: 32 * 1024 * 1024, stdio: ["pipe", "pipe", "pipe"] });
   return { ok: r.status === 0, out: (r.stdout ?? "").toString(), err: (r.stderr ?? "").toString().trim(), code: r.status ?? -1 };
@@ -48281,16 +48396,16 @@ function projectPrefix(root) {
   return text(git(root, ["rev-parse", "--show-prefix"]));
 }
 function fromRepoRoot(prefix, file4) {
-  return prefix === "" ? file4 : path25.posix.relative(prefix.replace(/\/$/, ""), file4);
+  return prefix === "" ? file4 : path26.posix.relative(prefix.replace(/\/$/, ""), file4);
 }
 var QAMIND_OWN = /^(?:\.qa\/|\.env\.qa(?:$|\.))/;
 var QAMIND_GITIGNORE_LINES = /* @__PURE__ */ new Set(["# QAMind (private test credentials and reports)", ".env.qa", ".qa/"]);
 function gitignoreChangeIsQamindsOnly(root) {
-  const file4 = path25.join(root, ".gitignore");
-  if (!fs11.existsSync(file4)) return false;
+  const file4 = path26.join(root, ".gitignore");
+  if (!fs12.existsSync(file4)) return false;
   const committed = git(root, ["show", "HEAD:./.gitignore"]);
   const before = (committed.ok ? committed.out : "").split(/\r?\n/);
-  const now = fs11.readFileSync(file4, "utf8").split(/\r?\n/);
+  const now = fs12.readFileSync(file4, "utf8").split(/\r?\n/);
   let kept = 0;
   for (const line2 of now) {
     if (kept < before.length && line2 === before[kept]) kept++;
@@ -48351,7 +48466,7 @@ function revertCommit(root, sha2) {
 }
 
 // core/lib/fix/protect.ts
-import path26 from "node:path";
+import path27 from "node:path";
 var BUILT_IN_PROTECTED = [
   { glob: ".git", why: "git's own data" },
   { glob: ".env*", why: "credential and environment files" },
@@ -48440,11 +48555,11 @@ function globToRegExp2(raw) {
   return new RegExp(anchored ? `^${body}(?:/.*)?$` : `(?:^|/)${body}(?:/.*)?$`, "i");
 }
 function relativeToRoot(root, p, cwd = root) {
-  const abs = path26.resolve(cwd, p);
-  const rel = path26.relative(path26.resolve(root), abs);
+  const abs = path27.resolve(cwd, p);
+  const rel = path27.relative(path27.resolve(root), abs);
   if (rel === "") return "";
-  if (rel === ".." || rel.startsWith(`..${path26.sep}`) || path26.isAbsolute(rel)) return void 0;
-  return rel.split(path26.sep).join("/");
+  if (rel === ".." || rel.startsWith(`..${path27.sep}`) || path27.isAbsolute(rel)) return void 0;
+  return rel.split(path27.sep).join("/");
 }
 function compileRules(doNotTouch = []) {
   return [
@@ -48577,7 +48692,7 @@ function stateOf(scope) {
   if (!s) throw new Error("The fix loop has not started for this run. Call fix_preflight first (after the baseline report is written).");
   return s;
 }
-var findingsFile = (runDir) => path27.join(runDir, "data", "findings.json");
+var findingsFile = (runDir) => path28.join(runDir, "data", "findings.json");
 function updateFinding(runDir, issue3, patch) {
   const list = readJson(findingsFile(runDir)) ?? [];
   const f = list.find((x) => x.id === issue3);
@@ -48635,11 +48750,15 @@ async function preflight(scope, now = /* @__PURE__ */ new Date(), opts = {}) {
   const root = scope.ctx.projectRoot;
   const existing = loadFixState(scope.runDir);
   if (existing) return { ok: true, resumed: true, ...statusOf(scope, existing), message: "The fix loop was already started for this run; here is where it stands." };
-  if (!isRepo(root)) return fail("not-a-git-repo", "A fix run needs a git repository: every fix is a commit on a branch. Nothing was changed.");
+  if (!isRepo(root)) {
+    const repos = workspaceRepos(root);
+    if (repos.length) return fail("workspace", `This folder holds several repositories (${repos.join(", ")}), not one, and a fix is a commit on one repository's branch. Fix mode works inside one repository: start in that repository's folder (it needs its own .qa/config.md; copy this one and change what differs). Testing and reporting from here work as usual. Nothing was changed.`, { repos });
+    return fail("not-a-git-repo", "A fix run needs a git repository: every fix is a commit on a branch. Nothing was changed.");
+  }
   const head = headCommit(root);
   if (!head) return fail("no-commits", "The repository has no commits yet, so there is nothing to fix on a branch. Nothing was changed.");
-  const baselineReport = path27.join(scope.runDir, "TECHNICAL-REPORT.md");
-  if (!fs12.existsSync(findingsFile(scope.runDir)) || !fs12.existsSync(baselineReport)) {
+  const baselineReport = path28.join(scope.runDir, "TECHNICAL-REPORT.md");
+  if (!fs13.existsSync(findingsFile(scope.runDir)) || !fs13.existsSync(baselineReport)) {
     return fail("no-baseline-report", "Write the baseline report before any fix: test the product (Phases 0 to 3), write the data files, run report build and report lint, then call fix_preflight again.");
   }
   const lint = lintReports(scope.runDir, scope.ctx.passwords, scope.store);
@@ -48678,9 +48797,9 @@ async function preflight(scope, now = /* @__PURE__ */ new Date(), opts = {}) {
   const data = readRunData(scope.runDir);
   assignIds(scope.runDir, data);
   for (const [from, to] of [["TECHNICAL-REPORT.md", "BASELINE-TECHNICAL-REPORT.md"], ["ADMIN-REPORT.md", "BASELINE-ADMIN-REPORT.md"]]) {
-    const src = path27.join(scope.runDir, from);
-    const dst = path27.join(scope.runDir, to);
-    if (fs12.existsSync(src) && !fs12.existsSync(dst)) fs12.copyFileSync(src, dst);
+    const src = path28.join(scope.runDir, from);
+    const dst = path28.join(scope.runDir, to);
+    if (fs13.existsSync(src) && !fs13.existsSync(dst)) fs13.copyFileSync(src, dst);
   }
   const state = {
     schema_version: FIX_STATE_SCHEMA,
@@ -48791,7 +48910,7 @@ async function runTests(scope, input2, now = /* @__PURE__ */ new Date()) {
   if (rel.problem) return fail("protected", rel.problem);
   for (const f of rel.rel) {
     if (!isTestPath(f)) return fail("not-a-test-file", `${f} does not look like an automated test.`);
-    if (!fs12.existsSync(path27.join(scope.ctx.projectRoot, f))) return fail("missing", `${f} does not exist yet: write the test first.`);
+    if (!fs13.existsSync(path28.join(scope.ctx.projectRoot, f))) return fail("missing", `${f} does not exist yet: write the test first.`);
   }
   let command2;
   try {
@@ -48804,14 +48923,14 @@ async function runTests(scope, input2, now = /* @__PURE__ */ new Date()) {
 }
 function backupFixed(root, evidenceDir, rels) {
   return rels.map((rel) => {
-    const abs = path27.join(root, rel);
+    const abs = path28.join(root, rel);
     const tracked = isTracked(root, rel);
-    if (!fs12.existsSync(abs)) return { rel, tracked };
-    const content = fs12.readFileSync(abs);
-    const dest = path27.join(evidenceDir, "fixed", rel);
-    ensureDir(path27.dirname(dest));
-    fs12.writeFileSync(dest, content);
-    return { rel, content, mode: fs12.statSync(abs).mode, tracked };
+    if (!fs13.existsSync(abs)) return { rel, tracked };
+    const content = fs13.readFileSync(abs);
+    const dest = path28.join(evidenceDir, "fixed", rel);
+    ensureDir(path28.dirname(dest));
+    fs13.writeFileSync(dest, content);
+    return { rel, content, mode: fs13.statSync(abs).mode, tracked };
   });
 }
 function unfix(root, backups) {
@@ -48820,18 +48939,18 @@ function unfix(root, backups) {
     const r = restoreFromHead(root, tracked);
     if (!r.ok) throw new Error(`Could not take the fix out to prove the test: ${r.err}`);
   }
-  for (const b of backups.filter((x) => !x.tracked)) fs12.rmSync(path27.join(root, b.rel), { force: true });
+  for (const b of backups.filter((x) => !x.tracked)) fs13.rmSync(path28.join(root, b.rel), { force: true });
 }
 function refix(root, backups) {
   for (const b of backups) {
-    const abs = path27.join(root, b.rel);
+    const abs = path28.join(root, b.rel);
     if (b.content === void 0) {
-      fs12.rmSync(abs, { force: true });
+      fs13.rmSync(abs, { force: true });
       continue;
     }
-    ensureDir(path27.dirname(abs));
-    fs12.writeFileSync(abs, b.content);
-    if (b.mode !== void 0) fs12.chmodSync(abs, b.mode);
+    ensureDir(path28.dirname(abs));
+    fs13.writeFileSync(abs, b.content);
+    if (b.mode !== void 0) fs13.chmodSync(abs, b.mode);
   }
 }
 async function commit(scope, input2, now = /* @__PURE__ */ new Date()) {
@@ -48870,7 +48989,7 @@ async function commit(scope, input2, now = /* @__PURE__ */ new Date()) {
     if (n && n.deleted > 0) return fail("existing-test-changed", `${t} is an existing test and ${n.deleted} of its lines were removed or changed. Never change an existing assertion to make something pass: add a new test instead.`);
   }
   if (stagedFiles(root).length) return fail("staged-changes", "Something is already staged in the index. Nothing may be staged before fix_commit; ask the user.");
-  const evidence = path27.join(scope.runDir, "evidence", "fix", input2.issue);
+  const evidence = path28.join(scope.runDir, "evidence", "fix", input2.issue);
   ensureDir(evidence);
   const backups = backupFixed(root, evidence, changedProd);
   const redact = redactor(scope);
@@ -48889,8 +49008,8 @@ async function commit(scope, input2, now = /* @__PURE__ */ new Date()) {
     refix(root, backups);
   }
   for (const b of backups) {
-    const now2 = fs12.existsSync(path27.join(root, b.rel)) ? fs12.readFileSync(path27.join(root, b.rel)) : void 0;
-    if (now2 === void 0 !== (b.content === void 0) || now2 && b.content && !now2.equals(b.content)) throw new Error(`Putting the fix back after the proof did not restore ${b.rel} exactly. The fixed files are saved in ${path27.relative(root, path27.join(evidence, "fixed"))}; restore them by hand.`);
+    const now2 = fs13.existsSync(path28.join(root, b.rel)) ? fs13.readFileSync(path28.join(root, b.rel)) : void 0;
+    if (now2 === void 0 !== (b.content === void 0) || now2 && b.content && !now2.equals(b.content)) throw new Error(`Putting the fix back after the proof did not restore ${b.rel} exactly. The fixed files are saved in ${path28.relative(root, path28.join(evidence, "fixed"))}; restore them by hand.`);
   }
   attempt.without_fix = toRecord(without, now);
   if (without.passed || without.timed_out || without.exit_code === null) {
@@ -48955,27 +49074,27 @@ function revert(scope, input2, now = /* @__PURE__ */ new Date()) {
     const foreign = changed.map((e) => norm(e.path)).filter((p) => !allowed.has(p));
     if (foreign.length) return fail("other-changes", `The working tree also has changes this attempt did not declare (${foreign.slice(0, 8).join(", ")}). They may be the user's, so nothing was touched. Ask the user.`, { files: foreign.slice(0, 20) });
     if (stagedFiles(root).length) return fail("staged-changes", "Something is staged in the index. Nothing was touched; ask the user.");
-    const saved = path27.join(scope.runDir, "evidence", "fix", input2.issue, "reverted-attempt");
+    const saved = path28.join(scope.runDir, "evidence", "fix", input2.issue, "reverted-attempt");
     ensureDir(saved);
     for (const e of changed) {
-      const src = path27.join(root, e.path);
-      if (fs12.existsSync(src)) {
-        const dst = path27.join(saved, e.path);
-        ensureDir(path27.dirname(dst));
-        fs12.copyFileSync(src, dst);
+      const src = path28.join(root, e.path);
+      if (fs13.existsSync(src)) {
+        const dst = path28.join(saved, e.path);
+        ensureDir(path28.dirname(dst));
+        fs13.copyFileSync(src, dst);
       }
     }
     const diff = git(root, ["diff", "HEAD"]).out;
-    if (diff) fs12.writeFileSync(path27.join(saved, "attempt.patch"), diff, "utf8");
+    if (diff) fs13.writeFileSync(path28.join(saved, "attempt.patch"), diff, "utf8");
     const tracked = changed.filter((e) => !e.untracked).map((e) => norm(e.path));
     if (tracked.length) {
       const r = restoreFromHead(root, tracked);
       if (!r.ok) return fail("git-failed", `git could not restore the files: ${r.err}`);
     }
-    for (const e of changed.filter((x) => x.untracked)) fs12.rmSync(path27.join(root, e.path), { force: true });
+    for (const e of changed.filter((x) => x.untracked)) fs13.rmSync(path28.join(root, e.path), { force: true });
     if (statusEntries(root).length) return fail("not-clean", "After undoing the attempt the working tree is still not clean. Stop and ask the user.", { files: statusEntries(root).map((e) => e.path).slice(0, 20) });
     attempt.status = "reverted";
-    attempt.saved_to = path27.relative(scope.runDir, saved).split(path27.sep).join("/");
+    attempt.saved_to = path28.relative(scope.runDir, saved).split(path28.sep).join("/");
   } else if (attempt.status === "verified" || attempt.status === "best-effort") {
     if (!attempt.commit) return fail("no-commit", "This fix has no commit to revert.");
     if (statusEntries(root).length || stagedFiles(root).length) return fail("dirty-tree", "The working tree has changes. Ask the user before reverting a commit.");
@@ -49086,107 +49205,11 @@ function statusOf(scope, state) {
 }
 
 // core/lib/memory/service.ts
-import path42 from "node:path";
-
-// core/lib/project.ts
-import { execFileSync } from "node:child_process";
-import crypto2 from "node:crypto";
-import fs13 from "node:fs";
-import path28 from "node:path";
-function normalizeGitRemote(url2) {
-  let s = url2.trim();
-  if (!s) return null;
-  const scp = /^(?:[^@/\s]+@)?([^:/\s]+):(?!\/\/)(.+)$/.exec(s);
-  if (scp && !/^[a-z][a-z0-9+.-]*:\/\//i.test(s)) {
-    s = `${scp[1]}/${scp[2]}`;
-  } else {
-    s = s.replace(/^[a-z][a-z0-9+.-]*:\/\//i, "").replace(/^[^@/]+@/, "");
-  }
-  s = s.replace(/[?#].*$/, "").replace(/\.git$/i, "").replace(/\/+$/, "").replace(/:\d+(?=\/)/, "");
-  const parts = s.split("/").filter(Boolean);
-  if (parts.length < 2) return null;
-  return parts.join("/").toLowerCase();
-}
-function slug(text2, max = 60) {
-  return text2.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, max) || "project";
-}
-function sha(text2, len) {
-  return crypto2.createHash("sha256").update(text2).digest("hex").slice(0, len);
-}
-function gitOutput(root, args) {
-  try {
-    return execFileSync("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
-  } catch {
-    return void 0;
-  }
-}
-function isGitRepo(root) {
-  return gitOutput(root, ["rev-parse", "--is-inside-work-tree"]) === "true";
-}
-function resolveProject(root) {
-  const real = fs13.realpathSync(root);
-  const name = path28.basename(real);
-  const remoteRaw = gitOutput(real, ["remote", "get-url", "origin"]);
-  const remote = remoteRaw ? normalizeGitRemote(remoteRaw) : null;
-  if (remote) {
-    return { id: `${slug(remote.replace(/\//g, "-"))}-${sha(remote, 8)}`, name: remote.split("/").pop() ?? name, root: real, idSource: "git-remote", gitRemote: remote };
-  }
-  const key = process.platform === "win32" ? real.toLowerCase() : real;
-  return { id: `path-${slug(name, 40)}-${sha(key, 12)}`, name, root: real, idSource: "path" };
-}
-var PROJECT_MARKERS = ["package.json", "composer.json", "pyproject.toml", "requirements.txt", "manage.py", "Gemfile", "pom.xml", "build.gradle", "go.mod", "Cargo.toml"];
-function looksLikeProject(root) {
-  if (exists(path28.join(root, ".qa", "config.md"))) return true;
-  if (isGitRepo(root)) return true;
-  if (PROJECT_MARKERS.some((m) => exists(path28.join(root, m)))) return true;
-  try {
-    return fs13.readdirSync(root).some((f) => f.endsWith(".csproj") || f.endsWith(".sln"));
-  } catch {
-    return false;
-  }
-}
-function ensureProjectStore(home, info, now = /* @__PURE__ */ new Date()) {
-  const store = storeDir(home, info.id);
-  const dirs = storeSubdirs(store);
-  for (const d of Object.values(dirs)) ensureDir(d);
-  const file4 = path28.join(store, "project.json");
-  const existing = readJson(file4);
-  if (existing && existing.schema_version > SCHEMA_VERSION) {
-    throw new Error(
-      `Memory for this project was written by a newer QAMind (schema ${existing.schema_version}, this is ${SCHEMA_VERSION}). Update QAMind before running.`
-    );
-  }
-  const stamp = now.toISOString();
-  const project2 = existing ?? {
-    schema_version: SCHEMA_VERSION,
-    id: info.id,
-    id_source: info.idSource,
-    name: info.name,
-    ...info.gitRemote ? { git_remote: info.gitRemote } : {},
-    paths_seen: [],
-    created: stamp,
-    last_seen: stamp
-  };
-  if (!project2.paths_seen.includes(info.root)) project2.paths_seen.push(info.root);
-  project2.last_seen = stamp;
-  writeJson(file4, project2);
-  return { store, project: project2 };
-}
-function listKnownProjects(home) {
-  const root = projectsRoot(home);
-  if (!exists(root)) return [];
-  const out = [];
-  for (const entry of fs13.readdirSync(root, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const p = readJson(path28.join(root, entry.name, "project.json"));
-    if (p) out.push({ id: p.id, name: p.name, paths_seen: p.paths_seen, last_seen: p.last_seen });
-  }
-  return out.sort((a, b) => b.last_seen.localeCompare(a.last_seen));
-}
+import path43 from "node:path";
 
 // core/lib/run.ts
 import fs16 from "node:fs";
-import path37 from "node:path";
+import path38 from "node:path";
 
 // core/lib/corepath.ts
 import path29 from "node:path";
@@ -49200,6 +49223,7 @@ function corePath() {
 
 // core/lib/git.ts
 import { execFileSync as execFileSync2 } from "node:child_process";
+import path30 from "node:path";
 function git2(root, args, raw = false) {
   try {
     const out = execFileSync2("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: 16 * 1024 * 1024 });
@@ -49212,8 +49236,19 @@ function porcelainFiles(root, opts = {}) {
   const out = git2(root, ["status", "--porcelain", ...opts.untracked === false ? ["--untracked-files=no"] : []], true) ?? "";
   return out.split("\n").filter(Boolean).map((line2) => line2.slice(3).trim().replace(/^.* -> /, ""));
 }
+var MAX_CHANGED = 300;
+function workspaceGitInfo(root, names) {
+  const repos = names.map((name) => {
+    const one7 = gitInfo(path30.join(root, name));
+    return { path: name, is_repo: one7.is_repo, ...one7.branch ? { branch: one7.branch } : {}, ...one7.commit ? { commit: one7.commit } : {}, ...one7.base ? { base: one7.base } : {}, ...one7.dirty !== void 0 ? { dirty: one7.dirty } : {}, changed_files: one7.changed_files.map((f) => `${name}/${f}`) };
+  });
+  return { is_repo: false, repos, changed_files: repos.flatMap((r) => r.changed_files).slice(0, MAX_CHANGED) };
+}
 function gitInfo(root) {
-  if (git2(root, ["rev-parse", "--is-inside-work-tree"]) !== "true") return { is_repo: false, changed_files: [] };
+  if (git2(root, ["rev-parse", "--is-inside-work-tree"]) !== "true") {
+    const names = workspaceRepos(root);
+    return names.length ? workspaceGitInfo(root, names) : { is_repo: false, changed_files: [] };
+  }
   const branch = git2(root, ["rev-parse", "--abbrev-ref", "HEAD"]);
   const commit2 = git2(root, ["rev-parse", "--short", "HEAD"]);
   const files = porcelainFiles(root);
@@ -49231,13 +49266,13 @@ function gitInfo(root) {
     ...commit2 ? { commit: commit2 } : {},
     ...base ? { base } : {},
     dirty: files.length > 0,
-    changed_files: [...changed].slice(0, 300)
+    changed_files: [...changed].slice(0, MAX_CHANGED)
   };
 }
 
 // core/lib/gitignore.ts
 import fs14 from "node:fs";
-import path30 from "node:path";
+import path31 from "node:path";
 var QA_GITIGNORE_ENTRIES = [".env.qa", ".qa/"];
 function isCovered(lines, entry) {
   const bare = entry.replace(/\/$/, "");
@@ -49245,7 +49280,7 @@ function isCovered(lines, entry) {
   return lines.some((l) => accepted.has(l.trim()));
 }
 function ensureGitignoreEntries(root, entries = QA_GITIGNORE_ENTRIES) {
-  const file4 = path30.join(root, ".gitignore");
+  const file4 = path31.join(root, ".gitignore");
   const current = fs14.existsSync(file4) ? fs14.readFileSync(file4, "utf8") : "";
   const lines = current.split(/\r?\n/);
   const missing = entries.filter((e) => !isCovered(lines, e));
@@ -49261,7 +49296,7 @@ function ensureGitignoreEntries(root, entries = QA_GITIGNORE_ENTRIES) {
 
 // core/lib/memory/migrate.ts
 import fs15 from "node:fs";
-import path31 from "node:path";
+import path32 from "node:path";
 var unchanged = (file4) => ({ id: `${file4}-1-to-2`, file: file4, from: 1, to: 2, describe: `${file4}: no change to the content; the version number moves to 2 so that a store is at one version`, up: (v) => v });
 var MIGRATIONS = [
   {
@@ -49294,7 +49329,7 @@ function memoryFiles(store) {
     { kind: "test-bank", file: p.bank, jsonl: true }
   ];
   if (fs15.existsSync(p.runs)) {
-    for (const f of fs15.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path31.join(p.runs, f), jsonl: false });
+    for (const f of fs15.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path32.join(p.runs, f), jsonl: false });
   }
   return refs.filter((r) => fs15.existsSync(r.file));
 }
@@ -49360,7 +49395,7 @@ function migrateStore(store, opts = {}) {
   const next = /* @__PURE__ */ new Map();
   for (const { ref, steps } of pending) {
     const to = steps[steps.length - 1]?.to ?? target;
-    const where = path31.basename(ref.file);
+    const where = path32.basename(ref.file);
     if (!ref.jsonl) {
       const value = JSON.parse(fs15.readFileSync(ref.file, "utf8"));
       next.set(ref.file, JSON.stringify({ ...applySteps(value, steps, where), schema_version: to }, null, 2) + "\n");
@@ -49387,10 +49422,10 @@ function migrateStore(store, opts = {}) {
     next.set(ref.file, out.join("\n"));
   }
   const lowest = Math.min(...pending.map((p) => p.from));
-  const backup = path31.join(storeSubdirs(store).backups, `${stampOf(now)}-schema-${lowest}-to-${target}`);
+  const backup = path32.join(storeSubdirs(store).backups, `${stampOf(now)}-schema-${lowest}-to-${target}`);
   for (const { ref } of pending) {
-    const dest = path31.join(backup, path31.relative(store, ref.file));
-    ensureDir(path31.dirname(dest));
+    const dest = path32.join(backup, path32.relative(store, ref.file));
+    ensureDir(path32.dirname(dest));
     fs15.copyFileSync(ref.file, dest);
   }
   const log = [];
@@ -49399,11 +49434,11 @@ function migrateStore(store, opts = {}) {
     const tmp = `${ref.file}.${process.pid}.tmp`;
     fs15.writeFileSync(tmp, next.get(ref.file), "utf8");
     fs15.renameSync(tmp, ref.file);
-    const entry = { file: path31.relative(store, ref.file).split(path31.sep).join("/"), from, to: steps[steps.length - 1]?.to ?? target, migrations: steps.map((s) => s.id) };
+    const entry = { file: path32.relative(store, ref.file).split(path32.sep).join("/"), from, to: steps[steps.length - 1]?.to ?? target, migrations: steps.map((s) => s.id) };
     report.migrated.push(entry);
-    log.push(JSON.stringify({ at: now.toISOString(), ...entry, backup: path31.relative(store, backup).split(path31.sep).join("/"), describe: steps.map((s) => s.describe) }));
+    log.push(JSON.stringify({ at: now.toISOString(), ...entry, backup: path32.relative(store, backup).split(path32.sep).join("/"), describe: steps.map((s) => s.describe) }));
   }
-  fs15.appendFileSync(path31.join(storeSubdirs(store).backups, "migrations.log.jsonl"), `${log.join("\n")}
+  fs15.appendFileSync(path32.join(storeSubdirs(store).backups, "migrations.log.jsonl"), `${log.join("\n")}
 `, "utf8");
   return report;
 }
@@ -49416,11 +49451,11 @@ function ensureMigrated(store) {
 }
 
 // core/lib/bank/gate.ts
-import path32 from "node:path";
+import path33 from "node:path";
 var BANK_SKIP_FILE = "bank-skip.json";
 function bankGate(i) {
   const saved = loadBank(i.store).tests.filter((t) => t.created >= i.started).length;
-  const raw = readJson(path32.join(i.runDir, "data", BANK_SKIP_FILE));
+  const raw = readJson(path33.join(i.runDir, "data", BANK_SKIP_FILE));
   const reason = typeof raw?.reason === "string" ? raw.reason.replace(/\s+/g, " ").trim() : "";
   const serious = i.findings.filter((f) => (f.severity === "critical" || f.severity === "important") && f.fix_status !== "fixed-verified");
   const exempt = i.trigger === "auto" || i.trigger === "ci" || i.budgetOver || i.environmentBroken || serious.length === 0;
@@ -49429,16 +49464,16 @@ function bankGate(i) {
   const ids = serious.map((f) => f.id ?? f.title).slice(0, 6).join(", ");
   return {
     saved: 0,
-    problem: `This run found ${serious.length} critical or important problem(s) (${ids}${serious.length > 6 ? ", ..." : ""}) and saved no test for any of them, so the next run cannot check them first. Save the checks worth keeping with bank_save_test (see shared/test-bank.md: one for each problem you reproduced twice, with from_issue), or, if none of them can be written as an API or UI test, say why in ${path32.join(i.runDir, "data", BANK_SKIP_FILE)} as {"reason": "..."} (a real sentence). Then finish again.${reason ? " The reason in that file is too short to count." : ""}`
+    problem: `This run found ${serious.length} critical or important problem(s) (${ids}${serious.length > 6 ? ", ..." : ""}) and saved no test for any of them, so the next run cannot check them first. Save the checks worth keeping with bank_save_test (see shared/test-bank.md: one for each problem you reproduced twice, with from_issue), or, if none of them can be written as an API or UI test, say why in ${path33.join(i.runDir, "data", BANK_SKIP_FILE)} as {"reason": "..."} (a real sentence). Then finish again.${reason ? " The reason in that file is too short to count." : ""}`
   };
 }
 
 // core/auto-qa/settings.ts
-import path33 from "node:path";
+import path34 from "node:path";
 var AUTO_SCHEMA = 1;
 var AUTO_MODES = ["diff", "quick", "full", "fix", "ask"];
-var projectAutoFile = (store) => path33.join(store, "auto.json");
-var globalAutoFile = (home) => path33.join(home, "auto.json");
+var projectAutoFile = (store) => path34.join(store, "auto.json");
+var globalAutoFile = (home) => path34.join(home, "auto.json");
 function readJsonTolerant(file4) {
   try {
     return readJson(file4);
@@ -49464,8 +49499,8 @@ function readAutoFile(file4) {
 }
 
 // core/auto-qa/state.ts
-import path34 from "node:path";
-var stateFile = (store, name) => path34.join(storeSubdirs(store).state, name);
+import path35 from "node:path";
+var stateFile = (store, name) => path35.join(storeSubdirs(store).state, name);
 var LAST_RUN = "last-run.json";
 function writeLastRun(store, run) {
   ensureDir(storeSubdirs(store).state);
@@ -49473,8 +49508,8 @@ function writeLastRun(store, run) {
 }
 
 // core/lib/envprep.ts
-import path35 from "node:path";
-var prepFile = (runDir) => path35.join(runDir, "data", "env-prep.json");
+import path36 from "node:path";
+var prepFile = (runDir) => path36.join(runDir, "data", "env-prep.json");
 var readPrep = (runDir) => readJson(prepFile(runDir));
 function commandProblem(command2, config2) {
   const lower = command2.toLowerCase();
@@ -49510,14 +49545,14 @@ async function restoreEnvironment(o) {
 }
 
 // core/lib/sweep/service.ts
-import path36 from "node:path";
+import path37 from "node:path";
 
 // core/lib/sweep/png.ts
 var SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 // core/lib/sweep/service.ts
 function sweepPerfPoints(runDir) {
-  const sweep = readJson(path36.join(runDir, "data", "sweep.json"));
+  const sweep = readJson(path37.join(runDir, "data", "sweep.json"));
   if (!sweep) return [];
   return sweep.visits.filter((v) => !v.error && v.settled_ms !== void 0 && !v.signals.some((s) => s.kind === "never-settled")).map((v) => ({ key: `page|${v.page}|${v.role ?? "-"}|${v.browser}|${v.viewport}`, ms: v.settled_ms }));
 }
@@ -49529,11 +49564,11 @@ function realOrResolved(p) {
   try {
     return fs16.realpathSync(p);
   } catch {
-    return path37.resolve(p);
+    return path38.resolve(p);
   }
 }
 function browserStatus(home, projectRoot, expectedNames) {
-  const state = readJson(path37.join(home, "state", "browser-state.json"));
+  const state = readJson(path38.join(home, "state", "browser-state.json"));
   const key = Object.keys(state ?? {}).find((k) => realOrResolved(k) === realOrResolved(projectRoot));
   if (!state || !key) {
     return {
@@ -49554,12 +49589,12 @@ function browserStatus(home, projectRoot, expectedNames) {
 }
 function copyIfMissing(from, to, created) {
   if (exists(to)) return;
-  ensureDir(path37.dirname(to));
+  ensureDir(path38.dirname(to));
   fs16.copyFileSync(from, to);
   created.push(to);
 }
 function markerPath(store) {
-  return path37.join(storeSubdirs(store).state, RUN_MARKER_FILE);
+  return path38.join(storeSubdirs(store).state, RUN_MARKER_FILE);
 }
 function readMarker(store) {
   return readJson(markerPath(store));
@@ -49576,7 +49611,7 @@ function scanAllMarkers(home) {
   const out = [];
   for (const entry of fs16.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const m = readJson(path37.join(root, entry.name, "state", RUN_MARKER_FILE));
+    const m = readJson(path38.join(root, entry.name, "state", RUN_MARKER_FILE));
     if (m) out.push(m);
   }
   return out;
@@ -49584,7 +49619,7 @@ function scanAllMarkers(home) {
 function startRun(opts) {
   const env = opts.env ?? process.env;
   const now = opts.now ?? /* @__PURE__ */ new Date();
-  const root = path37.resolve(opts.project ?? opts.cwd);
+  const root = path38.resolve(opts.project ?? opts.cwd);
   const ticketRef = opts.ticket ? cleanRef(opts.ticket) : void 0;
   if (opts.mode === "ticket" && !ticketRef) throw new Error('Ticket mode needs the ticket to test: pass ticket (an id, an address, a file path, or "pasted text").');
   if (ticketRef && opts.mode !== "ticket") throw new Error(`A ticket was given, so the mode is "ticket" (found "${opts.mode}").`);
@@ -49594,24 +49629,25 @@ function startRun(opts) {
   if (!opts.project && !looksLikeProject(root)) {
     return {
       status: "no-project",
-      message: "The current folder does not look like a project (no git repository, app code or .qa/config.md). Ask the user which project folder to test, offering the known projects below, then run again with --project <folder>.",
+      message: "The current folder does not look like a project (no git repository, app code, .qa/config.md, or folders inside it that are projects). Ask the user which project folder to test, offering the known projects below, then run again with --project <folder>. A parent folder that holds the project's repositories side by side is a valid answer: if the user says this folder is it, pass it as the project.",
       known_projects: listKnownProjects(opts.home)
     };
   }
   const info = resolveProject(root);
   const { store } = ensureProjectStore(opts.home, info, now);
   ensureMigrated(store);
-  const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store };
-  const configFile = path37.join(root, ".qa", "config.md");
-  const gitignoreAdded = env["QAMIND_TRIGGER"] === "ci" || opts.trigger === "ci" ? [] : ensureGitignoreEntries(root);
+  const repos = workspaceRepos(root);
+  const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store, ...repos.length ? { workspace: { repos } } : {} };
+  const configFile = path38.join(root, ".qa", "config.md");
+  const gitignoreAdded = env["QAMIND_TRIGGER"] === "ci" || opts.trigger === "ci" || repos.length ? [] : ensureGitignoreEntries(root);
   if (!exists(configFile)) {
     const created = [];
     const core = corePath();
-    copyIfMissing(path37.join(core, "shared", "templates", "config.md"), configFile, created);
-    copyIfMissing(path37.join(core, "shared", "templates", "env.qa.example"), path37.join(root, ".env.qa.example"), created);
+    copyIfMissing(path38.join(core, "shared", "templates", "config.md"), configFile, created);
+    copyIfMissing(path38.join(core, "shared", "templates", "env.qa.example"), path38.join(root, ".env.qa.example"), created);
     return {
       status: "needs-config",
-      message: "First run in this project: QAMind created .qa/config.md and .env.qa.example and added .qa/ and .env.qa to .gitignore. Fill in .qa/config.md (every REPLACE_ME), copy .env.qa.example to .env.qa and add the TEST account logins, then run QA again. Nothing was tested.",
+      message: (repos.length ? `First run in this workspace (a folder that holds ${repos.length} project${repos.length === 1 ? "" : "s"}: ${repos.join(", ")}): QAMind created .qa/config.md and .env.qa.example in it. It is not a git repository, so no .gitignore was touched: keep .qa/ and .env.qa out of any repository you commit. ` : "First run in this project: QAMind created .qa/config.md and .env.qa.example and added .qa/ and .env.qa to .gitignore. ") + "Fill in .qa/config.md (every REPLACE_ME), copy .env.qa.example to .env.qa and add the TEST account logins, then run QA again. Nothing was tested.",
       project: projectOut,
       created,
       gitignore_added: gitignoreAdded
@@ -49660,10 +49696,10 @@ function startRun(opts) {
     }
   }
   let runId = `run-${utcStamp(now)}`;
-  const reports = path37.join(root, ".qa", "reports");
-  for (let n = 2; exists(path37.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
-  const runDir = path37.join(reports, runId);
-  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path37.join(runDir, sub));
+  const reports = path38.join(root, ".qa", "reports");
+  for (let n = 2; exists(path38.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
+  const runDir = path38.join(reports, runId);
+  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path38.join(runDir, sub));
   const criticalFlows = parseCriticalFlows(check2.body ?? "");
   const stack = detectStack(root, now);
   saveStack(storeSubdirs(store).memory, stack);
@@ -49717,13 +49753,13 @@ function startRun(opts) {
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION
   };
-  writeJson(path37.join(runDir, "data", "meta.json"), meta3);
+  writeJson(path38.join(runDir, "data", "meta.json"), meta3);
   return {
     status: "ready",
     message: "Ready. Credentials are present for the roles listed (values are never shown).",
     project: projectOut,
     gitignore_added: gitignoreAdded,
-    run: { id: runId, dir: runDir, mode: opts.mode, ...opts.focus ? { focus: opts.focus } : {}, ...ticketRef ? { ticket: ticketRef } : {}, readonly: readonly2, report: path37.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...budget.time_minutes !== void 0 ? { time_minutes: budget.time_minutes } : {}, ...budget.max_cost !== void 0 ? { max_cost: budget.max_cost } : {}, ...budget.deadline ? { deadline: budget.deadline } : {} }, ...config2.integrations.linear || config2.integrations.sentry ? { integrations: { ...config2.integrations.linear ? { linear: { team: config2.integrations.linear.team } } : {}, ...config2.integrations.sentry ? { sentry: { projects: config2.integrations.sentry.projects, environments: config2.integrations.sentry.environments } } : {} } } : {} },
+    run: { id: runId, dir: runDir, mode: opts.mode, ...opts.focus ? { focus: opts.focus } : {}, ...ticketRef ? { ticket: ticketRef } : {}, readonly: readonly2, report: path38.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...budget.time_minutes !== void 0 ? { time_minutes: budget.time_minutes } : {}, ...budget.max_cost !== void 0 ? { max_cost: budget.max_cost } : {}, ...budget.deadline ? { deadline: budget.deadline } : {} }, ...config2.integrations.linear || config2.integrations.sentry ? { integrations: { ...config2.integrations.linear ? { linear: { team: config2.integrations.linear.team } } : {}, ...config2.integrations.sentry ? { sentry: { projects: config2.integrations.sentry.projects, environments: config2.integrations.sentry.environments } } : {} } } : {} },
     config: {
       environment: config2.environment.name,
       web_uis: config2.web_uis,
@@ -49734,7 +49770,12 @@ function startRun(opts) {
       critical_flows: criticalFlows
     },
     ...check2.missing_env.length ? { missing_env: check2.missing_env } : {},
-    ...check2.advisories.length ? { advisories: check2.advisories } : {},
+    ...check2.advisories.length || repos.length && opts.kind === "qa" ? {
+      advisories: [
+        ...check2.advisories,
+        ...repos.length && opts.kind === "qa" ? [`This folder holds several repositories (${repos.join(", ")}), not one, and a fix is a commit on one repository's branch, so this run cannot fix anything from here. It can test and report as usual. Tell the user now, before testing: to fix, start in one repository's folder (it needs its own .qa/config.md); otherwise ask whether to continue as a report-only run.`] : []
+      ]
+    } : {},
     stack,
     git: git3,
     policy,
@@ -49758,12 +49799,12 @@ function finishRun(opts) {
     started: marker.started,
     trigger: marker.trigger,
     budgetOver: budgetStatus(marker.budget, marker.started, now).state === "over",
-    environmentBroken: (readJson(path37.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) === false,
+    environmentBroken: (readJson(path38.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) === false,
     findings: prior.findings
   });
   if (gate.problem) throw new Error(gate.problem);
   const lifeResult = applyRunLifecycle(marker.store, marker.run_dir, marker.run_id, now);
-  if ((readJson(path37.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) !== false) {
+  if ((readJson(path38.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) !== false) {
     const points = [...sweepPerfPoints(marker.run_dir), ...apiPerfPoints(marker.run_dir)];
     if (points.length) withStoreLock(marker.store, () => recordPerf(marker.store, points, marker.run_id, now));
   }
@@ -49774,8 +49815,8 @@ function finishRun(opts) {
   const journeys = flowStatus(data);
   const started = new Date(marker.started).getTime();
   const duration_s = Math.max(0, Math.round((now.getTime() - started) / 1e3));
-  const meta3 = readJson(path37.join(marker.run_dir, "data", "meta.json"));
-  const health = readJson(path37.join(marker.run_dir, "data", "health.json"));
+  const meta3 = readJson(path38.join(marker.run_dir, "data", "meta.json"));
+  const health = readJson(path38.join(marker.run_dir, "data", "health.json"));
   const stop_reason = opts.stopReason ?? (health && health.environment_ok === false ? "environment problem" : "completed");
   const usage = parseUsage(opts.cost, duration_s);
   const bstat = budgetStatus(marker.budget, marker.started, now);
@@ -49818,7 +49859,7 @@ function finishRun(opts) {
     knowledge_version: KNOWLEDGE_VERSION,
     ...meta3?.branch ? { branch: meta3.branch } : {},
     ...meta3?.commit ? { commit: meta3.commit } : {},
-    report: path37.join(marker.run_dir, "TECHNICAL-REPORT.md")
+    report: path38.join(marker.run_dir, "TECHNICAL-REPORT.md")
   };
   const config2 = checkConfigFile(marker.project_root, process.env).config;
   const memory = applyRunToMemory({
@@ -49830,14 +49871,14 @@ function finishRun(opts) {
     roles: (config2?.roles ?? []).map((r) => r.name),
     uiUrls: Object.fromEntries((config2?.web_uis ?? []).map((u) => [u.name, u.url]))
   });
-  if (meta3) writeJson(path37.join(marker.run_dir, "data", "meta.json"), { ...meta3, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...budgetOutcome ? { budget: budgetOutcome } : {}, ...prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...prep.restore ? { restored: prep.restore.ok } : {} } } : {}, bank_saved: gate.saved, ...gate.skipped_reason ? { bank_skipped: gate.skipped_reason } : {}, memory_updated: memory.updated });
+  if (meta3) writeJson(path38.join(marker.run_dir, "data", "meta.json"), { ...meta3, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...budgetOutcome ? { budget: budgetOutcome } : {}, ...prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...prep.restore ? { restored: prep.restore.ok } : {} } } : {}, bank_saved: gate.saved, ...gate.skipped_reason ? { bank_skipped: gate.skipped_reason } : {}, memory_updated: memory.updated });
   summary.memory_updated = [...lifeResult.lines, ...memory.updated];
   const fixState = loadFixState(marker.run_dir);
   if (fixState) {
     const by = (o) => fixState.attempts.filter((a) => a.status === o).length;
     summary.fixes = { branch: fixState.branch, base_commit: fixState.base_commit.slice(0, 7), verified: by("verified"), best_effort: by("best-effort"), reverted: by("reverted"), deferred: by("deferred"), commits: fixState.attempts.filter((a) => a.commit && (a.status === "verified" || a.status === "best-effort")).map((a) => a.commit).map((c) => c.slice(0, 7)), suite: fixState.comparison?.verdict ?? "not-run" };
   }
-  writeJson(path37.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
+  writeJson(path38.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
   if (!health || health.environment_ok !== false) {
     withStoreLock(marker.store, () => recordRunMetrics(marker.store, metricFromRun(data, { finished: summary.finished, duration_s, ...usage.cost_usd !== void 0 ? { cost_usd: usage.cost_usd } : {}, ...usage.tokens !== void 0 ? { tokens: usage.tokens } : {}, tests_saved: gate.saved }, observedCounts(marker.run_dir))));
   }
@@ -49849,7 +49890,7 @@ function finishRun(opts) {
 }
 
 // core/lib/runctx.ts
-import path38 from "node:path";
+import path39 from "node:path";
 function loadRunContext(home, runId, env = process.env) {
   if (!runId) throw new Error("--run <run-id> is required (use the id printed by `run start`).");
   const marker = findMarkerByRunId(home, runId);
@@ -49867,7 +49908,7 @@ function loadRunContext(home, runId, env = process.env) {
   return {
     marker,
     projectRoot: marker.project_root,
-    runDir: path38.resolve(marker.run_dir),
+    runDir: path39.resolve(marker.run_dir),
     config: check2.config,
     policy: marker.policy,
     roles,
@@ -49877,12 +49918,12 @@ function loadRunContext(home, runId, env = process.env) {
 
 // core/lib/memory/context.ts
 import fs18 from "node:fs";
-import path40 from "node:path";
+import path41 from "node:path";
 
 // core/lib/memory/lessons.ts
 import crypto3 from "node:crypto";
 import fs17 from "node:fs";
-import path39 from "node:path";
+import path40 from "node:path";
 var PENDING_FILE = "pending-lessons.md";
 var APPROVED_FILE = "global-lessons.md";
 var REJECTED_FILE = "rejected-lessons.jsonl";
@@ -49914,7 +49955,7 @@ function knownProjectNames(home, extra = []) {
   const names = new Set(extra);
   for (const p of listKnownProjects(home)) {
     names.add(p.name);
-    for (const seen of p.paths_seen) names.add(path39.basename(seen));
+    for (const seen of p.paths_seen) names.add(path40.basename(seen));
   }
   return [...names].filter((n) => n.trim().length > 0);
 }
@@ -49974,7 +50015,7 @@ function parseLessons(text2) {
 }
 var readFile = (file4) => parseLessons(fs17.existsSync(file4) ? fs17.readFileSync(file4, "utf8") : "");
 function writeText(file4, text2) {
-  ensureDir(path39.dirname(file4));
+  ensureDir(path40.dirname(file4));
   const tmp = `${file4}.${process.pid}.tmp`;
   fs17.writeFileSync(tmp, text2, "utf8");
   fs17.renameSync(tmp, file4);
@@ -49992,11 +50033,11 @@ var approvedHeader = `# Global lessons
 
 Lessons you approved. **Every QAMind project reads this file** (the newest ${MAX_LOADED} at most, best-used first), so each entry must help on any project: no project names, web addresses, files, tickets or code.
 An entry that breaks that rule is not loaded, and the review says why. You can add, edit or delete entries by hand.`;
-var rejectedRecords = (home) => readJsonl(path39.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
+var rejectedRecords = (home) => readJsonl(path40.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
 var allIds = (home) => {
-  const approved = readFile(path39.join(home, APPROVED_FILE)).blocks;
+  const approved = readFile(path40.join(home, APPROVED_FILE)).blocks;
   const origins = approved.flatMap((b) => b.lines.flatMap((l) => [...l.matchAll(/\(was ([A-Z]-\d+)\)/g)].map((m) => m[1])));
-  return [...readFile(path39.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
+  return [...readFile(path40.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
 };
 function proposeLesson(home, input2, ctx = {}) {
   const text2 = one6(input2.text);
@@ -50009,10 +50050,10 @@ function proposeLesson(home, input2, ctx = {}) {
   if (problems.length) throw new Error(`This lesson is not generic: it ${problems.join("; ")}. A global lesson must help on any project, so rewrite it without those (describe the kind of problem, not this product).`);
   assertSafeText("this lesson", `${area} ${text2} ${reason}`, ctx.knownSecrets ?? []);
   ensureDir(home);
-  const pendingFile = path39.join(home, PENDING_FILE);
+  const pendingFile = path40.join(home, PENDING_FILE);
   return withStoreLock(home, () => {
     const pending = readFile(pendingFile);
-    const known = [...pending.blocks, ...readFile(path39.join(home, APPROVED_FILE)).blocks];
+    const known = [...pending.blocks, ...readFile(path40.join(home, APPROVED_FILE)).blocks];
     const dup = known.map((e) => ({ e, s: similarity(e.text, text2) })).filter((x) => x.s >= MERGE_AT2).sort((a, b) => b.s - a.s)[0];
     if (dup) return { action: "existing", id: dup.e.id, file: pendingFile, pending: pending.blocks.length, matches: dup.e.text };
     const turned = rejectedRecords(home).map((r) => ({ r, s: similarity(r.text, text2) })).filter((x) => x.s >= MERGE_AT2).sort((a, b) => b.s - a.s)[0];
@@ -50029,14 +50070,14 @@ function proposeLesson(home, input2, ctx = {}) {
 }
 var readLessonUse = (home) => {
   try {
-    const v = readJson(path39.join(home, USE_FILE));
+    const v = readJson(path40.join(home, USE_FILE));
     return v && typeof v === "object" && !Array.isArray(v) ? v : {};
   } catch {
     return {};
   }
 };
 function loadApprovedLessons(home, ctx = {}) {
-  const entries = readFile(path39.join(home, APPROVED_FILE)).blocks;
+  const entries = readFile(path40.join(home, APPROVED_FILE)).blocks;
   const use = readLessonUse(home);
   const ok = [];
   const skipped = [];
@@ -50056,7 +50097,7 @@ function loadApprovedLessons(home, ctx = {}) {
   };
 }
 function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
-  const approved = new Set(readFile(path39.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
+  const approved = new Set(readFile(path40.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
   const unique = [...new Set(ids)];
   const recorded = unique.filter((i) => approved.has(i));
   const unknown2 = unique.filter((i) => !approved.has(i));
@@ -50065,7 +50106,7 @@ function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
     withStoreLock(home, () => {
       const use = readLessonUse(home);
       for (const id of recorded) use[id] = { hits: (use[id]?.hits ?? 0) + 1, last_applied: now.toISOString() };
-      writeJson(path39.join(home, USE_FILE), use);
+      writeJson(path40.join(home, USE_FILE), use);
     });
   }
   return { recorded, unknown: unknown2 };
@@ -50077,7 +50118,7 @@ var MAX_PAGES_SHOWN = 40;
 function recentRunSummaries(store, limit = 3) {
   const dir = memoryPaths(store).runs;
   if (!fs18.existsSync(dir)) return [];
-  return fs18.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path40.join(dir, f))).filter((r) => !!r);
+  return fs18.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path41.join(dir, f))).filter((r) => !!r);
 }
 function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), opts = {}) {
   const paths2 = memoryPaths(store);
@@ -50128,7 +50169,7 @@ function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), o
 }
 
 // core/lib/memory/observations.ts
-import path41 from "node:path";
+import path42 from "node:path";
 var MAX_PAGES = 300;
 var MAX_ENDPOINTS = 1e3;
 var OP = /^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(\/\S{0,200})$/i;
@@ -50136,10 +50177,10 @@ var clean = (s) => s.replace(/\s+/g, " ").trim();
 function recordObservations(runDir, input2, opts) {
   const secrets = opts.knownSecrets ?? [];
   const warnings = [];
-  const dir = path41.join(runDir, "data");
+  const dir = path42.join(runDir, "data");
   ensureDir(dir);
   const stored = (() => {
-    const raw = readJson(path41.join(dir, "pages.json"));
+    const raw = readJson(path42.join(dir, "pages.json"));
     return Array.isArray(raw) ? raw.filter((p) => !!p && typeof p === "object" && typeof p.path === "string" && typeof p.ui === "string") : [];
   })();
   const byKey = new Map(stored.map((p) => [`${p.ui}|${p.path}`, p]));
@@ -50170,9 +50211,9 @@ function recordObservations(runDir, input2, opts) {
     pagesAdded++;
   }
   if (stored.length > MAX_PAGES) throw new Error(`That is more than ${MAX_PAGES} distinct pages. Record page types, not every record (ids are collapsed automatically).`);
-  if (input2.pages?.length) writeJson(path41.join(dir, "pages.json"), stored);
+  if (input2.pages?.length) writeJson(path42.join(dir, "pages.json"), stored);
   const storedOps = (() => {
-    const raw = readJson(path41.join(dir, "endpoints.json"));
+    const raw = readJson(path42.join(dir, "endpoints.json"));
     return Array.isArray(raw) ? raw.filter((x) => typeof x === "string") : [];
   })();
   const ops = new Set(storedOps);
@@ -50187,7 +50228,7 @@ function recordObservations(runDir, input2, opts) {
     }
   }
   if (ops.size > MAX_ENDPOINTS) throw new Error(`That is more than ${MAX_ENDPOINTS} endpoints.`);
-  if (input2.endpoints?.length) writeJson(path41.join(dir, "endpoints.json"), [...ops]);
+  if (input2.endpoints?.length) writeJson(path42.join(dir, "endpoints.json"), [...ops]);
   return { pages_added: pagesAdded, pages_total: stored.length, endpoints_added: endpointsAdded, endpoints_total: ops.size, warnings };
 }
 
@@ -50203,7 +50244,7 @@ function defaultProjectDir(env = process.env, cwd = process.cwd()) {
 }
 function projectScope(home, opts = {}) {
   const env = opts.env ?? process.env;
-  const root = path42.resolve(opts.project ?? defaultProjectDir(env, opts.cwd ?? process.cwd()));
+  const root = path43.resolve(opts.project ?? defaultProjectDir(env, opts.cwd ?? process.cwd()));
   let info;
   try {
     info = resolveProject(root);
@@ -50219,7 +50260,7 @@ function scopeFor(home, opts) {
 }
 var secretsOf = (s) => s.ctx.passwords;
 function projectNamesOf(scope) {
-  return scope.kind === "run" ? [path42.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path42.basename(scope.project.root)];
+  return scope.kind === "run" ? [path43.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path43.basename(scope.project.root)];
 }
 function getContext(scope, limit = 3) {
   const ctx = loadMemoryContext(scope.store, limit, /* @__PURE__ */ new Date(), { home: scope.home, projectNames: projectNamesOf(scope) });
@@ -50465,7 +50506,7 @@ var FIX_TOOLS = [
 
 // core/lib/bank/service.ts
 import fs19 from "node:fs";
-import path43 from "node:path";
+import path44 from "node:path";
 
 // core/lib/openapi.ts
 var import_yaml2 = __toESM(require_dist2(), 1);
@@ -50475,10 +50516,10 @@ var secretNamesOf = (config2) => config2.roles.flatMap((r) => [r.username_env, r
 function saveBankTest(scope, input2, now = /* @__PURE__ */ new Date()) {
   const ctx = scope.ctx;
   if (input2.from_issue) {
-    const findings = readJson(path43.join(scope.runDir, "data", "findings.json")) ?? [];
+    const findings = readJson(path44.join(scope.runDir, "data", "findings.json")) ?? [];
     if (!findings.some((f) => f.id === input2.from_issue)) throw new Error(`from_issue ${input2.from_issue} is not a finding of this run (findings.json has ${findings.map((f) => f.id).filter(Boolean).join(", ") || "none yet"}). Write the findings first, then save the tests that protect them.`);
   }
-  const ticket = readJson(path43.join(scope.runDir, "data", "ticket.json"));
+  const ticket = readJson(path44.join(scope.runDir, "data", "ticket.json"));
   if (input2.criteria?.length) {
     const ids = new Set((ticket?.criteria ?? []).map((c) => c.id));
     if (!ticket?.ref) throw new Error("criteria can only be named in a ticket run (data/ticket.json).");
@@ -50496,10 +50537,10 @@ function saveBankTest(scope, input2, now = /* @__PURE__ */ new Date()) {
   );
 }
 function saveBankTestFromFile(scope, file4, opts = {}) {
-  const base = path43.join(scope.runDir, "data", "bank");
-  const abs = path43.isAbsolute(file4) ? path43.resolve(file4) : path43.resolve(fs19.existsSync(path43.resolve(file4)) && opts.anywhere ? path43.resolve(file4) : path43.join(base, file4));
-  const inside = abs === scope.runDir || abs.startsWith(scope.runDir + path43.sep);
-  if (!opts.anywhere && !inside) throw new Error(`The test file has to be inside the run folder (write it to ${path43.join(scope.runDir, "data", "bank", "<name>.json")}).`);
+  const base = path44.join(scope.runDir, "data", "bank");
+  const abs = path44.isAbsolute(file4) ? path44.resolve(file4) : path44.resolve(fs19.existsSync(path44.resolve(file4)) && opts.anywhere ? path44.resolve(file4) : path44.join(base, file4));
+  const inside = abs === scope.runDir || abs.startsWith(scope.runDir + path44.sep);
+  if (!opts.anywhere && !inside) throw new Error(`The test file has to be inside the run folder (write it to ${path44.join(scope.runDir, "data", "bank", "<name>.json")}).`);
   if (!fs19.existsSync(abs)) throw new Error(`No test file at ${abs}. Write the test as JSON there first.`);
   if (fs19.statSync(abs).size > 12e4) throw new Error("The test file is larger than 120 KB: a test checks one thing, split it.");
   let input2;
