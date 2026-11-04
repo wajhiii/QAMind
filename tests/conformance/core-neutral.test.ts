@@ -45,7 +45,7 @@ test("the CI code in core names no host: how a host's CLI is run is in that host
 
 test("the coverage and metrics code (sweep, mail, timings, tickets, browsers, the verdict, agent metrics) names no host either", () => {
   const problems: string[] = [];
-  const files = [...["sweep", "mail", "perf"].flatMap((d) => walk(path.join(repoRoot, "core", "lib", d), /\.ts$/)), ...["browsers.ts", "ticket.ts", "coverage-report.ts", "metrics.ts", "metrics-report.ts", "verdict.ts"].map((f) => path.join(repoRoot, "core", "lib", f))];
+  const files = [...["sweep", "mail", "perf"].flatMap((d) => walk(path.join(repoRoot, "core", "lib", d), /\.ts$/)), ...["browsers.ts", "ticket.ts", "coverage-report.ts", "metrics.ts", "metrics-report.ts", "verdict.ts", "tracker.ts", "tracker-plan.ts", "trackerguard.ts", "sentry.ts"].map((f) => path.join(repoRoot, "core", "lib", f))];
   for (const f of files) {
     const text = fs.readFileSync(f, "utf8");
     for (const re of [/claude/i, /anthropic/i, /cursor/i, /codex/i, /\/qamind:/]) if (re.test(text)) problems.push(`${rel(f)} mentions ${re}`);

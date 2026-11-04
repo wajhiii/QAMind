@@ -25,6 +25,8 @@ export interface MemoryPaths {
   bank: string;
   /** How the agent is doing run by run, and the bugs that escaped to production (spec 13.16). */
   metrics: string;
+  /** Which tracker ticket each bug has (spec 11.4, 13.12): the next run updates it instead of opening another. */
+  tickets: string;
   /** How long pages and API endpoints took in recent runs, so a slowdown is noticed even when it is under budget (spec 13.11). */
   perf: string;
   archiveDir: string;
@@ -46,6 +48,7 @@ export function memoryPaths(store: string): MemoryPaths {
     bank: path.join(storeSubdirs(store).testBank, "bank.jsonl"),
     metrics: path.join(dir, "metrics.json"),
     perf: path.join(dir, "perf.json"),
+    tickets: path.join(dir, "tickets.json"),
     archiveDir: path.join(dir, "archive"),
     runs: storeSubdirs(store).runs,
     stack: path.join(dir, "stack.json"),

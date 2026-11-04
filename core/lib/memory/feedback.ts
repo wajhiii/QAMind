@@ -32,7 +32,7 @@ export interface FeedbackRecord {
   note?: string;
   by: string;
   at: string;
-  via: "command" | "admin-report";
+  via: "command" | "admin-report" | "tracker";
   /** What this changed, in plain words (also shown back to the person). */
   effects: string[];
   [extra: string]: unknown;

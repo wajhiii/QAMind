@@ -15,6 +15,9 @@ import type { AgentPerformance } from "./metrics.ts";
 import type { Finding, LintResult, RunData } from "./report.ts";
 import { checkConsistency } from "../scripts/consistency-check.ts";
 import type { RunSummary } from "./run.ts";
+import { eligibleFindings, lintTickets } from "./tracker.ts";
+import type { LifeLike } from "./tracker.ts";
+import { lintSentry } from "./sentry.ts";
 
 /** Summaries of earlier runs of this project, newest first, excluding the one being reported. */
 export function previousRuns(store: string | undefined, currentRunId: string | undefined, limit = 3): RunSummary[] {
@@ -134,6 +137,12 @@ export function lintReports(runDir: string, knownSecrets: string[] = [], store?:
     warnings.push(...life.warnings);
   }
   lintFixRun(data, errors, warnings);
+  // The optional integrations (spec 11.4): asked for only when the config set them up when the run started.
+  const integ = data.meta?.integrations;
+  warnings.push(...lintTickets(!!integ?.linear, data.tickets, eligibleFindings(data.findings, data.lifecycle as LifeLike | undefined).eligible));
+  const sen = lintSentry(!!integ?.sentry, data.sentry, { findings: data.findings, unconfirmed: data.unconfirmed });
+  errors.push(...sen.errors);
+  warnings.push(...sen.warnings);
   // Private data (spec 13.8): the same scan `run finish` gates on, so it is found while there is still time to mask it.
   const scan = scanRun(runDir, contextForRun(runDir));
   for (const leak of scan.leaks.slice(0, 10)) errors.push(`Privacy: ${leak.file} holds ${leak.count} unmasked item(s) (${Object.entries(leak.kinds).map(([k, n]) => `${n} ${k}`).join(", ")}). Run \`qamind privacy mask --run ${path.basename(runDir)}\`, rebuild the reports and lint again.`);

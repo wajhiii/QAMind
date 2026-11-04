@@ -70,6 +70,10 @@ status change, customers, sales report.
 **API** (port 4100): see `openapi.yaml` for every endpoint, role rule, status code and field limit. Sign in with
 `POST /api/auth/login` and send the token as `Authorization: Bearer <token>`.
 
+## Server errors for an error monitor (optional)
+
+With `DEMO_ERROR_LOG=<file>` set, every unhandled server error (the demo has a few seeded ones: an unbalanced bracket in the order search, `page_size=0`) is appended to that file as one JSON line (time, environment from `DEMO_ENVIRONMENT`, default `staging`, title, route). It stands in for an error monitor's SDK in QAMind's own Sentry check (`scripts/standins/sentry-standin.mjs`, not Sentry). Off by default.
+
 ## Reset
 
 ```

@@ -114,17 +114,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path64) {
-      const ctrl = callVisitor(key, node, visitor, path64);
+    function visit_(key, node, visitor, path68) {
+      const ctrl = callVisitor(key, node, visitor, path68);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path64, ctrl);
-        return visit_(key, ctrl, visitor, path64);
+        replaceNode(key, path68, ctrl);
+        return visit_(key, ctrl, visitor, path68);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path64 = Object.freeze(path64.concat(node));
+          path68 = Object.freeze(path68.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path64);
+            const ci = visit_(i, node.items[i], visitor, path68);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -135,13 +135,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path64 = Object.freeze(path64.concat(node));
-          const ck = visit_("key", node.key, visitor, path64);
+          path68 = Object.freeze(path68.concat(node));
+          const ck = visit_("key", node.key, visitor, path68);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path64);
+          const cv = visit_("value", node.value, visitor, path68);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -162,17 +162,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path64) {
-      const ctrl = await callVisitor(key, node, visitor, path64);
+    async function visitAsync_(key, node, visitor, path68) {
+      const ctrl = await callVisitor(key, node, visitor, path68);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path64, ctrl);
-        return visitAsync_(key, ctrl, visitor, path64);
+        replaceNode(key, path68, ctrl);
+        return visitAsync_(key, ctrl, visitor, path68);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path64 = Object.freeze(path64.concat(node));
+          path68 = Object.freeze(path68.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path64);
+            const ci = await visitAsync_(i, node.items[i], visitor, path68);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -183,13 +183,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path64 = Object.freeze(path64.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path64);
+          path68 = Object.freeze(path68.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path68);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path64);
+          const cv = await visitAsync_("value", node.value, visitor, path68);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -216,23 +216,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path64) {
+    function callVisitor(key, node, visitor, path68) {
       if (typeof visitor === "function")
-        return visitor(key, node, path64);
+        return visitor(key, node, path68);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path64);
+        return visitor.Map?.(key, node, path68);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path64);
+        return visitor.Seq?.(key, node, path68);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path64);
+        return visitor.Pair?.(key, node, path68);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path64);
+        return visitor.Scalar?.(key, node, path68);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path64);
+        return visitor.Alias?.(key, node, path68);
       return void 0;
     }
-    function replaceNode(key, path64, node) {
-      const parent = path64[path64.length - 1];
+    function replaceNode(key, path68, node) {
+      const parent = path68[path68.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -844,10 +844,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path64, value) {
+    function collectionFromPath(schema, path68, value) {
       let v = value;
-      for (let i = path64.length - 1; i >= 0; --i) {
-        const k = path64[i];
+      for (let i = path68.length - 1; i >= 0; --i) {
+        const k = path68[i];
         if (typeof k === "number" && Number.isInteger(k) && k >= 0) {
           const a = [];
           a[k] = v;
@@ -866,7 +866,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path64) => path64 == null || typeof path64 === "object" && !!path64[Symbol.iterator]().next().done;
+    var isEmptyPath = (path68) => path68 == null || typeof path68 === "object" && !!path68[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -896,11 +896,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path64, value) {
-        if (isEmptyPath(path64))
+      addIn(path68, value) {
+        if (isEmptyPath(path68))
           this.add(value);
         else {
-          const [key, ...rest] = path64;
+          const [key, ...rest] = path68;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -914,8 +914,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path64) {
-        const [key, ...rest] = path64;
+      deleteIn(path68) {
+        const [key, ...rest] = path68;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -929,8 +929,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path64, keepScalar) {
-        const [key, ...rest] = path64;
+      getIn(path68, keepScalar) {
+        const [key, ...rest] = path68;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -948,8 +948,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path64) {
-        const [key, ...rest] = path64;
+      hasIn(path68) {
+        const [key, ...rest] = path68;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -959,8 +959,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path64, value) {
-        const [key, ...rest] = path64;
+      setIn(path68, value) {
+        const [key, ...rest] = path68;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -1004,14 +1004,14 @@ var require_foldFlowLines = __commonJS({
     var FOLD_FLOW = "flow";
     var FOLD_BLOCK = "block";
     var FOLD_QUOTED = "quoted";
-    function foldFlowLines(text3, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
+    function foldFlowLines(text4, indent, mode = "flow", { indentAtStart, lineWidth = 80, minContentWidth = 20, onFold, onOverflow } = {}) {
       if (!lineWidth || lineWidth < 0)
-        return text3;
+        return text4;
       if (lineWidth < minContentWidth)
         minContentWidth = 0;
       const endStep = Math.max(1 + minContentWidth, 1 + lineWidth - indent.length);
-      if (text3.length <= endStep)
-        return text3;
+      if (text4.length <= endStep)
+        return text4;
       const folds = [];
       const escapedFolds = {};
       let end = lineWidth - indent.length;
@@ -1028,14 +1028,14 @@ var require_foldFlowLines = __commonJS({
       let escStart = -1;
       let escEnd = -1;
       if (mode === FOLD_BLOCK) {
-        i = consumeMoreIndentedLines(text3, i, indent.length);
+        i = consumeMoreIndentedLines(text4, i, indent.length);
         if (i !== -1)
           end = i + endStep;
       }
-      for (let ch; ch = text3[i += 1]; ) {
+      for (let ch; ch = text4[i += 1]; ) {
         if (mode === FOLD_QUOTED && ch === "\\") {
           escStart = i;
-          switch (text3[i + 1]) {
+          switch (text4[i + 1]) {
             case "x":
               i += 3;
               break;
@@ -1052,12 +1052,12 @@ var require_foldFlowLines = __commonJS({
         }
         if (ch === "\n") {
           if (mode === FOLD_BLOCK)
-            i = consumeMoreIndentedLines(text3, i, indent.length);
+            i = consumeMoreIndentedLines(text4, i, indent.length);
           end = i + indent.length + endStep;
           split = void 0;
         } else {
           if (ch === " " && prev && prev !== " " && prev !== "\n" && prev !== "	") {
-            const next = text3[i + 1];
+            const next = text4[i + 1];
             if (next && next !== " " && next !== "\n" && next !== "	")
               split = i;
           }
@@ -1069,12 +1069,12 @@ var require_foldFlowLines = __commonJS({
             } else if (mode === FOLD_QUOTED) {
               while (prev === " " || prev === "	") {
                 prev = ch;
-                ch = text3[i += 1];
+                ch = text4[i += 1];
                 overflow = true;
               }
               const j = i > escEnd + 1 ? i - 2 : escStart - 1;
               if (escapedFolds[j])
-                return text3;
+                return text4;
               folds.push(j);
               escapedFolds[j] = true;
               end = j + endStep;
@@ -1089,39 +1089,39 @@ var require_foldFlowLines = __commonJS({
       if (overflow && onOverflow)
         onOverflow();
       if (folds.length === 0)
-        return text3;
+        return text4;
       if (onFold)
         onFold();
-      let res = text3.slice(0, folds[0]);
+      let res = text4.slice(0, folds[0]);
       for (let i2 = 0; i2 < folds.length; ++i2) {
         const fold = folds[i2];
-        const end2 = folds[i2 + 1] || text3.length;
+        const end2 = folds[i2 + 1] || text4.length;
         if (fold === 0)
           res = `
-${indent}${text3.slice(0, end2)}`;
+${indent}${text4.slice(0, end2)}`;
         else {
           if (mode === FOLD_QUOTED && escapedFolds[fold])
-            res += `${text3[fold]}\\`;
+            res += `${text4[fold]}\\`;
           res += `
-${indent}${text3.slice(fold + 1, end2)}`;
+${indent}${text4.slice(fold + 1, end2)}`;
         }
       }
       return res;
     }
-    function consumeMoreIndentedLines(text3, i, indent) {
+    function consumeMoreIndentedLines(text4, i, indent) {
       let end = i;
       let start = i + 1;
-      let ch = text3[start];
+      let ch = text4[start];
       while (ch === " " || ch === "	") {
         if (i < start + indent) {
-          ch = text3[++i];
+          ch = text4[++i];
         } else {
           do {
-            ch = text3[++i];
+            ch = text4[++i];
           } while (ch && ch !== "\n");
           end = i;
           start = i + 1;
-          ch = text3[start];
+          ch = text4[start];
         }
       }
       return end;
@@ -3475,9 +3475,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path64, value) {
+      addIn(path68, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path64, value);
+          this.contents.addIn(path68, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -3552,14 +3552,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path64) {
-        if (Collection.isEmptyPath(path64)) {
+      deleteIn(path68) {
+        if (Collection.isEmptyPath(path68)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path64) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path68) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -3574,10 +3574,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path64, keepScalar) {
-        if (Collection.isEmptyPath(path64))
+      getIn(path68, keepScalar) {
+        if (Collection.isEmptyPath(path68))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path64, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path68, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -3588,10 +3588,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path64) {
-        if (Collection.isEmptyPath(path64))
+      hasIn(path68) {
+        if (Collection.isEmptyPath(path68))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path64) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path68) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -3608,13 +3608,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path64, value) {
-        if (Collection.isEmptyPath(path64)) {
+      setIn(path68, value) {
+        if (Collection.isEmptyPath(path68)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path64), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path68), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path64, value);
+          this.contents.setIn(path68, value);
         }
       }
       /**
@@ -3729,14 +3729,14 @@ var require_errors = __commonJS({
         super("YAMLWarning", pos, code, message);
       }
     };
-    var prettifyError = (src, lc) => (error) => {
+    var prettifyError = (src, lc2) => (error) => {
       if (error.pos[0] === -1)
         return;
-      error.linePos = error.pos.map((pos) => lc.linePos(pos));
+      error.linePos = error.pos.map((pos) => lc2.linePos(pos));
       const { line, col } = error.linePos[0];
       error.message += ` at line ${line}, column ${col}`;
       let ci = col - 1;
-      let lineStr = src.substring(lc.lineStarts[line - 1], lc.lineStarts[line]).replace(/[\n\r]+$/, "");
+      let lineStr = src.substring(lc2.lineStarts[line - 1], lc2.lineStarts[line]).replace(/[\n\r]+$/, "");
       if (ci >= 60 && lineStr.length > 80) {
         const trimStart = Math.min(ci - 39, lineStr.length - 79);
         lineStr = "\u2026" + lineStr.substring(trimStart);
@@ -3745,7 +3745,7 @@ var require_errors = __commonJS({
       if (lineStr.length > 80)
         lineStr = lineStr.substring(0, 79) + "\u2026";
       if (line > 1 && /^ *$/.test(lineStr.substring(0, ci))) {
-        let prev = src.substring(lc.lineStarts[line - 2], lc.lineStarts[line - 1]);
+        let prev = src.substring(lc2.lineStarts[line - 2], lc2.lineStarts[line - 1]);
         if (prev.length > 80)
           prev = prev.substring(0, 79) + "\u2026\n";
         lineStr = prev + lineStr;
@@ -5575,9 +5575,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path64) => {
+    visit.itemAtPath = (cst, path68) => {
       let item = cst;
-      for (const [field, index] of path64) {
+      for (const [field, index] of path68) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -5586,23 +5586,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path64) => {
-      const parent = visit.itemAtPath(cst, path64.slice(0, -1));
-      const field = path64[path64.length - 1][0];
+    visit.parentCollection = (cst, path68) => {
+      const parent = visit.itemAtPath(cst, path68.slice(0, -1));
+      const field = path68[path68.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path64, item, visitor) {
-      let ctrl = visitor(item, path64);
+    function _visit(path68, item, visitor) {
+      let ctrl = visitor(item, path68);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path64.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path68.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -5613,10 +5613,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path64);
+            ctrl = ctrl(item, path68);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path64) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path68) : ctrl;
     }
     exports.visit = visit;
   }
@@ -6918,14 +6918,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs40 = this.flowScalar(this.type);
+              const fs41 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map.items.push({ start, key: fs40, sep: [] });
+                map.items.push({ start, key: fs41, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs40);
+                this.stack.push(fs41);
               } else {
-                Object.assign(it, { key: fs40, sep: [] });
+                Object.assign(it, { key: fs41, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -7053,13 +7053,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs40 = this.flowScalar(this.type);
+              const fs41 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs40, sep: [] });
+                fc.items.push({ start: [], key: fs41, sep: [] });
               else if (it.sep)
-                this.stack.push(fs40);
+                this.stack.push(fs41);
               else
-                Object.assign(it, { key: fs40, sep: [] });
+                Object.assign(it, { key: fs41, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -7369,9 +7369,9 @@ var require_dist = __commonJS({
 
 // cli/src/main.ts
 import { execFileSync as execFileSync6 } from "node:child_process";
-import fs39 from "node:fs";
-import os6 from "node:os";
-import path63 from "node:path";
+import fs40 from "node:fs";
+import os7 from "node:os";
+import path67 from "node:path";
 import { parseArgs as parseArgs3 } from "node:util";
 
 // cli/src/coverage.ts
@@ -7385,9 +7385,9 @@ import path2 from "node:path";
 // core/lib/dotenv.ts
 import fs from "node:fs";
 import path from "node:path";
-function parseDotenv(text3) {
+function parseDotenv(text4) {
   const out = {};
-  for (const rawLine of text3.split(/\r?\n/)) {
+  for (const rawLine of text4.split(/\r?\n/)) {
     const line = rawLine.trim();
     if (!line || line.startsWith("#")) continue;
     const m = /^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/.exec(line);
@@ -7415,6 +7415,7 @@ function loadQaEnv(projectRoot, processEnv = process.env, names) {
 // core/lib/urlpolicy.ts
 var TEST_LABEL = /(^|[-_.])(staging|stage|stg|dev|develop|test|testing|qa|uat|sandbox|demo|preview|local|localhost|internal|lan)([-_.]|\d|$)/i;
 var PROD_LABEL = /(^|[-_.])(prod|production|prd|live)([-_.]|\d|$)/i;
+var looksLikeProductionName = (name) => PROD_LABEL.test(name);
 var LOOPBACK_SUFFIXES = [".localhost", ".local", ".test", ".internal", ".lan"];
 function parseUrl(raw) {
   try {
@@ -7501,8 +7502,8 @@ var DEFAULT_VISUAL_THRESHOLD = 0.2;
 var DEFAULT_PERFORMANCE = { page_load_ms: 3e3, api_p95_ms: 800, regression_pct: 30, pages: {}, endpoints: {} };
 var RELEASE_BLOCKERS = ["critical", "important", "minor", "regressed", "flows-untested"];
 var DEFAULT_RELEASE_RULES = { max_critical: 0, max_important: 2, allow_regressed: false, not_ready_when: ["critical"] };
-function splitFrontMatter(text3) {
-  const m = /^﻿?---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n([\s\S]*))?$/.exec(text3);
+function splitFrontMatter(text4) {
+  const m = /^﻿?---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n([\s\S]*))?$/.exec(text4);
   return m ? { yaml: m[1] ?? "", body: m[2] ?? "" } : null;
 }
 var ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -7835,6 +7836,76 @@ function normalizeRelease(raw, problems) {
   }
   return { rules };
 }
+var INTEGRATION_NAMES = ["linear", "sentry"];
+var LINEAR_KEYS = ["team", "project", "labels", "create", "not_a_bug", "wont_fix", "escaped_label"];
+var SENTRY_KEYS = ["organization", "projects", "environments", "production_environments", "window_margin_minutes"];
+var DEFAULT_NOT_A_BUG = ["not a bug", "not-a-bug", "invalid", "cannot reproduce", "can't reproduce", "working as intended", "works as designed"];
+var DEFAULT_WONT_FIX = ["won't fix", "wont fix", "wont-fix", "won't do", "wontfix"];
+function lowerList(v, fallback) {
+  const out = strList(v).map((x) => x.trim().toLowerCase()).filter(Boolean);
+  return out.length ? [...new Set(out)] : fallback;
+}
+function normalizeIntegrations(raw, problems) {
+  if (raw === void 0 || raw === null) return {};
+  if (!isObj(raw)) {
+    problems.push("integrations must be a mapping (linear, sentry).");
+    return {};
+  }
+  const out = {};
+  for (const k of Object.keys(raw)) if (!INTEGRATION_NAMES.includes(k)) problems.push(`integrations.${k} is not a supported integration. Use ${INTEGRATION_NAMES.join(" or ")}.`);
+  const lin = raw["linear"];
+  if (lin !== void 0 && lin !== null) {
+    if (!isObj(lin)) problems.push("integrations.linear must be a mapping (team, project, labels, create).");
+    else {
+      for (const k of Object.keys(lin)) if (!LINEAR_KEYS.includes(k)) problems.push(`integrations.linear.${k} is not a setting. Use ${LINEAR_KEYS.join(", ")}.`);
+      const team = str(lin["team"]);
+      if (!team) problems.push("integrations.linear.team is needed: the team (key or name) tickets are created in.");
+      const create = lin["create"] === void 0 ? "ask" : lin["create"];
+      if (create !== "ask" && create !== "never") problems.push('integrations.linear.create must be "ask" (ask once per run) or "never" (only link and update existing tickets).');
+      const labels = strList(lin["labels"]).map((x) => x.trim()).filter(Boolean);
+      if (team && (create === "ask" || create === "never")) {
+        out.linear = {
+          team,
+          ...str(lin["project"]) ? { project: str(lin["project"]) } : {},
+          labels: labels.length ? [...new Set(labels)] : ["qamind"],
+          create,
+          not_a_bug: lowerList(lin["not_a_bug"], DEFAULT_NOT_A_BUG),
+          wont_fix: lowerList(lin["wont_fix"], DEFAULT_WONT_FIX),
+          escaped_label: (str(lin["escaped_label"]) ?? "escaped").toLowerCase()
+        };
+      }
+    }
+  }
+  const sen = raw["sentry"];
+  if (sen !== void 0 && sen !== null) {
+    if (!isObj(sen)) problems.push("integrations.sentry must be a mapping (projects, environments).");
+    else {
+      for (const k of Object.keys(sen)) if (!SENTRY_KEYS.includes(k)) problems.push(`integrations.sentry.${k} is not a setting. Use ${SENTRY_KEYS.join(", ")}.`);
+      const projects = strList(sen["projects"]).map((x) => x.trim()).filter(Boolean);
+      const environments = strList(sen["environments"]).map((x) => x.trim()).filter(Boolean);
+      const production = strList(sen["production_environments"]).map((x) => x.trim()).filter(Boolean);
+      if (projects.length === 0) problems.push("integrations.sentry.projects is needed: the Sentry project(s) the product reports to.");
+      if (environments.length === 0) problems.push("integrations.sentry.environments is needed: the Sentry environment(s) of the test system (for example staging). A run reads only these.");
+      for (const e of environments) if (looksLikeProductionName(e)) problems.push(`integrations.sentry.environments: "${e}" looks like production. A run reads errors of the test system only; put production under production_environments (the owner's escaped-bug check reads that).`);
+      let margin = 2;
+      if (sen["window_margin_minutes"] !== void 0) {
+        const m = sen["window_margin_minutes"];
+        if (typeof m === "number" && Number.isInteger(m) && m >= 0 && m <= 30) margin = m;
+        else problems.push("integrations.sentry.window_margin_minutes must be a whole number from 0 to 30.");
+      }
+      if (projects.length && environments.length && environments.every((e) => !looksLikeProductionName(e))) {
+        out.sentry = {
+          ...str(sen["organization"]) ? { organization: str(sen["organization"]) } : {},
+          projects: [...new Set(projects)],
+          environments: [...new Set(environments)],
+          production_environments: [...new Set(production)],
+          window_margin_minutes: margin
+        };
+      }
+    }
+  }
+  return out;
+}
 function normalizeConfig(raw, problems) {
   if (!isObj(raw)) {
     problems.push("The front matter at the top of config.md is empty or not a YAML mapping.");
@@ -7936,7 +8007,8 @@ function normalizeConfig(raw, problems) {
     viewports: normalizeViewports(raw["viewports"], problems),
     visual: normalizeVisual(raw["visual"], problems),
     performance: normalizePerformance(raw["performance"], problems),
-    release: normalizeRelease(raw["release"], problems)
+    release: normalizeRelease(raw["release"], problems),
+    integrations: normalizeIntegrations(raw["integrations"], problems)
   };
   return config;
 }
@@ -7947,16 +8019,16 @@ function configUrls(c) {
   for (const o of c.security.allowed_extra_origins) out.push({ label: "security.allowed_extra_origins", url: o });
   return out;
 }
-function checkConfigText(text3, opts2) {
+function checkConfigText(text4, opts2) {
   const result = { status: "ok", problems: [], blocked: [], ambiguous: [], missing_env: [], advisories: [] };
-  const fm = splitFrontMatter(text3);
+  const fm = splitFrontMatter(text4);
   if (!fm) {
     result.status = "invalid";
     result.problems.push("config.md must start with a YAML front-matter block between two --- lines.");
     return result;
   }
   result.body = fm.body;
-  const leftovers = text3.split(/\r?\n/).filter((l) => l.includes(PLACEHOLDER) && !l.trim().startsWith("#") && !l.trim().startsWith("<!--"));
+  const leftovers = text4.split(/\r?\n/).filter((l) => l.includes(PLACEHOLDER) && !l.trim().startsWith("#") && !l.trim().startsWith("<!--"));
   let raw;
   try {
     raw = (0, import_yaml.parse)(fm.yaml);
@@ -8257,36 +8329,36 @@ var emailAllowed = (m, ctx) => {
   const host = lower2.slice(lower2.lastIndexOf("@") + 1);
   return RESERVED_HOST.test(host) || ctx.allow.includes(lower2) || ctx.prefix !== "" && lower2.startsWith(ctx.prefix.toLowerCase());
 };
-function findPii(text3, ctx) {
+function findPii(text4, ctx) {
   const hits = [];
-  for (const m of text3.matchAll(EMAIL)) if (!emailAllowed(m[0], ctx)) hits.push({ kind: "email address", start: m.index, end: m.index + m[0].length });
-  for (const m of text3.matchAll(CNIC)) hits.push({ kind: "national ID number", start: m.index, end: m.index + m[0].length });
-  for (const m of text3.matchAll(CARD)) {
+  for (const m of text4.matchAll(EMAIL)) if (!emailAllowed(m[0], ctx)) hits.push({ kind: "email address", start: m.index, end: m.index + m[0].length });
+  for (const m of text4.matchAll(CNIC)) hits.push({ kind: "national ID number", start: m.index, end: m.index + m[0].length });
+  for (const m of text4.matchAll(CARD)) {
     const digits2 = m[0].replace(/\D/g, "");
     if (digits2.length >= 13 && digits2.length <= 19 && luhn(digits2)) hits.push({ kind: "card number", start: m.index, end: m.index + m[0].length });
   }
-  for (const m of text3.matchAll(PHONE)) if (!FICTION_PHONE.test(m[0]) && m[0].replace(/\D/g, "").length >= 9 && !(ctx.prefix && text3.slice(Math.max(0, m.index - ctx.prefix.length), m.index).toLowerCase() === ctx.prefix.toLowerCase())) hits.push({ kind: "phone number", start: m.index, end: m.index + m[0].length });
+  for (const m of text4.matchAll(PHONE)) if (!FICTION_PHONE.test(m[0]) && m[0].replace(/\D/g, "").length >= 9 && !(ctx.prefix && text4.slice(Math.max(0, m.index - ctx.prefix.length), m.index).toLowerCase() === ctx.prefix.toLowerCase())) hits.push({ kind: "phone number", start: m.index, end: m.index + m[0].length });
   for (const re of ctx.patterns) {
     const g = new RegExp(re.source, re.flags.includes("g") ? re.flags : `${re.flags}g`);
-    for (const m of text3.matchAll(g)) if (m[0] !== "") hits.push({ kind: "custom pattern", start: m.index, end: m.index + m[0].length });
+    for (const m of text4.matchAll(g)) if (m[0] !== "") hits.push({ kind: "custom pattern", start: m.index, end: m.index + m[0].length });
   }
   hits.sort((a, b) => a.start - b.start || b.end - b.start - (a.end - a.start));
   const out = [];
   for (const h of hits) if (out.length === 0 || h.start >= out[out.length - 1].end) out.push(h);
   return out;
 }
-function maskText(text3, ctx) {
-  const hits = findPii(text3, ctx);
-  if (hits.length === 0) return { text: text3, count: 0, kinds: {} };
+function maskText(text4, ctx) {
+  const hits = findPii(text4, ctx);
+  if (hits.length === 0) return { text: text4, count: 0, kinds: {} };
   let out = "";
   let at = 0;
   const kinds = {};
   for (const h of hits) {
-    out += text3.slice(at, h.start) + MASK[h.kind];
+    out += text4.slice(at, h.start) + MASK[h.kind];
     at = h.end;
     kinds[h.kind] = (kinds[h.kind] ?? 0) + 1;
   }
-  return { text: out + text3.slice(at), count: hits.length, kinds };
+  return { text: out + text4.slice(at), count: hits.length, kinds };
 }
 function maskJson(value, ctx, tally = { count: 0, kinds: {} }, depth = 0) {
   const walk = (v, d) => {
@@ -8596,8 +8668,8 @@ function mailtrap(c, token, fetchImpl) {
         const o = obj(m);
         const id = str2(o["id"]);
         if (!id) continue;
-        const [text3, html] = await Promise.all([getText(fetchImpl, `${root}/messages/${encodeURIComponent(id)}/body.txt`, headers).catch(() => ""), getText(fetchImpl, `${root}/messages/${encodeURIComponent(id)}/body.html`, headers).catch(() => "")]);
-        out.push({ id, to: [lower(str2(o["to_email"]))].filter(Boolean), from: lower(str2(o["from_email"])), subject: str2(o["subject"]), text: text3 || (html ? htmlToText(html) : ""), html, created: str2(o["created_at"]) || str2(o["sent_at"]) });
+        const [text4, html] = await Promise.all([getText(fetchImpl, `${root}/messages/${encodeURIComponent(id)}/body.txt`, headers).catch(() => ""), getText(fetchImpl, `${root}/messages/${encodeURIComponent(id)}/body.html`, headers).catch(() => "")]);
+        out.push({ id, to: [lower(str2(o["to_email"]))].filter(Boolean), from: lower(str2(o["from_email"])), subject: str2(o["subject"]), text: text4 || (html ? htmlToText(html) : ""), html, created: str2(o["created_at"]) || str2(o["sent_at"]) });
       }
       return out;
     }
@@ -8609,13 +8681,13 @@ function normalizeCustom(m, i) {
   const toRaw = FIRST(o, ["to", "To", "recipient", "recipients", "to_email", "email", "phone", "number", "msisdn"]);
   const toList = (Array.isArray(toRaw) ? toRaw : [toRaw]).map((x) => typeof x === "object" ? str2(obj(x)["address"] ?? obj(x)["Address"] ?? obj(x)["email"] ?? obj(x)["number"]) : str2(x)).map(lower).filter(Boolean);
   const html = str2(FIRST(o, ["html", "HTML", "html_body", "body_html"]));
-  const text3 = str2(FIRST(o, ["text", "Text", "body", "message", "content", "text_body", "body_text", "sms"]));
+  const text4 = str2(FIRST(o, ["text", "Text", "body", "message", "content", "text_body", "body_text", "sms"]));
   return {
     id: str2(FIRST(o, ["id", "ID", "message_id", "uuid"])) || String(i),
     to: toList,
     from: lower(str2(FIRST(o, ["from", "From", "sender", "from_email"]))),
     subject: str2(FIRST(o, ["subject", "Subject", "title"])),
-    text: text3 || (html ? htmlToText(html) : ""),
+    text: text4 || (html ? htmlToText(html) : ""),
     html,
     created: str2(FIRST(o, ["created_at", "created", "Created", "date", "timestamp", "received_at", "sent_at"])),
     ...str2(FIRST(o, ["list_unsubscribe", "List-Unsubscribe"])) ? { list_unsubscribe: str2(FIRST(o, ["list_unsubscribe", "List-Unsubscribe"])) } : {}
@@ -8727,11 +8799,11 @@ var SCRIPTS = [
   ["latin", /[A-Za-zÀ-ɏ]/g]
 ];
 var SCRIPT_OF_LANGUAGE = { ur: "arabic", ar: "arabic", fa: "arabic", ps: "arabic", sd: "arabic", hi: "devanagari", mr: "devanagari", ne: "devanagari", zh: "cjk", ja: "cjk", ko: "cjk", ru: "cyrillic", uk: "cyrillic", bg: "cyrillic", sr: "cyrillic" };
-function scriptShares(text3) {
+function scriptShares(text4) {
   const counts = {};
   let total = 0;
   for (const [name, re] of SCRIPTS) {
-    const n = (text3.match(re) ?? []).length;
+    const n = (text4.match(re) ?? []).length;
     if (n) counts[name] = n;
     total += n;
   }
@@ -8879,7 +8951,7 @@ function record(ctx, rec) {
 }
 
 // core/lib/memory/service.ts
-import path44 from "node:path";
+import path46 from "node:path";
 
 // core/lib/paths.ts
 import os from "node:os";
@@ -8926,11 +8998,11 @@ function normalizeGitRemote(url) {
   if (parts.length < 2) return null;
   return parts.join("/").toLowerCase();
 }
-function slug2(text3, max = 60) {
-  return text3.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, max) || "project";
+function slug2(text4, max = 60) {
+  return text4.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, max) || "project";
 }
-function sha(text3, len) {
-  return crypto.createHash("sha256").update(text3).digest("hex").slice(0, len);
+function sha(text4, len) {
+  return crypto.createHash("sha256").update(text4).digest("hex").slice(0, len);
 }
 function gitOutput(root, args) {
   try {
@@ -9005,7 +9077,7 @@ function listKnownProjects(home) {
 
 // core/lib/run.ts
 import fs21 from "node:fs";
-import path40 from "node:path";
+import path42 from "node:path";
 
 // core/lib/git.ts
 import { execFileSync as execFileSync3 } from "node:child_process";
@@ -9080,14 +9152,14 @@ var COOKIE_PAIR = /\b(session|sid|token|auth|jwt|csrf)[A-Za-z0-9_-]*=[^;\s,]{6,}
 var REDACTED = "[REDACTED]";
 function makeRedactor(knownSecrets = []) {
   const secrets = [...new Set(knownSecrets.filter((s) => s.length >= 4))].sort((a, b) => b.length - a.length);
-  const text3 = (input) => {
+  const text4 = (input) => {
     let out = input.replace(JWT, REDACTED).replace(BEARER, (_m, scheme) => `${scheme} ${REDACTED}`).replace(COOKIE_PAIR, (m) => `${m.split("=")[0]}=${REDACTED}`);
     for (const s of secrets) out = out.split(s).join(REDACTED);
     return out;
   };
   const json = (value, depth = 0) => {
     if (depth > 12) return REDACTED;
-    if (typeof value === "string") return text3(value);
+    if (typeof value === "string") return text4(value);
     if (Array.isArray(value)) return value.map((v) => json(v, depth + 1));
     if (value && typeof value === "object") {
       const out = {};
@@ -9100,18 +9172,18 @@ function makeRedactor(knownSecrets = []) {
   };
   const headers = (h) => {
     const out = {};
-    for (const [k, v] of Object.entries(h)) out[k] = SENSITIVE_KEY.test(k) ? REDACTED : text3(v);
+    for (const [k, v] of Object.entries(h)) out[k] = SENSITIVE_KEY.test(k) ? REDACTED : text4(v);
     return out;
   };
-  return { text: text3, json: (v) => json(v), headers };
+  return { text: text4, json: (v) => json(v), headers };
 }
-function findSecretLeaks(text3, knownSecrets = [], opts2 = {}) {
+function findSecretLeaks(text4, knownSecrets = [], opts2 = {}) {
   const leaks = [];
   if (opts2.generic !== false) {
-    if (new RegExp(JWT.source).test(text3)) leaks.push("JWT-like token");
-    if (/\b(Bearer|Basic)\s+(?!\[REDACTED\])[A-Za-z0-9._~+/=-]{12,}/i.test(text3)) leaks.push("Authorization header value");
+    if (new RegExp(JWT.source).test(text4)) leaks.push("JWT-like token");
+    if (/\b(Bearer|Basic)\s+(?!\[REDACTED\])[A-Za-z0-9._~+/=-]{12,}/i.test(text4)) leaks.push("Authorization header value");
   }
-  for (const s of knownSecrets.filter((x) => x.length >= 4)) if (text3.includes(s)) leaks.push("a configured test password or username value");
+  for (const s of knownSecrets.filter((x) => x.length >= 4)) if (text4.includes(s)) leaks.push("a configured test password or username value");
   return leaks;
 }
 
@@ -9131,6 +9203,7 @@ function memoryPaths(store) {
     bank: path12.join(storeSubdirs(store).testBank, "bank.jsonl"),
     metrics: path12.join(dir, "metrics.json"),
     perf: path12.join(dir, "perf.json"),
+    tickets: path12.join(dir, "tickets.json"),
     archiveDir: path12.join(dir, "archive"),
     runs: storeSubdirs(store).runs,
     stack: path12.join(dir, "stack.json")
@@ -9192,10 +9265,10 @@ function appendArchive(store, name, records) {
   writeJsonl(file3, `archive-${name}`, [...prior.records, ...records], prior.unparsed);
 }
 var STOP = /* @__PURE__ */ new Set(["the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "is", "are", "was", "be", "it", "that", "this", "with", "as", "at", "by", "from", "not", "no", "but", "if", "then", "when", "than", "so", "can", "may", "will", "its", "into", "also"]);
-function tokens(text3) {
+function tokens(text4) {
   return [
     ...new Set(
-      text3.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").split(" ").filter((w) => w.length > 1 && !STOP.has(w)).map((w) => w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w)
+      text4.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").split(" ").filter((w) => w.length > 1 && !STOP.has(w)).map((w) => w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w)
     )
   ];
 }
@@ -9235,15 +9308,15 @@ function luhn2(digits2) {
   }
   return sum % 10 === 0;
 }
-function screenForSecretsAndPii(text3, knownSecrets = []) {
-  const problems = findSecretLeaks(text3, knownSecrets).map((p) => `contains ${p}`);
-  for (const m of text3.matchAll(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g)) if (!RESERVED_MAIL.test(m[0])) problems.push(`contains an email address (${m[0].replace(/^.{2}.*@/, "\u2022\u2022@")})`);
-  if (/\b\d{5}-\d{7}-\d\b/.test(text3)) problems.push("contains a national-ID-like number");
-  for (const m of text3.matchAll(/\b(?:\d[ -]?){13,19}\b/g)) {
+function screenForSecretsAndPii(text4, knownSecrets = []) {
+  const problems = findSecretLeaks(text4, knownSecrets).map((p) => `contains ${p}`);
+  for (const m of text4.matchAll(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g)) if (!RESERVED_MAIL.test(m[0])) problems.push(`contains an email address (${m[0].replace(/^.{2}.*@/, "\u2022\u2022@")})`);
+  if (/\b\d{5}-\d{7}-\d\b/.test(text4)) problems.push("contains a national-ID-like number");
+  for (const m of text4.matchAll(/\b(?:\d[ -]?){13,19}\b/g)) {
     const digits2 = m[0].replace(/\D/g, "");
     if (digits2.length >= 13 && digits2.length <= 19 && luhn2(digits2)) problems.push("contains a card-number-like number");
   }
-  if (/\+\d{1,3}[\s-]?\(?\d{2,4}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}\b|\b\d{3}[ -]\d{3}[ -]\d{4}\b/.test(text3)) problems.push("contains a phone-number-like number");
+  if (/\+\d{1,3}[\s-]?\(?\d{2,4}\)?[\s-]?\d{3,4}[\s-]?\d{3,4}\b|\b\d{3}[ -]\d{3}[ -]\d{4}\b/.test(text4)) problems.push("contains a phone-number-like number");
   return [...new Set(problems)];
 }
 var UnsafeMemoryTextError = class extends Error {
@@ -9251,8 +9324,8 @@ var UnsafeMemoryTextError = class extends Error {
     super(`Refusing to save ${what}: it ${problems.join("; ")}. Memory never holds secrets or real people's data. Rewrite it without them (describe the behaviour, not the data).`);
   }
 };
-function assertSafeText(what, text3, knownSecrets = []) {
-  const problems = screenForSecretsAndPii(text3, knownSecrets);
+function assertSafeText(what, text4, knownSecrets = []) {
+  const problems = screenForSecretsAndPii(text4, knownSecrets);
   if (problems.length) throw new UnsafeMemoryTextError(what, problems);
 }
 var daysBetween = (from, to) => Math.max(0, (to.getTime() - new Date(from).getTime()) / 864e5);
@@ -9269,7 +9342,7 @@ function bankForLifecycle(r) {
 }
 
 // core/lib/report.ts
-import path24 from "node:path";
+import path26 from "node:path";
 
 // core/lib/memory/productmap.ts
 import path14 from "node:path";
@@ -9289,8 +9362,8 @@ function normalizePath(raw) {
 }
 function humanizePath(p) {
   const last = p.split("/").filter((s) => s && s !== ":id").pop() ?? "home page";
-  const words = last.replace(/\.\w{1,5}$/, "").replace(/[-_]+/g, " ").trim();
-  return words ? words[0].toUpperCase() + words.slice(1) : "Home page";
+  const words2 = last.replace(/\.\w{1,5}$/, "").replace(/[-_]+/g, " ").trim();
+  return words2 ? words2[0].toUpperCase() + words2.slice(1) : "Home page";
 }
 var pageLabel = (p) => p.title?.trim() || humanizePath(p.path);
 function loadMap(store) {
@@ -9326,10 +9399,10 @@ function readObserved(runDir, ctx) {
       endpointsSource = "observed";
     }
   }
-  const flows = ctx.flows.map((text3, i) => {
+  const flows = ctx.flows.map((text4, i) => {
     const rows = ctx.coverage.filter((r) => r.critical_flow === i + 1);
     const status2 = rows.length === 0 ? "not-tested" : rows.every((r) => r.status === "tested") ? "tested" : "partial";
-    return { n: i + 1, text: text3, status: status2 };
+    return { n: i + 1, text: text4, status: status2 };
   });
   return { pages, endpoints, endpointsSource, roles: ctx.roles, flows, uiUrls: ctx.uiUrls };
 }
@@ -9391,7 +9464,7 @@ function hasChanges(c) {
 function describeChanges(c, isPlain = () => true) {
   const technical = [];
   const plain = [];
-  const quoted = (text3) => text3 && isPlain(text3) ? text3 : void 0;
+  const quoted = (text4) => text4 && isPlain(text4) ? text4 : void 0;
   const where = (p) => {
     const label = quoted(pageLabel(p)) ?? quoted(humanizePath(p.path));
     return label ? `the "${label}" screen in the ${p.ui}` : `a screen in the ${p.ui}`;
@@ -9440,7 +9513,7 @@ function flowStatus(data) {
   return { total, tested, untested };
 }
 var isOpen = (f) => f.fix_status !== "fixed-verified";
-var plural = (n, one8, many) => `${n} ${n === 1 ? one8 : many}`;
+var plural = (n, one10, many) => `${n} ${n === 1 ? one10 : many}`;
 var sentence = (s) => s.trim().replace(/[.\s]+$/, "");
 function computeVerdict(data) {
   const v = verdictFromOpenFindings(data);
@@ -10043,12 +10116,12 @@ function lintCoverage(c, data) {
   const warnings = [];
   if (!c) return { errors, warnings };
   const notTestedText = data.notTested.map((n) => `${n.area} ${n.reason}`.toLowerCase());
-  const mentions = (...words) => notTestedText.some((t) => words.some((w) => t.includes(w)));
+  const mentions = (...words2) => notTestedText.some((t) => words2.some((w) => t.includes(w)));
   const s = c.sweep;
   if (s) {
     for (const u of s.unavailable) {
-      const words = u.browser === "chromium" ? ["chromium", "chrome"] : u.browser === "webkit" ? ["webkit", "safari"] : [u.browser];
-      if (!mentions(...words)) errors.push(`${browserName(u.browser)} could not run (${u.reason}), so everything in it was not tested: list it in not-tested.json (area and reason, with the plain wording), or the reports would imply it was checked.`);
+      const words2 = u.browser === "chromium" ? ["chromium", "chrome"] : u.browser === "webkit" ? ["webkit", "safari"] : [u.browser];
+      if (!mentions(...words2)) errors.push(`${browserName(u.browser)} could not run (${u.reason}), so everything in it was not tested: list it in not-tested.json (area and reason, with the plain wording), or the reports would imply it was checked.`);
     }
     if (s.skipped.some((k) => /Could not sign in/.test(k.reason)) && !mentions("sign in", "signed in", "sign-in", "login")) warnings.push("The sweep could not sign in as some role, so its pages were not visited: list them under Not tested with that reason.");
     if (s.budget_reached && !mentions("time budget")) warnings.push("The sweep stopped at the time budget: list what it did not visit under Not tested (reason: time budget reached).");
@@ -10118,10 +10191,10 @@ function matchFalseAlarms(findings, alarms) {
   const out = [];
   for (const f of findings) {
     if (f.not_a_known_false_alarm?.trim()) continue;
-    const text3 = [f.title, f.summary, f.area, f.type].filter(Boolean).join(" ");
+    const text4 = [f.title, f.summary, f.area, f.type].filter(Boolean).join(" ");
     for (const a of alarms) {
       if (tokens(a.symptom).length < 3) continue;
-      const score = coverage(`${a.symptom}`, text3);
+      const score = coverage(`${a.symptom}`, text4);
       if (score >= MATCH_AT) out.push({ finding: f, alarm: a, score });
     }
   }
@@ -10206,13 +10279,13 @@ function learningScore(l, now) {
 function learn(store, input, opts2 = {}) {
   const now = opts2.now ?? /* @__PURE__ */ new Date();
   if (!LEARNING_TYPES.includes(input.type)) throw new Error(`type must be one of ${LEARNING_TYPES.join(", ")}.`);
-  const text3 = one2(input.text);
+  const text4 = one2(input.text);
   const area = one2(input.area);
-  if (text3.length < 12 || text3.length > 400) throw new Error("A learning is one atomic statement of 12 to 400 characters.");
+  if (text4.length < 12 || text4.length > 400) throw new Error("A learning is one atomic statement of 12 to 400 characters.");
   if (!area || area.length > 120) throw new Error("A learning needs an area (a short label, up to 120 characters).");
-  assertSafeText("this learning", `${area} ${text3}`, opts2.knownSecrets ?? []);
+  assertSafeText("this learning", `${area} ${text4}`, opts2.knownSecrets ?? []);
   const loaded = loadLearnings(store, now);
-  const similar = loaded.active.filter((l) => l.type === input.type).map((l) => ({ l, s: similarity(l.text, text3) })).filter((x) => x.s >= MERGE_AT).sort((a, b) => b.s - a.s)[0];
+  const similar = loaded.active.filter((l) => l.type === input.type).map((l) => ({ l, s: similarity(l.text, text4) })).filter((x) => x.s >= MERGE_AT).sort((a, b) => b.s - a.s)[0];
   if (similar) {
     similar.l.confidence = clamp(similar.l.confidence + 1, 1, 10);
     similar.l.last_confirmed = now.toISOString();
@@ -10223,7 +10296,7 @@ function learn(store, input, opts2 = {}) {
     id: nextId("L", loaded.active.map((l) => l.id)),
     type: input.type,
     area,
-    text: text3,
+    text: text4,
     evidence_run: input.run,
     confidence: clamp(Math.round(input.confidence ?? 5), 1, 10),
     created: now.toISOString(),
@@ -10365,11 +10438,11 @@ var MAX_BUGS = 1e3;
 var SEV = (s) => SEVERITIES.includes(s) ? s : "minor";
 var WORDS_TO_DROP = /* @__PURE__ */ new Set(["the", "a", "an", "and", "or", "of", "to", "in", "on", "for", "is", "are", "was", "were", "be", "it", "that", "this", "with", "as", "at", "by", "from", "not", "no", "but", "if", "then", "when", "which", "than", "so", "its", "into", "instead", "also", "again", "now", "after", "before", "returns", "return", "responds", "shows", "show", "gives", "give", "gets", "got", "error", "fails", "fail", "failed", "failure", "wrong", "incorrect", "problem", "issue", "bug"]);
 var SYMBOLS = /[()[\]{}<>'"`\\%;|&$*^~]/g;
-function symptomTokens(text3) {
-  const cleaned = text3.replace(/\bISSUE-\d+\b|\bUNCONFIRMED-\d+\b|\bBUG-\d+\b|\bQA-[\w-]+/gi, " ").replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, " ").replace(/\b\d{4}-\d{2}-\d{2}(?:T[\d:.]+Z?)?\b/g, " ").replace(/\b\d{5,}\b/g, " ");
+function symptomTokens(text4) {
+  const cleaned = text4.replace(/\bISSUE-\d+\b|\bUNCONFIRMED-\d+\b|\bBUG-\d+\b|\bQA-[\w-]+/gi, " ").replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, " ").replace(/\b\d{4}-\d{2}-\d{2}(?:T[\d:.]+Z?)?\b/g, " ").replace(/\b\d{5,}\b/g, " ");
   const symbols = [...new Set((cleaned.match(SYMBOLS) ?? []).map((c) => `sym${c.charCodeAt(0)}`))];
-  const words = cleaned.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").split(" ").filter((w) => w.length > 0 && !WORDS_TO_DROP.has(w)).map((w) => w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w);
-  return [.../* @__PURE__ */ new Set([...words, ...symbols])].sort();
+  const words2 = cleaned.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").split(" ").filter((w) => w.length > 0 && !WORDS_TO_DROP.has(w)).map((w) => w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w);
+  return [.../* @__PURE__ */ new Set([...words2, ...symbols])].sort();
 }
 var triggerOf = (tokens3) => tokens3.filter((t) => /^\d+$/.test(t) || t.startsWith("sym"));
 var jaccard = (a, b) => {
@@ -10408,8 +10481,8 @@ function matchBug(bugs, f, protects = []) {
   const myTrigger = triggerOf(mine).join(" ");
   const scored = bugs.filter((b) => b.status !== "duplicate" && (areaKey(b.area) === areaKey(f.area) || !!f.surface && b.surface === f.surface)).map((b) => {
     const theirs = symptomOf({ ...b, steps: b.first_step ? [b.first_step] : [] });
-    const text3 = Math.max(jaccard(mine, theirs), similarity(`${f.title} ${f.summary ?? ""}`, `${b.title} ${b.summary}`) * 0.9);
-    return { bug: b, score: Math.round(text3 * 100) / 100, sameTrigger: triggerOf(theirs).join(" ") === myTrigger };
+    const text4 = Math.max(jaccard(mine, theirs), similarity(`${f.title} ${f.summary ?? ""}`, `${b.title} ${b.summary}`) * 0.9);
+    return { bug: b, score: Math.round(text4 * 100) / 100, sameTrigger: triggerOf(theirs).join(" ") === myTrigger };
   }).sort((a, b) => b.score - a.score);
   const best = scored[0];
   if (best && best.score >= STRONG && best.sameTrigger && areaKey(best.bug.area) === areaKey(f.area)) return { bug: byId(best.bug.id) ?? best.bug, how: "similar", candidates: [] };
@@ -10606,8 +10679,8 @@ function loadFeedback(store) {
   const dropped = read.records.length - records.length;
   return { records, warnings: [...read.warnings, ...dropped ? [`${dropped} feedback record(s) without a bug, verdict, name or date were ignored.`] : []], unparsed: read.unparsed };
 }
-function parseVerdict(text3) {
-  const t = one3(text3).replace(/[“”]/g, '"').replace(/’/g, "'");
+function parseVerdict(text4) {
+  const t = one3(text4).replace(/[“”]/g, '"').replace(/’/g, "'");
   const patterns = [
     [/^not[\s-]+a[\s-]+bug\b[\s:,.-]*/i, "not-a-bug"],
     [/^wrong[\s-]+severity\b[\s:,=-]*/i, "wrong-severity"],
@@ -10780,23 +10853,23 @@ function importAdminFeedback(store, runDir, by, now = /* @__PURE__ */ new Date()
   for (const block of blocks) {
     const issue = /\[(ISSUE-\d+)\]\(/.exec(block)?.[1];
     const line = /\*\*Your feedback \(optional\):\*\*\s*(.*)$/m.exec(block)?.[1] ?? "";
-    const text3 = one3(line.replace(/_{2,}/g, ""));
-    if (!issue || !text3) continue;
-    const parsed = parseVerdict(text3);
+    const text4 = one3(line.replace(/_{2,}/g, ""));
+    if (!issue || !text4) continue;
+    const parsed = parseVerdict(text4);
     if (!parsed) {
-      out.push({ issue, text: text3, problem: "It does not start with a verdict. Start with one of: not a bug, confirmed, won't fix, fixed, good catch, wrong severity <level>, duplicate of ISSUE-nnn (then a note). Give it with `qamind feedback add` instead." });
+      out.push({ issue, text: text4, problem: "It does not start with a verdict. Start with one of: not a bug, confirmed, won't fix, fixed, good catch, wrong severity <level>, duplicate of ISSUE-nnn (then a note). Give it with `qamind feedback add` instead." });
       continue;
     }
     const already = loadFeedback(store).records.some((r) => r.run === run && r.issue === issue && r.verdict === parsed.verdict && r.via === "admin-report" && (r.note ?? "") === (parsed.note ?? ""));
     if (already) {
-      out.push({ issue, text: text3, problem: "Already imported." });
+      out.push({ issue, text: text4, problem: "Already imported." });
       continue;
     }
     try {
       const r = addFeedback(store, { target: issue, run, verdict: parsed.verdict, ...parsed.value ? { value: parsed.value } : {}, ...parsed.note ? { note: parsed.note } : {}, by, via: "admin-report" }, now);
-      out.push({ issue, text: text3, applied: r.record, effects: r.effects });
+      out.push({ issue, text: text4, applied: r.record, effects: r.effects });
     } catch (e) {
-      out.push({ issue, text: text3, problem: e.message });
+      out.push({ issue, text: text4, problem: e.message });
     }
   }
   return out;
@@ -10836,6 +10909,13 @@ function saveMetrics(store, f) {
 var stem = (w) => w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w;
 var STOP2 = /* @__PURE__ */ new Set(["and", "the", "for", "with", "from", "via", "per", "any", "all", "not", "are", "was", "has", "its", "our", "your", "into", "over", "under", "after", "before", "when", "that", "this", "than", "then", "also"]);
 var tokens2 = (area) => [...new Set(areaKey(area).split(" ").filter((w) => w.length >= 3 && !STOP2.has(w)).map(stem))];
+function areaSimilarity(a, b) {
+  const x = tokens2(a);
+  const y = tokens2(b);
+  if (x.length === 0 || y.length === 0) return 0;
+  const shared = x.filter((t) => y.includes(t)).length;
+  return shared / Math.min(x.length, y.length);
+}
 var AREA_MATCH = 0.5;
 function commonWords(areas) {
   if (areas.length < 3) return /* @__PURE__ */ new Set();
@@ -10899,11 +10979,11 @@ function recordRunMetrics(store, metric) {
   saveMetrics(store, f);
 }
 var clean = (s) => s.replace(/\s+/g, " ").trim();
-function sharesDistinctiveWord(escapedArea, text3, skip2) {
+function sharesDistinctiveWord(escapedArea, text4, skip2) {
   const own = tokens2(escapedArea).filter((w) => !skip2.has(w));
-  const words = own.length ? own : tokens2(escapedArea);
-  const there = new Set(tokens2(text3));
-  return words.filter((w) => there.has(w)).length >= (words.length >= 4 ? 2 : 1);
+  const words2 = own.length ? own : tokens2(escapedArea);
+  const there = new Set(tokens2(text4));
+  return words2.filter((w) => there.has(w)).length >= (words2.length >= 4 ? 2 : 1);
 }
 function matchEscaped(area, runs) {
   for (const r of [...runs].sort((a, b) => b.finished.localeCompare(a.finished)).slice(0, MATCH_RUNS)) {
@@ -10986,6 +11066,28 @@ function agentPerformance(store, current) {
     notes
   };
 }
+function knownAreas(store) {
+  const runs = loadMetrics(store).runs.slice(-MATCH_RUNS).reverse();
+  const out = /* @__PURE__ */ new Map();
+  for (const r of runs) {
+    for (const a of r.areas) {
+      const key = areaKey(a.area);
+      if (out.has(key)) continue;
+      out.set(key, { area: a.area, status: a.status, run_id: r.run_id, finished: r.finished, findings: (r.finding_list ?? []).filter((f) => areaSimilarity(f.area, a.area) >= AREA_MATCH).length });
+    }
+  }
+  return [...out.values()];
+}
+function importEscaped(store, items, by, now) {
+  return items.map((it) => {
+    try {
+      const r = addEscaped(store, { ...it, by: it.by ?? by }, now);
+      return { ...it.ref ? { ref: it.ref } : {}, title: it.title, result: r.already ? "already-recorded" : "recorded", id: r.bug.id, verdict: r.bug.verdict };
+    } catch (e) {
+      return { ...it.ref ? { ref: it.ref } : {}, title: it.title, result: "refused", problem: e.message };
+    }
+  });
+}
 
 // core/lib/metrics-report.ts
 var pct = (x) => `${Math.round(x * 100)}%`;
@@ -11062,11 +11164,11 @@ function checkTicket(raw, opts2) {
     if (!/^AC-\d{1,3}$/.test(id)) errors.push(`${at}: "id" must look like AC-1.`);
     else if (seen.has(id)) errors.push(`${at}: the id ${id} is used twice.`);
     seen.add(id);
-    const text3 = typeof x["text"] === "string" ? one4(x["text"]) : "";
-    if (text3.length < 8 || text3.length > 500) errors.push(`${at} (${id}): "text" is one testable statement of 8 to 500 characters.`);
+    const text4 = typeof x["text"] === "string" ? one4(x["text"]) : "";
+    if (text4.length < 8 || text4.length > 500) errors.push(`${at} (${id}): "text" is one testable statement of 8 to 500 characters.`);
     if (x["origin"] !== "stated" && x["origin"] !== "derived") errors.push(`${at} (${id}): "origin" is "stated" (the ticket says it) or "derived" (you worked it out).`);
     const plain = typeof x["plain"] === "string" ? one4(x["plain"]) : void 0;
-    for (const [what, v] of [["text", text3], ["plain", plain ?? ""]]) {
+    for (const [what, v] of [["text", text4], ["plain", plain ?? ""]]) {
       if (v && opts2.privacy && findPii(v, opts2.privacy).length > 0) errors.push(`${at} (${id}): "${what}" holds private data (an email address, number or ID). Describe it without the data: a ticket's examples are not copied into the reports.`);
     }
     const origin = x["origin"] === "derived" ? "derived" : "stated";
@@ -11074,7 +11176,7 @@ function checkTicket(raw, opts2) {
       if (opts2.trigger === "ci") assumed.push(id);
       else if (x["confirmed"] !== true) errors.push(`${at} (${id}): a criterion you derived has to be shown to the person who asked and confirmed before you test it (set "confirmed": true after they agree). In a CI run nobody can confirm, so it is listed as assumed.`);
     }
-    if (/^AC-\d{1,3}$/.test(id) && text3.length >= 8) criteria.push({ id, text: text3, ...plain ? { plain } : {}, origin, ...x["confirmed"] === true ? { confirmed: true } : {} });
+    if (/^AC-\d{1,3}$/.test(id) && text4.length >= 8) criteria.push({ id, text: text4, ...plain ? { plain } : {}, origin, ...x["confirmed"] === true ? { confirmed: true } : {} });
   }
   if (criteria.length > 0 && criteria.every((c) => c.origin === "derived")) warnings.push("Every criterion was derived: the ticket stated none. The reports say so.");
   const ok = errors.length === 0;
@@ -11171,12 +11273,281 @@ function renderAdminChecklist(d) {
   return L;
 }
 
+// core/lib/tracker.ts
+import path24 from "node:path";
+var TICKET_ACTIONS = ["created", "updated", "existing", "skipped"];
+var ticketsFilePath = (runDir) => path24.join(runDir, "data", "tickets.json");
+var readTicketsFile = (runDir) => {
+  const f = readJson(ticketsFilePath(runDir));
+  return f && Array.isArray(f.links) ? f : void 0;
+};
+function eligibleFindings(findings, life) {
+  const eligible = [];
+  const skipped = [];
+  for (const f of findings) {
+    const issue = f.id ?? "";
+    if (f.severity !== "critical" && f.severity !== "important") continue;
+    const l = life?.findings?.find((x) => x.issue === issue);
+    if (!l) {
+      skipped.push({ issue, reason: "it has no bug record yet: build the report first (`report build`)" });
+      continue;
+    }
+    if (l.status === "accepted" || l.status === "not-a-bug") {
+      skipped.push({ issue, reason: l.status === "accepted" ? "the owner accepted this bug (won't fix)" : "the owner said this is not a bug" });
+      continue;
+    }
+    if (f.fix_status === "fixed-verified") {
+      skipped.push({ issue, reason: "fixed and checked in this run" });
+      continue;
+    }
+    eligible.push({ finding: f, bug: l.bug, status: l.status });
+  }
+  return { eligible, skipped };
+}
+function loadTicketMap(store) {
+  const f = readMemoryJson(memoryPaths(store).tickets);
+  return { ...f?.schema_version !== void 0 ? { schema_version: f.schema_version } : {}, tickets: Array.isArray(f?.tickets) ? f.tickets : [] };
+}
+var saveTicketMap = (store, m) => writeMemoryJson(memoryPaths(store).tickets, { tickets: m.tickets.slice(-500) });
+var ticketForBug = (m, bug) => m.tickets.find((t) => t.bug === bug);
+var bugForTicket = (m, ticket) => m.tickets.find((t) => t.ticket.toLowerCase() === ticket.toLowerCase());
+var LINEAR_ID = /^[A-Za-z][A-Za-z0-9]{0,9}-\d{1,7}$/;
+function cleanLinearUrl(raw) {
+  let u;
+  try {
+    u = new URL(raw);
+  } catch {
+    throw new Error(`"${raw}" is not an address.`);
+  }
+  if (u.protocol !== "https:" || !/(^|\.)linear\.app$/i.test(u.hostname) || u.username || u.password) throw new Error("The ticket address must be an https address on linear.app, with no sign-in in it.");
+  return `https://${u.hostname.toLowerCase()}${u.pathname.replace(/\/+$/, "")}`;
+}
+var one5 = (s) => s.replace(/\s+/g, " ").trim();
+function recordTicket(runDir, store, runId, team, life, input, now = /* @__PURE__ */ new Date()) {
+  const l = life?.findings?.find((x) => x.issue === input.issue);
+  if (!l) throw new Error(`${input.issue} is not a finding of this run (or the report has not been built yet: \`report build\`).`);
+  if (!TICKET_ACTIONS.includes(input.action)) throw new Error(`--action must be one of ${TICKET_ACTIONS.join(", ")}.`);
+  const link = { issue: input.issue, bug: l.bug, action: input.action, at: now.toISOString() };
+  if (input.action === "skipped") {
+    const reason = one5(input.reason ?? "");
+    if (reason.length < 6) throw new Error("A skipped ticket needs the reason (--reason): a person said no, nobody was there to ask, no Linear tool was connected, ...");
+    assertSafeText("this reason", reason);
+    link.reason = reason.slice(0, 200);
+  } else {
+    if (!input.ticket || !LINEAR_ID.test(input.ticket.trim())) throw new Error(`--ticket must be the ticket's id (like ENG-123), as Linear shows it.`);
+    link.ticket = input.ticket.trim().toUpperCase();
+    if (input.url) link.url = cleanLinearUrl(input.url);
+    if (input.state) {
+      const st = one5(input.state);
+      if (st.length > 40) throw new Error("--state is the ticket's state in a word or two (Todo, In Progress).");
+      link.state = st;
+    }
+  }
+  const file3 = readTicketsFile(runDir) ?? { schema_version: 1, tracker: "linear", team, links: [] };
+  file3.links = [...file3.links.filter((x) => x.issue !== input.issue), link];
+  writeJson(ticketsFilePath(runDir), file3);
+  if (link.ticket) {
+    const map = loadTicketMap(store);
+    const prior = ticketForBug(map, l.bug);
+    const entry = { bug: l.bug, ticket: link.ticket, ...link.url ? { url: link.url } : prior?.ticket === link.ticket && prior.url ? { url: prior.url } : {}, ...link.state ? { state: link.state } : prior?.ticket === link.ticket && prior.state ? { state: prior.state } : {}, created_run: prior?.ticket === link.ticket ? prior.created_run : runId, last_run: runId, updated: now.toISOString() };
+    map.tickets = [...map.tickets.filter((t) => t.bug !== l.bug), entry];
+    saveTicketMap(store, map);
+  }
+  return link;
+}
+function noteTicketState(store, ticket, state, now = /* @__PURE__ */ new Date()) {
+  const map = loadTicketMap(store);
+  const e = bugForTicket(map, ticket);
+  if (!e) return false;
+  e.state = one5(state).slice(0, 40);
+  e.updated = now.toISOString();
+  saveTicketMap(store, map);
+  return true;
+}
+function lintTickets(configured, file3, eligible) {
+  if (!configured || eligible.length === 0) return [];
+  const missing = eligible.filter((e) => !file3?.links.some((l) => l.issue === e.finding.id));
+  if (missing.length === 0) return [];
+  return [`Linear is configured and ${missing.map((m) => m.finding.id).join(", ")} ${missing.length === 1 ? "has" : "have"} no ticket and no reason: create or update the ticket (\`tracker plan\`, then \`tracker record\`), or say why not (\`tracker skip --reason\`).`];
+}
+var ACTION_WORDS = { created: "ticket created", updated: "ticket updated with this run", existing: "already has an open ticket", skipped: "no ticket" };
+function renderTechnicalTickets(file3, findings) {
+  const L = ["## Tickets", "", `_Linear, team ${file3.team}. A ticket is one per Critical or Important bug that is not fixed and checked; a bug that has an open ticket gets an update, not another ticket._`, ""];
+  L.push("| Finding | Bug | Ticket | What was done |", "|---|---|---|---|");
+  for (const l of file3.links) {
+    const f = findings.find((x) => x.id === l.issue);
+    const ticket = l.ticket ? l.url ? `[${l.ticket}](${l.url})` : l.ticket : "-";
+    const done = l.action === "skipped" ? `no ticket: ${l.reason ?? ""}` : `${ACTION_WORDS[l.action]}${l.state ? ` (${l.state})` : ""}`;
+    L.push(`| [${l.issue}](#${l.issue})${f ? ` ${f.title.slice(0, 60)}` : ""} | ${l.bug ?? "-"} | ${ticket} | ${done} |`);
+  }
+  L.push("");
+  return L;
+}
+function adminTicketsLine(file3) {
+  const n = (a) => file3.links.filter((l) => l.action === a);
+  const made = n("created");
+  const updated = [...n("updated"), ...n("existing")];
+  const skipped = n("skipped");
+  const names = (xs) => xs.map((x) => x.ticket).join(", ");
+  const parts = [];
+  if (made.length) parts.push(`${made.length} new ${made.length === 1 ? "ticket was" : "tickets were"} opened for the developers (${names(made)})`);
+  if (updated.length) parts.push(`${updated.length} existing ${updated.length === 1 ? "ticket was" : "tickets were"} updated (${names(updated)})`);
+  if (skipped.length) parts.push(`${skipped.length} ${skipped.length === 1 ? "problem has" : "problems have"} no ticket (${[...new Set(skipped.map((s) => s.reason))].join("; ")})`);
+  return parts.length ? `${parts.join("; ")}.` : void 0;
+}
+var severityPriority = (s) => s === "critical" ? 1 : 2;
+
+// core/lib/sentry.ts
+import path25 from "node:path";
+var sentryFilePath = (runDir) => path25.join(runDir, "data", "sentry.json");
+var readSentryFile = (runDir) => {
+  const v = readJson(sentryFilePath(runDir));
+  return v && typeof v === "object" && !Array.isArray(v) ? v : void 0;
+};
+function sentryWindow(settings, startedIso, now = /* @__PURE__ */ new Date()) {
+  const margin = settings.window_margin_minutes * 6e4;
+  return {
+    from: new Date(Date.parse(startedIso) - margin).toISOString(),
+    to: new Date(now.getTime() + margin).toISOString(),
+    margin_minutes: settings.window_margin_minutes,
+    ...settings.organization ? { organization: settings.organization } : {},
+    projects: settings.projects,
+    environments: settings.environments
+  };
+}
+var MAX_ERRORS = 50;
+var clip2 = (s, n) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
+var words = (s) => new Set(s.toLowerCase().split(/[^a-z0-9_/.-]+/).filter((w) => w.length >= 4));
+function cleanSentryUrl(raw) {
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "https:" || u.username || u.password) return void 0;
+    return `https://${u.hostname.toLowerCase()}${u.pathname.replace(/\/+$/, "")}`;
+  } catch {
+    return void 0;
+  }
+}
+function checkSentry(raw, settings, window, known, privacy) {
+  const errors = [];
+  const warnings = [];
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return { ok: false, errors: ['data/sentry.json must be a JSON object: { "queried": {...}, "errors": [...] } or { "skipped": "why" }.'], warnings, suggestions: [] };
+  const f = raw;
+  if (typeof f["skipped"] === "string") {
+    const why = f["skipped"].replace(/\s+/g, " ").trim();
+    if (why.length < 6) errors.push("`skipped` needs the reason: no Sentry tool is connected in this session, the tool returned an error, ...");
+    return { ok: errors.length === 0, errors, warnings, ...errors.length ? {} : { file: { skipped: clip2(why, 200) } }, suggestions: [] };
+  }
+  const q3 = f["queried"];
+  if (typeof q3 !== "object" || q3 === null) errors.push('"queried" is missing: say which projects and environments were read, and the time window ({ "projects": [...], "environments": [...], "from": "...", "to": "..." }).');
+  const envs = Array.isArray(q3?.["environments"]) ? (q3?.["environments"]).filter((x) => typeof x === "string") : [];
+  const projects = Array.isArray(q3?.["projects"]) ? (q3?.["projects"]).filter((x) => typeof x === "string") : [];
+  if (q3 && envs.length === 0) errors.push('"queried.environments" must list the environments that were read.');
+  for (const e of envs) {
+    if (looksLikeProductionName(e)) errors.push(`The environment "${e}" looks like production. A run reads the test system's errors only.`);
+    else if (!settings.environments.some((s) => s.toLowerCase() === e.toLowerCase())) errors.push(`The environment "${e}" is not one of integrations.sentry.environments (${settings.environments.join(", ")}).`);
+  }
+  for (const p of projects) if (!settings.projects.some((s) => s.toLowerCase() === p.toLowerCase())) errors.push(`The project "${p}" is not one of integrations.sentry.projects (${settings.projects.join(", ")}).`);
+  const from = typeof q3?.["from"] === "string" ? Date.parse(q3["from"]) : NaN;
+  const to = typeof q3?.["to"] === "string" ? Date.parse(q3["to"]) : NaN;
+  if (q3 && (Number.isNaN(from) || Number.isNaN(to))) errors.push('"queried.from" and "queried.to" must be times (2026-11-03T09:50:00Z).');
+  else if (q3 && (from < Date.parse(window.from) - 6e4 || to > Date.parse(window.to) + 6e4)) errors.push(`The time window ${q3["from"]} to ${q3["to"]} is wider than the run's (${window.from} to ${window.to}). Errors outside it are not this run's.`);
+  const list3 = f["errors"];
+  if (!Array.isArray(list3)) errors.push('"errors" must be a list (empty when Sentry recorded nothing in the window).');
+  const ids = /* @__PURE__ */ new Set([...known.findings.map((x) => x.id ?? ""), ...known.unconfirmed.map((x) => x.id ?? "")]);
+  const kept = [];
+  const suggestions = [];
+  for (const [i, e] of (Array.isArray(list3) ? list3 : []).entries()) {
+    const at = `errors[${i}]`;
+    if (typeof e !== "object" || e === null) {
+      errors.push(`${at} is not an object.`);
+      continue;
+    }
+    const o = e;
+    const id = typeof o["id"] === "string" ? o["id"].trim() : "";
+    const title = typeof o["title"] === "string" ? o["title"].replace(/\s+/g, " ").trim() : "";
+    const events = o["events"];
+    const rel = typeof o["relates_to"] === "string" ? o["relates_to"].trim() : "";
+    const why = typeof o["why"] === "string" ? o["why"].replace(/\s+/g, " ").trim() : "";
+    if (!id || !title) errors.push(`${at} needs an "id" (Sentry's short id) and a "title".`);
+    if (typeof events !== "number" || !Number.isInteger(events) || events < 1) errors.push(`${at} (${id || "?"}) needs "events": how many times it happened in the window (a whole number, 1 or more).`);
+    if (rel !== "none" && !ids.has(rel)) errors.push(`${at} (${id || "?"}): "relates_to" must be the id of a finding or lead of this run (${[...ids].filter(Boolean).slice(0, 6).join(", ") || "none yet"}) or "none".`);
+    if (why.length < 8) errors.push(`${at} (${id || "?"}) needs "why": what shows the link to ${rel === "none" ? "nothing (why no finding explains it)" : rel}.`);
+    const seen = typeof o["last_seen"] === "string" ? Date.parse(o["last_seen"]) : NaN;
+    if (!Number.isNaN(seen) && (seen < Date.parse(window.from) - 6e4 || seen > Date.parse(window.to) + 6e4)) errors.push(`${at} (${id}) was last seen ${o["last_seen"]}, outside the run's window: it is not this run's.`);
+    const url = typeof o["url"] === "string" ? cleanSentryUrl(o["url"]) : void 0;
+    if (typeof o["url"] === "string" && !url) warnings.push(`${at} (${id}): the address was dropped (it must be an https link without a sign-in).`);
+    if (id && title && typeof events === "number") {
+      const m = (s) => maskText(s, privacy).text;
+      kept.push({
+        id: clip2(id, 40),
+        title: clip2(m(title), 200),
+        ...typeof o["culprit"] === "string" ? { culprit: clip2(m(o["culprit"]), 160) } : {},
+        ...typeof o["level"] === "string" ? { level: clip2(o["level"], 16) } : {},
+        events,
+        ...typeof o["users"] === "number" && Number.isInteger(o["users"]) && o["users"] >= 0 ? { users: o["users"] } : {},
+        ...typeof o["first_seen"] === "string" ? { first_seen: clip2(o["first_seen"], 30) } : {},
+        ...typeof o["last_seen"] === "string" ? { last_seen: clip2(o["last_seen"], 30) } : {},
+        ...url ? { url } : {},
+        relates_to: rel,
+        why: clip2(m(why), 300)
+      });
+      if (rel === "none") {
+        const w = words(`${title} ${typeof o["culprit"] === "string" ? o["culprit"] : ""}`);
+        const best = known.findings.map((x) => ({ id: x.id ?? "", shared: [...words(`${x.title} ${x.area} ${x.steps.join(" ")} ${x.actual}`)].filter((t) => w.has(t)) })).filter((x) => x.id && x.shared.length >= 2).sort((a, b) => b.shared.length - a.shared.length)[0];
+        if (best) suggestions.push({ error: id, maybe_finding: best.id, because: `shares ${best.shared.slice(0, 4).join(", ")}` });
+      }
+    }
+  }
+  if (Array.isArray(list3) && list3.length > MAX_ERRORS) errors.push(`At most ${MAX_ERRORS} errors: keep the ones with the most events and say in "notes" how many were left out.`);
+  const notes = Array.isArray(f["notes"]) ? f["notes"].filter((n) => typeof n === "string").slice(0, 5).map((n) => clip2(maskText(n, privacy).text, 240)) : [];
+  const file3 = { queried: { projects, environments: envs, from: String(q3?.["from"] ?? ""), to: String(q3?.["to"] ?? "") }, errors: kept, ...notes.length ? { notes } : {} };
+  return { ok: errors.length === 0, errors, warnings, ...errors.length ? {} : { file: file3 }, suggestions };
+}
+function saveSentry(runDir, file3) {
+  writeJson(sentryFilePath(runDir), file3);
+}
+function lintSentry(configured, file3, known) {
+  if (!configured) return { errors: [], warnings: [] };
+  if (!file3) return { errors: [], warnings: ['Sentry is configured but this run has no server-error record: read the errors of the run\'s window (`sentry window`, then write data/sentry.json and `sentry check`), or write { "skipped": "why" } there.'] };
+  const ids = /* @__PURE__ */ new Set([...known.findings.map((x) => x.id ?? ""), ...known.unconfirmed.map((x) => x.id ?? "")]);
+  const errors = (file3.errors ?? []).filter((e) => e.relates_to !== "none" && !ids.has(e.relates_to)).map((e) => `data/sentry.json: ${e.id} relates to ${e.relates_to}, which is not a finding or lead of this run.`);
+  return { errors, warnings: [] };
+}
+function renderTechnicalSentry(file3) {
+  const L = ["## Server errors during the run (Sentry)", ""];
+  if (file3.skipped) return [...L, `_Not read: ${file3.skipped}_`, ""];
+  const errs = file3.errors ?? [];
+  L.push(`_Errors Sentry recorded for ${file3.queried?.environments.join(", ")} (${file3.queried?.projects.join(", ")}) from ${file3.queried?.from} to ${file3.queried?.to}. Read only; the product's own data is not copied here._`, "");
+  if (errs.length === 0) return [...L, "Sentry recorded no errors in that window.", ""];
+  const cell5 = (e) => e.url ? `[${e.id}](${e.url})` : e.id;
+  const row = (e) => `| ${e.relates_to === "none" ? "-" : `[${e.relates_to}](#${e.relates_to})`} | ${cell5(e)} | ${e.title.replace(/\|/g, "\\|")}${e.culprit ? ` (${e.culprit.replace(/\|/g, "\\|")})` : ""} | ${e.events} | ${e.why.replace(/\|/g, "\\|")} |`;
+  const matched = errs.filter((e) => e.relates_to !== "none");
+  const unmatched = errs.filter((e) => e.relates_to === "none");
+  L.push("| Explains | Error | What | Events | Why it is linked |", "|---|---|---|---|---|");
+  for (const e of [...matched, ...unmatched]) L.push(row(e));
+  if (unmatched.length) L.push("", `${unmatched.length} ${unmatched.length === 1 ? "error is" : "errors are"} not explained by any finding (\`-\`): a developer should look at ${unmatched.length === 1 ? "it" : "them"}, or the "why" says why it is expected.`);
+  for (const n of file3.notes ?? []) L.push("", `_${n}_`);
+  L.push("");
+  return L;
+}
+var sentryLinesFor = (file3, issue) => (file3?.errors ?? []).filter((e) => e.relates_to === issue).map((e) => `- Server error: ${e.url ? `[${e.id}](${e.url})` : e.id} ${e.title} (${e.events} ${e.events === 1 ? "event" : "events"} in the run)`);
+function adminSentryLine(file3, findings) {
+  if (!file3?.errors?.length) return void 0;
+  const explained = new Set(file3.errors.filter((e) => e.relates_to !== "none").map((e) => e.relates_to));
+  const serious = findings.filter((f) => (f.severity === "critical" || f.severity === "important") && explained.has(f.id ?? ""));
+  const open = file3.errors.filter((e) => e.relates_to === "none").length;
+  const parts = [];
+  if (serious.length) parts.push(`The error monitor recorded matching server errors for ${serious.length} of the serious ${serious.length === 1 ? "problem" : "problems"} above, which backs them up`);
+  if (open) parts.push(`${open} other server ${open === 1 ? "error was" : "errors were"} recorded while we tested and no problem above explains ${open === 1 ? "it" : "them"}: a developer should look`);
+  return parts.length ? `${parts.join("; ")}.` : void 0;
+}
+
 // core/lib/report.ts
 var SURFACES = ["api", "ui", "cross", "permissions", "business-rule", "other"];
 function compactFinding(f, bug) {
   return { id: f.id ?? "", title: f.title, severity: f.severity, surface: f.surface, area: f.area, type: f.type, ...f.ui ? { ui: f.ui } : {}, ...bug ? { bug } : {}, ...f.steps?.[0] ? { first_step: f.steps[0].slice(0, 200) } : {} };
 }
-var dataFile = (runDir, name) => path24.join(runDir, "data", name);
+var dataFile = (runDir, name) => path26.join(runDir, "data", name);
 function readList(runDir, name) {
   const v = readJson(dataFile(runDir, name));
   if (v === void 0) return [];
@@ -11184,11 +11555,11 @@ function readList(runDir, name) {
   return v;
 }
 function readRunData(runDir) {
-  const apiDir = path24.join(runDir, "data", "api-results");
+  const apiDir = path26.join(runDir, "data", "api-results");
   const apiSummaries = [];
   if (fs13.existsSync(apiDir)) {
     for (const f of fs13.readdirSync(apiDir).filter((x) => x.endsWith(".json")).sort()) {
-      const r = readJson(path24.join(apiDir, f));
+      const r = readJson(path26.join(apiDir, f));
       if (r?.summary) apiSummaries.push({ file: `data/api-results/${f}`, ...r.summary });
     }
   }
@@ -11237,6 +11608,14 @@ function readRunData(runDir) {
     ...(() => {
       const c = readCoverageData(runDir);
       return c ? { checks: c } : {};
+    })(),
+    ...(() => {
+      const t = readTicketsFile(runDir);
+      return t ? { tickets: t } : {};
+    })(),
+    ...(() => {
+      const t = readSentryFile(runDir);
+      return t ? { sentry: t } : {};
     })()
   };
 }
@@ -11310,7 +11689,7 @@ function duration(seconds) {
 }
 var fixOutcomeOf = (f) => f.fix?.outcome ?? "not attempted";
 var ticks = (s) => `\`${s}\``;
-var clip2 = (s, n) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
+var clip3 = (s, n) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
 function fixDetails(f, fix) {
   const a = [...fix.attempts].reverse().find((x) => x.issue === f.id);
   if (!f.fix || !a) return [];
@@ -11320,7 +11699,7 @@ function fixDetails(f, fix) {
   if (f.fix.test_files?.length) L.push(`- Regression test: ${f.fix.test_files.map(ticks).join(", ")}`);
   if (a.plan) L.push(`- Diagnosis before the fix: ${a.plan}`);
   if (f.fix.root_cause) L.push(`- Root cause: ${f.fix.root_cause}`);
-  if (a.without_fix) L.push(`- Test with the fix taken out: **failed** (exit ${a.without_fix.exit_code}), as it must: \`${clip2(a.without_fix.tail.split("\n").filter(Boolean).slice(-3).join(" \u23CE "), 260)}\``);
+  if (a.without_fix) L.push(`- Test with the fix taken out: **failed** (exit ${a.without_fix.exit_code}), as it must: \`${clip3(a.without_fix.tail.split("\n").filter(Boolean).slice(-3).join(" \u23CE "), 260)}\``);
   if (a.with_fix) L.push(`- Test with the fix in: **${a.with_fix.passed ? "passed" : "failed"}** (exit ${a.with_fix.exit_code}, ${a.with_fix.duration_s} s)`);
   if (f.fix.recheck) L.push(`- Re-check of the original steps: ${f.fix.recheck}`);
   if (f.fix.adjacent) L.push(`- Adjacent check: ${f.fix.adjacent}`);
@@ -11412,6 +11791,8 @@ function renderTechnicalReport(data, ctx = {}) {
     L.push("");
   }
   if (data.fix) L.push(...fixRunSection(data));
+  if (data.tickets?.links.length) L.push(...renderTechnicalTickets(data.tickets, data.findings));
+  if (data.sentry) L.push(...renderTechnicalSentry(data.sentry));
   L.push("## What changed since the last run", "");
   const ch = data.changes;
   if (!ch) L.push("_Not computed (no page or endpoint list was recorded)._", "");
@@ -11447,6 +11828,9 @@ function renderTechnicalReport(data, ctx = {}) {
       L.push(`- **Bug:** ${life.bug} \xB7 ${what}${f.bank_tests?.length ? ` \xB7 bank test ${f.bank_tests.join(", ")}` : ""}`);
     }
     if (f.severity_note) L.push(`- **Severity:** ${f.severity_note}`);
+    const tk = data.tickets?.links.find((x) => x.issue === f.id && x.ticket);
+    if (tk) L.push(`- **Ticket:** ${tk.url ? `[${tk.ticket}](${tk.url})` : tk.ticket} (${tk.action})`);
+    L.push(...sentryLinesFor(data.sentry, f.id ?? ""));
     if (f.roles?.length) L.push(`- **Roles:** ${f.roles.join(", ")}`);
     if (f.browser || f.viewport) L.push(`- **Browser / viewport:** ${[f.browser, f.viewport].filter(Boolean).join(" / ")}`);
     L.push(`- **Reproduced:** ${f.reproduced.times} of ${f.reproduced.of} attempts`);
@@ -11545,8 +11929,8 @@ function renderTechnicalReport(data, ctx = {}) {
   return L.join("\n");
 }
 function insideRun(runDir, rel) {
-  const abs = path24.resolve(runDir, rel);
-  const root = path24.resolve(runDir) + path24.sep;
+  const abs = path26.resolve(runDir, rel);
+  const root = path26.resolve(runDir) + path26.sep;
   return abs.startsWith(root) ? abs : null;
 }
 function lintRun(runDir, data, knownSecrets = []) {
@@ -11614,11 +11998,11 @@ function lintRun(runDir, data, knownSecrets = []) {
   const cov = lintCoverage(data.checks, data);
   errors.push(...cov.errors);
   warnings.push(...cov.warnings);
-  const dataDir = path24.join(runDir, "data");
+  const dataDir = path26.join(runDir, "data");
   if (fs13.existsSync(dataDir)) {
-    const newestData = Math.max(0, ...fs13.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs13.statSync(path24.join(dataDir, f)).mtimeMs));
+    const newestData = Math.max(0, ...fs13.readdirSync(dataDir).filter((f) => f.endsWith(".json") && f !== "meta.json").map((f) => fs13.statSync(path26.join(dataDir, f)).mtimeMs));
     for (const name of ["TECHNICAL-REPORT.md", "ADMIN-REPORT.md"]) {
-      const file3 = path24.join(runDir, name);
+      const file3 = path26.join(runDir, name);
       if (fs13.existsSync(file3) && fs13.statSync(file3).mtimeMs + 1 < newestData) errors.push(`${name} is older than the data it is built from: run \`report build\` again.`);
     }
   }
@@ -11626,13 +12010,13 @@ function lintRun(runDir, data, knownSecrets = []) {
     if (row.status === "tested" && /not tested|blocked|skipped/i.test(row.note ?? "")) errors.push(`coverage "${row.area}" is marked tested but its note says otherwise.`);
   }
   if (data.findings.length === 0 && data.coverage.length === 0) warnings.push("No findings and no coverage rows: the report would not show what was checked.");
-  const scan = [path24.join(runDir, "TECHNICAL-REPORT.md")];
+  const scan = [path26.join(runDir, "TECHNICAL-REPORT.md")];
   for (const sub of ["evidence", "data"]) {
-    const dir = path24.join(runDir, sub);
+    const dir = path26.join(runDir, sub);
     if (!fs13.existsSync(dir)) continue;
     const walk = (d) => {
       for (const e of fs13.readdirSync(d, { withFileTypes: true })) {
-        const p = path24.join(d, e.name);
+        const p = path26.join(d, e.name);
         if (e.isDirectory()) walk(p);
         else if (/\.(json|md|txt|log|yml|yaml|har|html)$/i.test(e.name)) scan.push(p);
       }
@@ -11641,16 +12025,16 @@ function lintRun(runDir, data, knownSecrets = []) {
   }
   for (const file3 of scan) {
     if (!fs13.existsSync(file3)) continue;
-    const isPlan = path24.relative(runDir, file3).split(path24.sep).join("/").startsWith("data/plans/");
+    const isPlan = path26.relative(runDir, file3).split(path26.sep).join("/").startsWith("data/plans/");
     const leaks = findSecretLeaks(fs13.readFileSync(file3, "utf8"), knownSecrets, { generic: !isPlan });
-    for (const leak of leaks) errors.push(`${path24.relative(runDir, file3)}: contains ${leak}; redact it before reporting.`);
+    for (const leak of leaks) errors.push(`${path26.relative(runDir, file3)}: contains ${leak}; redact it before reporting.`);
   }
   return { ok: errors.length === 0, errors, warnings };
 }
 
 // core/lib/memory/migrate.ts
 import fs14 from "node:fs";
-import path25 from "node:path";
+import path27 from "node:path";
 var unchanged = (file3) => ({ id: `${file3}-1-to-2`, file: file3, from: 1, to: 2, describe: `${file3}: no change to the content; the version number moves to 2 so that a store is at one version`, up: (v) => v });
 var MIGRATIONS = [
   {
@@ -11683,7 +12067,7 @@ function memoryFiles(store) {
     { kind: "test-bank", file: p.bank, jsonl: true }
   ];
   if (fs14.existsSync(p.runs)) {
-    for (const f of fs14.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path25.join(p.runs, f), jsonl: false });
+    for (const f of fs14.readdirSync(p.runs).sort()) if (f.endsWith(".json")) refs.push({ kind: "run-summary", file: path27.join(p.runs, f), jsonl: false });
   }
   return refs.filter((r) => fs14.existsSync(r.file));
 }
@@ -11749,7 +12133,7 @@ function migrateStore(store, opts2 = {}) {
   const next = /* @__PURE__ */ new Map();
   for (const { ref, steps } of pending) {
     const to = steps[steps.length - 1]?.to ?? target;
-    const where = path25.basename(ref.file);
+    const where = path27.basename(ref.file);
     if (!ref.jsonl) {
       const value = JSON.parse(fs14.readFileSync(ref.file, "utf8"));
       next.set(ref.file, JSON.stringify({ ...applySteps(value, steps, where), schema_version: to }, null, 2) + "\n");
@@ -11776,10 +12160,10 @@ function migrateStore(store, opts2 = {}) {
     next.set(ref.file, out.join("\n"));
   }
   const lowest = Math.min(...pending.map((p) => p.from));
-  const backup = path25.join(storeSubdirs(store).backups, `${stampOf(now)}-schema-${lowest}-to-${target}`);
+  const backup = path27.join(storeSubdirs(store).backups, `${stampOf(now)}-schema-${lowest}-to-${target}`);
   for (const { ref } of pending) {
-    const dest = path25.join(backup, path25.relative(store, ref.file));
-    ensureDir(path25.dirname(dest));
+    const dest = path27.join(backup, path27.relative(store, ref.file));
+    ensureDir(path27.dirname(dest));
     fs14.copyFileSync(ref.file, dest);
   }
   const log = [];
@@ -11788,11 +12172,11 @@ function migrateStore(store, opts2 = {}) {
     const tmp = `${ref.file}.${process.pid}.tmp`;
     fs14.writeFileSync(tmp, next.get(ref.file), "utf8");
     fs14.renameSync(tmp, ref.file);
-    const entry = { file: path25.relative(store, ref.file).split(path25.sep).join("/"), from, to: steps[steps.length - 1]?.to ?? target, migrations: steps.map((s) => s.id) };
+    const entry = { file: path27.relative(store, ref.file).split(path27.sep).join("/"), from, to: steps[steps.length - 1]?.to ?? target, migrations: steps.map((s) => s.id) };
     report.migrated.push(entry);
-    log.push(JSON.stringify({ at: now.toISOString(), ...entry, backup: path25.relative(store, backup).split(path25.sep).join("/"), describe: steps.map((s) => s.describe) }));
+    log.push(JSON.stringify({ at: now.toISOString(), ...entry, backup: path27.relative(store, backup).split(path27.sep).join("/"), describe: steps.map((s) => s.describe) }));
   }
-  fs14.appendFileSync(path25.join(storeSubdirs(store).backups, "migrations.log.jsonl"), `${log.join("\n")}
+  fs14.appendFileSync(path27.join(storeSubdirs(store).backups, "migrations.log.jsonl"), `${log.join("\n")}
 `, "utf8");
   return report;
 }
@@ -11805,8 +12189,8 @@ function ensureMigrated(store) {
 }
 
 // core/lib/memory/memorylog.ts
-import path26 from "node:path";
-var file = (runDir) => path26.join(runDir, "data", "memory-log.json");
+import path28 from "node:path";
+var file = (runDir) => path28.join(runDir, "data", "memory-log.json");
 function readMemoryLog(runDir) {
   const v = readJson(file(runDir));
   return Array.isArray(v) ? v : [];
@@ -11858,10 +12242,10 @@ function applyRunToMemory(input) {
 function recordEnvQuirks(store, runId, health, now) {
   let n = 0;
   for (const c of health?.checks ?? []) {
-    const text3 = c.flaky ? `${c.name}: failed on the first try and answered on the second, so expect an occasional first-request failure and retry before calling it down.` : c.slow ? `${c.name} answered slowly (${Math.round((c.ms ?? 0) / 100) / 10} s), so give it time before treating a wait as a failure.` : void 0;
-    if (!text3) continue;
+    const text4 = c.flaky ? `${c.name}: failed on the first try and answered on the second, so expect an occasional first-request failure and retry before calling it down.` : c.slow ? `${c.name} answered slowly (${Math.round((c.ms ?? 0) / 100) / 10} s), so give it time before treating a wait as a failure.` : void 0;
+    if (!text4) continue;
     try {
-      learn(store, { type: "env-quirk", area: "Environment", text: text3, run: runId, confidence: 4 }, { now });
+      learn(store, { type: "env-quirk", area: "Environment", text: text4, run: runId, confidence: 4 }, { now });
       n++;
     } catch {
     }
@@ -11870,7 +12254,7 @@ function recordEnvQuirks(store, runId, health, now) {
 }
 
 // core/lib/bank/gate.ts
-import path27 from "node:path";
+import path29 from "node:path";
 
 // core/lib/schema.ts
 var isObj2 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -12058,7 +12442,7 @@ var notFoundValue = (p) => {
 };
 function fillPath(ep, mode, own = false) {
   const needs = [];
-  const path64 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
+  const path68 = ep.path.replace(/\{([^}]+)\}/g, (match, name, offset) => {
     const param = ep.parameters.find((p) => p.in === "path" && p.name === name) ?? { name, in: "path", required: true };
     if (mode === "not-found") return encodeURIComponent(String(notFoundValue(param)));
     const resource = lastSegment(ep.path.slice(0, offset));
@@ -12067,7 +12451,7 @@ function fillPath(ep, mode, own = false) {
     needs.push(variable);
     return `{{${variable}}}`;
   });
-  return { path: path64, needs };
+  return { path: path68, needs };
 }
 function withReferences(value, vars) {
   if (Array.isArray(value)) return value.map((v) => withReferences(v, vars));
@@ -12279,7 +12663,7 @@ var MAX_ACTIVE_TESTS = 300;
 var MAX_PROBES = 8;
 var MAX_STEPS = 40;
 var TARGET_KEYS = ["role", "text", "label", "testid", "selector"];
-var one5 = (s) => s.replace(/\s+/g, " ").trim();
+var one6 = (s) => s.replace(/\s+/g, " ").trim();
 var emptyStats = () => ({ runs: 0, passes: 0, failures: 0, flaky: 0, flips: 0, history: [], avg_ms: 0 });
 function loadBank(store) {
   const read = readJsonl(memoryPaths(store).bank);
@@ -12420,11 +12804,11 @@ function findDuplicate(tests, cand, ignoreId) {
   return tests.find((t) => t.status !== "retired" && t.id !== ignoreId && t.kind === cand.kind && (jaccard2(signatureOf(t), sig) >= 0.8 || areaKey(t.area) === areaKey(cand.area) && similarity(t.title, cand.title) >= 0.75));
 }
 function saveTest(store, input, ctx) {
-  const title = one5(input.title);
-  const area = one5(input.area);
+  const title = one6(input.title);
+  const area = one6(input.area);
   if (title.length < 8 || title.length > 140) throw new Error("A test needs a title of 8 to 140 characters that says what it checks.");
   if (!area) throw new Error("A test needs an area (the same wording the findings and coverage use).");
-  const card = { protects: one5(input.card?.protects ?? ""), fails_when: one5(input.card?.fails_when ?? ""), not_duplicate: one5(input.card?.not_duplicate ?? "") };
+  const card = { protects: one6(input.card?.protects ?? ""), fails_when: one6(input.card?.fails_when ?? ""), not_duplicate: one6(input.card?.not_duplicate ?? "") };
   for (const [k, v] of Object.entries(card)) if (v.length < 12) throw new Error(`The value card needs "${k}" (a real sentence): ${k === "protects" ? "what this test protects" : k === "fails_when" ? "what has to be wrong for it to fail" : "why it is not a duplicate of a test already in the bank"}.`);
   const warnings = [];
   let errors = [];
@@ -12471,7 +12855,7 @@ function saveTest(store, input, ctx) {
     area,
     status: "active",
     card,
-    ...input.tags?.length ? { tags: input.tags.map(one5).filter(Boolean).slice(0, 8) } : {},
+    ...input.tags?.length ? { tags: input.tags.map(one6).filter(Boolean).slice(0, 8) } : {},
     ...input.protects_bug ? { protects_bug: input.protects_bug } : {},
     ...input.from_run ? { from_run: input.from_run } : {},
     ...input.from_issue ? { from_issue: input.from_issue } : {},
@@ -12591,7 +12975,7 @@ function linkBankToBugs(store, runId, bugOf) {
 var BANK_SKIP_FILE = "bank-skip.json";
 function bankGate(i) {
   const saved = loadBank(i.store).tests.filter((t) => t.created >= i.started).length;
-  const raw = readJson(path27.join(i.runDir, "data", BANK_SKIP_FILE));
+  const raw = readJson(path29.join(i.runDir, "data", BANK_SKIP_FILE));
   const reason = typeof raw?.reason === "string" ? raw.reason.replace(/\s+/g, " ").trim() : "";
   const serious = i.findings.filter((f) => (f.severity === "critical" || f.severity === "important") && f.fix_status !== "fixed-verified");
   const exempt = i.trigger === "auto" || i.trigger === "ci" || i.budgetOver || i.environmentBroken || serious.length === 0;
@@ -12600,13 +12984,13 @@ function bankGate(i) {
   const ids = serious.map((f) => f.id ?? f.title).slice(0, 6).join(", ");
   return {
     saved: 0,
-    problem: `This run found ${serious.length} critical or important problem(s) (${ids}${serious.length > 6 ? ", ..." : ""}) and saved no test for any of them, so the next run cannot check them first. Save the checks worth keeping with bank_save_test (see shared/test-bank.md: one for each problem you reproduced twice, with from_issue), or, if none of them can be written as an API or UI test, say why in ${path27.join(i.runDir, "data", BANK_SKIP_FILE)} as {"reason": "..."} (a real sentence). Then finish again.${reason ? " The reason in that file is too short to count." : ""}`
+    problem: `This run found ${serious.length} critical or important problem(s) (${ids}${serious.length > 6 ? ", ..." : ""}) and saved no test for any of them, so the next run cannot check them first. Save the checks worth keeping with bank_save_test (see shared/test-bank.md: one for each problem you reproduced twice, with from_issue), or, if none of them can be written as an API or UI test, say why in ${path29.join(i.runDir, "data", BANK_SKIP_FILE)} as {"reason": "..."} (a real sentence). Then finish again.${reason ? " The reason in that file is too short to count." : ""}`
   };
 }
 
 // core/lib/memory/runlife.ts
-import path28 from "node:path";
-var file2 = (runDir, name) => path28.join(runDir, "data", name);
+import path30 from "node:path";
+var file2 = (runDir, name) => path30.join(runDir, "data", name);
 var lifecycleFile = (runDir) => file2(runDir, "lifecycle.json");
 var readLifecycle = (runDir) => readJson(lifecycleFile(runDir));
 var readRechecks = (runDir) => {
@@ -12750,7 +13134,7 @@ function lintLifecycle(store, runDir, findings, unconfirmed) {
 
 // core/lib/reports.ts
 import fs16 from "node:fs";
-import path30 from "node:path";
+import path32 from "node:path";
 
 // core/lib/adminreport.ts
 var MISSING_PLAIN = "(plain-language text not written yet)";
@@ -12772,8 +13156,8 @@ var GLOSSARY = [
   ["Seen only once", "Something we noticed but could not repeat. It is not counted as a problem until it is confirmed."],
   ["Not tested", "Something we did not check, with the reason. It is never reported as working."]
 ];
-var one6 = (s) => (s ?? "").replace(/\s+/g, " ").trim();
-var cell4 = (s) => one6(s).replace(/\|/g, "\\|");
+var one7 = (s) => (s ?? "").replace(/\s+/g, " ").trim();
+var cell4 = (s) => one7(s).replace(/\|/g, "\\|");
 var plural2 = (n, a, b) => `${n} ${n === 1 ? a : b}`;
 var MODE_TEXT = {
   full: "full check (everything we could reach)",
@@ -12862,7 +13246,7 @@ function fixesOf(data) {
   if (!fix) return void 0;
   const lines = [];
   for (const f of [...data.findings].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? ""))) {
-    const title = one6(f.plain?.title) || f.title;
+    const title = one7(f.plain?.title) || f.title;
     const o = f.fix?.outcome;
     if (o === "verified") lines.push(`\u2705 ${title}: fixed and checked.`);
     else if (o === "best-effort") lines.push(`\u26A0\uFE0F ${title}: fixed, but a person needs to confirm it.`);
@@ -12889,20 +13273,23 @@ function historyOf(data, f) {
 }
 function toProblem(f, data) {
   const p = f.plain;
-  const complete = !!p && !!one6(p.title) && !!one6(p.where) && !!one6(p.what_happens) && !!one6(p.who_is_affected) && !!one6(p.expected) && Array.isArray(p.how_to_see_it);
+  const complete = !!p && !!one7(p.title) && !!one7(p.where) && !!one7(p.what_happens) && !!one7(p.who_is_affected) && !!one7(p.expected) && Array.isArray(p.how_to_see_it);
   const shot = p?.screenshot ?? f.evidence.find((e) => IMAGE.test(e));
   return {
     id: f.id ?? "ISSUE-???",
     severity: f.severity,
-    title: one6(p?.title) || f.title,
-    where: one6(p?.where) || MISSING_PLAIN,
-    what: one6(p?.what_happens) || MISSING_PLAIN,
-    who: one6(p?.who_is_affected) || MISSING_PLAIN,
-    steps: (p?.how_to_see_it ?? []).map(one6).filter(Boolean),
-    expected: one6(p?.expected) || MISSING_PLAIN,
+    title: one7(p?.title) || f.title,
+    where: one7(p?.where) || MISSING_PLAIN,
+    what: one7(p?.what_happens) || MISSING_PLAIN,
+    who: one7(p?.who_is_affected) || MISSING_PLAIN,
+    steps: (p?.how_to_see_it ?? []).map(one7).filter(Boolean),
+    expected: one7(p?.expected) || MISSING_PLAIN,
     ...shot ? { screenshot: shot } : {},
     status: statusText(f),
-    ...p?.ticket ? { ticket: p.ticket } : {},
+    ...(() => {
+      const url = data.tickets?.links.find((l) => l.issue === f.id && l.url)?.url ?? p?.ticket;
+      return url ? { ticket: url } : {};
+    })(),
     ...historyOf(data, f),
     ...f.severity_note && f.severity_assessed ? { severityNote: `A person set this to ${f.severity} (the check judged it ${f.severity_assessed}).` } : {},
     missingPlain: !complete
@@ -12934,7 +13321,7 @@ function changeLines(data) {
   const c = data.changes;
   if (!c) return ["We could not tell what changed, because no list of screens and functions was recorded for this check."];
   if (c.first_run) return ["This is the first check, so there is nothing to compare with."];
-  const plain = describeChanges(c, (text3) => lintAdminLanguage(text3).length === 0).plain;
+  const plain = describeChanges(c, (text4) => lintAdminLanguage(text4).length === 0).plain;
   const out = plain.length ? plain : ["Nothing new or removed: the same screens and functions as last time."];
   if (data.meta?.mode !== "full") out.push("Screens that were not visited are not listed as gone, because this was not a full check.");
   return out;
@@ -12951,10 +13338,10 @@ function buildAdminModel(data, previous = []) {
   const cameBackIds = new Set((data.lifecycle?.findings ?? []).filter((l) => l.status === "regressed").map((l) => l.issue));
   const problems = [...data.findings].sort((a, b) => Number(cameBackIds.has(b.id ?? "")) - Number(cameBackIds.has(a.id ?? "")) || SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity) || (a.id ?? "").localeCompare(b.id ?? "")).map((f) => toProblem(f, data));
   const notTested = mergedNotTested(data).map((n) => {
-    if (n.plain?.area?.trim() && n.plain?.reason?.trim()) return { area: one6(n.plain.area), reason: one6(n.plain.reason) };
+    if (n.plain?.area?.trim() && n.plain?.reason?.trim()) return { area: one7(n.plain.area), reason: one7(n.plain.reason) };
     const row = n.fromCoverage;
-    if (row) return { area: `${areaOf(row.surface, row.ui)} \u2192 ${one6(row.area)}`, reason: /^(not covered|reason not recorded)\.?$/i.test(one6(row.note)) || !one6(row.note) ? "This was not checked in this run." : one6(row.note) };
-    return { area: one6(n.area), reason: one6(n.reason) };
+    if (row) return { area: `${areaOf(row.surface, row.ui)} \u2192 ${one7(row.area)}`, reason: /^(not covered|reason not recorded)\.?$/i.test(one7(row.note)) || !one7(row.note) ? "This was not checked in this run." : one7(row.note) };
+    return { area: one7(n.area), reason: one7(n.reason) };
   });
   const fine = areas.filter((a) => a.result === "\u2705").length;
   const withProblems = areas.filter((a) => /^Problems found/.test(a.note)).length;
@@ -12963,13 +13350,13 @@ function buildAdminModel(data, previous = []) {
   const areaParts = [`${fine} fine`, `${withProblems} with problems`, ...partly > 0 ? [`${partly} partly checked`] : [], `${notChecked} not checked`];
   const meta = data.meta;
   const authored = data.adminStale ? void 0 : data.admin;
-  const biggest = one6(authored?.biggest_risk) || (open[0] && open.some((f) => f.severity !== "minor") ? `${one6(toProblem(topOpen(open), data).title)}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
+  const biggest = one7(authored?.biggest_risk) || (open[0] && open.some((f) => f.severity !== "minor") ? `${one7(toProblem(topOpen(open), data).title)}.`.replace(/\.\.$/, ".") : "No serious risk was found in what was checked.");
   const names = notTested.slice(0, 3).map((n) => n.area.length > 60 ? `${n.area.slice(0, 57)}...` : n.area);
   const summary = [
     `Checked on ${plainDate(meta?.started)} \xB7 Environment: ${meta?.environment ?? "unknown"} \xB7 Type of check: ${MODE_TEXT[meta?.mode ?? ""] ?? meta?.mode ?? "unknown"}`,
     `We looked at ${plural2(areas.length, "area", "areas")}: ${areaParts.join(", ")}.`,
     `Problems: \u{1F534} ${found.critical} critical \xB7 \u{1F7E0} ${found.important} important \xB7 \u{1F7E1} ${found.minor} minor${fixedVerified > 0 ? ` \xB7 ${fixedVerified} of them fixed and checked` : ""}`,
-    ...cameBackIds.size > 0 ? [`\u26A0\uFE0F ${plural2(cameBackIds.size, "problem came", "problems came")} back after being fixed: ${problems.filter((p) => p.cameBack).slice(0, 3).map((p) => one6(p.title).replace(/[.\s]+$/, "")).join("; ")}${cameBackIds.size > 3 ? ` and ${cameBackIds.size - 3} more` : ""}.`] : [],
+    ...cameBackIds.size > 0 ? [`\u26A0\uFE0F ${plural2(cameBackIds.size, "problem came", "problems came")} back after being fixed: ${problems.filter((p) => p.cameBack).slice(0, 3).map((p) => one7(p.title).replace(/[.\s]+$/, "")).join("; ")}${cameBackIds.size > 3 ? ` and ${cameBackIds.size - 3} more` : ""}.`] : [],
     `Biggest risk: ${biggest}`,
     notTested.length ? `Not tested: ${names.join("; ")}${notTested.length > 3 ? ` and ${notTested.length - 3} more` : ""}.` : "Not tested: nothing; everything planned was checked."
   ];
@@ -12984,16 +13371,17 @@ function buildAdminModel(data, previous = []) {
   if (counts.critical > 0) fallbackSteps.push(fixedVerified > 0 ? "Have a developer fix the critical problems that are still open." : "Have a developer fix the critical problems first.");
   if (notTested.length > 0) fallbackSteps.push("Arrange what is needed to check the areas that were not tested (see the list below).");
   if (problems.length > 0) fallbackSteps.push("Run the check again after the fixes to confirm them.");
-  const authoredSteps = (authored?.next_steps ?? []).map(one6).filter(Boolean);
+  const authoredSteps = (authored?.next_steps ?? []).map(one7).filter(Boolean);
   const nextSteps = (authoredSteps.length ? authoredSteps : fallbackSteps).slice(0, MAX_NEXT_STEPS);
-  const fixedSince = (data.lifecycle?.fixed ?? []).map((x) => `${one6(x.plain_title ?? `A problem in "${x.area}" found earlier`).replace(/[.\s]+$/, "")}: ${x.source === "bank-test" ? "the saved automatic check for it passes now" : one6(x.how).replace(/[.\s]+$/, "")}.`);
+  const fixedSince = (data.lifecycle?.fixed ?? []).map((x) => `${one7(x.plain_title ?? `A problem in "${x.area}" found earlier`).replace(/[.\s]+$/, "")}: ${x.source === "bank-test" ? "the saved automatic check for it passes now" : one7(x.how).replace(/[.\s]+$/, "")}.`);
   const knownAccepted = (data.accepted ?? []).map((f) => {
     const l = data.lifecycle?.accepted_seen.find((a) => a.bug === f.bug);
-    return `${one6(f.plain?.title) || f.title}${l ? ` (accepted by ${l.by} on ${dayText(l.at)}${l.note ? `: ${one6(l.note)}` : ""})` : ""}.`.replace(/\.\.$/, ".");
+    return `${one7(f.plain?.title) || f.title}${l ? ` (accepted by ${l.by} on ${dayText(l.at)}${l.note ? `: ${one7(l.note)}` : ""})` : ""}.`.replace(/\.\.$/, ".");
   });
   const ticketLines = data.ticket?.ticket ? renderAdminChecklist(data.ticket) : [];
   const checkedLines = data.checks ? renderAdminCoverage(data.checks) : [];
-  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps, fixedSince, knownAccepted, ticketLines, checkedLines, ...fixes ? { fixes } : {} };
+  const trackerLines = [data.tickets ? adminTicketsLine(data.tickets) : void 0, adminSentryLine(data.sentry, data.findings)].filter((x) => !!x);
+  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps, fixedSince, knownAccepted, ticketLines, trackerLines, checkedLines, ...fixes ? { fixes } : {} };
 }
 function renderAdminMarkdown(m) {
   const L = [m.verdict.line, ""];
@@ -13007,6 +13395,7 @@ function renderAdminMarkdown(m) {
   L.push("", "\u2705 nothing wrong found \xB7 \u26A0\uFE0F problems found or only partly checked \xB7 \u26D4 serious problems or not checked", "");
   if (m.ticketLines.length) L.push(...m.ticketLines);
   if (m.checkedLines.length) L.push("## Where and how it was checked", "", ...m.checkedLines, "");
+  if (m.trackerLines.length) L.push("## Tickets and error monitoring", "", ...m.trackerLines.map((l) => `- ${l}`), "");
   L.push("## Problems found", "");
   if (m.problems.length === 0) L.push("No problems were confirmed in what was checked.", "");
   else {
@@ -13014,7 +13403,7 @@ function renderAdminMarkdown(m) {
     if (notes.length) L.push(notes.join(" "), "");
   }
   for (const p of m.problems) {
-    L.push(`### ${ICON2[p.severity]} ${LABEL2[p.severity]}: ${one6(p.title)}`, "");
+    L.push(`### ${ICON2[p.severity]} ${LABEL2[p.severity]}: ${one7(p.title)}`, "");
     L.push(`- **Where:** ${p.where}`, `- **What happens:** ${p.what}`, `- **Who is affected:** ${p.who}`);
     if (p.steps.length) {
       L.push("- **How to see it yourself:**");
@@ -13037,7 +13426,7 @@ function renderAdminMarkdown(m) {
   L.push("## Compared with the last check", "", ...m.trend.map((t) => `- ${t}`), "");
   L.push("## What was not tested", "");
   if (m.notTested.length === 0) L.push("Everything planned was checked.", "");
-  else L.push(...m.notTested.map((n) => `- **${one6(n.area)}**: ${one6(n.reason)}`), "");
+  else L.push(...m.notTested.map((n) => `- **${one7(n.area)}**: ${one7(n.reason)}`), "");
   if (m.nextSteps.length) L.push("## Suggested next steps", "", ...m.nextSteps.map((s, i) => `${i + 1}. ${s}`), "");
   L.push("## Words used in this report", "", ...GLOSSARY.map(([w, d]) => `- **${w}**: ${d}`), "");
   L.push(
@@ -13065,22 +13454,22 @@ function lintAdminLanguage(markdown) {
     if (/^\s*-\s+\*\*For developers:\*\*/.test(raw)) return;
     if (raw.startsWith("The full technical details, with exact steps for developers")) return;
     if (/^(?:>\s*-\s+|-\s+)?Fixes are on branch .+; a developer must review and merge them\.$/.test(raw)) return;
-    const text3 = raw.replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1");
-    for (const [re, label] of JARGON) if (re.test(text3)) issues.push({ line: i + 1, found: label, text: raw.trim().slice(0, 110) });
+    const text4 = raw.replace(/!?\[([^\]]*)\]\([^)]*\)/g, "$1");
+    for (const [re, label] of JARGON) if (re.test(text4)) issues.push({ line: i + 1, found: label, text: raw.trim().slice(0, 110) });
   });
   return issues;
 }
 
 // core/scripts/consistency-check.ts
 import fs15 from "node:fs";
-import path29 from "node:path";
+import path31 from "node:path";
 var SEV_WORD = { "\u{1F534}": "critical", "\u{1F7E0}": "important", "\u{1F7E1}": "minor" };
 var VERDICT = /^(✅ \*\*Ready to release|⚠️ \*\*Ready with risks|⛔ \*\*Not ready to release)/;
-function section(text3, heading) {
-  const start = text3.indexOf(`
+function section(text4, heading) {
+  const start = text4.indexOf(`
 ## ${heading}`);
   if (start < 0) return "";
-  const rest = text3.slice(start + 1);
+  const rest = text4.slice(start + 1);
   const next = rest.indexOf("\n## ", 4);
   return next < 0 ? rest : rest.slice(0, next);
 }
@@ -13088,11 +13477,11 @@ function checkConsistency(runDir) {
   const errors = [];
   const warnings = [];
   const result = { ok: true, errors, warnings, technical: [], admin: [] };
-  const techFile = path29.join(runDir, "TECHNICAL-REPORT.md");
-  const adminFile = path29.join(runDir, "ADMIN-REPORT.md");
+  const techFile = path31.join(runDir, "TECHNICAL-REPORT.md");
+  const adminFile = path31.join(runDir, "ADMIN-REPORT.md");
   for (const f of [techFile, adminFile]) {
     if (!fs15.existsSync(f)) {
-      errors.push(`${path29.basename(f)} does not exist: run \`report build\` first.`);
+      errors.push(`${path31.basename(f)} does not exist: run \`report build\` first.`);
     }
   }
   if (errors.length) return { ...result, ok: false };
@@ -13197,7 +13586,7 @@ function previousRuns(store, currentRunId, limit = 3) {
   if (!store) return [];
   const dir = storeSubdirs(store).runs;
   if (!fs16.existsSync(dir)) return [];
-  return fs16.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().map((f) => readJson(path30.join(dir, f))).filter((r) => !!r && r.run_id !== currentRunId).slice(0, limit);
+  return fs16.readdirSync(dir).filter((f) => f.endsWith(".json")).sort().reverse().map((f) => readJson(path32.join(dir, f))).filter((r) => !!r && r.run_id !== currentRunId).slice(0, limit);
 }
 function performanceFor(store, runDir, data) {
   const m = data.meta;
@@ -13223,8 +13612,8 @@ function writeReports(runDir, store, ctx) {
   const privacy = contextForRun(runDir);
   const technical = maskText(r.technical, privacy).text;
   const admin = maskText(r.admin, privacy).text;
-  fs16.writeFileSync(path30.join(runDir, "TECHNICAL-REPORT.md"), technical, "utf8");
-  fs16.writeFileSync(path30.join(runDir, "ADMIN-REPORT.md"), admin, "utf8");
+  fs16.writeFileSync(path32.join(runDir, "TECHNICAL-REPORT.md"), technical, "utf8");
+  fs16.writeFileSync(path32.join(runDir, "ADMIN-REPORT.md"), admin, "utf8");
   return { ...r, technical, admin };
 }
 function lintFixRun(data, errors, warnings) {
@@ -13261,8 +13650,8 @@ function lintReports(runDir, knownSecrets = [], store) {
     }
     const learningIds = new Set(loadLearnings(store).active.map((l) => l.id));
     const alarmIds = new Set(alarms.map((a) => a.id));
-    for (const text3 of data.meta?.memory_applied ?? []) {
-      for (const id of text3.match(/\b(?:L|FA)-\d{3,}\b/g) ?? []) {
+    for (const text4 of data.meta?.memory_applied ?? []) {
+      for (const id of text4.match(/\b(?:L|FA)-\d{3,}\b/g) ?? []) {
         if (!learningIds.has(id) && !alarmIds.has(id)) errors.push(`memory_applied cites ${id}, which does not exist in this project's memory.`);
       }
     }
@@ -13273,26 +13662,31 @@ function lintReports(runDir, knownSecrets = [], store) {
     warnings.push(...life.warnings);
   }
   lintFixRun(data, errors, warnings);
+  const integ = data.meta?.integrations;
+  warnings.push(...lintTickets(!!integ?.linear, data.tickets, eligibleFindings(data.findings, data.lifecycle).eligible));
+  const sen = lintSentry(!!integ?.sentry, data.sentry, { findings: data.findings, unconfirmed: data.unconfirmed });
+  errors.push(...sen.errors);
+  warnings.push(...sen.warnings);
   const scan = scanRun(runDir, contextForRun(runDir));
-  for (const leak of scan.leaks.slice(0, 10)) errors.push(`Privacy: ${leak.file} holds ${leak.count} unmasked item(s) (${Object.entries(leak.kinds).map(([k, n]) => `${n} ${k}`).join(", ")}). Run \`qamind privacy mask --run ${path30.basename(runDir)}\`, rebuild the reports and lint again.`);
-  if (scan.leaks.length > 10) errors.push(`Privacy: ${scan.leaks.length - 10} more file(s) hold unmasked data (\`qamind privacy scan --run ${path30.basename(runDir)}\` lists them all).`);
-  if (!fs16.existsSync(path30.join(runDir, "data", "pages.json"))) warnings.push("data/pages.json was not written: the product map will not learn which screens exist, and what changed since the last run cannot be reported for screens.");
+  for (const leak of scan.leaks.slice(0, 10)) errors.push(`Privacy: ${leak.file} holds ${leak.count} unmasked item(s) (${Object.entries(leak.kinds).map(([k, n]) => `${n} ${k}`).join(", ")}). Run \`qamind privacy mask --run ${path32.basename(runDir)}\`, rebuild the reports and lint again.`);
+  if (scan.leaks.length > 10) errors.push(`Privacy: ${scan.leaks.length - 10} more file(s) hold unmasked data (\`qamind privacy scan --run ${path32.basename(runDir)}\` lists them all).`);
+  if (!fs16.existsSync(path32.join(runDir, "data", "pages.json"))) warnings.push("data/pages.json was not written: the product map will not learn which screens exist, and what changed since the last run cannot be reported for screens.");
   return { ok: errors.length === 0, errors, warnings, consistency };
 }
 
 // core/auto-qa/settings.ts
-import path31 from "node:path";
+import path33 from "node:path";
 var AUTO_SCHEMA = 1;
 var AUTO_MODES = ["diff", "quick", "full", "fix", "ask"];
 var DEFAULT_MODE = "diff";
 var DEFAULT_COOLDOWN_MINUTES = 3;
 var DEFAULT_TIME_BUDGET_MINUTES = 5;
 var DEFAULT_IGNORE = ["*.md", "docs/**", "package-lock.json", "npm-shrinkwrap.json", "yarn.lock", "pnpm-lock.yaml", "bun.lockb", "composer.lock", "Gemfile.lock", "poetry.lock", "Pipfile.lock", "go.sum", "Cargo.lock"];
-var projectAutoFile = (store) => path31.join(store, "auto.json");
-var globalAutoFile = (home) => path31.join(home, "auto.json");
+var projectAutoFile = (store) => path33.join(store, "auto.json");
+var globalAutoFile = (home) => path33.join(home, "auto.json");
 var AutoTooNewError = class extends Error {
   constructor(file3, found) {
-    super(`${path31.basename(file3)} was written by a newer QAMind (auto-QA settings schema ${found}, this QAMind understands ${AUTO_SCHEMA}). Update QAMind before changing auto-QA settings.`);
+    super(`${path33.basename(file3)} was written by a newer QAMind (auto-QA settings schema ${found}, this QAMind understands ${AUTO_SCHEMA}). Update QAMind before changing auto-QA settings.`);
   }
 };
 function readJsonTolerant(file3) {
@@ -13335,9 +13729,9 @@ function resolveEffective(project, global, env, now, tooNew) {
   if (global.enabled !== void 0) return { ...base, enabled: global.enabled, source: "global", why: global.enabled ? "turned on globally" : "turned off globally" };
   return { ...base, enabled: false, source: "default", why: "never turned on (auto-QA is off by default)" };
 }
-function parseDuration(text3) {
-  const m = /^(\d+)\s*(s|m|h|d)$/i.exec(text3.trim());
-  if (!m) throw new Error(`"${text3}" is not a duration. Use a number and a unit: 30m, 1h, 2d.`);
+function parseDuration(text4) {
+  const m = /^(\d+)\s*(s|m|h|d)$/i.exec(text4.trim());
+  if (!m) throw new Error(`"${text4}" is not a duration. Use a number and a unit: 30m, 1h, 2d.`);
   const n = Number(m[1]);
   const ms = n * { s: 1e3, m: 6e4, h: 36e5, d: 864e5 }[m[2].toLowerCase()];
   if (ms < 6e4 || ms > 14 * 864e5) throw new Error("A pause is between 1 minute and 14 days.");
@@ -13351,7 +13745,7 @@ function validate(patch) {
 }
 function updateAutoFile(file3, lockDir, patch) {
   validate(patch);
-  ensureDir(path31.dirname(file3));
+  ensureDir(path33.dirname(file3));
   return withStoreLock(lockDir, () => {
     const cur = readAutoFile(file3);
     if (cur.too_new) throw new AutoTooNewError(file3, cur.too_new);
@@ -13366,9 +13760,9 @@ function updateAutoFile(file3, lockDir, patch) {
 }
 
 // core/auto-qa/state.ts
-import path32 from "node:path";
+import path34 from "node:path";
 var KEEP_SESSIONS = 30;
-var stateFile = (store, name) => path32.join(storeSubdirs(store).state, name);
+var stateFile = (store, name) => path34.join(storeSubdirs(store).state, name);
 var NEXT_RUN = "next-run.json";
 var TASK_START = "task-start.json";
 var AUTO_LAST = "auto-last.json";
@@ -13417,13 +13811,13 @@ function writeLastRun(store, run) {
 }
 
 // core/lib/envprep.ts
-import path34 from "node:path";
+import path36 from "node:path";
 
 // core/lib/fix/testrun.ts
 import { spawn, spawnSync } from "node:child_process";
 
 // core/lib/fix/protect.ts
-import path33 from "node:path";
+import path35 from "node:path";
 var BUILT_IN_PROTECTED = [
   { glob: ".git", why: "git's own data" },
   { glob: ".env*", why: "credential and environment files" },
@@ -13512,11 +13906,11 @@ function globToRegExp2(raw) {
   return new RegExp(anchored ? `^${body}(?:/.*)?$` : `(?:^|/)${body}(?:/.*)?$`, "i");
 }
 function relativeToRoot(root, p, cwd = root) {
-  const abs = path33.resolve(cwd, p);
-  const rel = path33.relative(path33.resolve(root), abs);
+  const abs = path35.resolve(cwd, p);
+  const rel = path35.relative(path35.resolve(root), abs);
   if (rel === "") return "";
-  if (rel === ".." || rel.startsWith(`..${path33.sep}`) || path33.isAbsolute(rel)) return void 0;
-  return rel.split(path33.sep).join("/");
+  if (rel === ".." || rel.startsWith(`..${path35.sep}`) || path35.isAbsolute(rel)) return void 0;
+  return rel.split(path35.sep).join("/");
 }
 function compileRules(doNotTouch = []) {
   return [
@@ -13592,7 +13986,7 @@ function failedTestNames(output) {
 }
 
 // core/lib/envprep.ts
-var prepFile = (runDir) => path34.join(runDir, "data", "env-prep.json");
+var prepFile = (runDir) => path36.join(runDir, "data", "env-prep.json");
 var readPrep = (runDir) => readJson(prepFile(runDir));
 var hasCommands = (s) => !!(s.seed_command || s.reset_command || s.snapshot_command);
 function shouldPrepare(setup, mode) {
@@ -13641,7 +14035,7 @@ async function prepareEnvironment(o) {
       }
     }
   }
-  ensureDir(path34.dirname(prepFile(o.runDir)));
+  ensureDir(path36.dirname(prepFile(o.runDir)));
   writeJson(prepFile(o.runDir), prep);
   return prep;
 }
@@ -13662,7 +14056,7 @@ function prepCheck(prep) {
 
 // core/lib/stack.ts
 import fs17 from "node:fs";
-import path35 from "node:path";
+import path37 from "node:path";
 var JS_FRAMEWORKS = [
   ["next", "nextjs"],
   ["react", "react"],
@@ -13697,14 +14091,14 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   const runners = /* @__PURE__ */ new Set();
   const commands = {};
   let packageManager;
-  const pkg = readJson(path35.join(root, "package.json"));
+  const pkg = readJson(path37.join(root, "package.json"));
   if (pkg) {
     languages.add("javascript");
     const deps = { ...pkg.dependencies, ...pkg.devDependencies };
     for (const [dep, name] of JS_FRAMEWORKS) if (deps[dep]) frameworks.add(name);
     for (const [dep, name] of JS_TEST_RUNNERS) if (deps[dep]) runners.add(name);
-    if (deps["typescript"] || exists(path35.join(root, "tsconfig.json"))) languages.add("typescript");
-    packageManager = exists(path35.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path35.join(root, "yarn.lock")) ? "yarn" : exists(path35.join(root, "bun.lock")) ? "bun" : "npm";
+    if (deps["typescript"] || exists(path37.join(root, "tsconfig.json"))) languages.add("typescript");
+    packageManager = exists(path37.join(root, "pnpm-lock.yaml")) ? "pnpm" : exists(path37.join(root, "yarn.lock")) ? "yarn" : exists(path37.join(root, "bun.lock")) ? "bun" : "npm";
     const run = packageManager === "npm" ? "npm run" : packageManager;
     if (pkg.scripts?.["test"] && !/no test specified/.test(pkg.scripts["test"])) {
       commands.test = packageManager === "npm" ? "npm test" : `${packageManager} test`;
@@ -13714,7 +14108,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (pkg.scripts?.["dev"]) commands.dev = `${run} dev`;
     else if (pkg.scripts?.["start"]) commands.dev = packageManager === "npm" ? "npm start" : `${packageManager} start`;
   }
-  const composer = readIf(path35.join(root, "composer.json"));
+  const composer = readIf(path37.join(root, "composer.json"));
   if (composer) {
     languages.add("php");
     if (/laravel\/framework/.test(composer)) frameworks.add("laravel");
@@ -13722,19 +14116,19 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
     if (/pestphp/.test(composer)) runners.add("pest");
     packageManager ??= "composer";
   }
-  const py = readIf(path35.join(root, "requirements.txt")) + readIf(path35.join(root, "pyproject.toml"));
-  if (py || exists(path35.join(root, "manage.py"))) {
+  const py = readIf(path37.join(root, "requirements.txt")) + readIf(path37.join(root, "pyproject.toml"));
+  if (py || exists(path37.join(root, "manage.py"))) {
     languages.add("python");
-    if (/django/i.test(py) || exists(path35.join(root, "manage.py"))) frameworks.add("django");
+    if (/django/i.test(py) || exists(path37.join(root, "manage.py"))) frameworks.add("django");
     if (/fastapi/i.test(py)) frameworks.add("fastapi");
     if (/flask/i.test(py)) frameworks.add("flask");
     if (/pytest/i.test(py)) runners.add("pytest");
     packageManager ??= "pip";
   }
-  if (/rails/.test(readIf(path35.join(root, "Gemfile")))) {
+  if (/rails/.test(readIf(path37.join(root, "Gemfile")))) {
     languages.add("ruby");
     frameworks.add("rails");
-    if (/rspec/.test(readIf(path35.join(root, "Gemfile")))) runners.add("rspec");
+    if (/rspec/.test(readIf(path37.join(root, "Gemfile")))) runners.add("rspec");
     packageManager ??= "bundler";
   }
   try {
@@ -13757,7 +14151,7 @@ function detectStack(root, now = /* @__PURE__ */ new Date()) {
   };
 }
 function saveStack(memoryDir, stack) {
-  const file3 = path35.join(memoryDir, "stack.json");
+  const file3 = path37.join(memoryDir, "stack.json");
   const prev = readJson(file3);
   const strip = (s) => JSON.stringify({ ...s, detected_at: void 0 });
   if (prev && strip(prev) === strip(stack)) return { changed: false };
@@ -13766,16 +14160,16 @@ function saveStack(memoryDir, stack) {
 }
 
 // core/lib/version.ts
-var QAMIND_VERSION = true ? "0.1.0" : "dev";
+var QAMIND_VERSION = true ? "0.8.0" : "dev";
 var KNOWLEDGE_VERSION = true ? "0.1.2" : "dev";
 
 // core/lib/sweep/service.ts
 import fs20 from "node:fs";
-import path39 from "node:path";
+import path41 from "node:path";
 
 // core/lib/sweep/engine.ts
 import fs19 from "node:fs";
-import path38 from "node:path";
+import path40 from "node:path";
 
 // core/lib/bank/uisteps.ts
 function describeTarget(t) {
@@ -13877,10 +14271,10 @@ async function runUiStep(page, base, s, ctx) {
 }
 
 // core/lib/sweep/pages.ts
-import path36 from "node:path";
+import path38 from "node:path";
 var MAX_SWEEP_PAGES = 40;
 var ID = /^[a-z0-9][a-z0-9_-]{0,40}$/;
-var sweepPagesFile = (runDir) => path36.join(runDir, "data", "sweep-pages.json");
+var sweepPagesFile = (runDir) => path38.join(runDir, "data", "sweep-pages.json");
 function validateSweepPages(raw, config) {
   const errors = [];
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return { ok: false, errors: ['data/sweep-pages.json must be an object: { "pages": [ { "id", "title", "ui", "role", "path" } ], "logins": { "<role>": [steps] } }.'] };
@@ -13946,7 +14340,7 @@ function validateSweepPages(raw, config) {
 }
 function loadSweepPages(runDir, config) {
   const raw = readJson(sweepPagesFile(runDir));
-  if (raw === void 0) return { ok: false, errors: [`No ${path36.join("data", "sweep-pages.json")} in the run folder. Write the key pages first (the format is in the coverage instructions).`] };
+  if (raw === void 0) return { ok: false, errors: [`No ${path38.join("data", "sweep-pages.json")} in the run folder. Write the key pages first (the format is in the coverage instructions).`] };
   return validateSweepPages(raw, config);
 }
 function matrixFor(mode, config, pick2) {
@@ -13982,7 +14376,7 @@ function matrixFor(mode, config, pick2) {
 
 // core/lib/sweep/visual.ts
 import fs18 from "node:fs";
-import path37 from "node:path";
+import path39 from "node:path";
 
 // core/lib/sweep/png.ts
 import zlib from "node:zlib";
@@ -14174,8 +14568,8 @@ function compareImages(baseline, current, thresholdPercent) {
 }
 var baselineKey = (k) => `${k.page}|${k.role}|${k.browser}|${k.viewport}`;
 var safe = (s) => s.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "x";
-var baselinesDir = (store) => path37.join(store, "baselines");
-var indexFile = (store) => path37.join(baselinesDir(store), "index.json");
+var baselinesDir = (store) => path39.join(store, "baselines");
+var indexFile = (store) => path39.join(baselinesDir(store), "index.json");
 function loadBaselines(store) {
   const idx = readJson(indexFile(store));
   return idx && typeof idx === "object" && idx.entries ? idx : { schema_version: 1, entries: {} };
@@ -14183,7 +14577,7 @@ function loadBaselines(store) {
 function findBaseline(store, key) {
   const entry = loadBaselines(store).entries[baselineKey(key)];
   if (!entry) return void 0;
-  const file3 = path37.join(baselinesDir(store), entry.file);
+  const file3 = path39.join(baselinesDir(store), entry.file);
   return fs18.existsSync(file3) ? { entry, file: file3 } : void 0;
 }
 function acceptBaseline(store, key, screenshot, run, now, by) {
@@ -14191,7 +14585,7 @@ function acceptBaseline(store, key, screenshot, run, now, by) {
   const idx = loadBaselines(store);
   const file3 = `${safe(key.page)}__${safe(key.role)}__${safe(key.browser)}__${safe(key.viewport)}.png`;
   ensureDir(baselinesDir(store));
-  fs18.copyFileSync(screenshot, path37.join(baselinesDir(store), file3));
+  fs18.copyFileSync(screenshot, path39.join(baselinesDir(store), file3));
   const entry = { ...key, file: file3, width: img.width, height: img.height, accepted_run: run, accepted_at: now.toISOString(), ...by ? { accepted_by: by } : {} };
   idx.entries[baselineKey(key)] = entry;
   writeJson(indexFile(store), idx);
@@ -14207,7 +14601,7 @@ function compareWithBaseline(store, key, screenshotFile, diffFile, thresholdPerc
   const result = compareImages(decodePng(fs18.readFileSync(found.file)), decodePng(fs18.readFileSync(screenshotFile)), thresholdPercent);
   const { diff, ...rest } = result;
   if (diff) {
-    ensureDir(path37.dirname(diffFile));
+    ensureDir(path39.dirname(diffFile));
     fs18.writeFileSync(diffFile, encodePng(diff));
   }
   return { state: result.differs ? "different" : "same", diff: rest, baseline: found.entry, baselineFile: found.file };
@@ -14220,14 +14614,14 @@ var SETTLE_QUIET_MS = 500;
 var SETTLE_MAX_MS = 15e3;
 var MAX_SHOT_HEIGHT = 6e3;
 var sleep3 = (ms) => new Promise((r) => setTimeout(r, ms));
-var clip3 = (s, n = 200) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
+var clip4 = (s, n = 200) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
 var slug3 = (s) => s.replace(/[^A-Za-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "");
 function bareUrl(u) {
   try {
     const x = new URL(u);
     return `${x.origin}${x.pathname}${x.search ? "?\u2026" : ""}`;
   } catch {
-    return clip3(u, 120);
+    return clip4(u, 120);
   }
 }
 var PROBE = `async () => {
@@ -14306,7 +14700,7 @@ async function autoSignIn(page, creds) {
     }
     return { ok: false, note: "the sign-in form was still there after submitting (wrong login, or a form QAMind cannot read: give this role steps in `logins`)" };
   } catch (e) {
-    return { ok: false, note: clip3(e.message.split("\n")[0] ?? "") };
+    return { ok: false, note: clip4(e.message.split("\n")[0] ?? "") };
   }
 }
 var visitKey = (v) => `${v.page}|${v.role ?? "-"}|${v.browser}|${v.viewport}`;
@@ -14355,7 +14749,7 @@ async function runSweep(ctx, opts2) {
   const safeText = (s) => maskText(redact(s), ctx.privacy).text;
   const baseOf = new Map(ctx.config.web_uis.map((u) => [u.name, u.url]));
   const creds = new Map(ctx.roles.map((r) => [r.name, r]));
-  const evidence = path38.join(ctx.outDir, "evidence", "sweep");
+  const evidence = path40.join(ctx.outDir, "evidence", "sweep");
   const maskScript = buildMaskScript({ selectors: ctx.config.privacy.mask_selectors, patterns: ctx.config.privacy.mask_patterns, prefix: ctx.config.test_data_prefix, allow: ctx.roles.map((r) => r.username) });
   const auditScript = readAuditScript();
   const history = loadPerf(ctx.store);
@@ -14409,7 +14803,7 @@ async function runSweep(ctx, opts2) {
     }
   }
   if (results.visual_summary.no_baseline > 0) results.notes.push(`${results.visual_summary.no_baseline} picture(s) have no baseline yet, so nothing was compared. After a run you judge good, \`qamind baseline accept --run ${ctx.runId}\` saves them as the baseline for later runs.`);
-  ensureDir(path38.join(ctx.outDir, "data"));
+  ensureDir(path40.join(ctx.outDir, "data"));
   writeJson(sweepResultsFile(ctx.outDir), JSON.parse(safeText(JSON.stringify(results))));
   return results;
 }
@@ -14436,7 +14830,7 @@ async function visitRole(a) {
           signed = c ? await autoSignIn(page, c) : { ok: false, note: `no login for ${roleName} is set in .env.qa` };
         }
       } catch (e) {
-        signed = { ok: false, note: clip3(a.redact(e.message).split("\n")[0] ?? "") };
+        signed = { ok: false, note: clip4(a.redact(e.message).split("\n")[0] ?? "") };
       }
       await page.close().catch(() => void 0);
       if (!signed.ok) {
@@ -14468,8 +14862,8 @@ async function visitPage(a, context, p, blockedCount) {
   const httpErrors = /* @__PURE__ */ new Map();
   const state = { pending: 0, last: Date.now() };
   page.on("console", (m) => {
-    const text3 = String(m.text());
-    if (m.type() === "error" && !/^Failed to load resource/i.test(text3)) errors.push(text3);
+    const text4 = String(m.text());
+    if (m.type() === "error" && !/^Failed to load resource/i.test(text4)) errors.push(text4);
   });
   page.on("pageerror", (e) => errors.push(`Uncaught: ${e.message}`));
   page.on("request", () => {
@@ -14512,24 +14906,24 @@ async function visitPage(a, context, p, blockedCount) {
     if (status2 !== void 0 && status2 >= 400) visit.signals.push({ kind: "http-error", detail: `The page itself answered ${status2}.`, key: `page ${status2}` });
     for (const [k, st] of httpErrors) if (!(status2 !== void 0 && status2 >= 400 && k.endsWith(bareUrl(new URL(p.path, base).toString())))) visit.signals.push({ kind: "http-error", detail: `${k} answered ${st}.`, key: `${k} ${st}` });
     for (const [k, why] of failed) visit.signals.push({ kind: "failed-request", detail: `${k} failed (${why}).`, key: k });
-    for (const e of [...new Set(errors)].slice(0, 5)) visit.signals.push({ kind: e.startsWith("Uncaught:") ? "page-error" : "console-error", detail: clip3(e), key: clip3(e.replace(/\d+/g, "#"), 120) });
+    for (const e of [...new Set(errors)].slice(0, 5)) visit.signals.push({ kind: e.startsWith("Uncaught:") ? "page-error" : "console-error", detail: clip4(e), key: clip4(e.replace(/\d+/g, "#"), 120) });
     const refused = blockedCount();
     if (refused > 0) visit.blocked = refused;
     if (ctx.config.visual.ignore_selectors.length) await page.addStyleTag({ content: `${ctx.config.visual.ignore_selectors.join(", ")} { visibility: hidden !important; }` }).catch(() => void 0);
     ensureDir(a.evidence);
     const name = `${slug3(p.id)}__${slug3(p.role ?? "anon")}__${engine}__${slug3(vp.name)}`;
-    const shot = path38.join(a.evidence, `${name}.png`);
+    const shot = path40.join(a.evidence, `${name}.png`);
     await page.screenshot({ path: shot, fullPage: true, animations: "disabled", caret: "hide", timeout: 15e3, ...probe.height > MAX_SHOT_HEIGHT ? { clip: { x: 0, y: 0, width: vp.width, height: MAX_SHOT_HEIGHT } } : {} });
-    visit.screenshot = path38.join("evidence", "sweep", `${name}.png`);
+    visit.screenshot = path40.join("evidence", "sweep", `${name}.png`);
     const key = { page: p.id, role: p.role ?? "-", browser: engine, viewport: vp.name };
     try {
-      const cmp = compareWithBaseline(ctx.store, key, shot, path38.join(a.evidence, "diff", `${name}.png`), ctx.config.visual.threshold);
+      const cmp = compareWithBaseline(ctx.store, key, shot, path40.join(a.evidence, "diff", `${name}.png`), ctx.config.visual.threshold);
       if (cmp.state === "no-baseline") visit.visual = { state: "no-baseline" };
       else {
-        const before = path38.join("evidence", "sweep", "before", `${name}.png`);
+        const before = path40.join("evidence", "sweep", "before", `${name}.png`);
         if (cmp.state === "different") {
-          ensureDir(path38.join(a.evidence, "before"));
-          fs19.copyFileSync(cmp.baselineFile, path38.join(ctx.outDir, before));
+          ensureDir(path40.join(a.evidence, "before"));
+          fs19.copyFileSync(cmp.baselineFile, path40.join(ctx.outDir, before));
         }
         visit.visual = {
           state: cmp.state,
@@ -14539,18 +14933,18 @@ async function visitPage(a, context, p, blockedCount) {
           size_changed: cmp.diff.size_changed,
           baseline_run: cmp.baseline.accepted_run,
           baseline_at: cmp.baseline.accepted_at,
-          ...cmp.state === "different" ? { before, after: visit.screenshot, diff: path38.join("evidence", "sweep", "diff", `${name}.png`) } : {}
+          ...cmp.state === "different" ? { before, after: visit.screenshot, diff: path40.join("evidence", "sweep", "diff", `${name}.png`) } : {}
         };
       }
     } catch (e) {
-      visit.signals.push({ kind: "console-error", detail: `The picture could not be compared with its baseline (${clip3(a.safeText(e.message))}).`, key: "baseline compare" });
+      visit.signals.push({ kind: "console-error", detail: `The picture could not be compared with its baseline (${clip4(a.safeText(e.message))}).`, key: "baseline compare" });
     }
   } catch (e) {
-    visit.error = `The page could not be visited: ${clip3(a.safeText(a.redact(e.message).split("\n")[0] ?? ""))}`;
+    visit.error = `The page could not be visited: ${clip4(a.safeText(a.redact(e.message).split("\n")[0] ?? ""))}`;
   } finally {
     await page.close().catch(() => void 0);
   }
-  for (const s of visit.signals) s.detail = clip3(a.safeText(s.detail), 300);
+  for (const s of visit.signals) s.detail = clip4(a.safeText(s.detail), 300);
   return visit;
 }
 function perfFindings(visits, config, history) {
@@ -14597,7 +14991,7 @@ async function runSweepForRun(scope, opts2 = {}) {
   return runSweep(sweepContextForRun(scope), { mode: opts2.mode ?? scope.mode, ...opts2 });
 }
 function acceptBaselines(scope, runId, opts2 = {}) {
-  const runDir = path39.join(scope.project.root, ".qa", "reports", runId);
+  const runDir = path41.join(scope.project.root, ".qa", "reports", runId);
   if (!/^[\w.-]+$/.test(runId) || !fs20.existsSync(runDir)) throw new Error(`There is no run folder .qa/reports/${runId} in this project.`);
   const sweep = readSweepResults(runDir);
   if (!sweep) throw new Error(`Run ${runId} has no sweep (data/sweep.json), so there are no pictures to accept. Run \`qamind sweep run --run ${runId}\` inside a QA run first.`);
@@ -14616,7 +15010,7 @@ function acceptBaselines(scope, runId, opts2 = {}) {
         out.skipped.push({ page: v.page, browser: v.browser, viewport: v.viewport, reason: v.error ?? "no picture was taken" });
         continue;
       }
-      const file3 = path39.join(runDir, v.screenshot);
+      const file3 = path41.join(runDir, v.screenshot);
       if (!fs20.existsSync(file3)) {
         out.skipped.push({ page: v.page, browser: v.browser, viewport: v.viewport, reason: "the picture is no longer in the run folder" });
         continue;
@@ -14633,7 +15027,7 @@ function baselineStatus(scope) {
   return { count: s.count, pages: s.pages, entries: s.entries.map((e) => ({ page: e.page, role: e.role, browser: e.browser, viewport: e.viewport, accepted_run: e.accepted_run, accepted_at: e.accepted_at })) };
 }
 function sweepPerfPoints(runDir) {
-  const sweep = readJson(path39.join(runDir, "data", "sweep.json"));
+  const sweep = readJson(path41.join(runDir, "data", "sweep.json"));
   if (!sweep) return [];
   return sweep.visits.filter((v) => !v.error && v.settled_ms !== void 0 && !v.signals.some((s) => s.kind === "never-settled")).map((v) => ({ key: `page|${v.page}|${v.role ?? "-"}|${v.browser}|${v.viewport}`, ms: v.settled_ms }));
 }
@@ -14645,11 +15039,11 @@ function realOrResolved(p) {
   try {
     return fs21.realpathSync(p);
   } catch {
-    return path40.resolve(p);
+    return path42.resolve(p);
   }
 }
 function browserStatus(home, projectRoot, expectedNames) {
-  const state = readJson(path40.join(home, "state", "browser-state.json"));
+  const state = readJson(path42.join(home, "state", "browser-state.json"));
   const key = Object.keys(state ?? {}).find((k) => realOrResolved(k) === realOrResolved(projectRoot));
   if (!state || !key) {
     return {
@@ -14670,12 +15064,12 @@ function browserStatus(home, projectRoot, expectedNames) {
 }
 function copyIfMissing(from, to, created) {
   if (exists(to)) return;
-  ensureDir(path40.dirname(to));
+  ensureDir(path42.dirname(to));
   fs21.copyFileSync(from, to);
   created.push(to);
 }
 function markerPath(store) {
-  return path40.join(storeSubdirs(store).state, RUN_MARKER_FILE);
+  return path42.join(storeSubdirs(store).state, RUN_MARKER_FILE);
 }
 function readMarker(store) {
   return readJson(markerPath(store));
@@ -14689,7 +15083,7 @@ function findActiveMarkers(home, now = /* @__PURE__ */ new Date()) {
   const out = [];
   for (const entry of fs21.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const m = readJson(path40.join(root, entry.name, "state", RUN_MARKER_FILE));
+    const m = readJson(path42.join(root, entry.name, "state", RUN_MARKER_FILE));
     if (m && !isExpired(m, now)) out.push(m);
   }
   return out;
@@ -14703,7 +15097,7 @@ function scanAllMarkers(home) {
   const out = [];
   for (const entry of fs21.readdirSync(root, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
-    const m = readJson(path40.join(root, entry.name, "state", RUN_MARKER_FILE));
+    const m = readJson(path42.join(root, entry.name, "state", RUN_MARKER_FILE));
     if (m) out.push(m);
   }
   return out;
@@ -14711,7 +15105,7 @@ function scanAllMarkers(home) {
 function startRun(opts2) {
   const env = opts2.env ?? process.env;
   const now = opts2.now ?? /* @__PURE__ */ new Date();
-  const root = path40.resolve(opts2.project ?? opts2.cwd);
+  const root = path42.resolve(opts2.project ?? opts2.cwd);
   const ticketRef = opts2.ticket ? cleanRef(opts2.ticket) : void 0;
   if (opts2.mode === "ticket" && !ticketRef) throw new Error('Ticket mode needs the ticket to test: pass ticket (an id, an address, a file path, or "pasted text").');
   if (ticketRef && opts2.mode !== "ticket") throw new Error(`A ticket was given, so the mode is "ticket" (found "${opts2.mode}").`);
@@ -14729,13 +15123,13 @@ function startRun(opts2) {
   const { store } = ensureProjectStore(opts2.home, info, now);
   ensureMigrated(store);
   const projectOut = { id: info.id, name: info.name, root: info.root, id_source: info.idSource, store };
-  const configFile = path40.join(root, ".qa", "config.md");
+  const configFile = path42.join(root, ".qa", "config.md");
   const gitignoreAdded = env["QAMIND_TRIGGER"] === "ci" || opts2.trigger === "ci" ? [] : ensureGitignoreEntries(root);
   if (!exists(configFile)) {
     const created = [];
     const core = corePath();
-    copyIfMissing(path40.join(core, "shared", "templates", "config.md"), configFile, created);
-    copyIfMissing(path40.join(core, "shared", "templates", "env.qa.example"), path40.join(root, ".env.qa.example"), created);
+    copyIfMissing(path42.join(core, "shared", "templates", "config.md"), configFile, created);
+    copyIfMissing(path42.join(core, "shared", "templates", "env.qa.example"), path42.join(root, ".env.qa.example"), created);
     return {
       status: "needs-config",
       message: "First run in this project: QAMind created .qa/config.md and .env.qa.example and added .qa/ and .env.qa to .gitignore. Fill in .qa/config.md (every REPLACE_ME), copy .env.qa.example to .env.qa and add the TEST account logins, then run QA again. Nothing was tested.",
@@ -14787,10 +15181,10 @@ function startRun(opts2) {
     }
   }
   let runId = `run-${utcStamp(now)}`;
-  const reports = path40.join(root, ".qa", "reports");
-  for (let n = 2; exists(path40.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
-  const runDir = path40.join(reports, runId);
-  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path40.join(runDir, sub));
+  const reports = path42.join(root, ".qa", "reports");
+  for (let n = 2; exists(path42.join(reports, runId)); n++) runId = `run-${utcStamp(now)}-${n}`;
+  const runDir = path42.join(reports, runId);
+  for (const sub of ["screenshots", "evidence", "data"]) ensureDir(path42.join(runDir, sub));
   const criticalFlows = parseCriticalFlows(check.body ?? "");
   const stack = detectStack(root, now);
   saveStack(storeSubdirs(store).memory, stack);
@@ -14819,6 +15213,7 @@ function startRun(opts2) {
     expires: new Date(now.getTime() + MARKER_TTL_HOURS * 36e5).toISOString(),
     policy,
     ...budget.time_minutes !== void 0 || budget.max_cost !== void 0 ? { budget } : {},
+    ...config.integrations.linear || config.integrations.sentry ? { integrations: { ...config.integrations.linear ? { linear: { team: config.integrations.linear.team, ...config.integrations.linear.project ? { project: config.integrations.linear.project } : {} } } : {}, ...config.integrations.sentry ? { sentry: { environments: config.integrations.sentry.environments } } : {} } } : {},
     ...!readonly && opts2.kind === "qa" ? { fix: { do_not_touch: config.fix_policy.do_not_touch, max_fixes: config.fix_policy.max_fixes, severities: config.fix_policy.fix_severities } } : {}
   };
   writeJson(markerPath(store), marker);
@@ -14835,6 +15230,7 @@ function startRun(opts2) {
     ...opts2.focus ? { focus: opts2.focus } : {},
     ...ticketRef ? { ticket_ref: ticketRef } : {},
     release_rules: config.release.rules,
+    ...config.integrations.linear || config.integrations.sentry ? { integrations: { ...config.integrations.linear ? { linear: { team: config.integrations.linear.team } } : {}, ...config.integrations.sentry ? { sentry: { environments: config.integrations.sentry.environments } } : {} } } : {},
     started: now.toISOString(),
     critical_flows: criticalFlows,
     ...git4.branch ? { branch: git4.branch } : {},
@@ -14842,13 +15238,13 @@ function startRun(opts2) {
     agent_version: QAMIND_VERSION,
     knowledge_version: KNOWLEDGE_VERSION
   };
-  writeJson(path40.join(runDir, "data", "meta.json"), meta);
+  writeJson(path42.join(runDir, "data", "meta.json"), meta);
   return {
     status: "ready",
     message: "Ready. Credentials are present for the roles listed (values are never shown).",
     project: projectOut,
     gitignore_added: gitignoreAdded,
-    run: { id: runId, dir: runDir, mode: opts2.mode, ...opts2.focus ? { focus: opts2.focus } : {}, ...ticketRef ? { ticket: ticketRef } : {}, readonly, report: path40.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...budget.time_minutes !== void 0 ? { time_minutes: budget.time_minutes } : {}, ...budget.max_cost !== void 0 ? { max_cost: budget.max_cost } : {}, ...budget.deadline ? { deadline: budget.deadline } : {} } },
+    run: { id: runId, dir: runDir, mode: opts2.mode, ...opts2.focus ? { focus: opts2.focus } : {}, ...ticketRef ? { ticket: ticketRef } : {}, readonly, report: path42.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...budget.time_minutes !== void 0 ? { time_minutes: budget.time_minutes } : {}, ...budget.max_cost !== void 0 ? { max_cost: budget.max_cost } : {}, ...budget.deadline ? { deadline: budget.deadline } : {} }, ...config.integrations.linear || config.integrations.sentry ? { integrations: { ...config.integrations.linear ? { linear: { team: config.integrations.linear.team } } : {}, ...config.integrations.sentry ? { sentry: { projects: config.integrations.sentry.projects, environments: config.integrations.sentry.environments } } : {} } } : {} },
     config: {
       environment: config.environment.name,
       web_uis: config.web_uis,
@@ -14883,12 +15279,12 @@ function finishRun(opts2) {
     started: marker.started,
     trigger: marker.trigger,
     budgetOver: budgetStatus(marker.budget, marker.started, now).state === "over",
-    environmentBroken: (readJson(path40.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) === false,
+    environmentBroken: (readJson(path42.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) === false,
     findings: prior.findings
   });
   if (gate.problem) throw new Error(gate.problem);
   const lifeResult = applyRunLifecycle(marker.store, marker.run_dir, marker.run_id, now);
-  if ((readJson(path40.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) !== false) {
+  if ((readJson(path42.join(marker.run_dir, "data", "health.json"))?.environment_ok ?? true) !== false) {
     const points = [...sweepPerfPoints(marker.run_dir), ...apiPerfPoints(marker.run_dir)];
     if (points.length) withStoreLock(marker.store, () => recordPerf(marker.store, points, marker.run_id, now));
   }
@@ -14899,8 +15295,8 @@ function finishRun(opts2) {
   const journeys = flowStatus(data);
   const started = new Date(marker.started).getTime();
   const duration_s = Math.max(0, Math.round((now.getTime() - started) / 1e3));
-  const meta = readJson(path40.join(marker.run_dir, "data", "meta.json"));
-  const health = readJson(path40.join(marker.run_dir, "data", "health.json"));
+  const meta = readJson(path42.join(marker.run_dir, "data", "meta.json"));
+  const health = readJson(path42.join(marker.run_dir, "data", "health.json"));
   const stop_reason = opts2.stopReason ?? (health && health.environment_ok === false ? "environment problem" : "completed");
   const usage = parseUsage(opts2.cost, duration_s);
   const bstat = budgetStatus(marker.budget, marker.started, now);
@@ -14943,7 +15339,7 @@ function finishRun(opts2) {
     knowledge_version: KNOWLEDGE_VERSION,
     ...meta?.branch ? { branch: meta.branch } : {},
     ...meta?.commit ? { commit: meta.commit } : {},
-    report: path40.join(marker.run_dir, "TECHNICAL-REPORT.md")
+    report: path42.join(marker.run_dir, "TECHNICAL-REPORT.md")
   };
   const config = checkConfigFile(marker.project_root, process.env).config;
   const memory = applyRunToMemory({
@@ -14955,14 +15351,14 @@ function finishRun(opts2) {
     roles: (config?.roles ?? []).map((r) => r.name),
     uiUrls: Object.fromEntries((config?.web_uis ?? []).map((u) => [u.name, u.url]))
   });
-  if (meta) writeJson(path40.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...budgetOutcome ? { budget: budgetOutcome } : {}, ...prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...prep.restore ? { restored: prep.restore.ok } : {} } } : {}, bank_saved: gate.saved, ...gate.skipped_reason ? { bank_skipped: gate.skipped_reason } : {}, memory_updated: memory.updated });
+  if (meta) writeJson(path42.join(marker.run_dir, "data", "meta.json"), { ...meta, finished: summary.finished, duration_s, stop_reason, cost: summary.cost, usage, ...budgetOutcome ? { budget: budgetOutcome } : {}, ...prep?.ran ? { environment_prep: { prepared: true, why: prep.why, steps: prep.steps.map((x) => `${x.name} ${x.ok ? "ok" : "failed"}`), snapshot_taken: prep.snapshot_taken, ...prep.restore ? { restored: prep.restore.ok } : {} } } : {}, bank_saved: gate.saved, ...gate.skipped_reason ? { bank_skipped: gate.skipped_reason } : {}, memory_updated: memory.updated });
   summary.memory_updated = [...lifeResult.lines, ...memory.updated];
   const fixState = loadFixState(marker.run_dir);
   if (fixState) {
     const by = (o) => fixState.attempts.filter((a) => a.status === o).length;
     summary.fixes = { branch: fixState.branch, base_commit: fixState.base_commit.slice(0, 7), verified: by("verified"), best_effort: by("best-effort"), reverted: by("reverted"), deferred: by("deferred"), commits: fixState.attempts.filter((a) => a.commit && (a.status === "verified" || a.status === "best-effort")).map((a) => a.commit).map((c) => c.slice(0, 7)), suite: fixState.comparison?.verdict ?? "not-run" };
   }
-  writeJson(path40.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
+  writeJson(path42.join(storeSubdirs(marker.store).runs, `${marker.run_id}.json`), summary);
   if (!health || health.environment_ok !== false) {
     withStoreLock(marker.store, () => recordRunMetrics(marker.store, metricFromRun(data, { finished: summary.finished, duration_s, ...usage.cost_usd !== void 0 ? { cost_usd: usage.cost_usd } : {}, ...usage.tokens !== void 0 ? { tokens: usage.tokens } : {}, tests_saved: gate.saved }, observedCounts(marker.run_dir))));
   }
@@ -14974,7 +15370,7 @@ function finishRun(opts2) {
 }
 
 // core/lib/runctx.ts
-import path41 from "node:path";
+import path43 from "node:path";
 function loadRunContext(home, runId, env = process.env) {
   if (!runId) throw new Error("--run <run-id> is required (use the id printed by `run start`).");
   const marker = findMarkerByRunId(home, runId);
@@ -14992,7 +15388,7 @@ function loadRunContext(home, runId, env = process.env) {
   return {
     marker,
     projectRoot: marker.project_root,
-    runDir: path41.resolve(marker.run_dir),
+    runDir: path43.resolve(marker.run_dir),
     config: check.config,
     policy: marker.policy,
     roles,
@@ -15002,7 +15398,7 @@ function loadRunContext(home, runId, env = process.env) {
 
 // core/lib/memory/context.ts
 import fs23 from "node:fs";
-import path43 from "node:path";
+import path45 from "node:path";
 
 // core/lib/memory/fixlog.ts
 function loadFixLog(store) {
@@ -15018,7 +15414,7 @@ function recentFixes(store, limit = 8) {
 // core/lib/memory/lessons.ts
 import crypto3 from "node:crypto";
 import fs22 from "node:fs";
-import path42 from "node:path";
+import path44 from "node:path";
 var PENDING_FILE = "pending-lessons.md";
 var APPROVED_FILE = "global-lessons.md";
 var REJECTED_FILE = "rejected-lessons.jsonl";
@@ -15026,7 +15422,7 @@ var USE_FILE = "lesson-use.json";
 var MAX_PENDING = 100;
 var MAX_LOADED = 25;
 var MERGE_AT2 = 0.6;
-var one7 = (s) => s.replace(/\s+/g, " ").trim();
+var one8 = (s) => s.replace(/\s+/g, " ").trim();
 var NOT_GENERIC = [
   [/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/, "an email address"],
   [/https?:\/\/|\bwww\./i, "a web address"],
@@ -15036,10 +15432,10 @@ var NOT_GENERIC = [
   [/\b[A-Z][A-Z0-9]{1,9}-\d{1,6}\b/, "a ticket or issue id"],
   [/\b(?:ISSUE|RUN|run)-\d+|\brun-\d{8}T/i, "a QAMind run or issue id"]
 ];
-function genericProblems(text3, ctx = {}) {
+function genericProblems(text4, ctx = {}) {
   const problems = [];
-  for (const [re, what] of NOT_GENERIC) if (re.test(text3)) problems.push(`mentions ${what}`);
-  const lower2 = text3.toLowerCase();
+  for (const [re, what] of NOT_GENERIC) if (re.test(text4)) problems.push(`mentions ${what}`);
+  const lower2 = text4.toLowerCase();
   for (const name of ctx.projectNames ?? []) {
     const n = name.trim().toLowerCase();
     if (n.length >= 4 && new RegExp(`(^|[^\\p{L}\\p{N}])${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^\\p{L}\\p{N}]|$)`, "u").test(lower2)) problems.push(`names this project ("${name.trim()}")`);
@@ -15050,16 +15446,16 @@ function knownProjectNames(home, extra = []) {
   const names = new Set(extra);
   for (const p of listKnownProjects(home)) {
     names.add(p.name);
-    for (const seen of p.paths_seen) names.add(path42.basename(seen));
+    for (const seen of p.paths_seen) names.add(path44.basename(seen));
   }
   return [...names].filter((n) => n.trim().length > 0);
 }
-var hashId = (text3) => `H-${crypto3.createHash("sha1").update(one7(text3).toLowerCase()).digest("hex").slice(0, 6)}`;
+var hashId = (text4) => `H-${crypto3.createHash("sha1").update(one8(text4).toLowerCase()).digest("hex").slice(0, 6)}`;
 var HEADER = /^##\s+(.*)$/;
 var LESSON_LINE = /^-\s+\*\*Lesson:\*\*\s*(.+)$/;
 var WHY_LINE = /^-\s+\*\*Why:\*\*\s*(.+)$/;
 var PLAIN_BULLET = /^-\s+(?!\*\*)(.{20,})$/;
-function parseLessons(text3) {
+function parseLessons(text4) {
   const preamble = [];
   const blocks = [];
   let cur;
@@ -15071,7 +15467,7 @@ function parseLessons(text3) {
     else preamble.push(...cur.lines);
     cur = void 0;
   };
-  for (const line of text3.split(/\r?\n/)) {
+  for (const line of text4.split(/\r?\n/)) {
     const h = HEADER.exec(line);
     if (h) {
       flush();
@@ -15110,10 +15506,10 @@ function parseLessons(text3) {
 }
 var readFile = (file3) => parseLessons(fs22.existsSync(file3) ? fs22.readFileSync(file3, "utf8") : "");
 var entryOf = ({ lines: _l, ...e }) => e;
-function writeText(file3, text3) {
-  ensureDir(path42.dirname(file3));
+function writeText(file3, text4) {
+  ensureDir(path44.dirname(file3));
   const tmp = `${file3}.${process.pid}.tmp`;
-  fs22.writeFileSync(tmp, text3, "utf8");
+  fs22.writeFileSync(tmp, text4, "utf8");
   fs22.renameSync(tmp, file3);
 }
 var render = (p, extra = []) => {
@@ -15129,56 +15525,56 @@ var approvedHeader = `# Global lessons
 
 Lessons you approved. **Every QAMind project reads this file** (the newest ${MAX_LOADED} at most, best-used first), so each entry must help on any project: no project names, web addresses, files, tickets or code.
 An entry that breaks that rule is not loaded, and the review says why. You can add, edit or delete entries by hand.`;
-var rejectedRecords = (home) => readJsonl(path42.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
+var rejectedRecords = (home) => readJsonl(path44.join(home, REJECTED_FILE)).records.filter((r) => typeof r.text === "string");
 function appendRejected(home, rec) {
-  const file3 = path42.join(home, REJECTED_FILE);
+  const file3 = path44.join(home, REJECTED_FILE);
   const prior = readJsonl(file3);
   writeJsonl(file3, "rejected-lessons", [...prior.records, rec], prior.unparsed);
 }
 var allIds = (home) => {
-  const approved = readFile(path42.join(home, APPROVED_FILE)).blocks;
+  const approved = readFile(path44.join(home, APPROVED_FILE)).blocks;
   const origins = approved.flatMap((b) => b.lines.flatMap((l) => [...l.matchAll(/\(was ([A-Z]-\d+)\)/g)].map((m) => m[1])));
-  return [...readFile(path42.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
+  return [...readFile(path44.join(home, PENDING_FILE)).blocks, ...approved].map((b) => b.id).concat(origins, rejectedRecords(home).map((r) => r.id));
 };
 function listPendingLessons(home) {
-  return readFile(path42.join(home, PENDING_FILE)).blocks.map(entryOf);
+  return readFile(path44.join(home, PENDING_FILE)).blocks.map(entryOf);
 }
 function approveLesson(home, id, opts2 = {}) {
-  const pendingFile = path42.join(home, PENDING_FILE);
-  const approvedFile = path42.join(home, APPROVED_FILE);
+  const pendingFile = path44.join(home, PENDING_FILE);
+  const approvedFile = path44.join(home, APPROVED_FILE);
   return withStoreLock(home, () => {
     const pending = readFile(pendingFile);
     const at = pending.blocks.findIndex((b) => b.id === id);
     if (at < 0) throw new Error(`No pending lesson ${id}.${pending.blocks.length ? ` Pending: ${pending.blocks.map((b) => b.id).join(", ")}.` : " Nothing is pending."}`);
     const block = pending.blocks[at];
-    const text3 = one7(opts2.text ?? block.text);
-    if (text3.length < 20 || text3.length > 280) throw new Error("A lesson is one generic statement of 20 to 280 characters.");
-    const problems = [...genericProblems(`${text3} ${block.reason ?? ""} ${block.area ?? ""}`, { projectNames: knownProjectNames(home) }), ...screenForSecretsAndPii(text3).map((p) => p)];
+    const text4 = one8(opts2.text ?? block.text);
+    if (text4.length < 20 || text4.length > 280) throw new Error("A lesson is one generic statement of 20 to 280 characters.");
+    const problems = [...genericProblems(`${text4} ${block.reason ?? ""} ${block.area ?? ""}`, { projectNames: knownProjectNames(home) }), ...screenForSecretsAndPii(text4).map((p) => p)];
     if (problems.length) throw new Error(`${id} cannot be approved as written: it ${[...new Set(problems)].join("; ")}. Every project reads approved lessons, so reword it (describe the kind of problem, not this product) and approve it again with the new text.`);
     const approved = readFile(approvedFile);
-    const dup = approved.blocks.map((b) => ({ b, s: similarity(b.text, text3) })).filter((x) => x.s >= MERGE_AT2).sort((a, b) => b.s - a.s)[0];
+    const dup = approved.blocks.map((b) => ({ b, s: similarity(b.text, text4) })).filter((x) => x.s >= MERGE_AT2).sort((a, b) => b.s - a.s)[0];
     if (dup) throw new Error(`${id} is a near copy of the approved lesson ${dup.b.id} ("${dup.b.text}"). Reject ${id} instead of approving it twice.`);
     const newId = nextId("G", allIds(home));
     const date = (opts2.now ?? /* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-    const lines = [`## ${newId} \xB7 ${date}${block.area ? ` \xB7 ${block.area}` : ""}`, `- **Lesson:** ${text3}`, ...block.reason ? [`- **Why:** ${block.reason}`] : [], `- **Approved:** ${date} (was ${id})`];
-    approved.blocks.push({ id: newId, text: text3, ...block.reason ? { reason: block.reason } : {}, date, ...block.area ? { area: block.area } : {}, lines });
+    const lines = [`## ${newId} \xB7 ${date}${block.area ? ` \xB7 ${block.area}` : ""}`, `- **Lesson:** ${text4}`, ...block.reason ? [`- **Why:** ${block.reason}`] : [], `- **Approved:** ${date} (was ${id})`];
+    approved.blocks.push({ id: newId, text: text4, ...block.reason ? { reason: block.reason } : {}, date, ...block.area ? { area: block.area } : {}, lines });
     if (approved.preamble.join("").trim() === "") approved.preamble = approvedHeader.split("\n");
     writeText(approvedFile, render(approved));
     pending.blocks.splice(at, 1);
     writeText(pendingFile, render(pending));
-    return { action: "approved", id, new_id: newId, text: text3, file: approvedFile };
+    return { action: "approved", id, new_id: newId, text: text4, file: approvedFile };
   });
 }
 function rejectLesson(home, id, reason, now = /* @__PURE__ */ new Date()) {
-  const pendingFile = path42.join(home, PENDING_FILE);
-  const approvedFile = path42.join(home, APPROVED_FILE);
+  const pendingFile = path44.join(home, PENDING_FILE);
+  const approvedFile = path44.join(home, APPROVED_FILE);
   return withStoreLock(home, () => {
     for (const [file3, was] of [[pendingFile, "pending"], [approvedFile, "approved"]]) {
       const parsed = readFile(file3);
       const at = parsed.blocks.findIndex((b) => b.id === id);
       if (at < 0) continue;
       const block = parsed.blocks[at];
-      const why = reason ? one7(reason).slice(0, 280) : void 0;
+      const why = reason ? one8(reason).slice(0, 280) : void 0;
       parsed.blocks.splice(at, 1);
       writeText(file3, render(parsed));
       appendRejected(home, { id, text: block.text, ...why ? { reason: why } : {}, was, rejected_at: now.toISOString() });
@@ -15189,14 +15585,14 @@ function rejectLesson(home, id, reason, now = /* @__PURE__ */ new Date()) {
 }
 var readLessonUse = (home) => {
   try {
-    const v = readJson(path42.join(home, USE_FILE));
+    const v = readJson(path44.join(home, USE_FILE));
     return v && typeof v === "object" && !Array.isArray(v) ? v : {};
   } catch {
     return {};
   }
 };
 function loadApprovedLessons(home, ctx = {}) {
-  const entries = readFile(path42.join(home, APPROVED_FILE)).blocks;
+  const entries = readFile(path44.join(home, APPROVED_FILE)).blocks;
   const use = readLessonUse(home);
   const ok = [];
   const skipped = [];
@@ -15216,7 +15612,7 @@ function loadApprovedLessons(home, ctx = {}) {
   };
 }
 function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
-  const approved = new Set(readFile(path42.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
+  const approved = new Set(readFile(path44.join(home, APPROVED_FILE)).blocks.map((b) => b.id));
   const unique = [...new Set(ids)];
   const recorded = unique.filter((i) => approved.has(i));
   const unknown = unique.filter((i) => !approved.has(i));
@@ -15225,7 +15621,7 @@ function recordLessonUse(home, ids, now = /* @__PURE__ */ new Date()) {
     withStoreLock(home, () => {
       const use = readLessonUse(home);
       for (const id of recorded) use[id] = { hits: (use[id]?.hits ?? 0) + 1, last_applied: now.toISOString() };
-      writeJson(path42.join(home, USE_FILE), use);
+      writeJson(path44.join(home, USE_FILE), use);
     });
   }
   return { recorded, unknown };
@@ -15236,7 +15632,7 @@ function lessonOverview(home, ctx = {}) {
   const skipped = new Map(loaded.skipped.map((s) => [s.id, s.problems]));
   return {
     pending: listPendingLessons(home),
-    approved: readFile(path42.join(home, APPROVED_FILE)).blocks.map((b) => ({ ...entryOf(b), hits: use[b.id]?.hits ?? 0, ...use[b.id]?.last_applied ? { last_applied: use[b.id]?.last_applied } : {}, loaded: !skipped.has(b.id) && loaded.lessons.some((l) => l.id === b.id), ...skipped.has(b.id) ? { not_loaded_because: skipped.get(b.id) } : {} })),
+    approved: readFile(path44.join(home, APPROVED_FILE)).blocks.map((b) => ({ ...entryOf(b), hits: use[b.id]?.hits ?? 0, ...use[b.id]?.last_applied ? { last_applied: use[b.id]?.last_applied } : {}, loaded: !skipped.has(b.id) && loaded.lessons.some((l) => l.id === b.id), ...skipped.has(b.id) ? { not_loaded_because: skipped.get(b.id) } : {} })),
     rejected: rejectedRecords(home).map((r) => ({ id: r.id, text: r.text, ...r.reason ? { reason: r.reason } : {}, was: r.was, rejected_at: r.rejected_at })),
     limits: { max_pending: MAX_PENDING, max_loaded: MAX_LOADED }
   };
@@ -15248,7 +15644,7 @@ var MAX_PAGES_SHOWN = 40;
 function recentRunSummaries(store, limit = 3) {
   const dir = memoryPaths(store).runs;
   if (!fs23.existsSync(dir)) return [];
-  return fs23.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path43.join(dir, f))).filter((r) => !!r);
+  return fs23.readdirSync(dir).filter((f) => f.endsWith(".json")).sort((a, b) => a.replace(/\.json$/, "").localeCompare(b.replace(/\.json$/, ""))).reverse().slice(0, limit).map((f) => readJson(path45.join(dir, f))).filter((r) => !!r);
 }
 function loadMemoryContext(store, limit = 3, now = /* @__PURE__ */ new Date(), opts2 = {}) {
   const paths = memoryPaths(store);
@@ -15310,7 +15706,7 @@ function defaultProjectDir(env = process.env, cwd = process.cwd()) {
 }
 function projectScope(home, opts2 = {}) {
   const env = opts2.env ?? process.env;
-  const root = path44.resolve(opts2.project ?? defaultProjectDir(env, opts2.cwd ?? process.cwd()));
+  const root = path46.resolve(opts2.project ?? defaultProjectDir(env, opts2.cwd ?? process.cwd()));
   let info;
   try {
     info = resolveProject(root);
@@ -15323,7 +15719,7 @@ function projectScope(home, opts2 = {}) {
 }
 var secretsOf = (s) => s.ctx.passwords;
 function projectNamesOf(scope) {
-  return scope.kind === "run" ? [path44.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path44.basename(scope.project.root)];
+  return scope.kind === "run" ? [path46.basename(scope.ctx.projectRoot), ...scope.ctx.config.web_uis.map((u) => u.name)] : [scope.project.name, path46.basename(scope.project.root)];
 }
 function getContext(scope, limit = 3) {
   const ctx = loadMemoryContext(scope.store, limit, /* @__PURE__ */ new Date(), { home: scope.home, projectNames: projectNamesOf(scope) });
@@ -15453,7 +15849,7 @@ function num(v, name, fallback) {
 
 // cli/src/coverage.ts
 var list = (v) => typeof v === "string" && v.trim() ? v.split(",").map((s) => s.trim()).filter(Boolean) : void 0;
-var clip4 = (s, n) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
+var clip5 = (s, n) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
 async function cmdSweep(sub, rest, home) {
   const { values } = opts(rest, { run: { type: "string" }, browsers: { type: "string" }, viewports: { type: "string" }, pages: { type: "string" } });
   if (sub !== "run" && sub !== "check") throw new UsageError("sweep needs a subcommand: run | check (both with --run ID)");
@@ -15479,7 +15875,7 @@ async function cmdSweep(sub, rest, home) {
     unavailable_browsers: results.unavailable,
     skipped: results.skipped.slice(0, 30),
     ...results.budget_reached ? { budget_reached: true } : {},
-    leads: results.groups.slice(0, 60).map((g) => ({ page: g.page, title: g.title, kind: g.kind, where: g.scope, detail: clip4(g.detail, 240), seen_on: g.seen_on.map((s) => `${s.browser} ${s.viewport}`), evidence: firstShot(g.page, g.seen_on) })),
+    leads: results.groups.slice(0, 60).map((g) => ({ page: g.page, title: g.title, kind: g.kind, where: g.scope, detail: clip5(g.detail, 240), seen_on: g.seen_on.map((s) => `${s.browser} ${s.viewport}`), evidence: firstShot(g.page, g.seen_on) })),
     slow_or_slower: groupPerf(results.perf).map((p) => ({ page: p.page, kind: p.kind, slowest_ms: p.ms, budget_ms: p.budget_ms, ...p.previous_ms !== void 0 ? { previous_ms: p.previous_ms } : {}, seen_on: p.seen_on, message: p.message })),
     visual: { ...results.visual_summary, differences: results.visits.filter((v) => v.visual?.state === "different").map((v) => ({ page: v.page, role: v.role, browser: v.browser, viewport: v.viewport, percent: v.visual?.percent, impact: v.visual?.impact, before: v.visual?.before, after: v.visual?.after, diff: v.visual?.diff })) },
     notes: results.notes,
@@ -15618,8 +16014,349 @@ function cmdTicket(sub, rest, home) {
 }
 
 // cli/src/metrics.ts
+import os4 from "node:os";
+
+// cli/src/integrations.ts
+import fs24 from "node:fs";
 import os3 from "node:os";
+import path48 from "node:path";
+
+// core/lib/tracker-plan.ts
+import path47 from "node:path";
+var one9 = (s) => s.replace(/\s+/g, " ").trim();
+var SEV2 = { critical: "Critical", important: "Important", minor: "Minor" };
+function bodyOf2(f, bug, fingerprint, runId, status2) {
+  const where = [f.surface, f.ui, f.roles?.length ? `as ${f.roles.join(", ")}` : "", f.browser, f.viewport].filter(Boolean).join(" \xB7 ");
+  const L = [
+    `**${SEV2[f.severity]}** \xB7 ${f.area}${where ? ` \xB7 ${where}` : ""}`,
+    status2 === "regressed" ? "\n\u26A0\uFE0F **This bug had been fixed and has come back.**" : "",
+    "",
+    "## What is wrong",
+    f.summary,
+    "",
+    "## Steps to reproduce",
+    ...f.steps.map((s, i) => `${i + 1}. ${s}`),
+    "",
+    `**Expected:** ${f.expected}`,
+    `**Actual:** ${f.actual}`,
+    "",
+    `Reproduced ${f.reproduced.times} of ${f.reproduced.of} times.`
+  ];
+  if (f.suspected_cause) L.push("", `**Suspected cause:** ${f.suspected_cause}`);
+  if (f.evidence.length) L.push("", `Evidence (kept with the QA run, not attached here): ${f.evidence.slice(0, 6).map((e) => `\`${e}\``).join(", ")}`);
+  L.push("", "---", `Found by QAMind in ${runId}. QAMind bug: ${bug} \xB7 fingerprint: ${fingerprint}`);
+  return L.filter((x, i, a) => !(x === "" && a[i - 1] === "")).join("\n");
+}
+var STEPS_ASK = [
+  'Check that a Linear tool is connected in this session (one that can search issues and create or update them). If none is, run `tracker skip --reason "no Linear tool is connected in this session"` and stop.',
+  'Ask the person ONCE, showing the tickets below (issue, title, severity, and whether it is new or an update). If they say no, run `tracker skip --reason "the person chose not to create tickets"` and stop. Do nothing in Linear before they say yes.'
+];
+var STEPS_WORK = [
+  "For each ticket without `known_ticket`: search Linear (`team` and the fingerprint text from the last line of `description`, open issues only). One found: add `update_comment` to it as a comment and record it with `tracker record --action updated`. None found: create the issue (`team`, `title`, `description`, `priority`, `labels` that exist, `project` when set) and record it with `--action created`.",
+  "For each ticket with `known_ticket`: read that ticket. Still open: add `update_comment` to it and record `--action updated`. Closed (done or canceled) and the bug is `regressed` or `still-open`: search for another open ticket; none: create a new one that says in its first line it is a regression of the closed ticket, and record `--action created`. Never reopen, close, move, assign or delete a ticket yourself.",
+  "Record every ticket with `tracker record --run <id> --issue ISSUE-001 --action <created|updated|existing> --ticket ENG-123 --url <its address> --state <its state>`. Send only the text in the plan: no screenshots, no extra data, nothing from the product's pages."
+];
+function buildPlan(scope) {
+  const settings = scope.ctx.config.integrations.linear;
+  if (!settings) return { configured: false, message: "Linear is not configured. Add an `integrations.linear` block (team) to .qa/config.md to use it. Nothing was planned.", tickets: [], skipped: [], masked_values: 0, steps: [] };
+  const data = readRunData(scope.runDir);
+  const life = data.lifecycle;
+  const { eligible, skipped } = eligibleFindings(data.findings, life);
+  const store = scope.store;
+  const bugs = loadBugs(store).bugs;
+  const map = loadTicketMap(store);
+  const privacy = contextForRun(scope.runDir);
+  let masked = 0;
+  const safe2 = (s) => {
+    const r = maskText(s, privacy);
+    masked += r.count;
+    return r.text;
+  };
+  const tickets = eligible.map(({ finding: f, bug, status: status2 }) => {
+    const fp = bugs.find((b) => b.id === bug)?.fingerprint ?? fingerprintOf({ area: f.area, type: f.type, title: f.title, steps: f.steps });
+    const known = ticketForBug(map, bug);
+    const description = safe2(bodyOf2(f, bug, fp, scope.runId, status2)).slice(0, 6e3);
+    const title = safe2(`[QAMind] ${one9(f.title)}`).slice(0, 180);
+    const leaks = findSecretLeaks(`${title}
+${description}`, scope.ctx.passwords, { generic: true });
+    const t = {
+      issue: f.id,
+      bug,
+      fingerprint: fp,
+      severity: f.severity,
+      status: status2,
+      title,
+      priority: severityPriority(f.severity),
+      labels: settings.labels,
+      description,
+      ...known ? { known_ticket: { ticket: known.ticket, ...known.url ? { url: known.url } : {}, ...known.state ? { state: known.state } : {}, last_run: known.last_run } } : {},
+      update_comment: safe2(status2 === "regressed" ? `\u26A0\uFE0F QAMind found this again in ${scope.runId}: it had been fixed and has come back.` : `QAMind found this still open in ${scope.runId}.`),
+      ...leaks.length ? { blocked: `the text contains ${leaks[0]}: no ticket is made for it, and the finding's report needs the same cleaning` } : {}
+    };
+    return t;
+  });
+  const trigger = scope.ctx.marker.trigger;
+  const nobody = trigger !== "manual";
+  const steps = [];
+  if (nobody) steps.push(`This is ${trigger === "ci" ? "a CI" : "an automatic"} run: nobody is there to be asked, so no ticket is created or changed. Run \`tracker skip --run ${scope.runId} --reason "nobody was there to ask (${trigger === "ci" ? "CI" : "automatic"} run)"\`.`);
+  else if (settings.create === "never") steps.push('`integrations.linear.create` is `never`: only tickets that already exist (`known_ticket`, or found by the fingerprint search) are updated and linked; for a bug with none, run `tracker record --action skipped --reason "create is set to never"`. Do not ask.', ...STEPS_WORK);
+  else steps.push(...STEPS_ASK, ...STEPS_WORK);
+  if (tickets.some((t) => t.blocked)) steps.push("A ticket with `blocked` is not made: skip it with `tracker record --action skipped --reason <that reason>`.");
+  const ask = !nobody && settings.create === "ask" && tickets.length ? `Create or update ${tickets.length} Linear ${tickets.length === 1 ? "ticket" : "tickets"} in team ${settings.team}${settings.project ? `, project ${settings.project}` : ""}? ${tickets.map((t) => `${t.issue} (${t.severity}, ${t.known_ticket ? `update ${t.known_ticket.ticket}` : "new unless one already exists"})`).join("; ")}.` : void 0;
+  return {
+    configured: true,
+    team: settings.team,
+    ...settings.project ? { project: settings.project } : {},
+    create: settings.create,
+    trigger,
+    tickets,
+    skipped,
+    masked_values: masked,
+    ...ask ? { ask } : {},
+    steps: tickets.length ? steps : ["Nothing in this run needs a ticket (no Critical or Important bug that is not fixed and checked)."]
+  };
+}
+var lc = (s) => s.toLowerCase().trim();
+function applyTrackerStates(store, settings, states, by, now = /* @__PURE__ */ new Date()) {
+  const out = [];
+  const map = loadTicketMap(store);
+  for (const s of states) {
+    const ticket = String(s.ticket ?? "").trim().toUpperCase();
+    const entry = bugForTicket(map, ticket);
+    if (!entry) {
+      out.push({ ticket, result: "ignored", why: "QAMind did not create or link this ticket, so there is no bug to give feedback on." });
+      continue;
+    }
+    const names = [lc(s.state), ...(s.labels ?? []).map(lc)];
+    const hit = (list3) => names.find((n) => list3.includes(n));
+    const who = one9(s.by ?? "").length >= 2 ? one9(s.by) : by;
+    const at = s.at && !Number.isNaN(Date.parse(s.at)) ? new Date(s.at) : now;
+    const reason = one9(s.comment ?? "").slice(0, 200);
+    let verdict;
+    let value;
+    let note = "";
+    const nb = hit(settings.not_a_bug);
+    const wf = hit(settings.wont_fix);
+    if (nb) {
+      verdict = "not-a-bug";
+      note = `Closed in Linear (${ticket}) as "${nb}"${reason ? `: ${reason}` : ""}`;
+    } else if (wf) {
+      verdict = "wont-fix";
+      note = `Closed in Linear (${ticket}) as "${wf}"${reason ? `: ${reason}` : ""}`;
+    } else if (lc(s.state) === "duplicate" || s.duplicate_of) {
+      const parent = s.duplicate_of ? bugForTicket(map, s.duplicate_of.trim().toUpperCase()) : void 0;
+      if (parent && parent.bug !== entry.bug) {
+        verdict = "duplicate-of";
+        value = parent.bug;
+        note = `Closed in Linear (${ticket}) as a duplicate of ${parent.ticket}`;
+      }
+    }
+    noteTicketState(store, ticket, s.state, now);
+    if (!verdict) {
+      out.push({ ticket, bug: entry.bug, result: "noted", why: /^(done|completed|merged|released|shipped)$/.test(lc(s.state)) ? `The ticket is ${s.state}. That is not feedback: the next run checks the bug again by itself.` : `The ticket is "${s.state}", which does not say whether this is a bug or will be fixed: nothing is recorded. If it means one of them, give the feedback yourself (/qa-feedback ${entry.bug} ...).` });
+      continue;
+    }
+    const again = loadFeedback(store).records.some((r) => r.bug === entry.bug && r.verdict === verdict && r.via === "tracker");
+    if (again) {
+      out.push({ ticket, bug: entry.bug, result: "already-recorded", verdict, why: "This decision was already recorded." });
+      continue;
+    }
+    try {
+      const r = addFeedback(store, { target: entry.bug, verdict, ...value ? { value } : {}, note, by: who, via: "tracker" }, at);
+      out.push({ ticket, bug: entry.bug, result: "recorded", verdict, why: `${who} decided it in Linear.`, effects: r.effects });
+    } catch (e) {
+      out.push({ ticket, bug: entry.bug, result: "ignored", verdict, why: e.message });
+    }
+  }
+  return out;
+}
+var trackerStatus = (scope) => {
+  const settings = scope.ctx.config.integrations.linear;
+  const data = readRunData(scope.runDir);
+  const { eligible } = eligibleFindings(data.findings, data.lifecycle);
+  const file3 = readTicketsFile(scope.runDir);
+  return {
+    configured: !!settings,
+    ...settings ? { team: settings.team } : {},
+    linked: (file3?.links ?? []).map((l) => ({ issue: l.issue, ...l.ticket ? { ticket: l.ticket } : {}, action: l.action, ...l.reason ? { reason: l.reason } : {} })),
+    waiting: eligible.filter((e) => !file3?.links.some((l) => l.issue === e.finding.id)).map((e) => e.finding.id)
+  };
+};
+var readTrackerStatesFile = (file3) => {
+  const v = readJson(path47.resolve(file3));
+  if (!Array.isArray(v)) throw new Error(`${file3} must hold a JSON list of tickets: [{ "ticket": "ENG-12", "state": "Canceled", "labels": ["Not a bug"], "by": "Pat Quinn", "at": "2026-11-03T10:00:00Z", "comment": "works as designed" }].`);
+  return v.map((x, i) => {
+    if (typeof x !== "object" || x === null || typeof x.ticket !== "string" || typeof x.state !== "string") throw new Error(`Entry ${i + 1} of ${file3} needs a "ticket" (ENG-12) and a "state" (the state's name).`);
+    return x;
+  });
+};
+
+// cli/src/integrations.ts
+function sentryHints(root) {
+  const hints = [];
+  const pkg = readJson(path48.join(root, "package.json"));
+  const dep = Object.keys({ ...pkg?.dependencies ?? {}, ...pkg?.devDependencies ?? {} }).find((d) => d.startsWith("@sentry/"));
+  if (dep) hints.push(`package.json depends on ${dep}`);
+  for (const f of ["requirements.txt", "composer.json", "Gemfile", "go.mod", "pyproject.toml"]) {
+    try {
+      if (/sentry/i.test(fs24.readFileSync(path48.join(root, f), "utf8"))) hints.push(`${f} mentions Sentry`);
+    } catch {
+    }
+  }
+  for (const f of [".env.example", ".env.sample", ".env.template"]) {
+    try {
+      if (/^\s*SENTRY_DSN\s*=/m.test(fs24.readFileSync(path48.join(root, f), "utf8"))) hints.push(`${f} has SENTRY_DSN`);
+    } catch {
+    }
+  }
+  return hints;
+}
+var configOf = (root) => {
+  try {
+    return checkConfigFile(root).config;
+  } catch {
+    return void 0;
+  }
+};
+function cmdIntegrations(sub, rest, home) {
+  if (sub !== "status") throw new UsageError("integrations needs a subcommand: status [--project DIR]");
+  const { values } = opts(rest, { project: { type: "string" } });
+  const scope = projectScope(home, { ...values.project ? { project: values.project } : {} });
+  const config = configOf(scope.project.root);
+  const linear = config?.integrations.linear;
+  const sentry = config?.integrations.sentry;
+  const map = loadTicketMap(scope.store);
+  const hints = sentryHints(scope.project.root);
+  emit({
+    linear: linear ? { configured: true, team: linear.team, ...linear.project ? { project: linear.project } : {}, labels: linear.labels, create: linear.create, tickets_known: map.tickets.length, needs: "a Linear tool connected in this session (one that can search issues and create or comment on them)" } : { configured: false, how: "add `integrations: { linear: { team: <team key> } }` to .qa/config.md" },
+    sentry: sentry ? { configured: true, ...sentry.organization ? { organization: sentry.organization } : {}, projects: sentry.projects, test_environments: sentry.environments, production_environments: sentry.production_environments, needs: "a Sentry tool connected in this session (read only)" } : { configured: false, ...hints.length ? { looks_like_the_product_uses_sentry: hints, how: "add `integrations: { sentry: { projects: [...], environments: [staging] } }` to .qa/config.md" } : { how: "add `integrations: { sentry: { projects: [...], environments: [staging] } }` to .qa/config.md if the product reports to Sentry" } },
+    note: "QAMind stores no token for either service. It uses the tool your host has connected; with none connected, the run says so under Not tested and carries on."
+  });
+  return 0;
+}
+function cmdTracker(sub, rest, home) {
+  if (sub === "tickets") {
+    const { values: v } = opts(rest, { project: { type: "string" } });
+    const sc = projectScope(home, { ...v.project ? { project: v.project } : {} });
+    emit({ tickets: loadTicketMap(sc.store).tickets.map((t) => ({ ticket: t.ticket, bug: t.bug, ...t.url ? { url: t.url } : {}, ...t.state ? { state: t.state } : {}, last_run: t.last_run })) });
+    return 0;
+  }
+  const { values } = opts(rest, { run: { type: "string" }, issue: { type: "string" }, action: { type: "string" }, ticket: { type: "string" }, url: { type: "string" }, state: { type: "string" }, reason: { type: "string" } });
+  if (sub !== "plan" && sub !== "record" && sub !== "skip" && sub !== "status") throw new UsageError("tracker needs a subcommand: plan | record | skip | status (all with --run ID) | tickets [--project DIR]");
+  const scope = runScope(home, values.run);
+  const linear = scope.ctx.config.integrations.linear;
+  if (!linear) {
+    emit({ configured: false, message: "Linear is not configured: there is no integrations.linear in .qa/config.md. Nothing to do." });
+    return sub === "plan" || sub === "status" ? 0 : 1;
+  }
+  if (sub === "plan") {
+    emit(buildPlan(scope));
+    return 0;
+  }
+  if (sub === "status") {
+    emit(trackerStatus(scope));
+    return 0;
+  }
+  const life = readRunData(scope.runDir).lifecycle;
+  if (sub === "skip") {
+    if (!values.reason) throw new UsageError("tracker skip needs --reason: the person said no, nobody was there to ask (a CI or automatic run), no Linear tool was connected, ...");
+    const data = readRunData(scope.runDir);
+    const { eligible } = eligibleFindings(data.findings, life);
+    const already = readTicketsFile(scope.runDir)?.links.map((l) => l.issue) ?? [];
+    const todo = eligible.filter((e) => !already.includes(e.finding.id));
+    const done = withStoreLock(scope.store, () => todo.map((e) => recordTicket(scope.runDir, scope.store, scope.runId, linear.team, life, { issue: e.finding.id, action: "skipped", reason: values.reason })));
+    emit({ skipped: done.map((d) => d.issue), reason: done[0]?.reason ?? values.reason, note: done.length ? "The reports say no ticket was made for these, and why." : "Nothing was waiting for a ticket." });
+    return 0;
+  }
+  if (!values.issue || !values.action) throw new UsageError("tracker record needs --issue ISSUE-001 and --action created|updated|existing|skipped (and --ticket ENG-123 --url <address> --state <state>, or --reason for skipped)");
+  if (!TICKET_ACTIONS.includes(values.action)) throw new UsageError(`--action must be one of ${TICKET_ACTIONS.join(", ")}`);
+  const link = withStoreLock(scope.store, () => recordTicket(scope.runDir, scope.store, scope.runId, linear.team, life, { issue: values.issue, action: values.action, ...values.ticket ? { ticket: values.ticket } : {}, ...values.url ? { url: values.url } : {}, ...values.state ? { state: values.state } : {}, ...values.reason ? { reason: values.reason } : {} }));
+  emit({ recorded: link, note: "The reports link to it. The next run updates this bug's ticket instead of opening another." });
+  return 0;
+}
+function cmdFeedbackFromTracker(rest, home, who) {
+  const { values } = opts(rest, { project: { type: "string" }, file: { type: "string" }, by: { type: "string" } });
+  if (!values.file) throw new UsageError('feedback from-tracker needs --file F: a JSON list of what you read in Linear, [{ "ticket": "ENG-12", "state": "Canceled", "labels": ["Not a bug"], "by": "Pat Quinn", "at": "2026-11-03T10:00:00Z", "comment": "works as designed" }]');
+  const scope = projectScope(home, { ...values.project ? { project: values.project } : {} });
+  const linear = configOf(scope.project.root)?.integrations.linear;
+  if (!linear) throw new UsageError("Linear is not configured (integrations.linear in .qa/config.md), so there are no tickets to read decisions from.");
+  const outcomes = withStoreLock(scope.store, () => applyTrackerStates(scope.store, linear, readTrackerStatesFile(values.file), who(values.by, scope.project.root)));
+  emit({
+    decisions: outcomes.map((o) => ({ ticket: o.ticket, ...o.bug ? { bug: o.bug } : {}, result: o.result, ...o.verdict ? { verdict: o.verdict } : {}, why: o.why, ...o.effects ? { effects: o.effects } : {} })),
+    recorded: outcomes.filter((o) => o.result === "recorded").length
+  });
+  return 0;
+}
+function cmdSentry(sub, rest, home) {
+  const { values } = opts(rest, { run: { type: "string" }, reason: { type: "string" } });
+  if (sub !== "window" && sub !== "check" && sub !== "skip") throw new UsageError("sentry needs a subcommand: window | check | skip (all with --run ID)");
+  const scope = runScope(home, values.run);
+  const settings = scope.ctx.config.integrations.sentry;
+  if (!settings) {
+    emit({ configured: false, message: "Sentry is not configured: there is no integrations.sentry in .qa/config.md. Nothing to do." });
+    return sub === "skip" || sub === "check" ? 1 : 0;
+  }
+  const window = sentryWindow(settings, scope.ctx.marker.started);
+  if (sub === "window") {
+    emit({
+      ...window,
+      read: "Read the errors (issues with their event counts) Sentry recorded in this window, for these projects and environments only. Read only: change nothing in Sentry.",
+      then: `Write ${path48.relative(scope.runDir, sentryFilePath(scope.runDir))} in the run folder and run \`sentry check\`.`,
+      shape: { queried: { projects: settings.projects, environments: settings.environments, from: window.from, to: window.to }, errors: [{ id: "ACME-API-3F", title: "the error's title", culprit: "POST /orders", level: "error", events: 3, users: 1, first_seen: window.from, last_seen: window.to, url: "https://\u2026sentry.io/issues/\u2026/", relates_to: "ISSUE-004 or none", why: "what shows the link, or why no finding explains it" }] }
+    });
+    return 0;
+  }
+  if (sub === "skip") {
+    if (!values.reason) throw new UsageError("sentry skip needs --reason: no Sentry tool is connected in this session, the tool returned an error, ...");
+    const check2 = checkSentry({ skipped: values.reason }, settings, window, { findings: [], unconfirmed: [] }, contextForRun(scope.runDir));
+    if (!check2.ok || !check2.file) {
+      emit({ ok: false, errors: check2.errors });
+      return 1;
+    }
+    saveSentry(scope.runDir, check2.file);
+    emit({ ok: true, saved: "data/sentry.json", note: "The technical report says server errors were not read, and why." });
+    return 0;
+  }
+  const raw = readJson(sentryFilePath(scope.runDir));
+  if (raw === void 0) {
+    emit({ ok: false, errors: ["data/sentry.json does not exist yet: write it (see `sentry window`), or `sentry skip --reason` when nothing could be read."] });
+    return 1;
+  }
+  const data = readRunData(scope.runDir);
+  const check = checkSentry(raw, settings, window, { findings: data.findings, unconfirmed: data.unconfirmed }, contextForRun(scope.runDir));
+  if (check.ok && check.file) saveSentry(scope.runDir, check.file);
+  emit({ ok: check.ok, errors: check.errors, warnings: check.warnings, ...check.suggestions.length ? { maybe_these_explain_a_finding: check.suggestions, note: 'These errors say relates_to "none" but share words with a finding. Look, and set relates_to if they are the same problem.' } : {}, errors_kept: check.file?.errors?.length ?? 0 });
+  return check.ok ? 0 : 1;
+}
+function cmdEscapedFromSources(sub, rest, home) {
+  const { values } = opts(rest, { project: { type: "string" }, file: { type: "string" }, by: { type: "string" } });
+  const scope = projectScope(home, { ...values.project ? { project: values.project } : {} });
+  const config = configOf(scope.project.root);
+  if (sub === "areas") {
+    emit({
+      areas: knownAreas(scope.store),
+      production: { sentry_environments: config?.integrations.sentry?.production_environments ?? [], sentry_projects: config?.integrations.sentry?.projects ?? [], ticket_label: config?.integrations.linear?.escaped_label ?? "escaped", linear_team: config?.integrations.linear?.team },
+      note: "Name an escaped bug's area in these words where one fits: the match to what the runs said goes by the words of the area. `status` is what the newest run that covered it said."
+    });
+    return 0;
+  }
+  if (!values.file) throw new UsageError('escaped import needs --file F: a JSON list, [{ "area": "Orders list: search", "title": "what went wrong in production", "severity": "important", "source": "sentry", "ref": "ACME-API-3F", "note": "\u2026" }]');
+  const raw = readJson(path48.resolve(values.file));
+  if (!Array.isArray(raw)) throw new UsageError(`${values.file} must hold a JSON list.`);
+  const items = raw.map((x, i) => {
+    const o = x;
+    if (typeof o?.["area"] !== "string" || typeof o?.["title"] !== "string") throw new UsageError(`Entry ${i + 1} needs an "area" and a "title".`);
+    const source = typeof o["source"] === "string" && ESCAPED_SOURCES.includes(o["source"]) ? o["source"] : "other";
+    return { area: o["area"], title: o["title"], source, ...typeof o["severity"] === "string" ? { severity: o["severity"] } : {}, ...typeof o["ref"] === "string" ? { ref: o["ref"] } : {}, ...typeof o["note"] === "string" ? { note: o["note"] } : {} };
+  });
+  const results = withStoreLock(scope.store, () => importEscaped(scope.store, items, values.by ?? os3.userInfo().username, /* @__PURE__ */ new Date()));
+  emit({ results, recorded: results.filter((r) => r.result === "recorded").length, refused: results.filter((r) => r.result === "refused").length, note: "Each recorded bug raised the risk of its area; `escaped list` shows what the runs had said about each." });
+  return 0;
+}
+
+// cli/src/metrics.ts
 function cmdEscaped(sub, rest, home) {
+  if (sub === "areas" || sub === "import") return cmdEscapedFromSources(sub, rest, home);
   const { values } = opts(rest, { project: { type: "string" }, area: { type: "string" }, title: { type: "string" }, severity: { type: "string" }, source: { type: "string" }, ref: { type: "string" }, note: { type: "string" }, by: { type: "string" } });
   const scope = projectScope(home, { ...values.project ? { project: values.project } : {} });
   if (sub === "list") {
@@ -15627,13 +16364,13 @@ function cmdEscaped(sub, rest, home) {
     emit({ total: f.escaped.length, escaped: f.escaped.map((e) => ({ id: e.id, severity: e.severity, area: e.area, title: e.title, source: e.source, ...e.ref ? { ref: e.ref } : {}, recorded: e.recorded.slice(0, 10), what_the_runs_had_said: VERDICT_WORDS[e.verdict], verdict: e.verdict, ...e.matched ? { matched: `${e.matched.area} in ${e.matched.run_id} (${e.matched.status})` } : {} })) });
     return 0;
   }
-  if (sub !== "add") throw new UsageError("escaped needs a subcommand: add --area A --title T [--severity critical|important|minor] [--source manual|sentry|ticket|other] [--ref ID] [--note TEXT] [--by NAME] | list");
+  if (sub !== "add") throw new UsageError("escaped needs a subcommand: areas | import --file F | add --area A --title T [--severity critical|important|minor] [--source manual|sentry|ticket|other] [--ref ID] [--note TEXT] [--by NAME] | list");
   if (!values.area || !values.title) throw new UsageError("escaped add needs --area (the area of the product, in the words the reports use) and --title (what went wrong in production)");
   if (values.severity && !SEVERITIES.includes(values.severity)) throw new UsageError(`--severity must be one of ${SEVERITIES.join(", ")}`);
   if (values.source && !ESCAPED_SOURCES.includes(values.source)) throw new UsageError(`--source must be one of ${ESCAPED_SOURCES.join(", ")}`);
   const r = withStoreLock(
     scope.store,
-    () => addEscaped(scope.store, { area: values.area, title: values.title, ...values.severity ? { severity: values.severity } : {}, ...values.source ? { source: values.source } : {}, ...values.ref ? { ref: values.ref } : {}, ...values.note ? { note: values.note } : {}, by: values.by ?? os3.userInfo().username }, /* @__PURE__ */ new Date())
+    () => addEscaped(scope.store, { area: values.area, title: values.title, ...values.severity ? { severity: values.severity } : {}, ...values.source ? { source: values.source } : {}, ...values.ref ? { ref: values.ref } : {}, ...values.note ? { note: values.note } : {}, by: values.by ?? os4.userInfo().username }, /* @__PURE__ */ new Date())
   );
   emit({
     id: r.bug.id,
@@ -15653,13 +16390,13 @@ function cmdMetrics(rest, home) {
 }
 
 // core/auto-qa/commands.ts
-import path48 from "node:path";
+import path52 from "node:path";
 import { parseArgs as parseArgs2 } from "node:util";
 
 // core/lib/fix/gitops.ts
 import { spawnSync as spawnSync2 } from "node:child_process";
-import fs24 from "node:fs";
-import path45 from "node:path";
+import fs25 from "node:fs";
+import path49 from "node:path";
 function git2(root, args, input) {
   const r = spawnSync2("git", ["-C", root, "-c", "core.quotepath=off", ...args], { encoding: "utf8", input, maxBuffer: 32 * 1024 * 1024, stdio: ["pipe", "pipe", "pipe"] });
   return { ok: r.status === 0, out: (r.stdout ?? "").toString(), err: (r.stderr ?? "").toString().trim(), code: r.status ?? -1 };
@@ -15674,16 +16411,16 @@ function projectPrefix(root) {
   return text(git2(root, ["rev-parse", "--show-prefix"]));
 }
 function fromRepoRoot(prefix, file3) {
-  return prefix === "" ? file3 : path45.posix.relative(prefix.replace(/\/$/, ""), file3);
+  return prefix === "" ? file3 : path49.posix.relative(prefix.replace(/\/$/, ""), file3);
 }
 var QAMIND_OWN = /^(?:\.qa\/|\.env\.qa(?:$|\.))/;
 var QAMIND_GITIGNORE_LINES = /* @__PURE__ */ new Set(["# QAMind (private test credentials and reports)", ".env.qa", ".qa/"]);
 function gitignoreChangeIsQamindsOnly(root) {
-  const file3 = path45.join(root, ".gitignore");
-  if (!fs24.existsSync(file3)) return false;
+  const file3 = path49.join(root, ".gitignore");
+  if (!fs25.existsSync(file3)) return false;
   const committed = git2(root, ["show", "HEAD:./.gitignore"]);
   const before = (committed.ok ? committed.out : "").split(/\r?\n/);
-  const now = fs24.readFileSync(file3, "utf8").split(/\r?\n/);
+  const now = fs25.readFileSync(file3, "utf8").split(/\r?\n/);
   let kept = 0;
   for (const line of now) {
     if (kept < before.length && line === before[kept]) kept++;
@@ -15713,20 +16450,20 @@ function statusEntries(root, opts2 = {}) {
 }
 
 // core/auto-qa/gate.ts
-import path47 from "node:path";
+import path51 from "node:path";
 
 // core/auto-qa/changes.ts
 import crypto4 from "node:crypto";
-import fs25 from "node:fs";
-import path46 from "node:path";
+import fs26 from "node:fs";
+import path50 from "node:path";
 var MAX_FILES = 2e3;
 var BIG = 5 * 1024 * 1024;
 function hashFile(abs) {
   try {
-    const st = fs25.statSync(abs);
+    const st = fs26.statSync(abs);
     if (!st.isFile()) return "not-a-file";
     if (st.size > BIG) return `big:${st.size}:${Math.round(st.mtimeMs)}`;
-    return crypto4.createHash("sha1").update(fs25.readFileSync(abs)).digest("hex");
+    return crypto4.createHash("sha1").update(fs26.readFileSync(abs)).digest("hex");
   } catch {
     return "deleted";
   }
@@ -15736,7 +16473,7 @@ function takeSnapshot(root) {
   const head = headCommit(root);
   const entries = statusEntries(root);
   const files = {};
-  for (const e of entries.slice(0, MAX_FILES)) files[e.path] = hashFile(path46.join(root, e.path));
+  for (const e of entries.slice(0, MAX_FILES)) files[e.path] = hashFile(path50.join(root, e.path));
   return { ...head ? { head } : {}, files, truncated: entries.length > MAX_FILES };
 }
 function ignorer(globs) {
@@ -15873,11 +16610,11 @@ function onceNotice(where, h, rule, reason, force) {
   return skip(rule, reason, `Auto-QA skipped: ${reason}`);
 }
 function dailyBudget(where, h) {
-  if (!exists(path47.join(where.root, ".qa", "config.md"))) return void 0;
+  if (!exists(path51.join(where.root, ".qa", "config.md"))) return void 0;
   const config = checkConfigFile(where.root, h.env).config;
   const problem = config ? dailyBudgetProblem(where.store, config, h.now) : void 0;
   if (!problem) return void 0;
-  const file3 = path47.join(storeSubdirs(where.store).state, "budget-notice.json");
+  const file3 = path51.join(storeSubdirs(where.store).state, "budget-notice.json");
   const today = dayOf(h.now);
   let told;
   try {
@@ -15886,12 +16623,12 @@ function dailyBudget(where, h) {
     told = void 0;
   }
   if (told === today) return skip("budget", problem);
-  ensureDir(path47.dirname(file3));
+  ensureDir(path51.dirname(file3));
   writeJson(file3, { day: today });
   return skip("budget", problem, `Auto-QA paused for today: ${problem}`);
 }
 function cannotRun(root, h) {
-  if (!exists(path47.join(root, ".qa", "config.md"))) return "this project has no .qa/config.md yet. Run the QAMind qa-only skill once to set it up.";
+  if (!exists(path51.join(root, ".qa", "config.md"))) return "this project has no .qa/config.md yet. Run the QAMind qa-only skill once to set it up.";
   const check = checkConfigFile(root, h.env);
   if (check.status !== "ok" || !check.config) return `.qa/config.md is not usable (${check.status}). Run the QAMind qa-only skill to see what to fix.`;
   const names = check.config.roles.flatMap((r) => [r.username_env, r.password_env]);
@@ -16025,7 +16762,7 @@ function autoCommand(args, h, cwd) {
   if (!sub || sub === "help") return { help: AUTO_HELP };
   if (sub === "global") return globalCommand(rest, h);
   const { values, positionals } = parse(rest, { project: { type: "string" }, session: { type: "string" }, reason: { type: "string" } });
-  const root = path48.resolve(values.project ?? cwd);
+  const root = path52.resolve(values.project ?? cwd);
   if (!exists(root)) throw new AutoUsageError(`The folder ${root} does not exist.`);
   const info = resolveProject(root);
   const store = storeDir(h.home, info.id);
@@ -16045,7 +16782,7 @@ function autoCommand(args, h, cwd) {
       return status(project, store, h);
     case "on": {
       if (!isRepo(info.root)) warnings.push("This folder is not a git repository: auto-QA needs git to see what a task changed, so it will skip every task until it is one.");
-      if (!exists(path48.join(info.root, ".qa", "config.md"))) warnings.push("No .qa/config.md yet: run the QAMind qa-only skill once to set up the config and the test logins. Until then auto-QA skips with a one-line notice.");
+      if (!exists(path52.join(info.root, ".qa", "config.md"))) warnings.push("No .qa/config.md yet: run the QAMind qa-only skill once to set up the config and the test logins. Until then auto-QA skips with a one-line notice.");
       write({ enabled: true, paused_until: void 0 });
       const eff = effectiveFor(store, h);
       const note = eff.enabled ? "" : ` It is still off because ${eff.why}.`;
@@ -16080,17 +16817,17 @@ function autoCommand(args, h, cwd) {
       return state("The pause is over.");
     case "set": {
       const [key, ...value] = positionals;
-      const text3 = value.join(" ").trim();
+      const text4 = value.join(" ").trim();
       if (key === "cooldown" || key === "budget") {
-        const n = Number(text3);
-        if (!text3 || !Number.isFinite(n)) throw new AutoUsageError(`${key} needs a number of minutes.`);
+        const n = Number(text4);
+        if (!text4 || !Number.isFinite(n)) throw new AutoUsageError(`${key} needs a number of minutes.`);
         write(key === "cooldown" ? { cooldown_minutes: n } : { time_budget_minutes: n });
         return state(`${key === "cooldown" ? "Cooldown" : "Time budget"} is now ${n} minutes.`);
       }
       if (key === "ignore") {
-        if (!text3) throw new AutoUsageError("ignore needs a comma-separated list of globs, or the word default.");
-        write({ ignore: text3 === "default" ? void 0 : text3.split(",").map((g) => g.trim()).filter(Boolean) });
-        return state(text3 === "default" ? `Ignored paths are back to the default: ${DEFAULT_IGNORE.join(", ")}.` : "Ignored paths updated.");
+        if (!text4) throw new AutoUsageError("ignore needs a comma-separated list of globs, or the word default.");
+        write({ ignore: text4 === "default" ? void 0 : text4.split(",").map((g) => g.trim()).filter(Boolean) });
+        return state(text4 === "default" ? `Ignored paths are back to the default: ${DEFAULT_IGNORE.join(", ")}.` : "Ignored paths updated.");
       }
       throw new AutoUsageError("set needs cooldown, budget or ignore.");
     }
@@ -16123,7 +16860,7 @@ function status(project, store, h) {
   const last = readLast(store);
   const mine = readAutoFile(projectAutoFile(store));
   const glob = readAutoFile(globalAutoFile(h.home));
-  const cfg = exists(path48.join(project.root, ".qa", "config.md")) ? checkConfigFile(project.root, h.env).config : void 0;
+  const cfg = exists(path52.join(project.root, ".qa", "config.md")) ? checkConfigFile(project.root, h.env).config : void 0;
   const used = dayUsage(store, h.now);
   const daily = cfg?.budget.daily_max !== void 0 ? { max_minutes: cfg.budget.daily_max, used_minutes: used.minutes, runs_today: used.runs, paused_today: used.minutes >= cfg.budget.daily_max } : void 0;
   const trigger = eff.enabled ? eff.mode === "ask" ? "After a task that changes code (documentation, lock files and ignored paths do not count): QAMind asks whether to run QA." : `After a task that changes code (documentation, lock files and ignored paths do not count): a ${eff.mode} QA run, at most one every ${eff.cooldown_minutes} minutes. #noqa in a prompt skips one task.` : "Nothing: auto-QA is off. #qa, #qa-full or #qa-fix in a prompt runs QA once after that task.";
@@ -16147,14 +16884,14 @@ function status(project, store, h) {
 }
 
 // core/auto-qa/hostio.ts
-import fs26 from "node:fs";
+import fs27 from "node:fs";
 var CLAUDE_IO = {
   stop: { input: { session_id: "session_id", cwd: "cwd", stop_hook_active: "stop_hook_active" }, block_output: { decision: "block", reason: "{reason}" }, notice_output: { systemMessage: "{message}" } },
   prompt: { input: { session_id: "session_id", cwd: "cwd", prompt: "prompt" } }
 };
-function dig(value, path64) {
+function dig(value, path68) {
   let cur = value;
-  for (const part of path64.split(".")) {
+  for (const part of path68.split(".")) {
     if (cur === null || typeof cur !== "object") return void 0;
     cur = cur[part];
   }
@@ -16208,7 +16945,7 @@ function parseHookIo(raw) {
 function readHostAutoConfig(file3) {
   if (!file3) return { io: CLAUDE_IO };
   try {
-    const json = JSON.parse(fs26.readFileSync(file3, "utf8"));
+    const json = JSON.parse(fs27.readFileSync(file3, "utf8"));
     const invoke = typeof json.auto_qa?.invoke === "string" ? json.auto_qa.invoke : void 0;
     return { io: parseHookIo(json.auto_qa?.hooks), ...invoke ? { invoke } : {} };
   } catch {
@@ -16217,22 +16954,22 @@ function readHostAutoConfig(file3) {
 }
 
 // core/lib/apirunner.ts
-import fs28 from "node:fs";
-import path50 from "node:path";
+import fs29 from "node:fs";
+import path54 from "node:path";
 
 // core/lib/openapi.ts
 var import_yaml2 = __toESM(require_dist(), 1);
-import fs27 from "node:fs";
-import path49 from "node:path";
+import fs28 from "node:fs";
+import path53 from "node:path";
 var isObj4 = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
 var METHODS = ["get", "post", "put", "patch", "delete", "head", "options"];
-function parseSpecText(text3, hint2 = "") {
-  const trimmed = text3.trim();
+function parseSpecText(text4, hint2 = "") {
+  const trimmed = text4.trim();
   if (trimmed.startsWith("{") || hint2.endsWith(".json")) return JSON.parse(trimmed);
   return (0, import_yaml2.parse)(trimmed);
 }
 function loadSpecFile(file3) {
-  return parseSpecText(fs27.readFileSync(file3, "utf8"), file3);
+  return parseSpecText(fs28.readFileSync(file3, "utf8"), file3);
 }
 function pointer(root, ref) {
   if (!ref.startsWith("#/")) throw new Error(`Only local $ref values are supported (found "${ref}").`);
@@ -16376,7 +17113,7 @@ function matchEndpoint(inv, method, requestPath) {
   return best;
 }
 function resolveSpecPath(source, projectRoot) {
-  return path49.isAbsolute(source) ? source : path49.resolve(projectRoot, source);
+  return path53.isAbsolute(source) ? source : path53.resolve(projectRoot, source);
 }
 
 // core/lib/apirunner.ts
@@ -16448,7 +17185,7 @@ async function runPlan(plan, opts2) {
   const vars = { ...plan.vars ?? {} };
   const sessions = /* @__PURE__ */ new Map();
   let redactor = makeRedactor(opts2.roles.map((r) => r.password));
-  const evidenceDir = path50.join(opts2.runDir, "evidence", "api");
+  const evidenceDir = path54.join(opts2.runDir, "evidence", "api");
   async function authFor(role) {
     if (role === "anonymous") return { secrets: [] };
     const cached = sessions.get(role);
@@ -16469,7 +17206,7 @@ async function runPlan(plan, opts2) {
     const start = Date.now();
     try {
       const res = await doFetch(url, { method: probe.method, headers, ...body !== void 0 ? { body } : {}, redirect: "manual", signal: AbortSignal.timeout(timeoutMs) });
-      const text3 = await res.text();
+      const text4 = await res.text();
       const location = res.headers.get("location");
       const respHeaders = {};
       res.headers.forEach((v, k) => respHeaders[k] = v);
@@ -16477,7 +17214,7 @@ async function runPlan(plan, opts2) {
         const target = new URL(location, url).toString();
         if (!isRequestAllowed(opts2.policy, target).allowed) respHeaders["x-qamind-blocked-redirect"] = target;
       }
-      return { status: res.status, ms: Date.now() - start, headers: respHeaders, body: text3.slice(0, maxBody), truncated: text3.length > maxBody };
+      return { status: res.status, ms: Date.now() - start, headers: respHeaders, body: text4.slice(0, maxBody), truncated: text4.length > maxBody };
     } catch (err) {
       return { ms: Date.now() - start, error: err.message, headers: {}, body: "", truncated: false };
     }
@@ -16589,7 +17326,7 @@ async function runPlan(plan, opts2) {
     let evidence;
     if (signals.length > 0 || failures.length > 0 || probe.keep_evidence === true) {
       ensureDir(evidenceDir);
-      const file3 = path50.join(evidenceDir, `${plan.name}-${raw.id}.json`);
+      const file3 = path54.join(evidenceDir, `${plan.name}-${raw.id}.json`);
       const priv = opts2.privacy;
       const mask = (t) => priv ? maskBody(t, priv) : t;
       const reqBody = probe.raw_body !== void 0 ? mask(redactor.text(probe.raw_body)) : probe.body !== void 0 ? mask(JSON.stringify(redactor.json(probe.body))) : void 0;
@@ -16611,7 +17348,7 @@ async function runPlan(plan, opts2) {
         reproduced
       };
       writeJson(file3, priv ? maskJson(evidenceDoc, priv).value : evidenceDoc);
-      evidence = path50.relative(opts2.runDir, file3).split(path50.sep).join("/");
+      evidence = path54.relative(opts2.runDir, file3).split(path54.sep).join("/");
     }
     for (const [name2, expr] of Object.entries(probe.capture ?? {})) {
       const last = attempts[attempts.length - 1];
@@ -16651,17 +17388,17 @@ async function runPlan(plan, opts2) {
     ...results.some((r) => r.skipped === BUDGET_REASON) ? { budget_reached: results.filter((r) => r.skipped === BUDGET_REASON).length } : {}
   };
   const out = { summary, results, matrix: [...byOp].map(([operation, statuses]) => ({ operation, statuses })) };
-  const dir = path50.join(opts2.runDir, "data", "api-results");
+  const dir = path54.join(opts2.runDir, "data", "api-results");
   ensureDir(dir);
   let name = `${plan.name}.json`;
-  for (let n = 2; fs28.existsSync(path50.join(dir, name)); n++) name = `${plan.name}-${n}.json`;
-  writeJson(path50.join(dir, name), out);
+  for (let n = 2; fs29.existsSync(path54.join(dir, name)); n++) name = `${plan.name}-${n}.json`;
+  writeJson(path54.join(dir, name), out);
   return out;
 }
 
 // core/lib/guardpolicy.ts
-import fs29 from "node:fs";
-import path51 from "node:path";
+import fs30 from "node:fs";
+import path55 from "node:path";
 var BROWSER_INTERNAL = /^(update\.googleapis\.com|accounts\.google\.com|content-autofill\.googleapis\.com|optimizationguide-pa\.googleapis\.com|safebrowsing\.googleapis\.com|clients\d?\.google\.com|clientservices\.googleapis\.com|www\.google\.com|www\.gstatic\.com|edgedl\.me\.gvt1\.com|redirector\.gvt1\.com|android\.clients\.google\.com)$/i;
 function mergedPolicy(markers) {
   return {
@@ -16681,19 +17418,19 @@ function decide(url, markers) {
   return { allowed: r.allowed, reason: r.reason, internal };
 }
 function logBlocked(home, markers, entry) {
-  const targets = markers.length ? markers.map((m) => ({ file: path51.join(m.store, "state", "guard-blocked.jsonl"), run_id: m.run_id })) : [{ file: path51.join(home, "state", "guard-blocked.jsonl"), run_id: "none" }];
+  const targets = markers.length ? markers.map((m) => ({ file: path55.join(m.store, "state", "guard-blocked.jsonl"), run_id: m.run_id })) : [{ file: path55.join(home, "state", "guard-blocked.jsonl"), run_id: "none" }];
   for (const t of targets) {
     try {
-      ensureDir(path51.dirname(t.file));
-      fs29.appendFileSync(t.file, JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), run_id: t.run_id, ...entry }) + "\n", "utf8");
+      ensureDir(path55.dirname(t.file));
+      fs30.appendFileSync(t.file, JSON.stringify({ ts: (/* @__PURE__ */ new Date()).toISOString(), run_id: t.run_id, ...entry }) + "\n", "utf8");
     } catch {
     }
   }
 }
 function readBlocked(store, runId) {
-  const file3 = path51.join(store, "state", "guard-blocked.jsonl");
-  if (!fs29.existsSync(file3)) return [];
-  return fs29.readFileSync(file3, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((e) => e.run_id === runId);
+  const file3 = path55.join(store, "state", "guard-blocked.jsonl");
+  if (!fs30.existsSync(file3)) return [];
+  return fs30.readFileSync(file3, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)).filter((e) => e.run_id === runId);
 }
 function markerSource(home, ttlMs = 1e3) {
   let at = 0;
@@ -16709,8 +17446,8 @@ function markerSource(home, ttlMs = 1e3) {
 }
 
 // core/lib/ci/host.ts
-import fs30 from "node:fs";
-import path52 from "node:path";
+import fs31 from "node:fs";
+import path56 from "node:path";
 var str3 = (v, what) => {
   if (typeof v !== "string" || v.trim() === "") throw new Error(`the host's headless block needs ${what} (a non-empty string)`);
   return v;
@@ -16740,13 +17477,13 @@ function parseHeadless(json) {
 }
 function findHostSpec(hostId, explicit, env = process.env) {
   const given = explicit ?? env["QAMIND_HOST_SPEC"];
-  if (given) return fs30.existsSync(given) ? path52.resolve(given) : void 0;
+  if (given) return fs31.existsSync(given) ? path56.resolve(given) : void 0;
   try {
-    let dir = path52.resolve(corePath());
+    let dir = path56.resolve(corePath());
     for (let i = 0; i < 6; i++) {
-      const f = path52.join(dir, "hosts", hostId, "host.json");
-      if (fs30.existsSync(f)) return f;
-      dir = path52.dirname(dir);
+      const f = path56.join(dir, "hosts", hostId, "host.json");
+      if (fs31.existsSync(f)) return f;
+      dir = path56.dirname(dir);
     }
   } catch {
   }
@@ -16756,9 +17493,9 @@ function loadHeadless(hostId, explicit, env = process.env) {
   const file3 = findHostSpec(hostId, explicit, env);
   if (!file3) throw new Error(`cannot find hosts/${hostId}/host.json (QAMind has to run from a checkout of its repository, as in a CI job that clones it; or pass --host-spec FILE, or --agent-command)`);
   try {
-    return parseHeadless(JSON.parse(fs30.readFileSync(file3, "utf8")));
+    return parseHeadless(JSON.parse(fs31.readFileSync(file3, "utf8")));
   } catch (e) {
-    throw new Error(`${path52.basename(path52.dirname(file3))}/host.json: ${e.message}`);
+    throw new Error(`${path56.basename(path56.dirname(file3))}/host.json: ${e.message}`);
   }
 }
 var fill2 = (s, v) => s.replace(/\{(\w+)\}/g, (m, k) => v[k] ?? m);
@@ -16772,9 +17509,9 @@ var hasAuth = (spec, env) => spec.auth_env_any.some((k) => !!env[k]);
 
 // core/lib/ci/run.ts
 import { execFileSync as execFileSync4, spawn as spawn2 } from "node:child_process";
-import fs32 from "node:fs";
-import os4 from "node:os";
-import path53 from "node:path";
+import fs33 from "node:fs";
+import os5 from "node:os";
+import path57 from "node:path";
 
 // core/lib/ci/comment.ts
 var COMMENT_MARKER = "<!-- qamind-ci:v1 -->";
@@ -16816,12 +17553,12 @@ function renderComment(i, privacy) {
   }
   const links = [i.runUrl ? `[Full reports in the CI run](${i.runUrl})` : "The full reports are in the CI run's artifacts", `mode \`${i.mode}\``, ...i.sha ? [`commit \`${i.sha.slice(0, 7)}\``] : [], ...i.minutes !== void 0 ? [`${i.minutes} min`] : []];
   L.push(links.join(" \xB7 "), "", `<sub>QAMind's CI run is report-only: it never changes, commits or pushes your code. This comment is updated on every push. Last updated ${(i.now ?? /* @__PURE__ */ new Date()).toISOString().slice(0, 16).replace("T", " ")} UTC.</sub>`);
-  let text3 = L.join("\n");
-  if (text3.length > MAX_CHARS) text3 = `${text3.slice(0, MAX_CHARS - 200)}
+  let text4 = L.join("\n");
+  if (text4.length > MAX_CHARS) text4 = `${text4.slice(0, MAX_CHARS - 200)}
 
 _(shortened: the full reports are in the CI run)_
 `;
-  return maskText(text3, privacy).text;
+  return maskText(text4, privacy).text;
 }
 
 // core/lib/ci/api.ts
@@ -16837,10 +17574,10 @@ async function call(f, method, url, headers, body) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const res = await f(url, { method, headers: { accept: "application/json", "content-type": "application/json", ...headers }, ...body !== void 0 ? { body: JSON.stringify(body) } : {}, signal: AbortSignal.timeout(2e4) });
-      const text3 = await res.text();
+      const text4 = await res.text();
       let json;
       try {
-        json = text3 ? JSON.parse(text3) : void 0;
+        json = text4 ? JSON.parse(text4) : void 0;
       } catch {
         json = void 0;
       }
@@ -16927,7 +17664,7 @@ function apiFor(ctx, settings, f = fetch) {
 }
 
 // core/lib/ci/gate.ts
-var plural3 = (n, one8, many) => `${n} ${n === 1 ? one8 : many}`;
+var plural3 = (n, one10, many) => `${n} ${n === 1 ? one10 : many}`;
 function factsOf(data) {
   const open = data.findings.filter(isOpen);
   const verdict = computeVerdict(data);
@@ -16968,7 +17705,7 @@ function evaluateGate(data, settings) {
 }
 
 // core/lib/ci/provider.ts
-import fs31 from "node:fs";
+import fs32 from "node:fs";
 var int = (v) => v && /^\d+$/.test(v) ? Number(v) : void 0;
 function detectCi(env = process.env) {
   const forced = env["QAMIND_CI_PROVIDER"];
@@ -16978,9 +17715,9 @@ function detectCi(env = process.env) {
     let base = env["GITHUB_BASE_REF"] || void 0;
     let head = env["GITHUB_HEAD_REF"] || void 0;
     const eventFile = env["GITHUB_EVENT_PATH"];
-    if (eventFile && fs31.existsSync(eventFile)) {
+    if (eventFile && fs32.existsSync(eventFile)) {
       try {
-        const ev = JSON.parse(fs31.readFileSync(eventFile, "utf8"));
+        const ev = JSON.parse(fs32.readFileSync(eventFile, "utf8"));
         pr = ev.pull_request?.number ?? ev.number;
         sha2 = ev.pull_request?.head?.sha ?? sha2;
         base = ev.pull_request?.base?.ref ?? base;
@@ -17036,7 +17773,7 @@ var git3 = (root, args, timeout = 3e4) => {
 };
 function pluginRoot() {
   const core = corePath();
-  for (const c of [path53.resolve(core, ".."), path53.resolve(core, "..", "plugins", "qamind")]) if (fs32.existsSync(path53.join(c, "dist", "qamind.mjs"))) return c;
+  for (const c of [path57.resolve(core, ".."), path57.resolve(core, "..", "plugins", "qamind")]) if (fs33.existsSync(path57.join(c, "dist", "qamind.mjs"))) return c;
   throw new Error("Cannot find the built QAMind runtime (dist/qamind.mjs) to give the host CLI. Run `node scripts/build.ts` first.");
 }
 function promptFor(invoke, mode, pr, base) {
@@ -17083,7 +17820,7 @@ function runAgent(command2, args, opts2) {
       clearTimeout(timer);
       const clean2 = opts2.redact(out);
       try {
-        fs32.writeFileSync(opts2.logFile, clean2, "utf8");
+        fs33.writeFileSync(opts2.logFile, clean2, "utf8");
       } catch {
       }
       let cost;
@@ -17113,25 +17850,25 @@ var tracked = (root) => ({
   changed: porcelainFiles(root, { untracked: false }).sort()
 });
 function findRun(home, sinceIso) {
-  const projects = path53.join(home, "projects");
-  if (!fs32.existsSync(projects)) return void 0;
+  const projects = path57.join(home, "projects");
+  if (!fs33.existsSync(projects)) return void 0;
   const found = [];
-  for (const p of fs32.readdirSync(projects)) {
-    const runs = path53.join(projects, p, "memory", "runs");
-    if (!fs32.existsSync(runs)) continue;
-    for (const f of fs32.readdirSync(runs)) {
-      const s = readJson(path53.join(runs, f));
+  for (const p of fs33.readdirSync(projects)) {
+    const runs = path57.join(projects, p, "memory", "runs");
+    if (!fs33.existsSync(runs)) continue;
+    for (const f of fs33.readdirSync(runs)) {
+      const s = readJson(path57.join(runs, f));
       if (s && s.trigger === "ci" && s.started >= sinceIso) found.push(s);
     }
   }
   const latest = found.sort((a, b) => b.started.localeCompare(a.started))[0];
-  return latest ? { summary: latest, dir: path53.dirname(latest.report) } : void 0;
+  return latest ? { summary: latest, dir: path57.dirname(latest.report) } : void 0;
 }
 var unfinishedRun = (home) => {
-  const projects = path53.join(home, "projects");
-  if (!fs32.existsSync(projects)) return void 0;
-  for (const p of fs32.readdirSync(projects)) {
-    const m = readJson(path53.join(projects, p, "state", "run-marker.json"));
+  const projects = path57.join(home, "projects");
+  if (!fs33.existsSync(projects)) return void 0;
+  for (const p of fs33.readdirSync(projects)) {
+    const m = readJson(path57.join(projects, p, "state", "run-marker.json"));
     if (m?.run_id) return m.run_id;
   }
   return void 0;
@@ -17141,10 +17878,10 @@ async function runCi(opts2) {
   const env = opts2.env ?? process.env;
   const now = opts2.now ?? (() => /* @__PURE__ */ new Date());
   const log = opts2.log ?? (() => void 0);
-  const root = fs32.realpathSync(path53.resolve(opts2.projectDir));
+  const root = fs33.realpathSync(path57.resolve(opts2.projectDir));
   const started = now();
   const ctx = detectCi(env);
-  const outDir = path53.resolve(opts2.outDir ?? path53.join(root, "qamind-reports"));
+  const outDir = path57.resolve(opts2.outDir ?? path57.join(root, "qamind-reports"));
   ensureDir(outDir);
   const warnings = [];
   const check = checkConfigFile(root, env);
@@ -17153,16 +17890,16 @@ async function runCi(opts2) {
   let ticketRef;
   let ticketProblem;
   if (opts2.ticket) {
-    const abs = path53.resolve(root, opts2.ticket);
-    const rel = path53.relative(root, abs).split(path53.sep).join("/");
-    if (rel.startsWith("..") || path53.isAbsolute(rel)) ticketProblem = `the ticket file ${opts2.ticket} is outside the project`;
+    const abs = path57.resolve(root, opts2.ticket);
+    const rel = path57.relative(root, abs).split(path57.sep).join("/");
+    if (rel.startsWith("..") || path57.isAbsolute(rel)) ticketProblem = `the ticket file ${opts2.ticket} is outside the project`;
     else if (/[\s"'`$;&|<>\\]/.test(rel)) ticketProblem = `the ticket file's path (${rel}) has a space or a special character: use a plain path`;
-    else if (!fs32.existsSync(abs) || !fs32.statSync(abs).isFile()) ticketProblem = `there is no ticket file ${rel} in the project`;
-    else if (fs32.statSync(abs).size > TICKET_FILE_MAX) ticketProblem = `the ticket file ${rel} is larger than ${TICKET_FILE_MAX / 1e3} KB: give a shorter story`;
+    else if (!fs33.existsSync(abs) || !fs33.statSync(abs).isFile()) ticketProblem = `there is no ticket file ${rel} in the project`;
+    else if (fs33.statSync(abs).size > TICKET_FILE_MAX) ticketProblem = `the ticket file ${rel} is larger than ${TICKET_FILE_MAX / 1e3} KB: give a shorter story`;
     else ticketRef = rel;
   }
   const mode = opts2.ticket ? "ticket" : opts2.mode ?? settings.mode;
-  const home = opts2.home ?? (opts2.userStore ? qamindHome(env) : settings.cache_memory ? path53.join(root, ".qamind-ci", "home") : fs32.mkdtempSync(path53.join(os4.tmpdir(), "qamind-ci-")));
+  const home = opts2.home ?? (opts2.userStore ? qamindHome(env) : settings.cache_memory ? path57.join(root, ".qamind-ci", "home") : fs33.mkdtempSync(path57.join(os5.tmpdir(), "qamind-ci-")));
   ensureDir(home);
   const poster = opts2.dryRun ? { canComment: false, canStatus: false, why: ["a dry run posts nothing"] } : apiFor(ctx, settings, opts2.fetchImpl);
   const post = async (state, description) => {
@@ -17177,16 +17914,16 @@ async function runCi(opts2) {
   };
   const conclude = async (outcome, p) => {
     const privacy = p.runDir ? contextForRun(p.runDir, env) : contextFrom(cfg, []);
-    const adminFile = p.runDir ? path53.join(p.runDir, "ADMIN-REPORT.md") : void 0;
-    const adminReport = adminFile && fs32.existsSync(adminFile) ? fs32.readFileSync(adminFile, "utf8") : void 0;
+    const adminFile = p.runDir ? path57.join(p.runDir, "ADMIN-REPORT.md") : void 0;
+    const adminReport = adminFile && fs33.existsSync(adminFile) ? fs33.readFileSync(adminFile, "utf8") : void 0;
     const minutes = Math.round((now().getTime() - started.getTime()) / 6e4 * 10) / 10;
     const body = renderComment({ outcome, ...p.gate ? { gate: p.gate } : {}, ...adminReport ? { adminReport } : {}, ...p.bank ? { bank: p.bank } : {}, mode, ...ctx.sha ? { sha: ctx.sha } : {}, ...ctx.run_url ? { runUrl: ctx.run_url } : {}, ...p.error ? { error: p.error } : {}, minutes, now: now() }, privacy);
-    fs32.writeFileSync(path53.join(outDir, "PR-COMMENT.md"), body, "utf8");
+    fs33.writeFileSync(path57.join(outDir, "PR-COMMENT.md"), body, "utf8");
     if (p.runDir && p.runId) {
       try {
-        fs32.cpSync(p.runDir, path53.join(outDir, p.runId), { recursive: true });
+        fs33.cpSync(p.runDir, path57.join(outDir, p.runId), { recursive: true });
       } catch (e) {
-        warnings.push(`The reports could not be copied to ${path53.basename(outDir)}: ${e.message}`);
+        warnings.push(`The reports could not be copied to ${path57.basename(outDir)}: ${e.message}`);
       }
     }
     let comment2;
@@ -17218,17 +17955,17 @@ async function runCi(opts2) {
       ...p.agent ? { agent: { exit_code: p.agent.exit_code, timed_out: p.agent.timed_out, ...p.agent.cost_usd !== void 0 ? { cost_usd: p.agent.cost_usd } : {}, minutes: p.agent.minutes } } : {},
       store: home
     };
-    writeJson(path53.join(outDir, "ci-result.json"), result);
+    writeJson(path57.join(outDir, "ci-result.json"), result);
     if (env["GITHUB_STEP_SUMMARY"]) {
       try {
-        fs32.appendFileSync(env["GITHUB_STEP_SUMMARY"], `${body.replace(/^<!--.*-->\n/, "")}
+        fs33.appendFileSync(env["GITHUB_STEP_SUMMARY"], `${body.replace(/^<!--.*-->\n/, "")}
 `);
       } catch {
       }
     }
     if (env["GITHUB_OUTPUT"]) {
       try {
-        fs32.appendFileSync(env["GITHUB_OUTPUT"], `outcome=${outcome}
+        fs33.appendFileSync(env["GITHUB_OUTPUT"], `outcome=${outcome}
 exit_code=${result.exit_code}
 ${p.runId ? `run_id=${p.runId}
 ` : ""}`);
@@ -17243,8 +17980,8 @@ ${p.runId ? `run_id=${p.runId}
   }
   if (ticketProblem) return conclude("error", { error: ticketProblem });
   if (opts2.fromRun) {
-    const dir = path53.join(root, ".qa", "reports", opts2.fromRun);
-    if (!fs32.existsSync(path53.join(dir, "data", "meta.json"))) return conclude("error", { error: `there is no run ${opts2.fromRun} in ${path53.join(root, ".qa", "reports")}` });
+    const dir = path57.join(root, ".qa", "reports", opts2.fromRun);
+    if (!fs33.existsSync(path57.join(dir, "data", "meta.json"))) return conclude("error", { error: `there is no run ${opts2.fromRun} in ${path57.join(root, ".qa", "reports")}` });
     const data2 = readRunData(dir);
     const gate2 = evaluateGate(data2, settings);
     return conclude(gate2.outcome, { runDir: dir, runId: opts2.fromRun, gate: gate2, ...data2.bank ? { bank: data2.bank } : {} });
@@ -17289,7 +18026,7 @@ ${p.runId ? `run_id=${p.runId}
   const agent = await runAgent(
     spec ? agentCommandOf(spec, env) : opts2.agentCommand,
     spec ? agentArgs(spec, { prompt, plugin: pluginRoot(), maxCost, mode, ...opts2.model ? { model: opts2.model } : {} }) : [],
-    { shell: !spec, cwd: root, env: childEnv, timeoutMs: opts2.timeoutMs ?? timeoutMinutes * 6e4, logFile: path53.join(outDir, "agent.log"), redact, ...spec ? { costField: spec.cost_field } : {} }
+    { shell: !spec, cwd: root, env: childEnv, timeoutMs: opts2.timeoutMs ?? timeoutMinutes * 6e4, logFile: path57.join(outDir, "agent.log"), redact, ...spec ? { costField: spec.cost_field } : {} }
   );
   log(`QAMind CI: the agent finished after ${agent.minutes} minutes (exit code ${agent.exit_code ?? "none"}${agent.timed_out ? ", stopped at the time limit" : ""}).`);
   const after = tracked(root);
@@ -17312,14 +18049,14 @@ ${p.runId ? `run_id=${p.runId}
 
 // core/lib/ci/templates.ts
 import { execFileSync as execFileSync5 } from "node:child_process";
-import fs33 from "node:fs";
-import path54 from "node:path";
+import fs34 from "node:fs";
+import path58 from "node:path";
 var PLACEHOLDER_REPO = "https://github.com/<owner>/qamind.git";
 function qamindOrigin() {
   try {
-    let dir = path54.resolve(corePath());
-    for (let i = 0; i < 6 && !fs33.existsSync(path54.join(dir, ".git")); i++) dir = path54.dirname(dir);
-    if (!fs33.existsSync(path54.join(dir, ".git"))) return {};
+    let dir = path58.resolve(corePath());
+    for (let i = 0; i < 6 && !fs34.existsSync(path58.join(dir, ".git")); i++) dir = path58.dirname(dir);
+    if (!fs34.existsSync(path58.join(dir, ".git"))) return {};
     const run = (a) => {
       try {
         return execFileSync5("git", ["-C", dir, ...a], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 15e3 }).trim() || void 0;
@@ -17506,21 +18243,21 @@ function windowsTask(i) {
 }
 
 // core/lib/bank/service.ts
-import fs35 from "node:fs";
-import path58 from "node:path";
+import fs36 from "node:fs";
+import path62 from "node:path";
 
 // core/lib/bank/export.ts
-import fs34 from "node:fs";
-import path55 from "node:path";
+import fs35 from "node:fs";
+import path59 from "node:path";
 var q2 = (v) => JSON.stringify(v);
 var slug4 = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "test";
 var comment = (s) => s.replace(/\*\//g, "* /").replace(/\r?\n/g, " ");
 function exportDir(projectRoot, given) {
   if (given) return given.replace(/^\.?\/+/, "").replace(/\/+$/, "");
   for (const f of ["playwright.config.ts", "playwright.config.js", "playwright.config.mjs", "playwright.config.cjs"]) {
-    const file3 = path55.join(projectRoot, f);
-    if (!fs34.existsSync(file3)) continue;
-    const m = /testDir\s*:\s*['"`]([^'"`]+)['"`]/.exec(fs34.readFileSync(file3, "utf8"));
+    const file3 = path59.join(projectRoot, f);
+    if (!fs35.existsSync(file3)) continue;
+    const m = /testDir\s*:\s*['"`]([^'"`]+)['"`]/.exec(fs35.readFileSync(file3, "utf8"));
     if (m?.[1]) return `${m[1].replace(/^\.\//, "").replace(/\/+$/, "")}/qamind`;
   }
   return "tests/qamind";
@@ -17696,11 +18433,11 @@ function generateExports(tests, config, dir) {
 }
 
 // core/lib/bank/runner.ts
-import path57 from "node:path";
+import path61 from "node:path";
 
 // core/lib/bank/uirunner.ts
-import path56 from "node:path";
-var clip5 = (s, n = 220) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
+import path60 from "node:path";
+var clip6 = (s, n = 220) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
 async function createUiRunner(opts2) {
   const pw = findPlaywright();
   if ("error" in pw) return { unavailable: pw.error };
@@ -17737,15 +18474,15 @@ async function createUiRunner(opts2) {
         let shot;
         try {
           ensureDir(opts2.evidenceDir);
-          const file3 = path56.join(opts2.evidenceDir, `${test.id}.png`);
+          const file3 = path60.join(opts2.evidenceDir, `${test.id}.png`);
           await page.screenshot({ path: file3, timeout: 4e3 });
-          shot = path56.join("evidence", "bank", `${test.id}.png`);
+          shot = path60.join("evidence", "bank", `${test.id}.png`);
         } catch {
         }
         const raw = opts2.redact(e.message).split("\n")[0] ?? "";
         const blocked = blockedCount();
         const why = blocked > 0 ? ` (${blocked} request(s) to addresses outside the test environment were refused)` : "";
-        return { ok: false, detail: `Step ${step2 + 1}, to ${steps[step2] ? describeStep(steps[step2]) : "run"}: ${clip5(raw)}${why}`, ...shot ? { screenshot: shot } : {}, ms: Date.now() - started };
+        return { ok: false, detail: `Step ${step2 + 1}, to ${steps[step2] ? describeStep(steps[step2]) : "run"}: ${clip6(raw)}${why}`, ...shot ? { screenshot: shot } : {}, ms: Date.now() - started };
       } finally {
         await context.close().catch(() => void 0);
       }
@@ -17758,7 +18495,7 @@ async function createUiRunner(opts2) {
 
 // core/lib/bank/runner.ts
 var API_DOWN = "The API did not answer";
-var clip6 = (s, n = 240) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
+var clip7 = (s, n = 240) => s.length > n ? `${s.slice(0, n - 1)}\u2026` : s;
 async function runApiTest(test, ctx) {
   const base = ctx.config.api.base_url;
   if (!base) return { ok: false, skipped: "api.base_url is not set in the config" };
@@ -17780,7 +18517,7 @@ async function runApiTest(test, ctx) {
   const bad = result.results.filter((r) => r.expectation_failures.length > 0);
   if (bad.length === 0) return { ok: true };
   const first = bad[0];
-  return { ok: false, detail: clip6(`${first.id} (${first.title}): ${first.expectation_failures.slice(0, 2).join("; ")}`), ...first.evidence ? { evidence: first.evidence } : {} };
+  return { ok: false, detail: clip7(`${first.id} (${first.title}): ${first.expectation_failures.slice(0, 2).join("; ")}`), ...first.evidence ? { evidence: first.evidence } : {} };
 }
 async function runBank(ctx, opts2 = {}) {
   const now = opts2.now ?? /* @__PURE__ */ new Date();
@@ -17792,7 +18529,7 @@ async function runBank(ctx, opts2 = {}) {
   let ui;
   let budgetReached = false;
   let apiDown;
-  const evidenceDir = path57.join(ctx.outDir, "evidence", "bank");
+  const evidenceDir = path61.join(ctx.outDir, "evidence", "bank");
   const row = (t, r) => {
     results.push({ test: t.id, title: t.title, area: t.area, kind: t.kind, ...t.protects_bug ? { bug: t.protects_bug } : {}, ms: 0, attempts: 0, ...r });
   };
@@ -17838,7 +18575,7 @@ async function runBank(ctx, opts2 = {}) {
       await attempt();
       if (!last.ok && !last.skipped) await attempt();
     } catch (e) {
-      last = { ok: false, detail: clip6(`The test could not run: ${e.message}`) };
+      last = { ok: false, detail: clip7(`The test could not run: ${e.message}`) };
     }
     const ms = Date.now() - started;
     if (last.skipped) {
@@ -17888,7 +18625,7 @@ async function runBank(ctx, opts2 = {}) {
     covered_areas: [...new Set(results.filter((r) => (r.status === "passed" || r.status === "flaky-passed") && !failedAreas.has(r.area)).map((r) => r.area))].sort(),
     ...budgetReached ? { budget_reached: true } : {}
   };
-  ensureDir(path57.join(ctx.outDir, "data"));
+  ensureDir(path61.join(ctx.outDir, "data"));
   writeJson(bankResultsFile(ctx.outDir), JSON.parse(maskText(JSON.stringify(out), ctx.privacy).text));
   return out;
 }
@@ -17898,10 +18635,10 @@ var secretNamesOf = (config) => config.roles.flatMap((r) => [r.username_env, r.p
 function saveBankTest(scope, input, now = /* @__PURE__ */ new Date()) {
   const ctx = scope.ctx;
   if (input.from_issue) {
-    const findings = readJson(path58.join(scope.runDir, "data", "findings.json")) ?? [];
+    const findings = readJson(path62.join(scope.runDir, "data", "findings.json")) ?? [];
     if (!findings.some((f) => f.id === input.from_issue)) throw new Error(`from_issue ${input.from_issue} is not a finding of this run (findings.json has ${findings.map((f) => f.id).filter(Boolean).join(", ") || "none yet"}). Write the findings first, then save the tests that protect them.`);
   }
-  const ticket = readJson(path58.join(scope.runDir, "data", "ticket.json"));
+  const ticket = readJson(path62.join(scope.runDir, "data", "ticket.json"));
   if (input.criteria?.length) {
     const ids = new Set((ticket?.criteria ?? []).map((c) => c.id));
     if (!ticket?.ref) throw new Error("criteria can only be named in a ticket run (data/ticket.json).");
@@ -17919,15 +18656,15 @@ function saveBankTest(scope, input, now = /* @__PURE__ */ new Date()) {
   );
 }
 function saveBankTestFromFile(scope, file3, opts2 = {}) {
-  const base = path58.join(scope.runDir, "data", "bank");
-  const abs = path58.isAbsolute(file3) ? path58.resolve(file3) : path58.resolve(fs35.existsSync(path58.resolve(file3)) && opts2.anywhere ? path58.resolve(file3) : path58.join(base, file3));
-  const inside2 = abs === scope.runDir || abs.startsWith(scope.runDir + path58.sep);
-  if (!opts2.anywhere && !inside2) throw new Error(`The test file has to be inside the run folder (write it to ${path58.join(scope.runDir, "data", "bank", "<name>.json")}).`);
-  if (!fs35.existsSync(abs)) throw new Error(`No test file at ${abs}. Write the test as JSON there first.`);
-  if (fs35.statSync(abs).size > 12e4) throw new Error("The test file is larger than 120 KB: a test checks one thing, split it.");
+  const base = path62.join(scope.runDir, "data", "bank");
+  const abs = path62.isAbsolute(file3) ? path62.resolve(file3) : path62.resolve(fs36.existsSync(path62.resolve(file3)) && opts2.anywhere ? path62.resolve(file3) : path62.join(base, file3));
+  const inside2 = abs === scope.runDir || abs.startsWith(scope.runDir + path62.sep);
+  if (!opts2.anywhere && !inside2) throw new Error(`The test file has to be inside the run folder (write it to ${path62.join(scope.runDir, "data", "bank", "<name>.json")}).`);
+  if (!fs36.existsSync(abs)) throw new Error(`No test file at ${abs}. Write the test as JSON there first.`);
+  if (fs36.statSync(abs).size > 12e4) throw new Error("The test file is larger than 120 KB: a test checks one thing, split it.");
   let input;
   try {
-    input = JSON.parse(fs35.readFileSync(abs, "utf8"));
+    input = JSON.parse(fs36.readFileSync(abs, "utf8"));
   } catch (e) {
     throw new Error(`The test file is not valid JSON: ${e.message}`);
   }
@@ -17953,7 +18690,7 @@ function bankContextForRun(scope) {
   };
 }
 function bankContextStandalone(home, projectDir, now, env = process.env) {
-  const root = path58.resolve(projectDir);
+  const root = path62.resolve(projectDir);
   const info = resolveProject(root);
   const store = storeDir(home, info.id);
   ensureMigrated(store);
@@ -17969,8 +18706,8 @@ function bankContextStandalone(home, projectDir, now, env = process.env) {
   }
   if (roles.length === 0) throw new Error("No test account has both its username and password set in .env.qa. Nothing was tested.");
   const id = `bank-${utcStamp(now)}`;
-  const outDir = path58.join(root, ".qa", "bank-runs", id);
-  ensureDir(path58.join(outDir, "data"));
+  const outDir = path62.join(root, ".qa", "bank-runs", id);
+  ensureDir(path62.join(outDir, "data"));
   return {
     store,
     outDir,
@@ -18019,19 +18756,19 @@ function exportTests(home, projectDir, input) {
   if (missing.length) throw new Error(`No such test: ${missing.join(", ")}.`);
   if (pick2.length === 0) throw new Error("There are no tests to export.");
   const dir = exportDir(scope.project.root, input.dir);
-  if (path58.isAbsolute(dir) || dir.split("/").includes("..")) throw new Error("--dir must be a folder inside the project.");
+  if (path62.isAbsolute(dir) || dir.split("/").includes("..")) throw new Error("--dir must be a folder inside the project.");
   const generated = generateExports(pick2, config, dir);
-  const files = generated.map((f) => ({ path: f.path, tests: f.tests, exists: fs35.existsSync(path58.join(scope.project.root, f.path)) }));
+  const files = generated.map((f) => ({ path: f.path, tests: f.tests, exists: fs36.existsSync(path62.join(scope.project.root, f.path)) }));
   const skipped = [];
   if (input.confirmed) {
     for (const f of generated) {
-      const abs = path58.join(scope.project.root, f.path);
-      if (fs35.existsSync(abs)) {
+      const abs = path62.join(scope.project.root, f.path);
+      if (fs36.existsSync(abs)) {
         skipped.push(f.path);
         continue;
       }
-      ensureDir(path58.dirname(abs));
-      fs35.writeFileSync(abs, f.content, "utf8");
+      ensureDir(path62.dirname(abs));
+      fs36.writeFileSync(abs, f.content, "utf8");
     }
   }
   return { dir, files, written: input.confirmed, skipped_existing: skipped, generated };
@@ -18124,7 +18861,68 @@ async function healthWithPrep(args) {
 }
 
 // core/lib/hooks.ts
-import path59 from "node:path";
+import path63 from "node:path";
+
+// core/lib/trackerguard.ts
+var READ_VERB = /^(get|list|search|find|whoami|read|query|fetch|describe|analy[sz]e|extract|show|lookup)(_|$)/i;
+var serviceOf = (tool) => {
+  const t = tool.toLowerCase();
+  if (!t.includes("__")) return void 0;
+  if (t.includes("linear")) return "linear";
+  if (t.includes("sentry")) return "sentry";
+  return void 0;
+};
+var verbOf = (tool) => tool.split("__").pop() ?? tool;
+var CREATE_FIELDS = /* @__PURE__ */ new Set(["team", "title", "description", "priority", "labels", "project", "relatedTo"]);
+var text3 = (v) => typeof v === "string" ? v : "";
+function mentionsProduction(ti) {
+  for (const [k, v] of Object.entries(ti)) {
+    if (/environment/i.test(k)) {
+      for (const e of Array.isArray(v) ? v : [v]) if (typeof e === "string" && looksLikeProductionName(e.trim())) return e;
+    }
+    if (typeof v === "string") {
+      const m = /environment(?:s)?\s*(?:[:=]|in|is)\s*\(?\[?\s*["']?([A-Za-z0-9_.-]+)/i.exec(v);
+      if (m && looksLikeProductionName(m[1])) return m[1];
+    }
+  }
+  return void 0;
+}
+function trackerToolDecision(marker, tool, ti) {
+  const service = serviceOf(tool);
+  if (!service) return void 0;
+  const verb = verbOf(tool);
+  const reads = READ_VERB.test(verb);
+  if (service === "sentry") {
+    if (!reads) return `${tool} could change something in Sentry. A QA run only reads Sentry (the errors of the test system during the run); it never resolves, assigns, mutes or configures anything there.`;
+    if (!marker.integrations?.sentry) return "Sentry is not set up for this project (there is no integrations.sentry in .qa/config.md), so a run does not read it. Ask the owner to add the Sentry project and the test environments.";
+    const prod = mentionsProduction(ti);
+    if (prod) return `A run reads the errors of the test system only (${marker.integrations.sentry.environments.join(", ")}), not "${prod}". Production errors are for the owner's escaped-bug check (/qa-memory-review escaped), outside a run.`;
+    return void 0;
+  }
+  if (reads) return void 0;
+  if (verb !== "save_issue" && verb !== "save_comment") return `${tool} is not something a QA run does in Linear. A run may create an issue (save_issue) or comment on one (save_comment), nothing else: it never edits, closes, moves, assigns, deletes or reorganises.`;
+  if (marker.trigger !== "manual") return "Tickets are made only in a run a person started: nobody is there to be asked in a CI or automatic run. Record why with `tracker skip`.";
+  const linear = marker.integrations?.linear;
+  if (!linear) return "Linear is not set up for this project (there is no integrations.linear in .qa/config.md), so a run does not write to it.";
+  const body = verb === "save_issue" ? `${text3(ti["title"])}
+${text3(ti["description"])}` : text3(ti["body"]);
+  const problems = screenForSecretsAndPii(body);
+  if (problems.length) return `The text for Linear ${problems[0]}. Use the text from \`tracker plan\` (it is masked), or mask it with \`privacy mask\`: nothing private goes to a tracker.`;
+  if (verb === "save_comment") {
+    if (ti["id"] || ti["parentId"]) return "A run adds a new comment to a ticket; it does not edit or reply inside another thread.";
+    const parents = ["issueId", "projectId", "initiativeId", "documentId", "milestoneId", "statusUpdateId"].filter((k) => ti[k]);
+    if (parents.length !== 1 || parents[0] !== "issueId") return "A run comments on a ticket (issueId) only: not on a project, initiative, document or update.";
+    return void 0;
+  }
+  if (ti["id"]) return "A run creates tickets and comments on them; it does not edit one that exists (that includes its description, state, labels and assignee). Use save_comment for the update.";
+  const extra = Object.keys(ti).filter((k) => !CREATE_FIELDS.has(k) && ti[k] !== void 0 && ti[k] !== null);
+  if (extra.length) return `A new ticket is made from the plan's fields only (${[...CREATE_FIELDS].join(", ")}); not ${extra.join(", ")}.`;
+  if (text3(ti["team"]).trim().toLowerCase() !== linear.team.toLowerCase()) return `Tickets go in the configured team (${linear.team}), not "${text3(ti["team"])}".`;
+  if (ti["project"] && linear.project && text3(ti["project"]).toLowerCase() !== linear.project.toLowerCase()) return `Tickets go in the configured project (${linear.project}), not "${text3(ti["project"])}".`;
+  return void 0;
+}
+
+// core/lib/hooks.ts
 var GIT_MUTATION = /\bgit\s+(?:-[A-Za-z]\s+\S+\s+)*(add|commit|push|pull|fetch\s+--prune|merge|rebase|reset|checkout|switch|restore|stash|cherry-pick|revert|rm|mv|clean|tag|apply|am|worktree|branch\s+-[dDmM])\b/;
 var INSTALLS = /\b(npm|pnpm|yarn|bun)\s+(install|i|add|remove|uninstall|update|upgrade|ci)\b|\bpip3?\s+install\b|\bcomposer\s+(install|require|update|remove)\b|\bbundle\s+(install|update)\b|\bdotnet\s+add\b/;
 var IN_PLACE_EDIT = /\bsed\s+(?:-[A-Za-z]*i|--in-place)\b|\bperl\s+-[A-Za-z]*i\b/;
@@ -18133,23 +18931,23 @@ var AMP_REDIRECT = /&>{1,2}\s*([^\s&|;)]+)/g;
 var stripQuoted = (cmd) => cmd.replace(/'[^']*'|"(?:[^"\\]|\\.)*"/g, '""');
 var CREDENTIAL_FILE = /(^|[\\/\s"'=])\.env\.qa(?![.\w-])/;
 function inside(child, parent) {
-  const rel = path59.relative(parent, child);
-  return rel === "" || !rel.startsWith("..") && !path59.isAbsolute(rel);
+  const rel = path63.relative(parent, child);
+  return rel === "" || !rel.startsWith("..") && !path63.isAbsolute(rel);
 }
 function allowedWriteRoots(marker, home, tmpDirs) {
-  return [path59.join(marker.project_root, ".qa"), home, ...tmpDirs];
+  return [path63.join(marker.project_root, ".qa"), home, ...tmpDirs];
 }
 var OWNER_FILES = /* @__PURE__ */ new Set(["global-lessons.md", "pending-lessons.md", "rejected-lessons.jsonl", "lesson-use.json", "auto.json", "feedback.jsonl", "bugs.jsonl", "bank.jsonl", "perf.json", "metrics.json"]);
 var OWNER_FILE_IN_COMMAND = /(?:global-lessons\.md|pending-lessons\.md|rejected-lessons\.jsonl|lesson-use\.json|auto\.json|feedback\.jsonl|bugs\.jsonl|bank\.jsonl|perf\.json|metrics\.json|[\\/]baselines[\\/])/;
 var WRITES_FILES = /(?:>|\btee\b|\bsed\s+-[A-Za-z]*i|\b(?:mv|cp|rm|truncate|dd|install|ln)\b|\b(?:node|python3?|perl|ruby)\b)/;
 var EXPORT_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+tests\s+export\b/;
-var OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|feedback\s+(?:add|import)|tests\s+(?:retire|quarantine|unquarantine)|baseline\s+accept|browsers\s+install|escaped\s+add|ci|schedule|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
+var OWNER_COMMAND = /(?:^|[\s;&|"'/\\])qamind(?:\.mjs)?["']?\s+(?:lessons\s+(?:approve|reject)|memory\s+prune|feedback\s+(?:add|import|from-tracker)|tests\s+(?:retire|quarantine|unquarantine)|baseline\s+accept|browsers\s+install|escaped\s+(?:add|import)|ci|schedule|auto\s+(?:on|off|mode|pause|resume|global|set))\b/;
 function ownerOnly(tool, ti, abs, home) {
-  const why = "Approving lessons, archiving memory, giving feedback on findings, retiring or quarantining a saved test, accepting baseline pictures, installing a browser, recording a bug that escaped to production, starting a CI run or writing CI files, and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-feedback, /qa-tests, /qa-auto).";
+  const why = "Approving lessons, archiving memory, giving feedback on findings, retiring or quarantining a saved test, accepting baseline pictures, installing a browser, recording a bug that escaped to production (by hand, or from Sentry or tickets), reading what people decided in Linear, starting a CI run or writing CI files, and changing auto-QA settings are the user's decisions, not part of a QA run. Propose it in the report or in your summary and let the user do it (/qa-memory-review, /qa-feedback, /qa-tests, /qa-auto).";
   if (tool === "Write" || tool === "Edit" || tool === "MultiEdit" || tool === "NotebookEdit") {
     const target = String(ti["file_path"] ?? ti["notebook_path"] ?? "");
-    if (target && OWNER_FILES.has(path59.basename(target)) && inside(abs(target), home)) return `${why} (${path59.basename(target)} is the user's file.)`;
-    if (target && inside(abs(target), home) && abs(target).split(path59.sep).includes("baselines")) return `${why} (The saved baseline pictures are the user's: only \`qamind baseline accept\` changes them, and only the user runs it.)`;
+    if (target && OWNER_FILES.has(path63.basename(target)) && inside(abs(target), home)) return `${why} (${path63.basename(target)} is the user's file.)`;
+    if (target && inside(abs(target), home) && abs(target).split(path63.sep).includes("baselines")) return `${why} (The saved baseline pictures are the user's: only \`qamind baseline accept\` changes them, and only the user runs it.)`;
   }
   if (tool === "Bash") {
     const cmd = String(ti["command"] ?? "");
@@ -18165,10 +18963,10 @@ function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new D
   const tool = input.tool_name ?? "";
   const ti = input.tool_input ?? {};
   const cwd = input.cwd ?? marker.project_root;
-  const abs = (p) => path59.resolve(cwd, p);
+  const abs = (p) => path63.resolve(cwd, p);
   if (tool === "Read" || tool === "Grep" || tool === "Glob") {
     const target = String(ti["file_path"] ?? ti["path"] ?? ti["pattern"] ?? "");
-    if (CREDENTIAL_FILE.test(`/${target}`) || path59.basename(target) === ".env.qa") {
+    if (CREDENTIAL_FILE.test(`/${target}`) || path63.basename(target) === ".env.qa") {
       return { decision: "deny", reason: "QAMind never reads .env.qa: credentials must not enter the conversation. Use the secret names in the roles table (the browser tool and the qamind CLI substitute the values)." };
     }
   }
@@ -18185,12 +18983,14 @@ function decidePreToolUse(input, home, tmpDirs = [], now = /* @__PURE__ */ new D
   const roots = allowedWriteRoots(marker, home, tmpDirs);
   if (tool.startsWith("mcp__plugin_qamind_browser__")) {
     const name = ti["filename"];
-    if (typeof name === "string" && name.trim() !== "" && !roots.some((r) => inside(path59.resolve(marker.project_root, name), r))) {
-      return { decision: "deny", reason: `The browser tool would save "${name}" in the project folder. Save evidence inside the run folder with an absolute path, for example ${path59.join(marker.run_dir, "screenshots", "<slug>.png")}, so the project stays untouched.` };
+    if (typeof name === "string" && name.trim() !== "" && !roots.some((r) => inside(path63.resolve(marker.project_root, name), r))) {
+      return { decision: "deny", reason: `The browser tool would save "${name}" in the project folder. Save evidence inside the run folder with an absolute path, for example ${path63.join(marker.run_dir, "screenshots", "<slug>.png")}, so the project stays untouched.` };
     }
   }
   const owner = ownerOnly(tool, ti, abs, home);
   if (owner) return { decision: "deny", reason: owner };
+  const tracker = trackerToolDecision(marker, tool, ti);
+  if (tracker) return { decision: "deny", reason: tracker };
   if (!marker.readonly) return marker.kind === "qa" ? decideFixRun(marker, tool, ti, abs, home, tmpDirs) : null;
   if (tool === "Bash" && EXPORT_COMMAND.test(String(ti["command"] ?? ""))) return { decision: "deny", reason: `This is a report-only QA run (${marker.kind}): it never writes into the project, so it cannot export tests. Tell the user to run /qa-tests export.` };
   const writable = (p) => roots.some((r) => inside(abs(p), r));
@@ -18250,12 +19050,12 @@ function decideFixRun(marker, tool, ti, abs, home, tmpDirs) {
       const problem = why(raw);
       if (problem) return { decision: "deny", reason: `This command writes to ${raw}: ${problem}` };
     }
-    for (const words of commandWords(cmd)) {
-      if (!FILE_COMMANDS.has(path59.basename(words[0] ?? ""))) continue;
-      for (const w of words.slice(1)) {
+    for (const words2 of commandWords(cmd)) {
+      if (!FILE_COMMANDS.has(path63.basename(words2[0] ?? ""))) continue;
+      for (const w of words2.slice(1)) {
         if (!w || w.startsWith("-") || /^[\d.]+$/.test(w) || /^[ugoa]*[+=-][rwxX]+$/.test(w)) continue;
         const problem = why(w);
-        if (problem) return { decision: "deny", reason: `\`${words[0]}\` would change ${w}: ${problem}` };
+        if (problem) return { decision: "deny", reason: `\`${words2[0]}\` would change ${w}: ${problem}` };
       }
     }
   }
@@ -18266,8 +19066,8 @@ function toHookOutput(d) {
 }
 
 // core/lib/memory/review.ts
-import fs36 from "node:fs";
-import path60 from "node:path";
+import fs37 from "node:fs";
+import path64 from "node:path";
 var LOW_CONFIDENCE = 4;
 var STALE_DAYS = 180;
 var UNUSED_DAYS = 90;
@@ -18275,10 +19075,10 @@ var UNUSED_ALARM_DAYS = 120;
 var OLD_RISK_DAYS = 365;
 var archivedCounts = (store) => {
   const dir = memoryPaths(store).archiveDir;
-  if (!fs36.existsSync(dir)) return {};
-  return Object.fromEntries(fs36.readdirSync(dir).filter((f) => f.endsWith(".jsonl")).map((f) => [f.replace(/\.jsonl$/, ""), readJsonl(path60.join(dir, f)).records.length]));
+  if (!fs37.existsSync(dir)) return {};
+  return Object.fromEntries(fs37.readdirSync(dir).filter((f) => f.endsWith(".jsonl")).map((f) => [f.replace(/\.jsonl$/, ""), readJsonl(path64.join(dir, f)).records.length]));
 };
-var projectOf = (scope) => scope.kind === "project" ? { id: scope.project.id, name: scope.project.name } : { id: path60.basename(scope.store), name: path60.basename(scope.ctx.projectRoot) };
+var projectOf = (scope) => scope.kind === "project" ? { id: scope.project.id, name: scope.project.name } : { id: path64.basename(scope.store), name: path64.basename(scope.ctx.projectRoot) };
 function reviewOverview(scope, now = /* @__PURE__ */ new Date()) {
   const learned = loadLearnings(scope.store, now);
   const alarms = loadFalseAlarms(scope.store, now);
@@ -18362,9 +19162,9 @@ function memoryStats(scope, now = /* @__PURE__ */ new Date()) {
 
 // core/scripts/browser-launcher.ts
 import { spawn as spawn3 } from "node:child_process";
-import fs37 from "node:fs";
-import os5 from "node:os";
-import path61 from "node:path";
+import fs38 from "node:fs";
+import os6 from "node:os";
+import path65 from "node:path";
 import { createRequire as createRequire2 } from "node:module";
 
 // core/scripts/guard-proxy.ts
@@ -18466,53 +19266,53 @@ function resolvePlaywrightMcp() {
   try {
     const req = createRequire2(import.meta.url);
     const pkg = req.resolve("@playwright/mcp/package.json");
-    return { command: process.execPath, args: [path61.join(path61.dirname(pkg), "cli.js")] };
+    return { command: process.execPath, args: [path65.join(path65.dirname(pkg), "cli.js")] };
   } catch {
     return { command: process.platform === "win32" ? "npx.cmd" : "npx", args: ["--yes", `@playwright/mcp@${PLAYWRIGHT_MCP_VERSION}`] };
   }
 }
 async function runBrowserLauncher() {
   const home = qamindHome();
-  const projectRoot = fs37.realpathSync(path61.resolve(defaultProjectDir()));
+  const projectRoot = fs38.realpathSync(path65.resolve(defaultProjectDir()));
   const guard = await startGuardProxy(home);
   const secrets = {};
-  const envFile = path61.join(projectRoot, ".env.qa");
-  if (fs37.existsSync(envFile)) Object.assign(secrets, parseDotenv(fs37.readFileSync(envFile, "utf8")));
+  const envFile = path65.join(projectRoot, ".env.qa");
+  if (fs38.existsSync(envFile)) Object.assign(secrets, parseDotenv(fs38.readFileSync(envFile, "utf8")));
   try {
-    if (fs37.existsSync(path61.join(projectRoot, ".qa", "config.md"))) {
+    if (fs38.existsSync(path65.join(projectRoot, ".qa", "config.md"))) {
       const cfg = checkConfigFile(projectRoot).config;
       for (const r of cfg?.roles ?? []) for (const n of [r.username_env, r.password_env]) if (process.env[n]) secrets[n] = process.env[n];
     }
   } catch {
   }
-  const tmp = fs37.mkdtempSync(path61.join(os5.tmpdir(), "qamind-browser-"));
-  fs37.chmodSync(tmp, 448);
-  const secretsFile = path61.join(tmp, "secrets.env");
-  fs37.writeFileSync(secretsFile, Object.entries(secrets).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("\n") + "\n", { mode: 384 });
-  const outDir = path61.join(tmp, "output");
+  const tmp = fs38.mkdtempSync(path65.join(os6.tmpdir(), "qamind-browser-"));
+  fs38.chmodSync(tmp, 448);
+  const secretsFile = path65.join(tmp, "secrets.env");
+  fs38.writeFileSync(secretsFile, Object.entries(secrets).map(([k, v]) => `${k}=${JSON.stringify(v)}`).join("\n") + "\n", { mode: 384 });
+  const outDir = path65.join(tmp, "output");
   ensureDir(outDir);
-  const stateFile2 = path61.join(home, "state", "browser-state.json");
+  const stateFile2 = path65.join(home, "state", "browser-state.json");
   const state = readJson(stateFile2) ?? {};
   state[projectRoot] = { secret_names: Object.keys(secrets).sort(), proxy_port: guard.port, pid: process.pid, started: (/* @__PURE__ */ new Date()).toISOString() };
   writeJson(stateFile2, state);
   const auditScript = (() => {
     try {
-      const f = path61.join(corePath(), "shared", "page-audit.js");
-      return fs37.existsSync(f) ? f : void 0;
+      const f = path65.join(corePath(), "shared", "page-audit.js");
+      return fs38.existsSync(f) ? f : void 0;
     } catch {
       return void 0;
     }
   })();
   const maskScript = (() => {
     try {
-      const f = path61.join(corePath(), "shared", "page-mask.js");
-      if (!fs37.existsSync(f)) return void 0;
-      const config = fs37.existsSync(path61.join(projectRoot, ".qa", "config.md")) ? checkConfigFile(projectRoot).config : void 0;
+      const f = path65.join(corePath(), "shared", "page-mask.js");
+      if (!fs38.existsSync(f)) return void 0;
+      const config = fs38.existsSync(path65.join(projectRoot, ".qa", "config.md")) ? checkConfigFile(projectRoot).config : void 0;
       const names = config?.roles.map((r) => secrets[r.username_env]).filter((v) => !!v) ?? [];
       const cfg = { selectors: config?.privacy.mask_selectors ?? [], patterns: config?.privacy.mask_patterns ?? [], prefix: config?.test_data_prefix ?? "QA-", allow: names };
-      const out = path61.join(tmp, "page-mask.js");
-      fs37.writeFileSync(out, `globalThis.__QAMIND_MASK_CONFIG = ${JSON.stringify(cfg)};
-${fs37.readFileSync(f, "utf8")}`, { mode: 384 });
+      const out = path65.join(tmp, "page-mask.js");
+      fs38.writeFileSync(out, `globalThis.__QAMIND_MASK_CONFIG = ${JSON.stringify(cfg)};
+${fs38.readFileSync(f, "utf8")}`, { mode: 384 });
       return out;
     } catch {
       return void 0;
@@ -18542,7 +19342,7 @@ ${fs37.readFileSync(f, "utf8")}`, { mode: 384 });
   const child = spawn3(mcp.command, args, { stdio: "inherit", cwd: projectRoot });
   const cleanup = async () => {
     await guard.close().catch(() => void 0);
-    fs37.rmSync(tmp, { recursive: true, force: true });
+    fs38.rmSync(tmp, { recursive: true, force: true });
   };
   for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) process.on(sig, () => child.kill(sig));
   return new Promise((resolve) => {
@@ -18560,8 +19360,8 @@ ${fs37.readFileSync(f, "utf8")}`, { mode: 384 });
 }
 
 // core/scripts/export-html.ts
-import fs38 from "node:fs";
-import path62 from "node:path";
+import fs39 from "node:fs";
+import path66 from "node:path";
 var esc2 = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 var SEV_CLASS = { critical: "sev-critical", important: "sev-important", minor: "sev-minor" };
 var SEV_LABEL = { critical: "\u{1F534} Critical", important: "\u{1F7E0} Important", minor: "\u{1F7E1} Minor" };
@@ -18633,18 +19433,18 @@ function exportAdminHtml(runDir, store, opts2 = {}) {
   let total = 0;
   const embed = (rel) => {
     if (opts2.embedImages === false) return void 0;
-    const abs = path62.resolve(runDir, rel);
-    if (!abs.startsWith(path62.resolve(runDir) + path62.sep) || !fs38.existsSync(abs)) return void skipped.push(rel);
-    const mime = MIME[path62.extname(abs).toLowerCase()];
-    const size = fs38.statSync(abs).size;
+    const abs = path66.resolve(runDir, rel);
+    if (!abs.startsWith(path66.resolve(runDir) + path66.sep) || !fs39.existsSync(abs)) return void skipped.push(rel);
+    const mime = MIME[path66.extname(abs).toLowerCase()];
+    const size = fs39.statSync(abs).size;
     if (!mime || size > MAX_IMAGE_BYTES || total + size > MAX_TOTAL_IMAGE_BYTES) return void skipped.push(rel);
     total += size;
     embedded.push(rel);
-    return `data:${mime};base64,${fs38.readFileSync(abs).toString("base64")}`;
+    return `data:${mime};base64,${fs39.readFileSync(abs).toString("base64")}`;
   };
   const html = renderAdminHtml(model, `QAMind report: ${data.meta?.environment ?? "test"} check on ${plainDate(data.meta?.started)}`, { embed });
-  const file3 = opts2.out ? path62.resolve(opts2.out) : path62.join(runDir, "ADMIN-REPORT.html");
-  fs38.writeFileSync(file3, html, "utf8");
+  const file3 = opts2.out ? path66.resolve(opts2.out) : path66.join(runDir, "ADMIN-REPORT.html");
+  fs39.writeFileSync(file3, html, "utf8");
   return {
     file: file3,
     bytes: Buffer.byteLength(html),
@@ -18662,9 +19462,10 @@ function whoAmI(given, root) {
     if (n) return n;
   } catch {
   }
-  return os6.userInfo().username;
+  return os7.userInfo().username;
 }
 function cmdFeedback(sub, rest, home) {
+  if (sub === "from-tracker") return cmdFeedbackFromTracker(rest, home, whoAmI);
   const { values, positionals } = opts(rest, { project: { type: "string" }, note: { type: "string" }, by: { type: "string" }, run: { type: "string" } });
   const scope = projectScope(home, { ...values.project ? { project: values.project } : {} });
   if (sub === "add") {
@@ -18679,7 +19480,7 @@ function cmdFeedback(sub, rest, home) {
   }
   if (sub === "import") {
     if (!values.run) throw new UsageError("feedback import needs --run ID (the run whose ADMIN-REPORT.md people wrote in)");
-    const runDir = path63.join(scope.project.root, ".qa", "reports", values.run);
+    const runDir = path67.join(scope.project.root, ".qa", "reports", values.run);
     emit({ run: values.run, lines: importAdminFeedback(scope.store, runDir, whoAmI(values.by, scope.project.root)).map((l) => ({ issue: l.issue, text: l.text, ...l.applied ? { applied: l.applied.verdict, effects: l.effects } : {}, ...l.problem ? { not_applied: l.problem } : {} })) });
     return 0;
   }
@@ -18692,7 +19493,7 @@ function cmdFeedback(sub, rest, home) {
     emit(feedbackStats(scope.store));
     return 0;
   }
-  throw new UsageError("feedback needs a subcommand: add | import | list | stats");
+  throw new UsageError("feedback needs a subcommand: add | import | from-tracker | list | stats");
 }
 function cmdBugs(sub, rest, home) {
   const { values } = opts(rest, { project: { type: "string" }, status: { type: "string" } });
@@ -18736,7 +19537,7 @@ async function cmdTests(sub, rest, home) {
     } else {
       const ctx = bankContextStandalone(home, values.project ?? defaultProjectDir(), /* @__PURE__ */ new Date());
       results = await runBank(ctx, runOpts);
-      where = path63.join(path63.relative(process.cwd(), ctx.outDir), "data", "bank-results.json");
+      where = path67.join(path67.relative(process.cwd(), ctx.outDir), "data", "bank-results.json");
     }
     const bad = results.results.filter((r) => r.status === "failed" || r.status === "skipped" || r.status === "flaky-passed" || r.status === "quarantined");
     emit({
@@ -18765,7 +19566,7 @@ async function cmdTests(sub, rest, home) {
     if (!id) throw new UsageError(`tests ${sub} needs a test id (see \`tests status\`)`);
     const scope = projectScope(home, projectOpt);
     const now = /* @__PURE__ */ new Date();
-    const t = withStoreLock(scope.store, () => sub === "retire" ? retireTest(scope.store, id, values.reason ?? "", values.by ?? os6.userInfo().username, now) : setQuarantine(scope.store, id, sub === "quarantine", values.reason, now));
+    const t = withStoreLock(scope.store, () => sub === "retire" ? retireTest(scope.store, id, values.reason ?? "", values.by ?? os7.userInfo().username, now) : setQuarantine(scope.store, id, sub === "quarantine", values.reason, now));
     emit({ id: t.id, status: t.status, title: t.title });
     return 0;
   }
@@ -18792,7 +19593,7 @@ async function cmdCi(sub, rest) {
     "host-spec": { type: "string" },
     write: { type: "boolean", default: false }
   });
-  const root = path63.resolve(values.project ?? process.cwd());
+  const root = path67.resolve(values.project ?? process.cwd());
   const mode = values.mode;
   if (mode === "ticket" && !values.ticket) throw new UsageError("ticket mode needs the ticket: --ticket FILE (a file in the project that says what to test).");
   if (values.ticket && mode !== void 0 && mode !== "ticket") throw new UsageError("--ticket means ticket mode: leave --mode out, or use --mode ticket.");
@@ -18806,9 +19607,9 @@ async function cmdCi(sub, rest) {
       ...values.out ? { outDir: values.out } : {},
       ...values["agent-command"] ? { agentCommand: values["agent-command"] } : {},
       host: values.host,
-      ...values["host-spec"] ? { hostSpec: path63.resolve(values["host-spec"]) } : {},
+      ...values["host-spec"] ? { hostSpec: path67.resolve(values["host-spec"]) } : {},
       ...values.model ? { model: values.model } : {},
-      ...values.home ? { home: path63.resolve(values.home) } : {},
+      ...values.home ? { home: path67.resolve(values.home) } : {},
       userStore: values["user-store"],
       dryRun: values["dry-run"],
       ...values["from-run"] ? { fromRun: values["from-run"] } : {},
@@ -18830,7 +19631,7 @@ async function cmdCi(sub, rest) {
     throw new UsageError(e.message);
   }
   const input = { ref: values.ref ?? origin.tag ?? "main", repoUrl: values["repo-url"] ?? origin.repoUrl ?? PLACEHOLDER_REPO, mode: mode ?? check.config.ci.mode, loginVars: loginVarsOf(check.config), cacheMemory: check.config.ci.cache_memory, headless };
-  const rel = provider === "github" ? ".github/workflows/qamind.yml" : fs39.existsSync(path63.join(root, ".gitlab-ci.yml")) ? ".gitlab/qamind.gitlab-ci.yml" : ".gitlab-ci.yml";
+  const rel = provider === "github" ? ".github/workflows/qamind.yml" : fs40.existsSync(path67.join(root, ".gitlab-ci.yml")) ? ".gitlab/qamind.gitlab-ci.yml" : ".gitlab-ci.yml";
   return writeTemplate(root, rel, provider === "github" ? githubPrWorkflow(input) : gitlabCi(input), values.write, input, provider === "gitlab" && rel !== ".gitlab-ci.yml" ? ["There is already a .gitlab-ci.yml: add `include: .gitlab/qamind.gitlab-ci.yml` to it."] : []);
 }
 function templateNotes(root, input) {
@@ -18846,11 +19647,11 @@ function templateNotes(root, input) {
   return notes;
 }
 function writeTemplate(root, rel, content, write, input, extra) {
-  const file3 = path63.join(root, rel);
-  const exists2 = fs39.existsSync(file3);
+  const file3 = path67.join(root, rel);
+  const exists2 = fs40.existsSync(file3);
   if (write && !exists2) {
-    ensureDir(path63.dirname(file3));
-    fs39.writeFileSync(file3, content, "utf8");
+    ensureDir(path67.dirname(file3));
+    fs40.writeFileSync(file3, content, "utf8");
   }
   emit({ path: rel, written: write && !exists2, ...exists2 ? { exists: true, note: "The file exists and is never overwritten: move it aside, or copy from the preview." } : {}, notes: [...templateNotes(root, input), ...extra], ...write && !exists2 ? {} : { content } });
   return write && exists2 ? 1 : 0;
@@ -18859,7 +19660,7 @@ function cmdSchedule(sub, rest) {
   const { values } = opts(sub ? [sub, ...rest] : rest, { project: { type: "string" }, provider: { type: "string" }, cron: { type: "string" }, time: { type: "string" }, mode: { type: "string" }, ref: { type: "string" }, "repo-url": { type: "string" }, host: { type: "string", default: "claude" }, "host-spec": { type: "string" }, write: { type: "boolean", default: false } });
   const provider = values.provider;
   if (!["github", "gitlab", "cron", "windows"].includes(provider ?? "")) throw new UsageError("schedule needs --provider github|gitlab|cron|windows");
-  const root = path63.resolve(values.project ?? process.cwd());
+  const root = path67.resolve(values.project ?? process.cwd());
   const mode = values.mode ?? "full";
   if (!CI_MODES.includes(mode)) throw new UsageError(`--mode must be one of ${CI_MODES.join(", ")}`);
   const cron = values.cron ?? "0 2 * * *";
@@ -18937,6 +19738,7 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
   feedback add ISSUE-003|BUG-002 not-a-bug|confirmed|wont-fix|fixed|good-catch|wrong-severity LEVEL|duplicate-of ID [--note TEXT] [--by NAME] [--run ID]
                                a person's verdict on a finding; a QA run cannot give one
   feedback import --run ID [--by NAME]   read the "Your feedback" lines people filled in ADMIN-REPORT.md
+  feedback from-tracker --file F [--by NAME]   what people decided in Linear (closed as not a bug, won't fix, duplicate) as feedback; read from the tickets by the agent (the owner's)
   feedback list | stats        what people said, and the share of findings they judged real
   bugs list [--status open|fixed|accepted|all]   the project's bugs across runs
   sweep check --run ID         check data/sweep-pages.json (the key pages, per role) against the config and show the browsers and screen sizes this mode covers
@@ -18944,7 +19746,15 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
                                visit the key pages in each browser and screen size: audit leads, load time, a screenshot compared with its baseline (data/sweep.json)
   perf check --run ID | perf api --run ID   time a few read-only calls to the endpoints in data/perf-endpoints.json against the budget and the recent runs (data/perf-api.json)
   escaped add --area A --title T [--severity S] [--source manual|sentry|ticket|other] [--ref ID] [--note TEXT]   a bug that reached production: matched to what the runs said about its area, and the area's risk is raised (the owner's)
+  escaped areas                the areas the last runs covered, in the words to name an escaped bug's area with (and the production side of Sentry and Linear, from the config)
+  escaped import --file F      record a list of bugs found in Sentry or in tickets labelled escaped (the owner's, outside a run)
   escaped list                 the bugs that escaped, and what the runs had said about each area
+  integrations status          Linear and Sentry as the config sets them up, and what each needs (QAMind stores no token for either)
+  tracker tickets [--project DIR]   the tickets QAMind made or linked, with their bug
+  tracker plan|status --run ID   the Linear tickets a finished run calls for (one per Critical or Important bug not fixed and checked), already masked
+  tracker record --run ID --issue ISSUE-001 --action created|updated|existing --ticket ENG-123 --url URL [--state S]   what was done in Linear for one finding
+  tracker skip --run ID --reason TEXT   no tickets for this run, and why (the person said no, nobody to ask, no Linear tool)
+  sentry window|check|skip --run ID   the run's time window for Sentry, the check of data/sentry.json (server errors tied to findings), or why nothing was read
   metrics [--project DIR]      how the agent is doing: the last runs, precision, escaped bugs, the trend once there are six runs
   ticket check --run ID | ticket status --run ID   ticket mode: check the criteria written to data/ticket.json (derived ones need the person's confirmation), then see which criteria have a result
   mail status | mail wait --run ID --to ADDRESS [--flow TEXT] [--kind transactional|notification|marketing|invitation] [--language ur] [--subject-contains T] [--timeout-s N]
@@ -19019,11 +19829,11 @@ async function loadInventory(ctx, specArg) {
     doc = loadSpecFile(resolveSpecPath(source, ctx.projectRoot));
   }
   const inv = buildInventory(doc, source);
-  writeJson(path63.join(ctx.runDir, "data", "api-inventory.json"), inv);
+  writeJson(path67.join(ctx.runDir, "data", "api-inventory.json"), inv);
   return inv;
 }
 function readInventory(ctx) {
-  return readJson(path63.join(ctx.runDir, "data", "api-inventory.json"));
+  return readJson(path67.join(ctx.runDir, "data", "api-inventory.json"));
 }
 async function cmdApi(sub, rest, home) {
   if (sub === "inventory") {
@@ -19071,10 +19881,10 @@ async function cmdApi(sub, rest, home) {
     });
     plan.name = values.name ?? (values.role ? `baseline-${role}` : "baseline");
     const rel = `data/plans/${plan.name}.json`;
-    writeJson(path63.join(ctx.runDir, rel), plan);
+    writeJson(path67.join(ctx.runDir, rel), plan);
     const byTag = {};
     for (const p of plan.probes) for (const t of p.tags ?? []) byTag[t] = (byTag[t] ?? 0) + 1;
-    emit({ plan_file: path63.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
+    emit({ plan_file: path67.join(ctx.runDir, rel), name: plan.name, run_as: role, probes: plan.probes.length, by_tag: byTag, needs_variables: [...new Set(plan.probes.flatMap((p) => p.needs ?? []))], excluded_possible_side_effects: excluded, next: "Edit the plan (add business-rule probes, set vars, remove unsafe ones), then: api run --plan <plan_file>" });
     return 0;
   }
   if (sub === "run") {
@@ -19084,9 +19894,9 @@ async function cmdApi(sub, rest, home) {
     const base = ctx.config.api.base_url;
     if (!base) throw new UsageError("api.base_url is not set in .qa/config.md");
     const given = values.plan;
-    const byName = path63.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
-    const planFile = exists(path63.resolve(given)) ? path63.resolve(given) : exists(byName) ? byName : void 0;
-    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path63.join(ctx.runDir, "data", "plans")}.`);
+    const byName = path67.join(ctx.runDir, "data", "plans", `${given.replace(/\.json$/, "")}.json`);
+    const planFile = exists(path67.resolve(given)) ? path67.resolve(given) : exists(byName) ? byName : void 0;
+    if (!planFile) throw new UsageError(`No plan "${given}": pass a file path, or the name of a plan in ${path67.join(ctx.runDir, "data", "plans")}.`);
     const plan = readJson(planFile);
     const result = await runPlan(plan, {
       baseUrl: base,
@@ -19127,8 +19937,8 @@ async function cmdReport(sub, rest, home) {
       refreshChanges: true
     });
     emit({
-      technical_report: path63.join(ctx.runDir, "TECHNICAL-REPORT.md"),
-      admin_report: path63.join(ctx.runDir, "ADMIN-REPORT.md"),
+      technical_report: path67.join(ctx.runDir, "TECHNICAL-REPORT.md"),
+      admin_report: path67.join(ctx.runDir, "ADMIN-REPORT.md"),
       verdict: r.model.verdict.line,
       findings: r.data.findings.map((f) => `${f.id} ${f.severity}: ${f.title}`),
       unconfirmed: r.data.unconfirmed.length,
@@ -19158,7 +19968,7 @@ async function cmdReport(sub, rest, home) {
 async function cmdMemory(sub, rest, home) {
   if (sub === "where") {
     const { values: values2 } = opts(rest, { project: { type: "string" } });
-    const info = resolveProject(path63.resolve(values2.project ?? process.cwd()));
+    const info = resolveProject(path67.resolve(values2.project ?? process.cwd()));
     const { store } = ensureProjectStore(home, info);
     emit({ project_id: info.id, id_source: info.idSource, store });
     return 0;
@@ -19249,7 +20059,7 @@ function cmdLessons(sub, rest, home) {
 }
 function readStdin() {
   try {
-    return fs39.readFileSync(0, "utf8");
+    return fs40.readFileSync(0, "utf8");
   } catch {
     return "";
   }
@@ -19299,7 +20109,7 @@ async function cmdHook(sub, rest, home) {
     if (reason) process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "allow", permissionDecisionReason: reason } }) + "\n");
     return 0;
   }
-  const tmp = [os6.tmpdir(), input.scratchpad_dir].filter((p) => !!p);
+  const tmp = [os7.tmpdir(), input.scratchpad_dir].filter((p) => !!p);
   const decision = decidePreToolUse(input, home, tmp);
   if (decision) process.stdout.write(JSON.stringify(toHookOutput(decision)) + "\n");
   return 0;
@@ -19313,8 +20123,8 @@ async function main(argv) {
         return await cmdRun(sub, rest, home);
       case "config": {
         const { values } = opts(rest, { project: { type: "string" } });
-        const root = path63.resolve(values.project ?? process.cwd());
-        if (!exists(path63.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
+        const root = path67.resolve(values.project ?? process.cwd());
+        if (!exists(path67.join(root, ".qa", "config.md"))) throw new UsageError(`No .qa/config.md in ${root}. Run \`run start\` to create it.`);
         const check = checkConfigFile(root);
         const { config: _c, body: _b, ...printable } = check;
         emit(printable);
@@ -19323,9 +20133,9 @@ async function main(argv) {
       case "health": {
         const { values } = opts(sub ? [sub, ...rest] : rest, { run: { type: "string" } });
         const ctx = loadRunContext(home, values.run);
-        ensureDir(path63.join(ctx.runDir, "data"));
+        ensureDir(path67.join(ctx.runDir, "data"));
         const { health: result } = await healthWithPrep({ config: ctx.config, policy: ctx.policy, roles: ctx.roles, projectRoot: ctx.projectRoot, runDir: ctx.runDir, mode: ctx.marker.mode, redact: makeRedactor(ctx.passwords).text });
-        writeJson(path63.join(ctx.runDir, "data", "health.json"), result);
+        writeJson(path67.join(ctx.runDir, "data", "health.json"), result);
         emit(result);
         return result.environment_ok ? 0 : 7;
       }
@@ -19353,6 +20163,12 @@ async function main(argv) {
         return cmdEscaped(sub, rest, home);
       case "metrics":
         return cmdMetrics(sub ? [sub, ...rest] : rest, home);
+      case "integrations":
+        return cmdIntegrations(sub, rest, home);
+      case "tracker":
+        return cmdTracker(sub, rest, home);
+      case "sentry":
+        return cmdSentry(sub, rest, home);
       case "mail":
         return await cmdMail("email", sub, rest, home);
       case "sms":

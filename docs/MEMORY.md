@@ -101,8 +101,12 @@ and `stats` {runs, passes, failures, flaky, flips, last, history (p, f or x = pa
 `escaped`: `id` (ESC-001), `area, title, severity, source` (manual, sentry, ticket, other), `ref`, `recorded`, `by`, `note`, `verdict` (what the runs had said about the area: `missed`, `reported-before`, `partly-checked`, `not-checked`, `never-covered`) and `matched` (the run, the area it matched and, for a tested area, the findings that looked related). Written by `run finish` and by `qamind escaped add` (the owner's); a run cannot write it by hand.
 Precision is not stored: it is worked out from the feedback file whenever it is shown.
 
+### `tickets.json` (Phase 8)
+
+`tickets`: which Linear ticket each bug has (at most 500): `bug` (BUG-003), `ticket` (ENG-412), `url` (https on linear.app), `state` (as last seen: Todo, Canceled, ...), `created_run`, `last_run`, `updated`. A run writes a bug's entry only through `qamind tracker record`, and `feedback from-tracker` updates the state it read; the next run's `tracker plan` uses it to comment on the ticket instead of opening another. Nothing else is kept from Linear: no ticket text, no names.
+
 ### `risk-areas.json`
-Per area, the most recent events (`run, date, severity`, and `source`: a finding, the agent's flag, a person's feedback, or an escaped bug, whose event is kept under its own id). The score is `Σ weight × recency`, with weights 10 / 4 / 1 for
+Per area, the most recent events (`run, date, severity`, and `source`: a finding, the agent's flag, a person's feedback, or an escaped bug (by hand, or from Sentry or a ticket), whose event is kept under its own id). The score is `Σ weight × recency`, with weights 10 / 4 / 1 for
 critical / important / minor and a recency half-life of 90 days, so an old problem fades and a repeated one stays on top.
 
 ### `product-map.json`

@@ -21,6 +21,10 @@ import { renderAgentPerformance } from "./metrics-report.ts";
 import type { CoverageData } from "./coverage-report.ts";
 import { lintTicketResults, readTicketData, renderTechnicalChecklist } from "./ticket.ts";
 import type { TicketData } from "./ticket.ts";
+import { readTicketsFile, renderTechnicalTickets } from "./tracker.ts";
+import type { TicketsFile } from "./tracker.ts";
+import { readSentryFile, renderTechnicalSentry, sentryLinesFor } from "./sentry.ts";
+import type { SentryFile } from "./sentry.ts";
 
 /** Structured run data lives in <run>/data/*.json; TECHNICAL-REPORT.md is rendered from it (spec §11.2/§11.3). */
 
@@ -207,6 +211,8 @@ export interface RunMeta {
   critical_flows?: string[];
   /** The release rules in force when the run started (spec 13.13), so a later render of the reports gives the verdict the run gave, whatever the config says by then. */
   release_rules?: ReleaseRules;
+  /** The optional integrations the config set up when the run started (spec 11.4): the lint asks for their records only when they were. */
+  integrations?: { linear?: { team: string }; sentry?: { environments: string[] } };
   /** Ticket mode (spec 13.4): the ticket this run tests, as it was given (an id, an address without its query, a file, or "pasted text"). */
   ticket_ref?: string;
   /** Written by `run finish`: what was saved to memory. */
@@ -258,6 +264,10 @@ export interface RunData {
   ticket?: TicketData;
   /** The page sweep, the message checks and the timings (spec 13.7, 13.9 to 13.11). */
   checks?: CoverageData;
+  /** The Linear tickets made or updated for this run's findings (data/tickets.json, spec 11.4). */
+  tickets?: TicketsFile;
+  /** The server errors Sentry recorded while the run lasted, and the findings they explain (data/sentry.json, spec 11.4). */
+  sentry?: SentryFile;
 }
 
 export interface ApiRunSummary {
@@ -333,6 +343,14 @@ export function readRunData(runDir: string): RunData {
     ...((): { checks?: CoverageData } => {
       const c = readCoverageData(runDir);
       return c ? { checks: c } : {};
+    })(),
+    ...((): { tickets?: TicketsFile } => {
+      const t = readTicketsFile(runDir);
+      return t ? { tickets: t } : {};
+    })(),
+    ...((): { sentry?: SentryFile } => {
+      const t = readSentryFile(runDir);
+      return t ? { sentry: t } : {};
     })(),
   };
 }
@@ -542,6 +560,8 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
     L.push("");
   }
   if (data.fix) L.push(...fixRunSection(data));
+  if (data.tickets?.links.length) L.push(...renderTechnicalTickets(data.tickets, data.findings));
+  if (data.sentry) L.push(...renderTechnicalSentry(data.sentry));
 
   L.push("## What changed since the last run", "");
   const ch = data.changes;
@@ -582,6 +602,9 @@ export function renderTechnicalReport(data: RunData, ctx: TechnicalContext = {})
       L.push(`- **Bug:** ${life.bug} · ${what}${f.bank_tests?.length ? ` · bank test ${f.bank_tests.join(", ")}` : ""}`);
     }
     if (f.severity_note) L.push(`- **Severity:** ${f.severity_note}`);
+    const tk = data.tickets?.links.find((x) => x.issue === f.id && x.ticket);
+    if (tk) L.push(`- **Ticket:** ${tk.url ? `[${tk.ticket}](${tk.url})` : tk.ticket} (${tk.action})`);
+    L.push(...sentryLinesFor(data.sentry, f.id ?? ""));
     if (f.roles?.length) L.push(`- **Roles:** ${f.roles.join(", ")}`);
     if (f.browser || f.viewport) L.push(`- **Browser / viewport:** ${[f.browser, f.viewport].filter(Boolean).join(" / ")}`);
     L.push(`- **Reproduced:** ${f.reproduced.times} of ${f.reproduced.of} attempts`);

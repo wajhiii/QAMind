@@ -11,12 +11,15 @@ import type { Base, SetupReport, StatusReport, UninstallReport, UpdateReport } f
  * The setup CLI: `qamind setup | status | update | uninstall` (run by the launcher with Node 22.18+, which loads this TypeScript directly).
  * Everything it does is in ./setup/commands.ts; this file reads the command line and says what happened in plain words (`--json` for scripts).
  */
+/** The folder `./setup` was run from (the script moves into the checkout, so it passes this on), else where this process is. */
+const callerDir = (): string => process.env["QAMIND_CALLER_DIR"] || process.cwd();
+
 const HELP = `qamind: install QAMind for your coding tools
 
   qamind setup [--host auto|claude|cursor|generic[,...]] [--project] [--dir DIR] [--version vX.Y.Z] [--skip-build] [--no-launcher] [--dry-run] [--json]
       --host auto     every supported tool found on this machine (the default)
       --host NAME     only that tool; the others are never touched
-      --project       install into the project (--dir, default: the current folder) instead of your user account
+      --project       install into the project (--dir, default: the folder you ran setup from) instead of your user account
       --version       move this checkout to that release first (the default is whatever is checked out)
   qamind status [--dir DIR] [--json]      one row per install: tool, tier, what is in place
   qamind update [--version vX.Y.Z | --edge] [--skip-build] [--json]
@@ -110,7 +113,7 @@ export async function main(argv: string[]): Promise<number> {
       if (v.version) checkoutTarget(repoRoot, { version: v.version as string });
       if (!v["skip-build"] && !v["dry-run"]) buildApp(repoRoot);
       const scope = v.project ? "project" : "user";
-      const report = await setupHosts({ ...b, hosts: v.host === "auto" ? "auto" : hostList(v.host), scope, projectDir: path.resolve((v.dir as string | undefined) ?? process.cwd()), launcher: !v["no-launcher"], dryRun: v["dry-run"] as boolean });
+      const report = await setupHosts({ ...b, hosts: v.host === "auto" ? "auto" : hostList(v.host), scope, projectDir: path.resolve((v.dir as string | undefined) ?? callerDir()), launcher: !v["no-launcher"], dryRun: v["dry-run"] as boolean });
       if (v.json) out(JSON.stringify(report, null, 2));
       else printSetup(report, scope, v["dry-run"] as boolean);
       return report.problems.length ? 1 : 0;
@@ -135,7 +138,7 @@ export async function main(argv: string[]): Promise<number> {
         process.stderr.write("qamind uninstall needs --host NAME (or --all). It removes only what setup added.\n\n" + HELP);
         return 2;
       }
-      const u = await uninstallHosts({ ...base(), hosts: v.all ? "all" : hostList(v.host), ...(v.project ? { scope: "project" as const, projectDir: path.resolve((v.dir as string | undefined) ?? process.cwd()) } : {}), purge: v.purge as boolean, confirm: v.yes as boolean });
+      const u = await uninstallHosts({ ...base(), hosts: v.all ? "all" : hostList(v.host), ...(v.project ? { scope: "project" as const, projectDir: path.resolve((v.dir as string | undefined) ?? callerDir()) } : {}), purge: v.purge as boolean, confirm: v.yes as boolean });
       if (v.json) out(JSON.stringify(u, null, 2));
       else printUninstall(u);
       return u.problems.length ? 1 : 0;

@@ -1,6 +1,6 @@
 {
   "name": "qamind",
-  "version": "0.1.0",
+  "version": "0.8.0",
   "private": true,
   "description": "QAMind: a reusable Senior QA Engineer agent for AI coding tools (Claude Code first). Distributed from Git only.",
   "license": "MIT",

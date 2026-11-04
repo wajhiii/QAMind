@@ -5,6 +5,7 @@ import path from "node:path";
 import { parseArgs } from "node:util";
 import { cmdBaseline, cmdBrowsers, cmdMail, cmdPerf, cmdSweep, cmdTicket } from "./coverage.ts";
 import { cmdEscaped, cmdMetrics } from "./metrics.ts";
+import { cmdFeedbackFromTracker, cmdIntegrations, cmdSentry, cmdTracker } from "./integrations.ts";
 import { emit, num, opts, UsageError } from "./util.ts";
 import { AutoUsageError, autoCommand } from "../../core/auto-qa/commands.ts";
 import { approveAutoSkill, onPrompt, onStop, safely } from "../../core/auto-qa/gate.ts";
@@ -71,6 +72,7 @@ function whoAmI(given: unknown, root: string): string {
 }
 
 function cmdFeedback(sub: string | undefined, rest: string[], home: string): number {
+  if (sub === "from-tracker") return cmdFeedbackFromTracker(rest, home, whoAmI);
   const { values, positionals } = opts(rest, { project: { type: "string" }, note: { type: "string" }, by: { type: "string" }, run: { type: "string" } });
   const scope = projectScope(home, { ...(values.project ? { project: values.project as string } : {}) });
   if (sub === "add") {
@@ -98,7 +100,7 @@ function cmdFeedback(sub: string | undefined, rest: string[], home: string): num
     emit(feedbackStats(scope.store));
     return 0;
   }
-  throw new UsageError("feedback needs a subcommand: add | import | list | stats");
+  throw new UsageError("feedback needs a subcommand: add | import | from-tracker | list | stats");
 }
 
 function cmdBugs(sub: string | undefined, rest: string[], home: string): number {
@@ -354,6 +356,7 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
   feedback add ISSUE-003|BUG-002 not-a-bug|confirmed|wont-fix|fixed|good-catch|wrong-severity LEVEL|duplicate-of ID [--note TEXT] [--by NAME] [--run ID]
                                a person's verdict on a finding; a QA run cannot give one
   feedback import --run ID [--by NAME]   read the "Your feedback" lines people filled in ADMIN-REPORT.md
+  feedback from-tracker --file F [--by NAME]   what people decided in Linear (closed as not a bug, won't fix, duplicate) as feedback; read from the tickets by the agent (the owner's)
   feedback list | stats        what people said, and the share of findings they judged real
   bugs list [--status open|fixed|accepted|all]   the project's bugs across runs
   sweep check --run ID         check data/sweep-pages.json (the key pages, per role) against the config and show the browsers and screen sizes this mode covers
@@ -361,7 +364,15 @@ Global lessons (owner's list; see \`/qa-memory-review\`)
                                visit the key pages in each browser and screen size: audit leads, load time, a screenshot compared with its baseline (data/sweep.json)
   perf check --run ID | perf api --run ID   time a few read-only calls to the endpoints in data/perf-endpoints.json against the budget and the recent runs (data/perf-api.json)
   escaped add --area A --title T [--severity S] [--source manual|sentry|ticket|other] [--ref ID] [--note TEXT]   a bug that reached production: matched to what the runs said about its area, and the area's risk is raised (the owner's)
+  escaped areas                the areas the last runs covered, in the words to name an escaped bug's area with (and the production side of Sentry and Linear, from the config)
+  escaped import --file F      record a list of bugs found in Sentry or in tickets labelled escaped (the owner's, outside a run)
   escaped list                 the bugs that escaped, and what the runs had said about each area
+  integrations status          Linear and Sentry as the config sets them up, and what each needs (QAMind stores no token for either)
+  tracker tickets [--project DIR]   the tickets QAMind made or linked, with their bug
+  tracker plan|status --run ID   the Linear tickets a finished run calls for (one per Critical or Important bug not fixed and checked), already masked
+  tracker record --run ID --issue ISSUE-001 --action created|updated|existing --ticket ENG-123 --url URL [--state S]   what was done in Linear for one finding
+  tracker skip --run ID --reason TEXT   no tickets for this run, and why (the person said no, nobody to ask, no Linear tool)
+  sentry window|check|skip --run ID   the run's time window for Sentry, the check of data/sentry.json (server errors tied to findings), or why nothing was read
   metrics [--project DIR]      how the agent is doing: the last runs, precision, escaped bugs, the trend once there are six runs
   ticket check --run ID | ticket status --run ID   ticket mode: check the criteria written to data/ticket.json (derived ones need the person's confirmation), then see which criteria have a result
   mail status | mail wait --run ID --to ADDRESS [--flow TEXT] [--kind transactional|notification|marketing|invitation] [--language ur] [--subject-contains T] [--timeout-s N]
@@ -780,6 +791,12 @@ export async function main(argv: string[]): Promise<number> {
         return cmdEscaped(sub, rest, home);
       case "metrics":
         return cmdMetrics(sub ? [sub, ...rest] : rest, home);
+      case "integrations":
+        return cmdIntegrations(sub, rest, home);
+      case "tracker":
+        return cmdTracker(sub, rest, home);
+      case "sentry":
+        return cmdSentry(sub, rest, home);
       case "mail":
         return await cmdMail("email", sub, rest, home);
       case "sms":

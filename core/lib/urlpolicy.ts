@@ -19,6 +19,8 @@ export type UrlVerdict =
 const TEST_LABEL = /(^|[-_.])(staging|stage|stg|dev|develop|test|testing|qa|uat|sandbox|demo|preview|local|localhost|internal|lan)([-_.]|\d|$)/i;
 /** Labels that look like production. These block unless the host is listed in `not_production_hosts`. */
 const PROD_LABEL = /(^|[-_.])(prod|production|prd|live)([-_.]|\d|$)/i;
+/** Whether a name (an environment, a host label) looks like production. */
+export const looksLikeProductionName = (name: string): boolean => PROD_LABEL.test(name);
 const LOOPBACK_SUFFIXES = [".localhost", ".local", ".test", ".internal", ".lan"];
 
 export function parseUrl(raw: string): URL | null {

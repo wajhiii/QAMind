@@ -377,6 +377,21 @@ function isLoopback(address) {
   return address === '127.0.0.1' || address === '::1' || address === '::ffff:127.0.0.1';
 }
 
+// A stand-in for an error monitor's SDK: when DEMO_ERROR_LOG names a file, every unhandled server error is appended to it as one JSON line
+// (time, environment, title, route). Off by default. The evaluation's Sentry stand-in reads this file; it is not Sentry.
+import { appendFileSync } from 'node:fs';
+function logServerError(err, req, url) {
+  const file = process.env.DEMO_ERROR_LOG;
+  if (!file) return;
+  try {
+    const route = `${req.method} ${url.pathname.replace(/\/\d+(?=\/|$)/g, '/:id')}`;
+    const title = `${err?.name ?? 'Error'}: ${String(err?.message ?? err).split('\n')[0].slice(0, 160)}`;
+    appendFileSync(file, `${JSON.stringify({ at: new Date().toISOString(), environment: process.env.DEMO_ENVIRONMENT ?? 'staging', project: 'acme-api', title, culprit: route })}\n`);
+  } catch {
+    /* monitoring must never break the request */
+  }
+}
+
 export function createApiHandler(ctx) {
   const specPath = new URL('../openapi.yaml', import.meta.url);
 
@@ -451,6 +466,7 @@ export function createApiHandler(ctx) {
         return;
       }
       console.error(err);
+      logServerError(err, req, url);
       sendError(res, new HttpError(500, 'internal_error', 'Something went wrong'));
     }
   };

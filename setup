@@ -6,10 +6,13 @@
 #   ./setup --host generic --project   an AGENTS.md section in this project, for any other agent
 # More: ./setup --help
 set -e
+# `--project` means the folder setup was run from, so remember it before moving into the checkout.
+QAMIND_CALLER_DIR="$PWD"
+export QAMIND_CALLER_DIR
 cd "$(dirname "$0")"
 if ! command -v node >/dev/null 2>&1; then
   echo "QAMind setup needs Node 22.18 or newer, and node was not found. Install it from https://nodejs.org and run ./setup again." >&2
   exit 1
 fi
 node -e 'const [a,b]=process.versions.node.split(".").map(Number); if (a<22||(a===22&&b<18)) { console.error("QAMind setup needs Node 22.18 or newer (this is "+process.version+"). Install a newer Node and run ./setup again."); process.exit(1) }'
-exec node cli/src/setup-main.ts setup "$@"
+exec node --disable-warning=ExperimentalWarning cli/src/setup-main.ts setup "$@"

@@ -140,6 +140,26 @@ health:
 #     allow_regressed: false       # false: a problem that came back after being fixed keeps the verdict from being "Ready"
 #     not_ready_when: [critical]   # violations of these mean "Not ready"; any other violation means "Ready with risks". Also: important, minor, regressed, flows-untested
 
+# Linear and Sentry (optional). QAMind keeps no token for either: it uses the tool your coding tool has connected, and does nothing when there is none.
+# Tickets: one per Critical or Important bug that is not fixed and checked, after the person agrees once; a bug that has an open ticket gets a comment instead of another ticket.
+# Sentry: a run reads the errors of the TEST environments while it lasted and ties them to its findings (read only). Production names go under production_environments: only
+# the owner's escaped-bug check (/qa-memory-review escaped) reads those, and never inside a run.
+# integrations:
+#   linear:
+#     team: ENG                    # the team (key or name) tickets go in
+#     # project: Release QA        # optional
+#     # labels: [qamind]           # put on every ticket QAMind makes (labels that do not exist are left off)
+#     # create: ask                # ask (once per run) or never (only link and comment on tickets that already exist)
+#     # not_a_bug: [not a bug, invalid, cannot reproduce]    # ticket labels or states that mean "not a bug" (feedback, with the person's name)
+#     # wont_fix: [won't fix, won't do]                      # ... and "we will not fix this"
+#     # escaped_label: escaped     # the label for bugs that reached production
+#   sentry:
+#     # organization: acme
+#     projects: [acme-api]
+#     environments: [staging]      # the test system's environments; never a name that looks like production
+#     # production_environments: [production]   # read only by the owner's escaped-bug check
+#     # window_margin_minutes: 2   # minutes before and after the run that still count
+
 # CI / pull-request mode (optional): `qamind ci` tests a pull request, report-only, and posts one comment that it updates on every push.
 # ci:
 #   fail_on: [critical, environment-problem]   # any of these fails the run (exit code 1, failing status). Also: important, minor, came-back, bank-failure, not-ready

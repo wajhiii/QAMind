@@ -3,29 +3,36 @@
 QAMind is a reusable QA agent you install once and use in any project. Give it a job:
 
 - **`/qa-only`**: test the product thoroughly and **report**, without changing any code.
-- **`/qa`** (fix mode): test, then fix the bugs it found, safely on a branch. _Planned (Phase 6)._
+- **`/qa`** (fix mode): test, then fix the bugs it found, safely on a branch, with a regression test for each fix.
 
 It tests your **API** (from its OpenAPI spec), each **web UI** per role, cross-surface consistency, permissions and your
 business rules, and writes a technical report with reproducible findings, evidence, and an explicit **Not tested** list.
 It works on staging or local environments only, never production.
 
-> **Status: Phase 7.5 of 8.** Working today: `/qa-only` and `/qa` (fix mode) on **Claude Code**, API testing from OpenAPI, browser testing of web UIs, a safety guard, a built-in QA knowledge base (27 topic files, sourced in
-> [docs/KNOWLEDGE-SOURCES.md](docs/KNOWLEDGE-SOURCES.md)), a technical report for developers and a plain-language admin report for managers (release verdict, email-ready HTML), **project memory** that each run applies, a validated
-> **`qa-memory` MCP server**, **auto-QA** after every task that changed code (off by default), **global lessons you approve** and a memory review, and now **installation for other tools**: Cursor (experimental, from its docs, never run in a real Cursor)
-> and any agent that reads `AGENTS.md` (instruction-only), with `qamind setup | status | update | uninstall`. Codex was deferred by the owner. Not built yet: CI mode and the rest of the [roadmap](#roadmap). Nothing below is claimed beyond what is built.
+> **Status: Phase 8 of 8, unreleased (no version tag yet).** Working today: `/qa-only` and `/qa` (fix mode) on **Claude Code**: API testing from OpenAPI, browser testing of web UIs in several browsers and screen sizes, ticket mode, page speed, emails and visual baselines, a safety guard, a built-in QA knowledge base (27 topic files, sourced in
+> [docs/KNOWLEDGE-SOURCES.md](docs/KNOWLEDGE-SOURCES.md)), a technical report for developers and a plain-language admin report for managers (release verdict with your own rules, email-ready HTML), **project memory** that each run applies, bugs tracked across runs, your feedback, a **test bank**, agent performance metrics, a validated **`qa-memory` MCP server**, **auto-QA** after every task that changed code (off by default), **global lessons you approve**, **CI and pull requests**, and optional **Linear** tickets and **Sentry** errors.
+> Other tools: **Cursor** (experimental, from its docs, never run in a real Cursor) and any agent that reads `AGENTS.md` (instruction-only), with `qamind setup | status | update | uninstall`. Codex was deferred by the owner. Not verified: Linear and Sentry themselves (checked against stand-ins), GitHub as the Git host, Windows. Nothing below is claimed beyond what is built.
 
 ## Install
 
-QAMind is installed from its Git repository only (no npm package, no registry). Pick your tool; each install is separate and `setup --host X` never touches the others.
+QAMind is installed from its Git repository only (no npm package, no registry). Pick your tool; each install is separate and `setup --host X` never touches the others. In the commands below, **`<owner>/qamind` is this repository's GitHub path** (a full `https://…/qamind.git` address works too).
 
-**Claude Code** (full: hooks enforce auto-QA and the safety guard), with its plugin marketplace:
+**Claude Code** (full: hooks enforce auto-QA and the safety guard), with its plugin marketplace. Inside Claude Code:
 
 ```
 /plugin marketplace add <owner>/qamind
 /plugin install qamind@qamind
 ```
 
-Update with `/plugin marketplace update qamind`. Requires **Node 20+** (the plugin runs its own bundled code) and **Google Chrome or Microsoft Edge** for web testing (otherwise run `npx playwright-core install chromium` once).
+or from a terminal, the same two steps (`--scope user` is the default; `project` and `local` also exist):
+
+```
+claude plugin marketplace add <owner>/qamind
+claude plugin install qamind@qamind
+```
+
+Check with `claude plugin list`: `qamind` should be **enabled**, with the version `package.json` has (the repository's `CHANGELOG.md` says which are released). The install also fetches the browser tool's files with npm (about 22 MB); if npm is missing or broken it says "The packages it lists are not installed": fix Node and npm, then run `claude plugin update qamind@qamind` to retry. Until then the browser tool starts through `npx` the first time, which is slower and needs the network.
+Start a new Claude Code session after installing (one that was open before the install does not have the plugin). Update with `/plugin marketplace update qamind`. Requires **Node 20+** (check: `node -v`; the plugin runs its own bundled code) and **Google Chrome or Microsoft Edge** for web testing (the first run tells you if no browser is found; then run `npx playwright-core install chromium` once).
 
 **Cursor, any agent that reads `AGENTS.md`, and the `qamind` command** (clone and run setup):
 
@@ -34,16 +41,19 @@ git clone --depth 1 https://github.com/<owner>/qamind.git ~/.qamind/app
 cd ~/.qamind/app && ./setup --host auto        # Windows: setup.cmd --host auto
 ```
 
-`setup` needs **Node 22.18+** (it builds from source: `npm ci`, then the build; QAMind's runtime then runs on Node 20+), writes only what your tool needs, puts a `qamind` command in `~/.local/bin` (it tells you if that is not on your PATH) and records exactly what it did.
-`--host auto` installs every supported tool it finds on your machine; name one to install just that tool. `--project` installs into the current project instead of your account. `--dry-run` shows what would happen and changes nothing.
+Keep the clone: the runtime lives in it (`~/.qamind/app/build/<tool>`), and `qamind update` works from it. If the folder already exists, `cd ~/.qamind/app && git pull` (or `qamind update --edge`) instead of cloning again.
+
+`setup` needs **Node 22.18 or newer** (24 works too; it builds from source: `npm ci`, then the build; QAMind's runtime then runs on Node 20+), writes only what your tool needs, puts a `qamind` command in `~/.local/bin` (it tells you if that is not on your PATH; add it to your shell's startup file to keep it) and records exactly what it did.
+`--host auto` installs every supported tool it finds on your machine; name one to install just that tool. `--dry-run` shows what would happen and changes nothing.
+**`--project` installs into the folder you run setup from** (or the one `--dir DIR` names), not into the QAMind checkout: from your project's folder, `~/.qamind/app/setup --host generic --project` (the `qamind` command used in the list below exists only after a first setup).
 
 ```
 qamind setup --host cursor              Cursor, for your account       (experimental)
 qamind setup --host generic --project   an AGENTS.md section in this project, for any other agent   (instruction-only)
 qamind setup --host claude              Claude Code through its own CLI, instead of the /plugin commands
 qamind status                           one row per install: tool, tier, what is in place, how auto-QA and safety are enforced
-qamind update [--version vX.Y.Z]        the latest release tag (releases are Git tags), re-rendered for every install; --edge follows the branch until there are tags
-qamind uninstall --host cursor          removes exactly what setup added, restores what it replaced, leaves your other tools' settings alone
+qamind update [--version vX.Y.Z]        the latest release tag (releases are Git tags), re-rendered for every install; there is no tag yet, so until the first release use --edge, which follows the branch
+qamind uninstall --host cursor          removes exactly what setup added, restores what it replaced, leaves your other tools' settings alone (the `qamind` command goes with the last install)
 ```
 
 **What differs by tool** (stated plainly, because it matters):
@@ -51,12 +61,13 @@ qamind uninstall --host cursor          removes exactly what setup added, restor
 | | Claude Code | Cursor | Generic |
 |---|---|---|---|
 | Tier | `full` (real runs recorded) | `experimental`: from Cursor's docs, **never run in a real Cursor** | `instruction-only` |
-| Names | `/qamind:qa-only` ... | `/qamind-qa-only` ... | "follow the `qa-only` procedure" |
+| Names | `/qamind:qa-only` ... | `/qamind-qa-only` ... (every command is `/qamind-<name>`; restart Cursor after setup) | "follow the `qa-only` procedure" |
 | Auto-QA | enforced by hooks | wired through Cursor's hooks, untested in Cursor | advisory: the agent is asked, nothing makes it |
 | Safety guard (production, credentials, report-only writes) | enforced by a hook | **instructions only** (see [docs/HOSTS.md](docs/HOSTS.md) for why) | instructions only |
 
 Everything else is identical on every tool: the test workflow, severity, report formats, the memory format and your private store in `~/.qamind`, which setup, update and uninstall never touch (only `qamind uninstall --purge --yes` does). To try a trial install without touching your real tool, set
-`QAMIND_USER_HOME` (and `QAMIND_HOME`). Details and limits: [docs/HOSTS.md](docs/HOSTS.md); adding another tool: [docs/ADDING-A-HOST.md](docs/ADDING-A-HOST.md).
+`QAMIND_USER_HOME` (it moves what setup writes for your account: `~/.cursor` including its MCP allowlist file, `~/.local/bin`, the install record) and `QAMIND_HOME` (the memory store). Details and limits: [docs/HOSTS.md](docs/HOSTS.md); adding another tool: [docs/ADDING-A-HOST.md](docs/ADDING-A-HOST.md).
+**Another agent (generic):** setup prints the two MCP servers (`qa-memory`, `browser`) to register in your agent's own MCP settings (the entries run `node`, so Node 20+ must be on that agent's PATH), once, at setup; run setup again (it is safe to repeat) to see them again. `qamind status` shows only that the instructions are in place, not whether the servers are registered, and the agent's shell must find the `qamind` command (`~/.local/bin` on its PATH): the `AGENTS.md` section calls it by that name. The procedures it points to are in `~/.qamind/app/build/generic/skills/`. **Cursor:** after restarting it, Settings > MCP shows `qa-memory` and `browser`, and typing `/qamind-` in the chat lists the commands (never confirmed in a real Cursor).
 
 To try Claude Code from a local clone:
 
@@ -67,7 +78,7 @@ claude plugin install qamind@qamind
 
 ## First run
 
-1. Open your project in Claude Code and run `/qamind:qa-only quick`.
+1. Open your project in Claude Code and run `/qamind:qa-only quick` (Cursor: `/qamind-qa-only quick`; another agent: ask it to follow the `qa-only` procedure).
 2. On the first run QAMind creates `.qa/config.md` and `.env.qa.example`, adds `.qa/` and `.env.qa` to your `.gitignore`,
    tells you what to fill in, and **stops without testing anything**.
 3. Fill in `.qa/config.md` (URLs, the production addresses to block, test accounts, critical flows, business rules) and
@@ -248,14 +259,27 @@ Details, settings and limits (Mailpit, MailHog and Mailtrap were not run against
 
 - **The first line of the admin report** is one of ✅ Ready to release, ⚠️ Ready with risks (the risks listed) or ⛔ Not ready (the main reasons in one sentence). By default: Ready only with no critical problem, at most two important ones, a healthy test environment, no problem that came back, and every key journey tested. **It can never say Ready if a key journey was not tested**, and a broken test environment is always Not ready. You can change the limits and what means Not ready (`release.rules` in `.qa/config.md`, commented in the file QAMind creates); a run keeps the rules it started with, so editing the config later does not change an old report.
 - **Agent performance.** Every finished run adds a record (problems found, coverage, the test bank's pass rate, minutes, cost, the verdict) to the project's memory. The technical report's **Agent performance** section and `/qamind:qa-memory-review stats` show the last runs, **precision** (the share of findings you judged that were real; from 5 judged on), and, from six runs, a trend.
-- **Bugs that reached production.** `qamind escaped add --area "Orders" --title "..."` records one (yours to run; Sentry and labelled tickets will do it in a later phase). QAMind says what the runs had said about that area: **missed** (marked as tested, nothing found: the agent's miss), reported before, partly checked, not tested, or never covered. The area's risk is raised, so the next run looks there first.
+- **Bugs that reached production.** `qamind escaped add --area "Orders" --title "..."` records one by hand; `/qamind:qa-memory-review escaped` finds them in Sentry's production errors and in tickets labelled `escaped` ([below](#linear-and-sentry-optional)). QAMind says what the runs had said about that area: **missed** (marked as tested, nothing found: the agent's miss), reported before, partly checked, not tested, or never covered. The area's risk is raised, so the next run looks there first.
 
 ```
 qamind escaped add --area A --title T [--severity critical|important|minor] [--source manual|sentry|ticket|other] [--ref ID] [--note TEXT]
-qamind escaped list        qamind metrics        qamind memory stats
+qamind escaped areas       qamind escaped import --file F       qamind escaped list
+qamind metrics             qamind memory stats
 ```
 
 Rules, limits and what is not measured: [decision 0011](docs/decisions/0011-release-verdict-and-metrics.md).
+
+## Linear and Sentry (optional)
+
+Both are off until `.qa/config.md` sets them up (`integrations:`, the template has it commented), and **QAMind keeps no token for either**: it uses the tool your coding tool has connected (an MCP server or a connector), and does nothing when there is none.
+
+- **Linear tickets.** After the reports pass lint, QAMind **asks you once** and then opens **one ticket per Critical or Important bug that is not fixed and checked** (never Minor): masked text, the bug's fingerprint on the last line, no screenshots attached. A bug that already has an open ticket gets a **comment**, not a second ticket; a closed ticket is never reopened. Both reports link the tickets. A CI or automatic run creates none (nobody to ask). `qamind tracker plan | record | skip | tickets`.
+- **What people decide in Linear.** `/qamind:qa-feedback linear`: tickets closed as "not a bug" or "won't fix" become feedback **with the name of the person who decided in Linear**; a Done ticket is not feedback (the next run re-checks the bug), and nothing is guessed.
+- **Server errors during a run (Sentry).** The errors Sentry recorded for the **test** environments while the run lasted are tied to the findings they explain, in the technical report; one no finding explains is a lead. Read only, never production, and only ids, titles, counts and addresses are kept. `qamind sentry window | check | skip`.
+- **Bugs that reached production.** `/qamind:qa-memory-review escaped` reads Sentry's production errors and `escaped`-labelled tickets (read only), shows you the list, and on your yes records them as escaped bugs.
+- **Held by the safety hook, not only by instructions:** a run may only create an issue in the configured team or comment on one (no edit, close, move, assign or delete), never in a CI or automatic run; Sentry is read only and only for the test environments; nothing with an email address, phone or token goes to either service; deciding what a ticket means for memory is yours, not the run's.
+
+**Checked against stand-ins, not the real services** (`scripts/standins/`): a Linear stand-in with the real Linear tools' names and arguments, and a Sentry stand-in with tool names of its own (the real server's tool list could not be read). Details, the settings and the limits: [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md), [decision 0012](docs/decisions/0012-integrations.md).
 
 ## CI and pull requests (`qamind ci`)
 
@@ -307,8 +331,8 @@ Private-data masking and its limits (names and addresses in free text, images) a
 | 7.7 ✅ | Test bank (run first, flaky tests quarantined, export to Playwright), bugs across runs (new, still open, fixed, came back), your feedback changes the next run |
 | 7.8 ✅ | `qamind ci` (one pull request comment kept up to date, a status, exit codes, artifacts), `ci.fail_on` / `ci.warn_on`, GitHub and GitLab templates, `qamind schedule` |
 | 7.9 ✅ | Coverage depth: ticket mode with a criteria checklist, email and SMS sandbox checks, visual baselines, other browsers (WebKit, Firefox) and screen sizes, page and API speed against budgets and recent runs |
-| 7.10 ✅ (this) | Release verdict rules in the config (frozen into each run), agent performance metrics per run (precision, coverage, bank pass rate, trend), escaped bugs placed by what the runs had said about their area, risk raised |
-| 8 (next) | Linear and Sentry (they will record escaped bugs by themselves), polish; Codex whenever the owner asks |
+| 7.10 ✅ | Release verdict rules in the config (frozen into each run), agent performance metrics per run (precision, coverage, bank pass rate, trend), escaped bugs placed by what the runs had said about their area, risk raised |
+| 8 ✅ (this) | Linear tickets (one per Critical or Important bug, updated not duplicated) and Sentry errors tied to findings, both optional and token-free; what people decide in Linear as feedback; escaped bugs from Sentry and labelled tickets; install and first-run checked from the documents alone, versioning and release steps. Codex whenever the owner asks |
 
 ## Development
 

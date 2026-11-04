@@ -78,6 +78,7 @@ A test the agent saves to a CI-only bank stays in that cache: nothing is exporte
 - **Secrets.** Read from the environment by name; never printed. The agent's log is scrubbed of every login value and token before it is written. The token is sent only in the `Authorization` header. A comment is masked again (emails, ID and card numbers, phone numbers, your patterns) before it is posted.
 - **Pull requests from forks** get no secrets from GitHub, so the generated job does not run for them (a `head.repo.full_name == github.repository` condition). Do not use `pull_request_target` to get secrets for untrusted code.
 - **Least privilege.** The generated workflow asks for `contents: read`, `pull-requests: write` (the one comment) and `statuses: write`; the nightly one only `contents: read`.
+- **Linear and Sentry in CI.** A CI run creates **no Linear ticket**: nobody is there to be asked, the hook refuses a ticket write when the run's trigger is not a person's own, and `tracker plan` records that as the reason. Sentry is read only, so a CI session that happens to have a Sentry tool connected may read the test environments' errors for the run's window; a CI runner rarely has one, and then the run says so ([docs/INTEGRATIONS.md](INTEGRATIONS.md)).
 - **The comment** is updated only when it carries QAMind's marker **and** was written by a bot; a person pasting the marker does not get their comment overwritten.
 
 ## The host CLI, headless (researched 2026-11-03)

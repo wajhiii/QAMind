@@ -656,3 +656,63 @@ Full suite: **502 tests, 497 passed, 0 failed, 5 skipped** (485 before this phas
 - **Precision** is derived from people's feedback on findings and needs 5 judged findings; **the trend** needs 6 runs. Neither has data in this project yet, so the report says "not available yet" rather than a number.
 - **Escaped bugs come from the owner's hand** (`qamind escaped add`). Sources that fill it by themselves (Sentry, a ticket label for production bugs) are Phase 8.
 - **Single runs**, a $0.5 to $1 run each, on one demo app; variation between runs is real. The "0 runs" fault in attempt 4 is unexplained. Firefox, Mailpit, MailHog and Mailtrap have never been run live (Phase 7.9). The machine was shared with other work; runs were at low priority, one process at a time.
+
+## Phase 8: Linear and Sentry (optional), and the first run from the documents
+
+### Linear and Sentry, end to end
+
+`scripts/eval-integrations.ts` runs **real headless Claude Code 2.1.314** (model `claude-sonnet-5-5`) with the built QAMind plugin against a copy of the demo app (without its answer key), a scratch `QAMIND_HOME`, and **stand-ins for Linear and Sentry** (`scripts/standins/`, MCP servers; **not the real services**, and nothing is sent to anyone's real workspace). The Linear stand-in takes the arguments of the real Linear tools (`list_issues`, `get_issue`, `save_issue`, `save_comment`, `list_issue_statuses`: read from their published schemas); the Sentry stand-in has tool names of its own (the real server's tool list could not be read). The demo app writes its own unhandled 500s to a file when asked (`DEMO_ERROR_LOG`, off by default) and the Sentry stand-in reads it, so the server errors are the ones the agent's own requests caused. The stand-ins also hold what a real workspace would: a **production** error and **yesterday's staging noise** (outside the run's window), which must stay out of the run. Records: `docs/baselines/phase-8-integrations.{json,md}` (final) and `-attempt-1` to `-attempt-3`.
+
+| Step | What it must show |
+|---|---|
+| run 1 (`/qa-only quick`, the person's agreement to tickets in the prompt) | server errors tied to findings, only the staging environment and the run's window, one search with a time window, no change in Sentry; one ticket per Critical or Important finding (masked, with a fingerprint line, the plan's labels, no duplicate fingerprint), none for Minor, no edit of any ticket; both reports link the tickets; memory knows every ticket |
+| a person closes one ticket as "not a bug" (the harness, in the stand-in) | |
+| `/qa-feedback linear` | one feedback record: `not-a-bug`, **by Pat Quinn** (from Linear), via the tracker, naming the ticket; the bug is `not-a-bug`; nothing recorded for the tickets nobody decided on; no write to Linear |
+| run 2 | the same bugs found again: tickets **updated** (a comment each), **none new**, no ticket with a repeated fingerprint, the closed ticket still closed, the dismissed bug not reported again |
+| a ticket labelled `escaped`; `/qa-memory-review escaped` | the production error and the ticket recorded as escaped bugs (source `sentry` and `ticket`, with their references), the production environment read, the staging noise not recorded, nothing written to Linear or Sentry, the area's risk raised |
+
+**The final attempt (attempt 4) passed every check**: run 1 5.4 min $0.92 (six findings: 3 critical, 2 important, 1 minor; **five tickets**, ENG-1 to ENG-5, none for the Minor one; two server errors, both tied to ISSUE-005, the `page_size=0` crash; one Sentry search, with a time window), feedback 0.3 min $0.09, run 2 6.6 min $0.91 (seven findings: **four tickets updated**, each with a comment, and **one new ticket**, ENG-6, for a bug run 1 had not found (a malformed request body returning a stack trace); the two Minor findings got none; no ticket carries a repeated fingerprint), escaped 0.3 min $0.08. Total **$2.00**. No owner-only command was tried by a run; no fixture password reached the agent through QAMind or `.env.qa`. Attempt 3 (the same pass, $2.07: six tickets, five updated) ran before the ticket step moved from `/qa-only`'s Step 5 to its Step 6 (the shared-steps test refuses a step that differs between the QA skills); attempt 4 reran it on the final text.
+
+### Four attempts, and what each found
+
+| Attempt | Result | Why |
+|---|---|---|
+| 1 | feedback step failed; run 2 lost | The agent did everything right (read the status, listed the tickets, read all five, wrote the states file) and then **stopped to ask the owner's name**, because the skill said `--by "<their name>"`. The name that matters is the one **from Linear** (who decided); the skill now says not to ask (`--by` is only for a ticket that does not say who changed it, defaults to their git name) and to say plainly when the bug is Critical. Run 2 produced no result at all (see below). |
+| 2 | run 1 lost | No result in 36 minutes. |
+| 3 | pass | Before the ticket step moved (see above). |
+| 4 | pass | The final skill text. |
+
+- **Two runs were lost to the model connection, not to QAMind.** The Claude Code session transcripts show the model request after a tool result getting **no answer for 16 minutes**, a retry, and no answer for another 19 (the last tool call before each stall was an ordinary read). `$0.00, no result` on this Mac has been sleep, load or the connection before (see Phase 7.7): this was the connection, with `caffeinate` running in the second case. Attempt 3 ran with a 100-minute timeout.
+- **One harness check was meaningless** and is gone from the script: it linted run 1 after the run had finished, when the run no longer exists to lint (the attempt-3 record still shows that note; the final one does not).
+- **The deterministic part was tested before any agent ran**: `tests/core/integrations.test.ts`, 11 tests (settings, the plan, a run nobody started by hand, a recorded ticket and the next run's plan, a missing decision, what people decide in Linear, the Sentry window and check, the suggestions, the safety hook, escaped bugs from Sentry and tickets). **Eleven deliberate breaks** each made a test fail (minor findings getting tickets; any link host accepted; editing an existing ticket allowed; a production environment allowed in Sentry, in a search and in the record; Sentry change tools allowed; a CI run writing tickets; extra ticket fields allowed; "Done" counting as feedback; private data kept in an error title; an error relating to a finding that does not exist). **The first attempt at that check was wrong** (the helper backed up the wrong file, so the breaks stacked and were not undone; they were reversed by hand and the files re-verified: 11 tests pass, no `if (false)` left) and was redone with a script that restores from a copy.
+
+### Read these numbers with care
+- **Stand-ins, not Linear and Sentry.** A real Linear team may require fields, states or label names the stand-in does not; a real Sentry tool will word its tools and queries differently from the stand-in's (the instructions describe what to read and name no Sentry tool, and the hook refuses any Sentry tool that is not clearly a read). Whether a real Linear connector accepts the plan's fields is unproven.
+- **Single runs**, a few dollars each; the prompt carries the person's agreement to tickets (a headless run cannot be asked). The demo app's server errors are real 500s, but few: a product whose errors are mostly handled warnings would give the agent less to tie.
+- **The placements of the two escaped bugs** both came out "reported before" (the area already had findings): the "missed" case is covered by unit tests only (as in Phase 7.10).
+
+### The first run, from the documents alone
+
+`scripts/eval-firstrun.ts` gives a **fresh real Claude Code agent only two files** (copies of `README.md` and `docs/HOSTS.md`, outside the repository) and a Git address, and asks it to install QAMind the way the README says, for one tool at a time, and to **list every place where the documents were unclear, wrong or missing something**. The Git address is a local smart-HTTP server standing in for GitHub (`scripts/standins/git-http-server.mjs`, built from the working tree, so what is tested is the documents as they are now); the isolation is an empty Claude Code config folder, `QAMIND_USER_HOME` and `QAMIND_HOME`. Records: `docs/baselines/phase-8-firstrun.{json,md}` (final) and `-attempt-1`.
+
+- **Claude Code**: marketplace add and install from the Git address, then the harness itself runs the README's first step with the real login and the installed plugin's folder (an isolated config has no login, so the nested run cannot be the agent's): `.qa/config.md` and `.env.qa.example` created, `.qa/` and `.env.qa` in `.gitignore`, a message saying what to fill in, nothing tested, nothing else changed in the project.
+- **Cursor**: `./setup --host cursor` into an isolated user home: skills, MCP entries and hooks in place, `qamind status` lists the host (**Cursor itself was not run**: it is not installed here).
+- **Any `AGENTS.md` agent**: `./setup --host generic --project` into a scratch project: the section between its markers, nothing else touched.
+
+| Attempt | Result | What it found |
+|---|---|---|
+| 1 | all three installed; the harness's "used the Git address" check failed | The check read a command the record had clipped to 220 characters (a harness fault; the agent's report shows it used the address). **The agents found real things**, below. |
+| 2 | **all three pass**, $0.61 (25, 29 and 36 seconds of agent time) | After the fixes; the agents' remaining lists were small and are fixed too (below). |
+
+**Found by the agents and fixed**
+- **`./setup --host generic --project` run from a project installed into the QAMind checkout, not the project**: the script moves into the checkout first, so "the current folder" was the checkout. The agent noticed its dry run named the wrong place, found `--dir` in `--help`, uninstalled and redid it. `--project` now means the folder setup was run from (`QAMIND_CALLER_DIR`), with a test that fails without the fix.
+- **Node's "ExperimentalWarning: Type Stripping" on every setup and status command** looked alarming to every agent. Silenced in `./setup`, `setup.cmd` and (found only by attempt 2) the `qamind` launcher.
+- **README gaps**: what `<owner>/qamind` is; the scriptable `claude plugin` form (the `/plugin` commands cannot be typed by a script); the plugin's scope; "Node 22.18+" next to a Node 24 that works; that there is no release tag yet (`qamind update --edge`) and why `plugin list` shows 0.8.0 while the status says unreleased; what `QAMIND_USER_HOME` and `QAMIND_HOME` each move; Cursor's command names (`/qamind-<name>`) and how to see the install worked; what to do when `~/.qamind/app` already exists; that the clone must be kept; that the generic install prints the MCP servers once (run setup again to see them) and that `status` cannot tell whether they are registered; that the agent's shell must find `qamind`; that a project uninstall removes the `qamind` command with the last install; why `status` counts three Cursor hooks (the file's version marker is one). The version was `0.1.0`: now `0.8.0`.
+
+**My own mistake, caught by this test.** Earlier the same day a manual install from the Git stand-in left the browser tool's files uninstalled ("The packages it lists are not installed") until `claude plugin update`, and I rewrote `docs/HOSTS.md` and the README to say that `install` does not install them. **That was wrong**: the manual run had the machine's broken x86 `node` first on the PATH, so Claude Code's npm step failed; the fresh agent, with a working Node, got the packages from `install` itself (the original text had been right). The documents now say what is true: `install` runs npm, and when npm cannot run it completes with the note and `plugin update` retries.
+
+**Also learned**: Claude Code accepts `owner/repo`, `https://…` or a local path as a marketplace, **not `file://`**; and it clones with `--depth 1`, which a plain static HTTP server cannot serve (hence the smart-HTTP stand-in).
+
+### Read these numbers with care
+- **A stand-in for GitHub**, an isolated config, and agents told they are new users: not a human, and not the real host. **Cursor was never run.** The interactive `/plugin` commands were not tried (an agent cannot type them). Windows was not run. The agent's own words are not evidence of the install: the harness checked the files and `plugin list` itself.
+- Each agent run is 25 to 50 seconds and 15 to 20 cents: the test finds documentation gaps, not install flakiness, and the second attempt's "pass" is one sample per tool.

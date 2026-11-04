@@ -184,3 +184,15 @@ test("update moves to a release tag, refuses over local changes, and says plainl
   assert.match(checkoutTarget(clone, {}).to, /v2\.0\.0/, "generated and build folders do not block an update");
   assert.throws(() => checkoutTarget(tmp("qamind-notgit-"), {}), /not a git checkout/);
 });
+
+test("`./setup --project` means the folder it was run from, not the QAMind checkout it moves into, and prints no experimental warning", () => {
+  const sb = sandbox();
+  const project = tmp("qamind-proj-");
+  const r = spawnSync("sh", [path.join(repoRoot, "setup"), "--host", "generic", "--project", "--skip-build", "--no-launcher", "--dry-run"], { cwd: project, encoding: "utf8", env: { ...sb.env, QAMIND_BUILD_DIR: path.join(sb.userHome, "..", `build-${path.basename(sb.userHome)}`) } });
+  assert.equal(r.status, 0, r.stderr + r.stdout);
+  const out = fs.realpathSync(project);
+  assert.ok(r.stdout.includes(path.join(out, "AGENTS.md")) || r.stdout.includes(path.join(project, "AGENTS.md")), `the plan names the project's AGENTS.md:\n${r.stdout}`);
+  assert.ok(!r.stdout.includes(path.join(repoRoot, "AGENTS.md")), "nothing is planned inside the checkout");
+  assert.doesNotMatch(r.stderr, /ExperimentalWarning|Type Stripping/);
+  cleanup(sb);
+});

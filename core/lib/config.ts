@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { parse as parseYaml } from "yaml";
 import { loadQaEnv } from "./dotenv.ts";
-import { classifyUrl, originOf, parseUrl } from "./urlpolicy.ts";
+import { classifyUrl, looksLikeProductionName, originOf, parseUrl } from "./urlpolicy.ts";
 import type { RunPolicy, SecuritySettings } from "./urlpolicy.ts";
 
 export type Severity = "critical" | "important" | "minor";
@@ -187,6 +187,39 @@ export interface ReleaseRules {
 }
 export const DEFAULT_RELEASE_RULES: ReleaseRules = { max_critical: 0, max_important: 2, allow_regressed: false, not_ready_when: ["critical"] };
 
+/**
+ * Optional integrations (spec 11.4, 13.5, 13.16). QAMind holds no token for either service: it uses the tool the host has connected (an MCP server, a connector) and does nothing
+ * when there is none. This block says only where tickets go and which Sentry environments belong to the test system.
+ */
+export interface LinearSettings {
+  /** The team (key or name) tickets are created in. */
+  team: string;
+  project?: string;
+  /** Put on every ticket QAMind creates, so they can be found again. */
+  labels: string[];
+  /** `ask`: the person is asked once per run before any ticket is created. `never`: QAMind only links and updates tickets that already exist. */
+  create: "ask" | "never";
+  /** Ticket labels or states that mean "this is not a bug" / "we will not fix this" (compared in lower case). */
+  not_a_bug: string[];
+  wont_fix: string[];
+  /** The label that marks a ticket about a bug that reached production (read by `/qa-memory-review escaped`). */
+  escaped_label: string;
+}
+export interface SentrySettings {
+  organization?: string;
+  projects: string[];
+  /** The environments of the TEST system: the only ones a run reads, for the minutes it lasted. Never a name that looks like production. */
+  environments: string[];
+  /** The environments real users are on: read only when the owner asks for escaped bugs, never inside a run. */
+  production_environments: string[];
+  /** Minutes before the run started and after it finished that still count as its window. */
+  window_margin_minutes: number;
+}
+export interface IntegrationSettings {
+  linear?: LinearSettings;
+  sentry?: SentrySettings;
+}
+
 export interface QamindConfig {
   schema_version: number;
   environment: { name: string; confirmed_non_production: boolean };
@@ -210,6 +243,8 @@ export interface QamindConfig {
   visual: VisualSettings;
   performance: PerformanceSettings;
   release: { rules: ReleaseRules };
+  /** Linear and Sentry; absent when neither is configured. */
+  integrations: IntegrationSettings;
 }
 
 export interface ConfigCheck {
@@ -580,6 +615,81 @@ function normalizeRelease(raw: unknown, problems: string[]): { rules: ReleaseRul
   return { rules };
 }
 
+const INTEGRATION_NAMES = ["linear", "sentry"];
+const LINEAR_KEYS = ["team", "project", "labels", "create", "not_a_bug", "wont_fix", "escaped_label"];
+const SENTRY_KEYS = ["organization", "projects", "environments", "production_environments", "window_margin_minutes"];
+const DEFAULT_NOT_A_BUG = ["not a bug", "not-a-bug", "invalid", "cannot reproduce", "can't reproduce", "working as intended", "works as designed"];
+const DEFAULT_WONT_FIX = ["won't fix", "wont fix", "wont-fix", "won't do", "wontfix"];
+
+function lowerList(v: unknown, fallback: string[]): string[] {
+  const out = strList(v).map((x) => x.trim().toLowerCase()).filter(Boolean);
+  return out.length ? [...new Set(out)] : fallback;
+}
+
+function normalizeIntegrations(raw: unknown, problems: string[]): IntegrationSettings {
+  if (raw === undefined || raw === null) return {};
+  if (!isObj(raw)) {
+    problems.push("integrations must be a mapping (linear, sentry).");
+    return {};
+  }
+  const out: IntegrationSettings = {};
+  for (const k of Object.keys(raw)) if (!INTEGRATION_NAMES.includes(k)) problems.push(`integrations.${k} is not a supported integration. Use ${INTEGRATION_NAMES.join(" or ")}.`);
+
+  const lin = raw["linear"];
+  if (lin !== undefined && lin !== null) {
+    if (!isObj(lin)) problems.push("integrations.linear must be a mapping (team, project, labels, create).");
+    else {
+      for (const k of Object.keys(lin)) if (!LINEAR_KEYS.includes(k)) problems.push(`integrations.linear.${k} is not a setting. Use ${LINEAR_KEYS.join(", ")}.`);
+      const team = str(lin["team"]);
+      if (!team) problems.push("integrations.linear.team is needed: the team (key or name) tickets are created in.");
+      const create = lin["create"] === undefined ? "ask" : lin["create"];
+      if (create !== "ask" && create !== "never") problems.push('integrations.linear.create must be "ask" (ask once per run) or "never" (only link and update existing tickets).');
+      const labels = strList(lin["labels"]).map((x) => x.trim()).filter(Boolean);
+      if (team && (create === "ask" || create === "never")) {
+        out.linear = {
+          team,
+          ...(str(lin["project"]) ? { project: str(lin["project"]) as string } : {}),
+          labels: labels.length ? [...new Set(labels)] : ["qamind"],
+          create,
+          not_a_bug: lowerList(lin["not_a_bug"], DEFAULT_NOT_A_BUG),
+          wont_fix: lowerList(lin["wont_fix"], DEFAULT_WONT_FIX),
+          escaped_label: (str(lin["escaped_label"]) ?? "escaped").toLowerCase(),
+        };
+      }
+    }
+  }
+
+  const sen = raw["sentry"];
+  if (sen !== undefined && sen !== null) {
+    if (!isObj(sen)) problems.push("integrations.sentry must be a mapping (projects, environments).");
+    else {
+      for (const k of Object.keys(sen)) if (!SENTRY_KEYS.includes(k)) problems.push(`integrations.sentry.${k} is not a setting. Use ${SENTRY_KEYS.join(", ")}.`);
+      const projects = strList(sen["projects"]).map((x) => x.trim()).filter(Boolean);
+      const environments = strList(sen["environments"]).map((x) => x.trim()).filter(Boolean);
+      const production = strList(sen["production_environments"]).map((x) => x.trim()).filter(Boolean);
+      if (projects.length === 0) problems.push("integrations.sentry.projects is needed: the Sentry project(s) the product reports to.");
+      if (environments.length === 0) problems.push("integrations.sentry.environments is needed: the Sentry environment(s) of the test system (for example staging). A run reads only these.");
+      for (const e of environments) if (looksLikeProductionName(e)) problems.push(`integrations.sentry.environments: "${e}" looks like production. A run reads errors of the test system only; put production under production_environments (the owner's escaped-bug check reads that).`);
+      let margin = 2;
+      if (sen["window_margin_minutes"] !== undefined) {
+        const m = sen["window_margin_minutes"];
+        if (typeof m === "number" && Number.isInteger(m) && m >= 0 && m <= 30) margin = m;
+        else problems.push("integrations.sentry.window_margin_minutes must be a whole number from 0 to 30.");
+      }
+      if (projects.length && environments.length && environments.every((e) => !looksLikeProductionName(e))) {
+        out.sentry = {
+          ...(str(sen["organization"]) ? { organization: str(sen["organization"]) as string } : {}),
+          projects: [...new Set(projects)],
+          environments: [...new Set(environments)],
+          production_environments: [...new Set(production)],
+          window_margin_minutes: margin,
+        };
+      }
+    }
+  }
+  return out;
+}
+
 export function normalizeConfig(raw: unknown, problems: string[]): QamindConfig | undefined {
   if (!isObj(raw)) {
     problems.push("The front matter at the top of config.md is empty or not a YAML mapping.");
@@ -689,6 +799,7 @@ export function normalizeConfig(raw: unknown, problems: string[]): QamindConfig 
     visual: normalizeVisual(raw["visual"], problems),
     performance: normalizePerformance(raw["performance"], problems),
     release: normalizeRelease(raw["release"], problems),
+    integrations: normalizeIntegrations(raw["integrations"], problems),
   };
   return config;
 }

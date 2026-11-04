@@ -36,10 +36,26 @@ The version appears in three places that must agree: `hosts/claude/package.json`
 (`cd hosts/claude && npm install --package-lock-only --ignore-scripts`), and `PLAYWRIGHT_MCP_VERSION` in
 `core/scripts/browser-launcher.ts`. Re-run the guard tests and a demo run after bumping.
 
+## Versioning
+
+**One version, in one place: `version` in `package.json`.** `npm run build` writes it into `plugins/qamind/.claude-plugin/plugin.json`, the plugin's `package.json` and the bundles (every report records it as the agent's version), and `npm run check:generated` fails when the committed plugin disagrees. `tests/conformance/versioning.test.ts` also fails unless the **newest `## X.Y.Z` heading of `CHANGELOG.md` is that version** and the headings are in order. Do not edit the generated files by hand.
+
+The numbers: `0.N.x` while QAMind is being built (the phases of the spec; a phase's entry in the changelog is `0.N.0` or `0.N.M`, marked "unreleased" until a tag exists), **`1.0.0` for the first release the owner declares ready**. After that: a patch for fixes only, a minor for a feature, a major when something a user relies on changes (a command, a config key, the report format). **A change to a memory file's format bumps `MEMORY_SCHEMA` and needs a migration** (see below), so it is at least a minor.
+
 ## Releasing
 
-Releases are Git tags (`vX.Y.Z`); there is no npm package. Bump `version` in `package.json`, update `CHANGELOG.md`,
-`npm run build`, run all checks above, commit, tag. Users on the marketplace get the version in `plugin.json`.
+Releases are **Git tags** (`vX.Y.Z`); there is no npm package and no registry. **No tag has been made yet: the owner decides when the first release is ready, and pushes and tags themselves (an agent never does).**
+
+1. Everything to be released is merged into `main` and `git status` is clean.
+2. Bump `version` in `package.json` (see Versioning). In `CHANGELOG.md` give the release its heading, `## X.Y.Z (YYYY-MM-DD)`, and take "unreleased" off.
+3. `npm ci`, then `npm run build`, `npm run check:generated`, `npm run typecheck`, `npm test` and `npm run validate` (needs the `claude` CLI: set `CLAUDE_BIN`). All must pass; read `claude plugin validate`'s warnings.
+4. The checks that use a real agent cost money and are run by hand: `node scripts/eval-firstrun.ts --label vX.Y.Z` (install and first run from the documents alone) and, for what changed, the `scripts/eval-*.ts` for that area. Their records go in `docs/baselines/` and `docs/EVALUATION-LOG.md`.
+5. Commit ("Release vX.Y.Z"), then `git tag -a vX.Y.Z -m "QAMind X.Y.Z"`, then push the branch and the tag.
+6. **Verify from the published address, in a clean config folder**: `CLAUDE_CONFIG_DIR=$(mktemp -d) claude plugin marketplace add <owner>/qamind`, `claude plugin install qamind@qamind`, `claude plugin update qamind@qamind` (this last one installs the browser tool's files: `install` alone does not), `claude plugin list`; and `qamind update --version vX.Y.Z` on a Cursor or generic install. Only then announce it.
+
+## Publishing (what users do)
+
+The repository is the marketplace: `.claude-plugin/marketplace.json` at its root points at `plugins/qamind/`, which is **generated and committed**, so **always build before you commit** (CI fails otherwise). Users add it with `/plugin marketplace add <owner>/qamind` (the GitHub path of this repository; a full `https://…/qamind.git` address works too, `file://` does not) and install with `/plugin install qamind@qamind`; a private repository needs the user's own git credentials. For Cursor and other tools: `git clone`, then `./setup --host …` (README). They update with `/plugin marketplace update qamind` and `qamind update`. **Checked so far** only against a local stand-in for a Git host (`scripts/standins/git-http-server.mjs`), never against GitHub ([docs/HOSTS.md](docs/HOSTS.md)).
 
 ## Not verified yet
 
@@ -162,3 +178,9 @@ After a change to memory (`core/lib/memory/`, the memory protocol or the skill's
 changes the demo copy in between (`scripts/learning-mutation.ts`: a new Help page and endpoint, one endpoint dropped from the spec) and seeds an owner-confirmed
 false alarm, then checks that the second run applied memory, skipped the false alarm, reported what changed, was not slower to reach the critical flows, and left no
 secrets in the store or the reports. Make sure nothing else is listening on port 4100 first (the script refuses to start if so).
+
+## Linear and Sentry (Phase 8)
+
+Code: `core/lib/tracker.ts`, `tracker-plan.ts`, `sentry.ts`, `trackerguard.ts` (the one place a Linear or Sentry tool call is allowed or refused), `cli/src/integrations.ts`; instructions in `core/shared/integrations.md` (read by the run skills only when the project sets an integration up). Settings are `integrations:` in `core/lib/config.ts` (every mistake named). **QAMind holds no token for either service**: the agent uses the tool the host has connected, so **do not add an API client** ([decision 0012](docs/decisions/0012-integrations.md)). The rules the hook enforces are tested in `tests/core/integrations.test.ts` (break one on purpose to see a test fail).
+
+The real-agent check, `node scripts/eval-integrations.ts --label X`, runs against stand-ins in `scripts/standins/` (a Linear one with the real tools' argument names, a Sentry one with names of its own; the demo app writes its 500s to a file when `DEMO_ERROR_LOG` is set). **When a real Linear or Sentry connector is available, run the same scenario against a test workspace before trusting either**: what a real team requires (fields, states, labels) and how the real Sentry tools are named are unverified. Real-agent runs on a shared Mac can stall for a quarter of an hour on the model connection: read the session transcript (`~/.claude/projects/<cwd with dashes>/*.jsonl`) before blaming QAMind, run under `caffeinate`, and give the harness a long `--timeout-min`.

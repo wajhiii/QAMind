@@ -314,3 +314,50 @@ export function agentPerformance(store: string, current?: RunMetric): AgentPerfo
     notes,
   };
 }
+
+// ---------------------------------------------------------------------------------------------- escaped bugs from Sentry and tickets
+
+export interface KnownArea {
+  area: string;
+  /** What the newest run that covered it said. */
+  status: AreaMark["status"];
+  run_id: string;
+  finished: string;
+  /** How many of that run's findings are about it. */
+  findings: number;
+}
+
+/** The areas the last runs covered, newest word on each: so an escaped bug is named in the words the reports use, and matched to what they said. */
+export function knownAreas(store: string): KnownArea[] {
+  const runs = loadMetrics(store).runs.slice(-MATCH_RUNS).reverse();
+  const out = new Map<string, KnownArea>();
+  for (const r of runs) {
+    for (const a of r.areas) {
+      const key = areaKey(a.area);
+      if (out.has(key)) continue;
+      out.set(key, { area: a.area, status: a.status, run_id: r.run_id, finished: r.finished, findings: (r.finding_list ?? []).filter((f) => areaSimilarity(f.area, a.area) >= AREA_MATCH).length });
+    }
+  }
+  return [...out.values()];
+}
+
+export interface ImportedEscaped {
+  ref?: string;
+  title: string;
+  result: "recorded" | "already-recorded" | "refused";
+  id?: string;
+  verdict?: EscapedVerdict;
+  problem?: string;
+}
+
+/** Records a list of bugs found in production monitoring or tickets. One that is refused (private data in it, a missing area) does not stop the others. */
+export function importEscaped(store: string, items: EscapedInput[], by: string, now: Date): ImportedEscaped[] {
+  return items.map((it) => {
+    try {
+      const r = addEscaped(store, { ...it, by: it.by ?? by }, now);
+      return { ...(it.ref ? { ref: it.ref } : {}), title: it.title, result: r.already ? ("already-recorded" as const) : ("recorded" as const), id: r.bug.id, verdict: r.bug.verdict };
+    } catch (e) {
+      return { ...(it.ref ? { ref: it.ref } : {}), title: it.title, result: "refused" as const, problem: (e as Error).message };
+    }
+  });
+}

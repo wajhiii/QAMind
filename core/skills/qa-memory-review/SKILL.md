@@ -1,7 +1,7 @@
 ---
 name: qa-memory-review
 description: Review what QAMind remembers. Approve or reject the generic lessons it proposed for all projects, archive stale learnings, false alarms and risk areas of this project, and see run statistics. Only you decide: nothing is approved, archived or removed without your say-so.
-argument-hint: "[lessons | prune | stats]"
+argument-hint: "[lessons | prune | stats | escaped]"
 ---
 
 # {{CMD_QA_MEMORY_REVIEW}}: the owner's review of what QAMind remembers
@@ -21,6 +21,7 @@ Report in plain words: no JSON, ids only where the user needs them to decide.
 | `lessons` | Walk through the lessons, below. |
 | `prune` | Walk through the stale entries, below. |
 | `stats` | The numbers, below. |
+| `escaped` | Bugs that reached production, from Sentry and from tickets, below. |
 
 ## Lessons
 
@@ -47,6 +48,15 @@ Report in plain words: no JSON, ids only where the user needs them to decide.
 
 `{{CLI}} memory stats`. Report plainly: how many runs, when, the last few (problems found, minutes, areas tested), the **trend only if it says it is available** (otherwise say how many runs are needed), how much memory is in use and how often it was applied, and the global lessons (pending, approved, loaded here, times applied). Then how the agent is doing (`performance`): the last runs with their verdicts, **precision** (only if it is available: it needs at least 5 findings the owner judged), and the **escaped bugs** (bugs that reached production, and how many were in an area a run had marked as passing: those are the agent's misses). If none is recorded, say how: the owner records one with `{{CLI}} escaped add --area ... --title ...` (that is the owner's command, not part of a QA run). Never call the agent better or worse than the numbers show.
 Always end with what **cannot be measured yet** (`not_available_yet`). Do not call anything an improvement unless the numbers show it, and say that runs of different modes make a trend a direction, not a measurement.
+
+## Escaped bugs (from Sentry and tickets)
+
+A bug that reached production in an area a run had marked as passing is the agent's miss, and recording it raises that area's risk. Only when `{{CLI}} integrations status` shows Sentry or Linear configured **and** a tool for it is connected (otherwise say which is missing; the owner can still record one by hand with `{{CLI}} escaped add`).
+1. `{{CLI}} escaped areas`: the areas the last runs covered (use these words for an area where one fits), and the production side: the Sentry **production environments** and projects, and the Linear label for escaped bugs.
+2. Read, **read only**: with the Sentry tool, the unresolved errors in those production environments over the last 14 days, most events first (at most 20); with the Linear tool, the issues in the team with the escaped label. Take only a title, a count and an id: never an event's body, a user's data or an address.
+3. For each, name the **area** of the product it is in (an existing area where it fits), a severity (`critical` only for lost or exposed data, wrong money, or the product being down; otherwise `important`), the source (`sentry` or `ticket`) and its id as `ref`. **Show the owner the list in plain words** and ask which to record. Do not record one they did not say yes to.
+4. Write the ones they chose to `.qa/escaped.json`: `[{ "area": "Orders list: search", "title": "what went wrong, no personal data", "severity": "important", "source": "sentry", "ref": "ACME-API-3F" }]`, then `{{CLI}} escaped import --file .qa/escaped.json --by "<their name>"`. A bug already recorded (same `ref`) is not recorded twice; one with private data in it is refused: reword it.
+5. Tell them for each what the runs had said about the area: *a run had tested it and reported nothing* (a miss, say it plainly), *had reported a problem there*, *had checked it only in part or not at all*, or *never covered it*; and that the area's risk is higher now, so the next runs look there first. Do not call the agent better or worse from one bug.
 
 ## Always
 - The owner decides. No decision without their answer about that item in this conversation.

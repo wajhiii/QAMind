@@ -3,6 +3,8 @@ import { countBySeverity, mergedNotTested } from "./report.ts";
 import type { Finding, FixStatus, RunData } from "./report.ts";
 import { renderAdminCoverage } from "./coverage-report.ts";
 import { renderAdminChecklist } from "./ticket.ts";
+import { adminTicketsLine } from "./tracker.ts";
+import { adminSentryLine } from "./sentry.ts";
 import type { RunSummary } from "./run.ts";
 import { describeChanges } from "./memory/productmap.ts";
 import { computeVerdict, flowStatus, isOpen } from "./verdict.ts";
@@ -69,6 +71,8 @@ export interface AdminModel {
   knownAccepted: string[];
   /** Ticket mode: the checklist of what was asked for (spec 13.4). */
   ticketLines: string[];
+  /** Tickets made for the developers and what the error monitor saw (spec 11.4), in plain words. */
+  trackerLines: string[];
   /** Where and how it was checked: screens and devices, speed, messages (spec 13.7, 13.9 to 13.11). */
   checkedLines: string[];
 }
@@ -248,7 +252,10 @@ function toProblem(f: Finding, data: RunData): AdminProblem {
     expected: one(p?.expected) || MISSING_PLAIN,
     ...(shot ? { screenshot: shot } : {}),
     status: statusText(f),
-    ...(p?.ticket ? { ticket: p.ticket } : {}),
+    ...((): { ticket?: string } => {
+      const url = data.tickets?.links.find((l) => l.issue === f.id && l.url)?.url ?? p?.ticket;
+      return url ? { ticket: url } : {};
+    })(),
     ...historyOf(data, f),
     ...(f.severity_note && f.severity_assessed ? { severityNote: `A person set this to ${f.severity} (the check judged it ${f.severity_assessed}).` } : {}),
     missingPlain: !complete,
@@ -357,7 +364,8 @@ export function buildAdminModel(data: RunData, previous: RunSummary[] = []): Adm
   });
   const ticketLines = data.ticket?.ticket ? renderAdminChecklist(data.ticket) : [];
   const checkedLines = data.checks ? renderAdminCoverage(data.checks) : [];
-  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps, fixedSince, knownAccepted, ticketLines, checkedLines, ...(fixes ? { fixes } : {}) };
+  const trackerLines = [data.tickets ? adminTicketsLine(data.tickets) : undefined, adminSentryLine(data.sentry, data.findings)].filter((x): x is string => !!x);
+  return { verdict, summary: summary.slice(0, MAX_SUMMARY_LINES), environment: environmentLines(data), areas, problems, trend: trendLines(data, previous), changes: changeLines(data), notTested, nextSteps, fixedSince, knownAccepted, ticketLines, trackerLines, checkedLines, ...(fixes ? { fixes } : {}) };
 }
 
 export function renderAdminMarkdown(m: AdminModel): string {
@@ -374,6 +382,7 @@ export function renderAdminMarkdown(m: AdminModel): string {
 
   if (m.ticketLines.length) L.push(...m.ticketLines);
   if (m.checkedLines.length) L.push("## Where and how it was checked", "", ...m.checkedLines, "");
+  if (m.trackerLines.length) L.push("## Tickets and error monitoring", "", ...m.trackerLines.map((l) => `- ${l}`), "");
 
   L.push("## Problems found", "");
   if (m.problems.length === 0) L.push("No problems were confirmed in what was checked.", "");

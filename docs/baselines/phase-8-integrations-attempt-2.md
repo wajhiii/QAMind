@@ -1,0 +1,107 @@
+# Linear and Sentry, end to end: phase-8
+
+2026-11-03T13:58:56.026Z, claude-sonnet-5-5, Claude Code 2.1.314 (Claude Code). Real Claude Code, the built plugin, a copy of the demo app, and **stand-ins** for Linear and Sentry (scripts/standins: not the real services; the Linear stand-in takes the arguments of the real Linear tools, the Sentry one has tool names of its own). Total cost $0.22.
+
+| Step | Minutes | Cost | Result |
+|------|---------|------|--------|
+| run 1: server errors tied to findings, and tickets made once | 36.13 | $0.00 | FAIL: the turn timed out; no data/sentry.json: the agent did not read the server errors; the agent never called the Sentry tool; the technical report has no server-errors section; no ticket was created; the technical report does not link the tickets; the admin report does not link the tickets in plain words |
+| a person closes one ticket in Linear as not a bug | - | - | FAIL: run 1 made no ticket to decide on |
+| the owner asks QAMind to read what people decided in Linear | 0.15 | $0.05 | FAIL: no bug to look for |
+| run 2: the same bugs are updated, not ticketed again, and the dismissed one is not reported | 0.17 | $0.10 | FAIL: no second run folder |
+| a person labels a Linear ticket `escaped` (a bug that reached production) | - | - | pass |
+| the owner asks QAMind to look for bugs that reached production | 0.28 | $0.07 | pass |
+
+## run 1: server errors tied to findings, and tickets made once
+
+```json
+{
+  "password_values_seen_in_product_source_the_agent_chose_to_read": [],
+  "owner_only_commands_tried": [],
+  "integrations_in_the_run_meta": {
+    "linear": {
+      "team": "ENG"
+    },
+    "sentry": {
+      "environments": [
+        "staging"
+      ]
+    }
+  },
+  "findings": [],
+  "sentry_calls": [],
+  "linear_calls": [],
+  "tickets_record": [],
+  "lint_after_the_run": "{ \"ok\": false, \"errors\": [ \"No charters recorded: write the test plan before reporting (data/charters.json).\", \"TECHNICAL-REPORT.md does not exist: run `report build` first.\", \"ADMIN-REPORT.md does not exist: run `report build` first.\" ], \"warnings\": [ \"admin.json: no biggest",
+  "final_message": ""
+}
+```
+
+## a person closes one ticket in Linear as not a bug
+
+```json
+{}
+```
+
+## the owner asks QAMind to read what people decided in Linear
+
+```json
+{
+  "password_values_seen_in_product_source_the_agent_chose_to_read": [],
+  "feedback_records": [],
+  "final_message": "QAMind has no Linear tickets on record, so I stopped and recorded nothing.\n\nLinear is set up for team ENG and a Linear tool is connected in this session. But `qamind tracker tickets` returned an empty list, which means QAMind hasn't created or linked any tickets yet. That leaves nothing to read for \"not a bug\" or \"won't fix\" decisions.\n\nIf tickets were made outside QAMind, they aren't linked to its bugs, so I can't safely turn them into verdicts. Once QAMind has filed or linked tickets for its findings, run `/qamind:qa-feedback linear` again. I'll then show you each ticket closed as not a bug, won't fix or duplicate, and record them once you confirm.\n\nYou can also give a verdict on a finding"
+}
+```
+
+## run 2: the same bugs are updated, not ticketed again, and the dismissed one is not reported
+
+```json
+{
+  "password_values_seen_in_product_source_the_agent_chose_to_read": [],
+  "owner_only_commands_tried": [],
+  "final_message": "I didn't test anything. Another QA run on this project (`run-20261103T132216Z`, started 2026-11-03 13:22 UTC) is still marked active, so QAMind refused to start a new one.\n\nI can't tell whether that run is abandoned or still in progress. Restarting with `force: true` could interfere with a live run, so I'm leaving that to you.\n\n- **If it's abandoned:** tell me and I'll start again with `force: true`, then run the orders API checks (search and pagination with unusual values, unusual quantities on create, and who can read which order).\n- **If it's still running:** wait for it to finish, then run `/qamind:qa-only` again."
+}
+```
+
+## a person labels a Linear ticket `escaped` (a bug that reached production)
+
+```json
+{
+  "ticket": "ENG-1"
+}
+```
+
+## the owner asks QAMind to look for bugs that reached production
+
+```json
+{
+  "password_values_seen_in_product_source_the_agent_chose_to_read": [],
+  "escaped_recorded": [
+    {
+      "id": "ESC-001",
+      "source": "sentry",
+      "ref": "ACME-API-AE",
+      "area": "Orders: create order",
+      "severity": "important",
+      "verdict": "never-covered",
+      "title": "TypeError reading 'tax' of undefined when creating an order (POST /orders)"
+    },
+    {
+      "id": "ESC-002",
+      "source": "ticket",
+      "ref": "ENG-1",
+      "area": "Orders: invoice totals",
+      "severity": "important",
+      "verdict": "never-covered",
+      "title": "Invoice totals are wrong for orders with a discount, reported by two customers"
+    }
+  ],
+  "sentry_calls_this_step": [
+    "{\"organization\":\"acme\",\"project\":\"acme-api\",\"environment\":\"production\",\"query\":\"is:unresolved\",\"startTime\":\"2026-10-20T00:00:00Z\",\"endTime\":"
+  ],
+  "risk_raised_for": [
+    "Orders: create order",
+    "Orders: invoice totals"
+  ],
+  "final_message": "I recorded both bugs as escaped. Neither is a miss by the agent, because no run had covered either area.\n\n- **ESC-001, Sentry ACME-API-AE** (order creation fails reading 'tax', 3 events): no run has covered this area. I filed it under \"Orders: create order\".\n- **ESC-002, ticket ENG-1** (wrong invoice totals with a discount): no run has covered this area either. I filed it under \"Orders: invoice totals\".\n\nBoth areas now carry higher risk, so the next runs will look there first.\n\n- **Area names:** `qamind escaped areas` returned no areas, so I chose the names myself. Tell me if you want them worded differently.\n- **Recorded by:** I used \"owner\" as the name, because I don't have yours."
+}
+```

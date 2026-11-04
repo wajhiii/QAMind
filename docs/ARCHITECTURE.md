@@ -220,6 +220,21 @@ agentPerformance(store, current run) ─► "Agent performance" in the technical
 
 `core/lib/verdict.ts` is the only place the verdict is decided; `core/lib/metrics.ts` holds the records, the escaped bugs and the summary, `core/lib/metrics-report.ts` the section of the report, `cli/src/metrics.ts` the commands. Precision comes from the feedback file at read time. Recording an escaped bug is the owner's (the hook refuses `escaped add` and writes to `metrics.json` in a run).
 
+## Linear and Sentry (optional)
+
+([decision 0012](decisions/0012-integrations.md), [docs/INTEGRATIONS.md](INTEGRATIONS.md))
+
+```
+config integrations.* ─► run start: team and test environments stored in the run marker and meta.json ─► the run lists them for the agent (run.integrations)
+finished run ─► tracker plan: eligibleFindings (Critical/Important, not fixed and checked, not accepted) ─► masked tickets + fingerprint line + the ticket memory knows
+agent (host's Linear tool) ─► create / comment ─► tracker record ─► data/tickets.json + memory/tickets.json ─► reports link the tickets
+agent (host's Sentry tool, read only) ─► data/sentry.json ─► sentry check (environment, window, links, masking) ─► technical and admin reports
+owner: feedback from-tracker (Linear states ─► feedback) · escaped areas / import (Sentry production + labelled tickets ─► escaped bugs ─► risk)
+PreToolUse: trackerToolDecision(marker, tool, input): the only place a Linear or Sentry tool call is allowed or refused
+```
+
+QAMind holds no token: the agent reaches both through whatever tool the host has connected, so the hook goes by the tool's name. `core/lib/tracker.ts` (files, the memory map, links, lint, report text), `tracker-plan.ts` (the plan, and what a Linear state means), `sentry.ts` (window, check, report text), `trackerguard.ts` (the hook rule), `cli/src/integrations.ts` (the commands). None of them names a host.
+
 ## Formats and versioning
 
 Every file QAMind writes carries `schema_version`. Memory is at schema 2 (`perf.json` joined it in 7.9, and the baselines live in the store's `baselines/` folder); a store written by an older QAMind is **migrated on first use** after a byte-for-byte copy to `backups/<time>-schema-N-to-M/` and a line per file in `backups/migrations.log.jsonl` (`core/lib/memory/migrate.ts`); a store written by a newer QAMind is refused untouched.

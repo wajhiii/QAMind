@@ -65,6 +65,8 @@ export interface RunMarker {
   policy: RunPolicy;
   /** The run's time and cost budget (spec 13.6), resolved when the run started. The tools check the deadline before each new probe and each new fix. */
   budget?: RunBudget;
+  /** The optional integrations the config sets up, as they were when the run started: the safety hook limits the agent's Linear and Sentry tool calls to these. */
+  integrations?: { linear?: { team: string; project?: string }; sentry?: { environments: string[] } };
   /** Fix runs only: the part of the config's fix_policy that the safety hook and the fix tools enforce, as it was when the run started. */
   fix?: { do_not_touch: string[]; max_fixes: number; severities: Severity[] };
 }
@@ -167,7 +169,10 @@ export interface StartResult {
   advisories?: string[];
   known_projects?: Array<{ id: string; name: string; paths_seen: string[]; last_seen: string }>;
   active_run?: { run_id: string; started: string };
-  run?: { id: string; dir: string; mode: Mode; focus?: string; ticket?: string; readonly: boolean; report: string; /** The run's budget in words, and the deadline: check it with `qamind budget status` before each new area. */ budget?: { message: string; time_minutes?: number; max_cost?: number; deadline?: string } };
+  run?: { id: string; dir: string; mode: Mode; focus?: string; ticket?: string; readonly: boolean; report: string; /** The run's budget in words, and the deadline: check it with `qamind budget status` before each new area. */ budget?: { message: string; time_minutes?: number; max_cost?: number; deadline?: string };
+    /** The optional integrations this project set up (spec 11.4): read `shared/integrations.md` for what each asks of the run. */
+    integrations?: { linear?: { team: string }; sentry?: { projects: string[]; environments: string[] } };
+  };
   config?: {
     environment: string;
     web_uis: Array<{ name: string; url: string }>;
@@ -374,6 +379,9 @@ export function startRun(opts: StartOptions): StartResult {
     expires: new Date(now.getTime() + MARKER_TTL_HOURS * 3600_000).toISOString(),
     policy,
     ...(budget.time_minutes !== undefined || budget.max_cost !== undefined ? { budget } : {}),
+    ...(config.integrations.linear || config.integrations.sentry
+      ? { integrations: { ...(config.integrations.linear ? { linear: { team: config.integrations.linear.team, ...(config.integrations.linear.project ? { project: config.integrations.linear.project } : {}) } } : {}), ...(config.integrations.sentry ? { sentry: { environments: config.integrations.sentry.environments } } : {}) } }
+      : {}),
     ...(!readonly && opts.kind === "qa" ? { fix: { do_not_touch: config.fix_policy.do_not_touch, max_fixes: config.fix_policy.max_fixes, severities: config.fix_policy.fix_severities } } : {}),
   };
   writeJson(markerPath(store), marker);
@@ -391,6 +399,7 @@ export function startRun(opts: StartOptions): StartResult {
     ...(opts.focus ? { focus: opts.focus } : {}),
     ...(ticketRef ? { ticket_ref: ticketRef } : {}),
     release_rules: config.release.rules,
+    ...(config.integrations.linear || config.integrations.sentry ? { integrations: { ...(config.integrations.linear ? { linear: { team: config.integrations.linear.team } } : {}), ...(config.integrations.sentry ? { sentry: { environments: config.integrations.sentry.environments } } : {}) } } : {}),
     started: now.toISOString(),
     critical_flows: criticalFlows,
     ...(git.branch ? { branch: git.branch } : {}),
@@ -405,7 +414,7 @@ export function startRun(opts: StartOptions): StartResult {
     message: "Ready. Credentials are present for the roles listed (values are never shown).",
     project: projectOut,
     gitignore_added: gitignoreAdded,
-    run: { id: runId, dir: runDir, mode: opts.mode, ...(opts.focus ? { focus: opts.focus } : {}), ...(ticketRef ? { ticket: ticketRef } : {}), readonly, report: path.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...(budget.time_minutes !== undefined ? { time_minutes: budget.time_minutes } : {}), ...(budget.max_cost !== undefined ? { max_cost: budget.max_cost } : {}), ...(budget.deadline ? { deadline: budget.deadline } : {}) } },
+    run: { id: runId, dir: runDir, mode: opts.mode, ...(opts.focus ? { focus: opts.focus } : {}), ...(ticketRef ? { ticket: ticketRef } : {}), readonly, report: path.join(runDir, "TECHNICAL-REPORT.md"), budget: { message: budgetStatus(marker.budget, marker.started, now).message, ...(budget.time_minutes !== undefined ? { time_minutes: budget.time_minutes } : {}), ...(budget.max_cost !== undefined ? { max_cost: budget.max_cost } : {}), ...(budget.deadline ? { deadline: budget.deadline } : {}) }, ...(config.integrations.linear || config.integrations.sentry ? { integrations: { ...(config.integrations.linear ? { linear: { team: config.integrations.linear.team } } : {}), ...(config.integrations.sentry ? { sentry: { projects: config.integrations.sentry.projects, environments: config.integrations.sentry.environments } } : {}) } } : {}) },
     config: {
       environment: config.environment.name,
       web_uis: config.web_uis,

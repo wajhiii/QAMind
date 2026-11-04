@@ -28,15 +28,13 @@ The server needs only Node 20+ and the two files in `dist/`; it is host-neutral 
   [decision 0002](decisions/0002-qa-memory-server.md)). Their tools are named `mcp__plugin_qamind_<server>__<tool>`, the skill pre-approves both servers, and because Claude Code
   loads MCP tools on demand the skill tells the agent to load the memory tools with one `ToolSearch` call first. The server starts in the project folder with `CLAUDE_PROJECT_DIR` set
   (observed with 2.1.312; the docs do not say).
-- Plugin dependencies (`@playwright/mcp`) are installed by Claude Code when it copies a marketplace plugin into its cache.
-  A plugin loaded in place from a local path (development) gets none, so the launcher falls back to
-  `npx @playwright/mcp@<pinned version>`.
+- **Installing from a Git URL** (checked 2026-11-03, Claude Code 2.1.314, the `claude plugin` commands, against a local Git server standing in for GitHub: `scripts/standins/git-http-server.mjs`, an isolated config folder, and by a fresh agent that had only the README and this file: `docs/baselines/phase-8-firstrun.md`): `plugin marketplace add <git URL ending in .git>` and `plugin install qamind@qamind` copy the plugin into Claude Code's cache, run npm for its dependencies (`@playwright/mcp`, 22 MB) and list it as enabled. **If npm cannot run** (no Node or npm on the PATH; on one machine a broken `node` earlier on the PATH) the install still completes and `plugin list` says "The packages it lists are not installed"; fixing Node and running `claude plugin update qamind@qamind` installs them. Until then the browser launcher falls back to `npx @playwright/mcp@<pinned version>`, which needs the network and is slower the first time. Whether the interactive `/plugin install` behaves the same was not tried. A plugin loaded in place from a local path (development) gets no dependencies.
 
 ## Cursor (experimental)
 
 Built from Cursor's current documentation, read 2026-11-02 (the pages are listed in `hosts/cursor/host.json`). **QAMind has never run inside a real Cursor**, neither the editor nor the agent CLI (not installed here); that is why this is `experimental`.
 What setup writes: skills in `.cursor/skills/qamind-*/SKILL.md` (the folder is the skill name and the slash command, and the front matter name equals it), the two MCP servers in `mcp.json`, and two hooks in `hooks.json`
-(`stop` and `beforeSubmitPrompt`, both of which let the action go on if they fail), plus a rule file in `.cursor/rules/qamind.mdc` for project installs.
+(`stop` and `beforeSubmitPrompt`, both of which let the action go on if they fail; `qamind status` counts three entries because the file's `version` marker is one of them), plus a rule file in `.cursor/rules/qamind.mdc` for project installs.
 
 - **Auto-QA** uses Cursor's `stop` hook: printing `{"followup_message": "..."}` makes Cursor submit it as the next user message, `loop_count` is the loop guard (Cursor's own limit is also set, `loop_limit: 3`), and an aborted or failed turn is not checked.
   Cursor submits the follow-up as a prompt, so the gate recognises its own message and starts no new task from it. A Cursor skill is given no session id, so a QA run is matched to the project. A Cursor stop hook cannot show the user a notice, so "Auto-QA skipped" is silent there.
@@ -79,10 +77,11 @@ MCP registration to put in the agent's own config. Auto-QA is **advisory**: the 
 | 2026-11-02 | same | a QA run told to run `qamind lessons approve`: the PreToolUse hook refuses it | pass |
 | 2026-11-02 | same | the interactive approval prompt for the review's deciding commands | **not tested**: only the headless refusal was observed |
 | 2026-11-02 | Claude Code 2.1.314 | the host conformance suite (`tests/conformance/`), `setup --host claude` through Claude Code's own CLI into an isolated config folder: install and re-run, status, the registered servers, skills, a run through them, uninstall leaving nothing, auto-QA hooks | pass |
+| 2026-11-03 | Claude Code 2.1.314 | `claude plugin marketplace add <git URL>`, `plugin install`, `plugin update` in an isolated config folder, from a local smart-HTTP Git server (not GitHub) | pass; the install ran npm itself; a broken `node` on the PATH leaves the packages uninstalled until `plugin update` (see above) |
 | 2026-11-02 | none (Cursor not run) | the same suite for `cursor`, from Cursor's documentation: files, formats, hooks run with Cursor's documented payloads | pass; **not run in a real Cursor** |
 | 2026-11-02 | none | the same suite for `generic` and for a made-up host that exists only in a temp folder (no core change needed) | pass |
 | 2026-11-02 | n/a | memory interoperability: a chain of runs through Claude Code's, Cursor's and the generic host's registrations against one store: each sees the earlier learnings, one project id, the same approved lessons | pass |
 | - | - | a real run inside Cursor (editor or `agent -p`): skills listed, MCP servers connect, hooks fire and a follow-up continues the agent | **not tested**: this is what would raise Cursor to `full` |
 
-**Not yet verified:** installing from a Git URL (where Claude Code copies the plugin and installs `@playwright/mcp` itself), Windows,
+**Not yet verified:** installing from GitHub itself (the repository was never pushed from the environment the phases were built in, so only a local stand-in for a Git host was used), the interactive `/plugin` commands, Windows,
 Linux (the CI workflow runs the suite on Linux and macOS, but I cannot see its results from here; the Windows job is new in Phase 5 and has not run). Tier: **full**, for the Phase 1 feature set only (`/qa-only`); other skills arrive in later phases.

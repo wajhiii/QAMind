@@ -15,7 +15,7 @@ if (["setup", "status", "update", "uninstall"].includes(args[0] ?? "")) {
     console.error(`qamind ${args[0]} needs Node 22.18 or newer (this is ${process.version}).`);
     process.exit(1);
   }
-  const r = spawnSync(process.execPath, [path.join(app, "cli", "src", "setup-main.ts"), ...args], { stdio: "inherit", env: { ...process.env, QAMIND_APP: app } });
+  const r = spawnSync(process.execPath, ["--disable-warning=ExperimentalWarning", path.join(app, "cli", "src", "setup-main.ts"), ...args], { stdio: "inherit", env: { ...process.env, QAMIND_APP: app } });
   process.exit(r.status ?? 1);
 }
 await import(pathToFileURL(path.join(app, "plugins", "qamind", "dist", "qamind.mjs")).href);
