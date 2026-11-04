@@ -79,6 +79,9 @@ export function renderClaude(ctx: RenderContext): void {
     ) + "\n",
   );
 
+  // The listing icon (a square PNG; drawn by `node scripts/make-icon.ts`).
+  writeFile(path.join(out, ".claude-plugin", "icon.png"), fs.readFileSync(path.join(ctx.repoRoot, "hosts", "claude", "icon.png")));
+
   writeFile(path.join(out, ".mcp.json"), JSON.stringify(claudeMcpConfig(), null, 2) + "\n");
 
   writeFile(
@@ -131,7 +134,7 @@ export function renderClaude(ctx: RenderContext): void {
   writeFile(path.join(out, "LICENSE"), fs.readFileSync(path.join(ctx.repoRoot, "LICENSE")));
   writeFile(
     path.join(out, "README.md"),
-    "# QAMind (generated Claude Code plugin)\n\nInstall from the repository's marketplace:\n\n```\n/plugin marketplace add <owner>/qamind\n/plugin install qamind@qamind\n```\n\nThen run `/qamind:qa-only`. See the repository README for first-run setup and usage.\n\nThis folder is generated from `core/` and `hosts/claude/` by `npm run build`. Do not edit it by hand; CI fails if it is out of date.\n",
+    "# QAMind (generated Claude Code plugin)\n\nInstall from the repository's marketplace:\n\n```\n/plugin marketplace add wajhiii/QAMind\n/plugin install qamind@qamind\n```\n\nThen run `/qamind:qa-only`. See the repository README for first-run setup and usage.\n\nThis folder is generated from `core/` and `hosts/claude/` by `npm run build`. Do not edit it by hand; CI fails if it is out of date.\n",
   );
 }
 

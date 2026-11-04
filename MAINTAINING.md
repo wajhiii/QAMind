@@ -40,22 +40,22 @@ The version appears in three places that must agree: `hosts/claude/package.json`
 
 **One version, in one place: `version` in `package.json`.** `npm run build` writes it into `plugins/qamind/.claude-plugin/plugin.json`, the plugin's `package.json` and the bundles (every report records it as the agent's version), and `npm run check:generated` fails when the committed plugin disagrees. `tests/conformance/versioning.test.ts` also fails unless the **newest `## X.Y.Z` heading of `CHANGELOG.md` is that version** and the headings are in order. Do not edit the generated files by hand.
 
-The numbers: `0.N.x` while QAMind is being built (the phases of the spec; a phase's entry in the changelog is `0.N.0` or `0.N.M`, marked "unreleased" until a tag exists), **`1.0.0` for the first release the owner declares ready**. After that: a patch for fixes only, a minor for a feature, a major when something a user relies on changes (a command, a config key, the report format). **A change to a memory file's format bumps `MEMORY_SCHEMA` and needs a migration** (see below), so it is at least a minor.
+The numbers: `0.N.x` while QAMind was being built (the phases of the spec; their changelog entries say "shipped in 1.0.0"), **`1.0.0` for the first release, which the owner declared ready on 2026-11-04**. From there: a patch for fixes only, a minor for a feature, a major when something a user relies on changes (a command, a config key, the report format). **A change to a memory file's format bumps `MEMORY_SCHEMA` and needs a migration** (see below), so it is at least a minor.
 
 ## Releasing
 
-Releases are **Git tags** (`vX.Y.Z`); there is no npm package and no registry. **No tag has been made yet: the owner decides when the first release is ready, and pushes and tags themselves (an agent never does).**
+Releases are **Git tags** (`vX.Y.Z`); there is no npm package and no registry. **`v1.0.0` is the first, made on 2026-11-04 at the owner's request. The owner decides when a release is ready; an agent tags and pushes only when the owner asks for that release.**
 
 1. Everything to be released is merged into `main` and `git status` is clean.
-2. Bump `version` in `package.json` (see Versioning). In `CHANGELOG.md` give the release its heading, `## X.Y.Z (YYYY-MM-DD)`, and take "unreleased" off.
+2. Bump `version` in `package.json` (see Versioning). In `CHANGELOG.md` give the release its heading, `## X.Y.Z (YYYY-MM-DD)`, and write the date in it.
 3. `npm ci`, then `npm run build`, `npm run check:generated`, `npm run typecheck`, `npm test` and `npm run validate` (needs the `claude` CLI: set `CLAUDE_BIN`). All must pass; read `claude plugin validate`'s warnings.
 4. The checks that use a real agent cost money and are run by hand: `node scripts/eval-firstrun.ts --label vX.Y.Z` (install and first run from the documents alone) and, for what changed, the `scripts/eval-*.ts` for that area. Their records go in `docs/baselines/` and `docs/EVALUATION-LOG.md`.
 5. Commit ("Release vX.Y.Z"), then `git tag -a vX.Y.Z -m "QAMind X.Y.Z"`, then push the branch and the tag.
-6. **Verify from the published address, in a clean config folder**: `CLAUDE_CONFIG_DIR=$(mktemp -d) claude plugin marketplace add <owner>/qamind`, `claude plugin install qamind@qamind`, `claude plugin update qamind@qamind` (this last one installs the browser tool's files: `install` alone does not), `claude plugin list`; and `qamind update --version vX.Y.Z` on a Cursor or generic install. Only then announce it.
+6. **Verify from the published address, in a clean config folder**: `CLAUDE_CONFIG_DIR=$(mktemp -d) claude plugin marketplace add wajhiii/QAMind`, `claude plugin install qamind@qamind`, `claude plugin update qamind@qamind` (this last one installs the browser tool's files: `install` alone does not), `claude plugin list`; and `qamind update --version vX.Y.Z` on a Cursor or generic install. Only then announce it.
 
 ## Publishing (what users do)
 
-The repository is the marketplace: `.claude-plugin/marketplace.json` at its root points at `plugins/qamind/`, which is **generated and committed**, so **always build before you commit** (CI fails otherwise). Users add it with `/plugin marketplace add <owner>/qamind` (the GitHub path of this repository; a full `https://…/qamind.git` address works too, `file://` does not) and install with `/plugin install qamind@qamind`; a private repository needs the user's own git credentials. For Cursor and other tools: `git clone`, then `./setup --host …` (README). They update with `/plugin marketplace update qamind` and `qamind update`. **Checked so far** only against a local stand-in for a Git host (`scripts/standins/git-http-server.mjs`), never against GitHub ([docs/HOSTS.md](docs/HOSTS.md)).
+The repository is the marketplace: `.claude-plugin/marketplace.json` at its root points at `plugins/qamind/`, which is **generated and committed**, so **always build before you commit** (CI fails otherwise). Users add it with `/plugin marketplace add wajhiii/QAMind` (the GitHub path of this repository; a full `https://github.com/wajhiii/QAMind.git` address works too, `file://` does not) and install with `/plugin install qamind@qamind`; a private repository needs the user's own git credentials. For Cursor and other tools: `git clone`, then `./setup --host …` (README). They update with `/plugin marketplace update qamind` and `qamind update`. **Checked so far** only against a local stand-in for a Git host (`scripts/standins/git-http-server.mjs`), never against GitHub ([docs/HOSTS.md](docs/HOSTS.md)).
 
 ## Not verified yet
 
@@ -131,7 +131,7 @@ Each host is a folder under `hosts/` ([decision 0006](docs/decisions/0006-multi-
 - **Raising a tier needs a real run on that host** and a row in the certification log in `docs/HOSTS.md` (what ran, what passed, what could not be seen, the host's version). A test refuses any host but Claude Code claiming `full`.
 - **Core never names a host**: `tests/conformance/core-neutral.test.ts` fails if the shared instructions or the runtime's messages mention a host's commands, tools, variables or folders, and if a placeholder core uses is missing from `docs/ADDING-A-HOST.md`.
 - **A new placeholder** goes into the core text, into every host's `placeholders()` (an unknown one fails the build) and into the table in `ADDING-A-HOST.md`.
-- **Releasing and updating:** releases are Git tags (`vX.Y.Z`), and `qamind update` moves a checkout to the latest tag (never the tip of `main`), rebuilds and re-renders every install. There are no tags yet (the owner has not said the first release is ready); until then `--edge` follows the branch.
+- **Releasing and updating:** releases are Git tags (`vX.Y.Z`), and `qamind update` moves a checkout to the latest tag (never the tip of `main`), rebuilds and re-renders every install. `--edge` follows the tip of `main` instead.
 - The setup scripts (`setup`, `setup.cmd`, `bin/qamind.mjs`) are plain and small on purpose: they check Node, then hand over to `cli/src/setup-main.ts`.
 
 ## Changing the admin report

@@ -23,7 +23,7 @@ const HELP = `qamind: install QAMind for your coding tools
       --version       move this checkout to that release first (the default is whatever is checked out)
   qamind status [--dir DIR] [--json]      one row per install: tool, tier, what is in place
   qamind update [--version vX.Y.Z | --edge] [--skip-build] [--json]
-      the latest release tag (releases are Git tags), or a named one; --edge follows the branch while there are no tags yet
+      the latest release tag (releases are Git tags), or a named one; --edge follows the tip of main instead of a release
   qamind uninstall [--host NAME[,...] | --all] [--project] [--dir DIR] [--purge --yes] [--json]
       removes only what setup added; your memory, run history and lessons are kept unless --purge --yes
 

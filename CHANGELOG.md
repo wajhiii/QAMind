@@ -1,6 +1,13 @@
 # Changelog
 
-## 0.8.0 (Phase 8, unreleased)
+## 1.0.0 (2026-11-04)
+
+The first release: every phase of the spec (1 to 8) built, tested and merged; Codex was deferred by the owner and is not part of it. Released as the Git tag `v1.0.0` ([MAINTAINING.md](MAINTAINING.md)).
+
+- **New in this release over 0.8.0**: the plugin has an **icon** (`hosts/claude/icon.png`, drawn by `scripts/make-icon.ts`, copied into the plugin by the build), so `claude plugin validate` no longer warns about a missing one; the install commands in the README, the plugin's own README and the release steps name the real repository, `wajhiii/QAMind`, instead of a placeholder. Nothing else changed.
+- **Not verified at this release** (said plainly in the README and [docs/HOSTS.md](docs/HOSTS.md)): Linear and Sentry themselves (the end-to-end check ran against stand-ins), a real Cursor, the interactive `/plugin` commands, Windows, and a real GitHub Actions or GitLab CI run; and QAMind has not yet been run on a real project.
+
+## 0.8.0 (Phase 8, shipped in 1.0.0)
 
 Linear and Sentry, optional and token-free ([decision 0012](docs/decisions/0012-integrations.md), [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)); versioning, release and publishing steps; the install and first run checked from the documents alone.
 
@@ -15,7 +22,7 @@ Linear and Sentry, optional and token-free ([decision 0012](docs/decisions/0012-
 - New: `scripts/eval-integrations.ts`, `scripts/eval-firstrun.ts`, `scripts/standins/` (a Linear and a Sentry stand-in as MCP servers, a smart-HTTP Git server; **none of them is the real service**), `docs/INTEGRATIONS.md`, a `DEMO_ERROR_LOG` option in the demo app (off by default), tests `integrations` (11) and `versioning` (3).
 - **Not verified**: Linear and Sentry themselves (the end-to-end check ran against stand-ins; the Sentry tool names and the real Linear team's required fields are unknown), GitHub as the Git host, the interactive `/plugin` commands, Windows.
 
-## 0.7.10 (Phase 7.10, unreleased)
+## 0.7.10 (Phase 7.10, shipped in 1.0.0)
 
 The release verdict's rules, agent performance metrics and escaped bugs ([decision 0011](docs/decisions/0011-release-verdict-and-metrics.md)).
 
@@ -27,7 +34,7 @@ The release verdict's rules, agent performance metrics and escaped bugs ([decisi
 - New: `scripts/eval-metrics.ts` (the real-agent test), tests `release-rules` and `metrics`, the Windows job's list, `docs/MEMORY.md` (`metrics.json`).
 - Not in this phase: escaped bugs read from Sentry or from labelled tickets (Phase 8); a trend that compares only runs of one mode; a measure of whether the agent is better (needs a held-out project).
 
-## 0.7.9 (Phase 7.9, unreleased)
+## 0.7.9 (Phase 7.9, shipped in 1.0.0)
 
 Coverage depth ([decision 0010](docs/decisions/0010-coverage-depth.md), [docs/COVERAGE.md](docs/COVERAGE.md)).
 
@@ -44,7 +51,7 @@ Coverage depth ([decision 0010](docs/decisions/0010-coverage-depth.md), [docs/CO
 - New: `scripts/eval-coverage.ts` (the real-agent test), `demo-app/scripts/mail-catcher.mjs` (a stand-in for Mailpit), tests `coverage-config`, `visual`, `perf`, `mail`, `ticket`, `sweep` (real Chrome), `coverage-hooks`, `ci` ticket tests; the Windows job's list.
 - **Not verified**: Mailpit itself (its binary could not be downloaded here), MailHog, Mailtrap, Firefox, Linux and Windows. See the decision.
 
-## 0.7.8 (Phase 7.8, unreleased)
+## 0.7.8 (Phase 7.8, shipped in 1.0.0)
 
 CI and pull-request mode, and schedules ([decision 0009](docs/decisions/0009-ci-and-schedules.md), [docs/CI.md](docs/CI.md)).
 
@@ -57,7 +64,7 @@ CI and pull-request mode, and schedules ([decision 0009](docs/decisions/0009-ci-
 - **Found by testing and fixed**: `git status --porcelain` was trimmed before parsing, so the first unstaged file lost its first letter, in `gitInfo` too: **diff mode's list of uncommitted files has been wrong since Phase 1**; a pull request checkout has no local `main`, so `qamind ci` fetches the target and names it in `QAMIND_BASE_REF`.
 - New: `docs/CI.md`, `scripts/eval-ci.ts` (the real-agent test), a stand-in GitHub and a stand-in agent for tests. Not in this phase: a run on real GitHub Actions or GitLab CI (templates parsed, not executed by a CI service), ticket mode in CI (7.9), Checks API annotations, Linux and Windows runs (the new tests are in the Windows job's list).
 
-## 0.7.7 (Phase 7.7, unreleased)
+## 0.7.7 (Phase 7.7, shipped in 1.0.0)
 
 The test bank, bugs across runs, and what people say about findings ([decision 0008](docs/decisions/0008-test-bank-bugs-feedback.md)).
 
@@ -74,7 +81,7 @@ The test bank, bugs across runs, and what people say about findings ([decision 0
 - **Found by testing and fixed**: a bank test whose request got **no answer at all** came out green (the runner skips its checks on a network error): it is skipped with the reason now, and the rest are skipped at once; a path rule in a skill's allowed-tools (`Write(.qa/**)`) is relative to the agent's current directory, so after a Bash `cd` into the run folder Claude Code refused the next write (seen in two real runs, reproduced with the CLI; the skills now use `Edit(/.qa/**)`); the test helper `cli()` swallowed the test runner's own result events (tests that finished while a command ran vanished from the count); findings the owner accepted were invisible to the lifecycle; the admin report used a bug's technical title for a bug that was not a finding of the run.
 - Not in this phase: Linear tickets as a source of feedback and updating tickets by fingerprint (Phase 8), metrics and escaped bugs (7.10), visual baselines, ticket mode and email sandbox (7.9), a UI vocabulary beyond the eleven steps, running exported tests (not run here), Linux and Windows runs (the new tests are in the Windows CI job's list).
 
-## 0.7.6 (Phase 7.6, unreleased)
+## 0.7.6 (Phase 7.6, shipped in 1.0.0)
 
 Reliability foundations ([decision 0007](docs/decisions/0007-reliability.md)).
 
@@ -91,7 +98,7 @@ Reliability foundations ([decision 0007](docs/decisions/0007-reliability.md)).
 - **Found by testing and fixed**: `writeMemoryJson` let a stale default `schema_version` win and `stack.json` wrote an old constant (the store would have migrated again on every run); the in-page script threw before `document.documentElement` existed (found only in real Chrome); a card number at the end of a sentence was not masked.
 - Not in this phase: cost enforcement (impossible from outside the host), detection of names and addresses in free text, scanning images, any run on Linux or Windows (the new tests are in the Windows CI job), interactive Claude Code, Cursor or generic hosts.
 
-## 0.7.5 (Phase 7.5, unreleased)
+## 0.7.5 (Phase 7.5, shipped in 1.0.0)
 
 - **Multi-host install** ([decision 0006](docs/decisions/0006-multi-host.md), [docs/ADDING-A-HOST.md](docs/ADDING-A-HOST.md)): a host is a folder, `hosts/<id>/` with `host.json` and `adapter.ts`, found by scanning. **Codex was deferred by the owner and is not built.**
   An adapter describes the install as edits (`file`, `json`, `block`, `command`); one engine (`cli/src/setup/ops.ts`) applies, verifies and reverses them the same way for every host: idempotent, a backup before overwriting, user edits left alone on uninstall, invalid JSON never overwritten, only created folders removed.
@@ -105,7 +112,7 @@ Reliability foundations ([decision 0007](docs/decisions/0007-reliability.md)).
 - **Found by it and fixed**: runs finished in the same second were listed in the wrong order in the history; runtime messages named Claude Code's commands; uninstall left a skill folder when its file was deleted by hand, and the lock's empty folder.
 - Not in this phase: any real run inside Cursor or with a generic agent (so Cursor stays `experimental` and generic `instruction-only`), Codex, Linux and Windows runs (the Windows CI job now includes the new tests), a Cursor safety hook (see decision 0006 for why not).
 
-## 0.7.0 (Phase 7, unreleased)
+## 0.7.0 (Phase 7, shipped in 1.0.0)
 
 - **Global lessons you approve** (`core/lib/memory/lessons.ts`, [decision 0005](docs/decisions/0005-global-lessons.md)): pending lessons (`P-001`) are used by nothing; approved ones (`G-001`) in `global-lessons.md` are given to **every** project's runs as `global_lessons` in `memory_get_context` (the 25 best-used and newest at most);
   rejected or retired ones are remembered (`rejected-lessons.jsonl`) so a near copy is not proposed again (`lessons_propose` answers `rejected-before`). A run cites an approved lesson in `memory_record_applied` (`G-001`); the technical report says "Applied global lesson G-001" and `lesson-use.json` counts it.
@@ -119,7 +126,7 @@ Reliability foundations ([decision 0007](docs/decisions/0007-reliability.md)).
 - **Tests**: `lessons-review` (approve, reject, hand edits, caps, the review, prune, stats, the CLI), `review-skill` (static: only reading commands pre-approved, every command real, the decisions are the ones the hook refuses in a run), more hook and server cases. `scripts/eval-lessons.ts` is the real-agent end-to-end test. Results: `docs/EVALUATION-LOG.md`.
 - Not in this phase: the "Agent performance" section of the technical report (7.10), feedback verdicts and so precision (7.7), escaped bugs (Sentry, phase 8), interactive-session behaviour, Linux and Windows runs (the Windows CI job now includes the lesson tests).
 
-## 0.6.5 (Phase 6.5, unreleased)
+## 0.6.5 (Phase 6.5, shipped in 1.0.0)
 
 - **Auto-QA** (`core/auto-qa/`, `/qamind:qa-auto`): when turned on, every task that changed code is checked before Claude Code finishes it. **Off by default**, per project (`<store>/auto.json`) or globally (`$QAMIND_HOME/auto.json`), the project winning; `QAMIND_AUTO=0` switches it off for a session.
   A project that never opted in is not written to. See [decision 0004](docs/decisions/0004-auto-qa.md).
@@ -137,7 +144,7 @@ Reliability foundations ([decision 0007](docs/decisions/0007-reliability.md)).
 - **Evaluation** (real Claude Code, headless, the demo app): five scenarios, all pass: auto on and a code change gives exactly one QA run; `#noqa` none; auto off none (and nothing written to the store); `#qa` while off one; `/qa-auto off` then a change none. $0.81 in all. See `docs/EVALUATION-LOG.md`.
 - Not in this phase: Linux and Windows runs (the Windows CI job now includes the gate tests), interactive-session behaviour (the end-to-end test is headless), the `background` mode.
 
-## 0.6.0 (Phase 6, unreleased)
+## 0.6.0 (Phase 6, shipped in 1.0.0)
 
 - **`/qa`: fix mode** (`core/skills/qa/SKILL.md`, `core/shared/fix-loop.md`). It runs the `/qa-only` steps word for word (a test fails if they drift apart), writes the baseline report, then fixes the confirmed critical and important
   problems (`fix_policy.fix_severities`) one at a time on a git branch. It never pushes, merges or opens a pull request. See [decision 0003](docs/decisions/0003-fix-mode.md).
@@ -161,7 +168,7 @@ Reliability foundations ([decision 0007](docs/decisions/0007-reliability.md)).
   refuses to start fixing until every web UI with a test login was tested (unless the user agreed to API-only: `api_only`).
 - Not in this phase: UI-level regression tests, auto-QA's `#qa-fix` tag (Phase 6.5), Linux and Windows runs (the Windows CI job now includes the fix tests).
 
-## 0.5.0 (Phase 5, unreleased)
+## 0.5.0 (Phase 5, shipped in 1.0.0)
 
 - **`qa-memory` MCP server** (`core/mcp/qa-memory/`, bundled as `dist/qa-memory.mjs`, registered in the plugin's `.mcp.json`). Twelve tools: `run_start`, `run_finish`, `run_history`,
   `memory_get_context`, `memory_list`, `memory_save_learning`, `memory_adjust_learning`, `memory_record_applied`, `memory_mark_false_alarm`, `memory_update_risk`,
@@ -182,7 +189,7 @@ Reliability foundations ([decision 0007](docs/decisions/0007-reliability.md)).
 - **Evaluation:** both evaluation scripts allow and count the new server's tools. Results: `docs/EVALUATION-LOG.md`.
 - Not in this phase: the API runner, OpenAPI parsing, report generation and the consistency check stay on the CLI (the spec says "where practical"); the review of pending lessons (Phase 7); Only macOS was run by me; the Linux and macOS CI jobs exist and a Windows job is added (its first run is yours to read).
 
-## 0.4.0 (Phase 4, unreleased)
+## 0.4.0 (Phase 4, shipped in 1.0.0)
 
 - **Project memory, files first** (`core/lib/memory/`, private per user in `$QAMIND_HOME`): `product-map.json`, `risk-areas.json`, `learnings.jsonl`,
   `false-alarms.jsonl` and an `archive/`, next to the existing `stack.json` and `runs/`. Every file carries `schema_version`; JSON Lines files start with a
@@ -207,7 +214,7 @@ Reliability foundations ([decision 0007](docs/decisions/0007-reliability.md)).
   applied learnings were listed twice; the trend compared coverage-row counts.
 - Not in this phase: fix log (6), bug lifecycle and feedback (7.7), performance and metrics (7.9, 7.10), the `qa-memory` MCP server (5).
 
-## 0.3.0 (Phase 3, unreleased)
+## 0.3.0 (Phase 3, shipped in 1.0.0)
 
 - **Admin report** (`ADMIN-REPORT.md`), rendered from the same data as the technical report: release verdict first line (default rules from the
   spec), six-line summary, results by area (✅ ⚠️ ⛔), problems in plain language with where / what happens / who is affected / steps anyone can follow /
@@ -228,7 +235,7 @@ Reliability foundations ([decision 0007](docs/decisions/0007-reliability.md)).
 - Example output in `docs/examples/ADMIN-REPORT.example.md` (kept equal to the golden test file).
 - Spec section 16: README no longer lists credits (owner's decision).
 
-## 0.2.0 (Phase 2, unreleased)
+## 0.2.0 (Phase 2, shipped in 1.0.0)
 
 - **Knowledge base 0.1.0** (`core/knowledge/`): 18 topic files (test design, exploratory charters, forms, auth and sessions, permissions and data
   isolation, API testing, security smoke checks, accessibility, UI and layout, i18n and RTL including Urdu/Arabic, payments and money, file uploads,
@@ -243,7 +250,7 @@ Reliability foundations ([decision 0007](docs/decisions/0007-reliability.md)).
   Phase 1 baseline (3 runs, full mode) recorded.
 - Knowledge checks in `tests/core/knowledge.test.ts` (size, structure, index, sources, no host or demo-specific content).
 
-## 0.1.0 (Phase 1, unreleased)
+## 0.1.0 (Phase 1, shipped in 1.0.0)
 
 - Core skeleton (`core/`, `hosts/claude/`, `cli/`) and a build that renders the Claude Code plugin into `plugins/qamind/`.
 - `/qa-only` skill with shared workflow, safety, surfaces and reporting documents.

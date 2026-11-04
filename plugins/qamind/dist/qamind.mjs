@@ -14160,7 +14160,7 @@ function saveStack(memoryDir, stack) {
 }
 
 // core/lib/version.ts
-var QAMIND_VERSION = true ? "0.8.0" : "dev";
+var QAMIND_VERSION = true ? "1.0.0" : "dev";
 var KNOWLEDGE_VERSION = true ? "0.1.2" : "dev";
 
 // core/lib/sweep/service.ts

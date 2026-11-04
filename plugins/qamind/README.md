@@ -3,7 +3,7 @@
 Install from the repository's marketplace:
 
 ```
-/plugin marketplace add <owner>/qamind
+/plugin marketplace add wajhiii/QAMind
 /plugin install qamind@qamind
 ```
 

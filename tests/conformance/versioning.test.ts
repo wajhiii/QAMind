@@ -37,3 +37,15 @@ test("the marketplace lists the plugin that is built, and the docs name the one 
   assert.ok(fs.existsSync(path.join(repoRoot, entry?.source ?? "missing", ".claude-plugin", "plugin.json")));
   assert.match(fs.readFileSync(path.join(repoRoot, "MAINTAINING.md"), "utf8"), /bump `version` in `package.json`/i);
 });
+
+test("the plugin has the icon the plugin directory asks for: a square PNG, 512 to 2048 pixels, under 2 MB, the one the build copies", () => {
+  const file = path.join(repoRoot, "plugins", "qamind", ".claude-plugin", "icon.png");
+  const png = fs.readFileSync(file);
+  assert.deepEqual([...png.subarray(0, 8)], [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], "not a PNG");
+  const width = png.readUInt32BE(16);
+  const height = png.readUInt32BE(20);
+  assert.equal(width, height, "the icon must be square");
+  assert.ok(width >= 512 && width <= 2048, `${width} px is outside 512 to 2048`);
+  assert.ok(png.length < 2 * 1024 * 1024, "the icon must be under 2 MB");
+  assert.ok(png.equals(fs.readFileSync(path.join(repoRoot, "hosts", "claude", "icon.png"))), "the plugin's icon is generated from hosts/claude/icon.png: run `npm run build`");
+});

@@ -9,25 +9,25 @@ It tests your **API** (from its OpenAPI spec), each **web UI** per role, cross-s
 business rules, and writes a technical report with reproducible findings, evidence, and an explicit **Not tested** list.
 It works on staging or local environments only, never production.
 
-> **Status: Phase 8 of 8, unreleased (no version tag yet).** Working today: `/qa-only` and `/qa` (fix mode) on **Claude Code**: API testing from OpenAPI, browser testing of web UIs in several browsers and screen sizes, ticket mode, page speed, emails and visual baselines, a safety guard, a built-in QA knowledge base (27 topic files, sourced in
+> **Status: version 1.0.0, all 8 phases built.** Working today: `/qa-only` and `/qa` (fix mode) on **Claude Code**: API testing from OpenAPI, browser testing of web UIs in several browsers and screen sizes, ticket mode, page speed, emails and visual baselines, a safety guard, a built-in QA knowledge base (27 topic files, sourced in
 > [docs/KNOWLEDGE-SOURCES.md](docs/KNOWLEDGE-SOURCES.md)), a technical report for developers and a plain-language admin report for managers (release verdict with your own rules, email-ready HTML), **project memory** that each run applies, bugs tracked across runs, your feedback, a **test bank**, agent performance metrics, a validated **`qa-memory` MCP server**, **auto-QA** after every task that changed code (off by default), **global lessons you approve**, **CI and pull requests**, and optional **Linear** tickets and **Sentry** errors.
-> Other tools: **Cursor** (experimental, from its docs, never run in a real Cursor) and any agent that reads `AGENTS.md` (instruction-only), with `qamind setup | status | update | uninstall`. Codex was deferred by the owner. Not verified: Linear and Sentry themselves (checked against stand-ins), GitHub as the Git host, Windows. Nothing below is claimed beyond what is built.
+> Other tools: **Cursor** (experimental, from its docs, never run in a real Cursor) and any agent that reads `AGENTS.md` (instruction-only), with `qamind setup | status | update | uninstall`. Codex was deferred by the owner. Not verified: Linear and Sentry themselves (checked against stand-ins), GitHub as the Git host, Windows. Nothing below is claimed beyond what is built; it has not yet been run on a real project.
 
 ## Install
 
-QAMind is installed from its Git repository only (no npm package, no registry). Pick your tool; each install is separate and `setup --host X` never touches the others. In the commands below, **`<owner>/qamind` is this repository's GitHub path** (a full `https://…/qamind.git` address works too).
+QAMind is installed from its Git repository only (no npm package, no registry). Pick your tool; each install is separate and `setup --host X` never touches the others. In the commands below, **`wajhiii/QAMind` is this repository's GitHub path** (a full `https://github.com/wajhiii/QAMind.git` address works too).
 
 **Claude Code** (full: hooks enforce auto-QA and the safety guard), with its plugin marketplace. Inside Claude Code:
 
 ```
-/plugin marketplace add <owner>/qamind
+/plugin marketplace add wajhiii/QAMind
 /plugin install qamind@qamind
 ```
 
 or from a terminal, the same two steps (`--scope user` is the default; `project` and `local` also exist):
 
 ```
-claude plugin marketplace add <owner>/qamind
+claude plugin marketplace add wajhiii/QAMind
 claude plugin install qamind@qamind
 ```
 
@@ -37,7 +37,7 @@ Start a new Claude Code session after installing (one that was open before the i
 **Cursor, any agent that reads `AGENTS.md`, and the `qamind` command** (clone and run setup):
 
 ```
-git clone --depth 1 https://github.com/<owner>/qamind.git ~/.qamind/app
+git clone --depth 1 https://github.com/wajhiii/QAMind.git ~/.qamind/app
 cd ~/.qamind/app && ./setup --host auto        # Windows: setup.cmd --host auto
 ```
 
@@ -52,7 +52,7 @@ qamind setup --host cursor              Cursor, for your account       (experime
 qamind setup --host generic --project   an AGENTS.md section in this project, for any other agent   (instruction-only)
 qamind setup --host claude              Claude Code through its own CLI, instead of the /plugin commands
 qamind status                           one row per install: tool, tier, what is in place, how auto-QA and safety are enforced
-qamind update [--version vX.Y.Z]        the latest release tag (releases are Git tags), re-rendered for every install; there is no tag yet, so until the first release use --edge, which follows the branch
+qamind update [--version vX.Y.Z]        the latest release tag (releases are Git tags), re-rendered for every install; --edge follows the tip of `main` instead of a release
 qamind uninstall --host cursor          removes exactly what setup added, restores what it replaced, leaves your other tools' settings alone (the `qamind` command goes with the last install)
 ```
 
