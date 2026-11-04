@@ -7,3 +7,18 @@ plugins/qamind/node_modules/
 .qa/
 .env.qa
 build/
+# Credentials never belong in this public repository: environment files (the checked-in examples and the demo app's fake fixture are named), keys, package-manager tokens
+.env
+.env.*
+!.env.example
+!.env.qa.example
+!.env.qa.fixture
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+id_rsa*
+id_ed25519*
+.npmrc
+.netrc

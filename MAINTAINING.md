@@ -53,6 +53,15 @@ Releases are **Git tags** (`vX.Y.Z`); there is no npm package and no registry. *
 5. Commit ("Release vX.Y.Z"), then `git tag -a vX.Y.Z -m "QAMind X.Y.Z"`, then push the branch and the tag.
 6. **Verify from the published address, in a clean config folder**: `CLAUDE_CONFIG_DIR=$(mktemp -d) claude plugin marketplace add wajhiii/QAMind`, `claude plugin install qamind@qamind`, `claude plugin update qamind@qamind` (this last one installs the browser tool's files: `install` alone does not), `claude plugin list`; and `qamind update --version vX.Y.Z` on a Cursor or generic install. Only then announce it.
 
+## Keeping credentials out (the repository is public)
+
+Nothing that looks like a credential or a person's home folder may be tracked. `tests/conformance/no-secrets.test.ts` runs `scripts/scan-secrets.mjs` on every tracked file (so it runs in `npm test` and in CI): private keys, GitHub, Slack, AWS, Google, Anthropic or OpenAI, Stripe, Linear and Sentry tokens, web tokens, a password inside an address, and `/Users/<name>`-style paths. Made-up values in `tests/` and `scripts/eval-*` (a token to see it masked, an address to see it refused) are left alone. `.gitignore` keeps `.env`, `.env.*` (the named examples excepted), keys and `.npmrc` out.
+
+- **Before you push**: `node scripts/scan-secrets.mjs` (the files) and `node scripts/scan-secrets.mjs --history` (every version of every file in every commit, branch and tag; a removed credential is still in the history). `--show` prints personal data, never a credential.
+- **If a real credential was pushed**: rotate it first (revoke it at the service), then remove it. Removing it from the files does not remove it from the history, and a public repository has already been copied.
+- The author name and email of a commit are public too. Use the GitHub no-reply address (`<id>+<user>@users.noreply.github.com`, Settings, Emails) in `git config user.email` for this repository.
+- QAMind's own run reports are masked before they are written, and `.qa/` and `.env.qa` are git-ignored in a project it runs in; a folder that holds several repositories is not a repository, so keep its `.env.qa` out of any repository you commit.
+
 ## Publishing (what users do)
 
 The repository is the marketplace: `.claude-plugin/marketplace.json` at its root points at `plugins/qamind/`, which is **generated and committed**, so **always build before you commit** (CI fails otherwise). Users add it with `/plugin marketplace add wajhiii/QAMind` (the GitHub path of this repository; a full `https://github.com/wajhiii/QAMind.git` address works too, `file://` does not) and install with `/plugin install qamind@qamind`; a private repository needs the user's own git credentials. For Cursor and other tools: `git clone`, then `./setup --host …` (README). They update with `/plugin marketplace update qamind` and `qamind update`. **Checked so far** only against a local stand-in for a Git host (`scripts/standins/git-http-server.mjs`), never against GitHub ([docs/HOSTS.md](docs/HOSTS.md)).
